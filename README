@@ -1,0 +1,3 @@
+Usual autmake stuff
+
+./configure --prefix={builddir}
