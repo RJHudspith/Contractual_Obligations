@@ -63,7 +63,7 @@ local_meson_correlator( const struct spinor S1 ,
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  // combine to form correlator 
-	  corr += sign * conj( S1.D[d1][d2].C[c1][c2] ) * S2.D[id1][id2].C[c1][c2] ;
+	  corr += sign * conj( S1.D[d2][d1].C[c1][c2] ) * S2.D[id1][id2].C[c1][c2] ;
 	}
       }
       //
@@ -104,7 +104,7 @@ local_conserved_meson_correlator( const struct spinor S1 ,
 
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  corr += sign * conj( S1.D[d1][d2].C[c1][c2] ) * S2.D[id1][id2].C[c1][c2];
+	  corr += sign * conj( S1.D[d2][d1].C[c1][c2] ) * S2.D[id1][id2].C[c1][c2];
 	}
       }
     }
