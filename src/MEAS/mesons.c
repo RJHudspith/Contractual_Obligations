@@ -5,7 +5,9 @@
 
 #include "common.h"
 
-#include "io.h"
+#include "correlators.h"  // correlators
+#include "gammas.h"       // gamma matrices
+#include "io.h"           // read prop
 
 // allocate the correlator matrix
 static void
@@ -51,6 +53,10 @@ single_mesons( FILE *prop1 ,
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
+  // Compute lookup index for adjoint props 
+  int iadj[ NS ] , sadj[ NS ] ;
+  gamma_matrix( sadj , iadj , 5 ) ;
+
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
@@ -58,33 +64,25 @@ single_mesons( FILE *prop1 ,
     // read in the file
     read_prop( prop1 , S1 , header , t ) ;
 
-    int GAMMA_1 ;
+    int GAMMA_1 = 0 ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
       int GAMMA_2 ;
       for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
-
-	// Compute lookup index for adjoint props 
-	int iadj[ NS ] = {} ;
-	double complex sadj[ NS ] = {} ;
-	gamma_matrix( sadj , iadj , GAMMA_2 ) ;
-
-	register complex sum = 0.0 ;
+	register double complex sum = 0.0 ;
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum = sum + (double complex)local_meson_correlator( S1[ site ] , S1[ site ] , 
-							      sadj , iadj , 
-							      GAMMA_1 , GAMMA_2 ) ;
+	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
+					 sadj , iadj , 
+					 GAMMA_1 , GAMMA_2 ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
   }
-
-  // write out our data?
 
   // free our correlator measurement
   free_corrs( corr ) ;
@@ -110,6 +108,10 @@ double_mesons( FILE *prop1 ,
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
   struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
+  // Compute lookup index for adjoint props 
+  int iadj[ NS ] , sadj[ NS ] ;
+  gamma_matrix( sadj , iadj , 5 ) ;
+
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
@@ -123,12 +125,8 @@ double_mesons( FILE *prop1 ,
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
       int GAMMA_2 ;
-      for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
-
-	// Compute lookup index for adjoint props 
-	int iadj[ NS ] = {} ;
-	double complex sadj[ NS ] = {} ;
-	gamma_matrix( sadj , iadj , GAMMA_2 ) ;
+      //for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
+      for( GAMMA_2 = 0 ; GAMMA_2 < 1 ; GAMMA_2++ ) {
 
 	register complex sum = 0.0 ;
 	//
@@ -143,8 +141,6 @@ double_mesons( FILE *prop1 ,
       }
     }
   }
-
-  // write out our data?
 
   // free our correlator measurement
   free_corrs( corr ) ;

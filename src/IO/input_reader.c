@@ -130,7 +130,10 @@ header_type( void )
     printf( "[IO] Using sequence number from input file :: %d \n" ,
 	    Latt.flow = confno( ) ) ;
     return ILDG_BQCD_HEADER ;
-  } 
+  } else if( are_equal( INPUT[header_idx].VALUE , "UNIT" ) ) {
+    printf( "[IO] Generating a UNIT gauge configuration \n" ) ;
+    return UNIT_GAUGE ;
+  }
   printf( "[IO] HEADER %s not recognised ... Leaving \n" , 
 	  INPUT[header_idx].VALUE ) ;
   return FAILURE ; 
@@ -158,6 +161,10 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
 
   int INPUT_FAILS = 0 ; // counter for the number of failures
 
+  // get the header
+  Latt.head = header_type( ) ;
+  if( Latt.head == FAILURE ) STATUS = FAILURE ;
+
   // read some props
   int count = 0 ;
   char str[ 32 ] ;
@@ -168,10 +175,13 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
     strcpy( prop[ count ] , INPUT[ prop_idx ].VALUE ) ;
     count++ ;
   }
-  if( count == 0 ) STATUS = FAILURE ;
+  if( count == 0 ) { 
+    printf( "[IO] No propagator files specified ... Leaving \n" ) ;
+    STATUS = FAILURE ;
+  }
   *nprops = count ;
 
-  // read the dimensions
+  // read the dimensions from the input file
   int mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     sprintf( str , "DIMS%d" , mu ) ;
@@ -183,9 +193,6 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
     }
     dims[ mu ] = (int)atoi( INPUT[ dims_idx ].VALUE ) ;
   }
-
-  Latt.head = header_type( ) ;
-  if( Latt.head == FAILURE ) STATUS = FAILURE ;
 
   // close the file and deallocate the buffer
   fclose( infile ) ;

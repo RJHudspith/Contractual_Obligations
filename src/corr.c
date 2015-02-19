@@ -82,7 +82,7 @@ main( const int argc,
   const long int header = 122 ;
 
   // want to switch on these or call a wrapper
-  // single_mesons( fprop , header ) ;
+  single_mesons( fprops[0] , header ) ;
   // double_mesons( fprop1 , fprop2 , header ) ;
   // conserved_local( fprop1 , fprop2 , header ) ;
   // wall_mesons( frop1 , fprop2 , header ) ;

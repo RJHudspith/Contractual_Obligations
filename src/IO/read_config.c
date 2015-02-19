@@ -28,6 +28,42 @@
 #include "plaqs_links.h"   // average plaquette, link traces
 #include "readers.h"       // read config files
 
+// identity matrix
+static inline void
+identity( double complex a[ NCNC ] )
+{
+#if NC == 3
+  a[0] = 1.0 ; a[1] = 0.0 ; a[2] = 0.0 ;
+  a[3] = 0.0 ; a[4] = 1.0 ; a[5] = 0.0 ;
+  a[6] = 0.0 ; a[7] = 0.0 ; a[8] = 1.0 ;
+#else
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[i] = 0.0 ;
+  }
+  for( i = 0 ; i < NC ; i++ ) {
+    a[ i*(NC+1) ] = 1.0 ;
+  }
+#endif
+  return ;
+}
+
+// All ones 
+static void
+unit_gauge( struct site *__restrict lat )
+{
+  int i ; 
+  printf( "\n[UNIT] Creating identity SU(%d) lattice fields \n" , NC ) ; 
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    int mu ;
+    for( mu = 0 ; mu < ND ; mu++ ) { 
+      identity( lat[i].O[mu] ) ; 
+    } 
+  }    
+  return ;
+}
+
 // comparison between checksums
 static int 
 check_sums( plaq , tr , chksum , HEAD_DATA )
@@ -140,6 +176,9 @@ get_config_SUNC( FILE *__restrict CONFIG ,
       */
       return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
     } break ;
+  case UNIT_GAUGE :
+    unit_gauge( lat ) ;
+    return SUCCESS ;
   default : 
     printf( "[IO] Unrecognised HEADER type .. Leaving \n" ) ;
     return FAILURE ;

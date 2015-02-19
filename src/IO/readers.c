@@ -30,8 +30,7 @@
 #include "gramschmidt.h"
 #include "crc32.h" // for the scidac circular checksum
 
-//#define DEBUG
-
+// complete the full matrix
 static inline void 
 complete_NCxNC( O , uout )
      double complex *__restrict O ; 
