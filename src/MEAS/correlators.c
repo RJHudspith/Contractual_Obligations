@@ -23,6 +23,7 @@ local_meson_correlator( const struct spinor S1 ,
   int sign ; // permutation of the fourth roots of unity
 
   register double complex corr = 0.0 ;
+  register double rloc_corr , iloc_corr ;
 
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
@@ -35,7 +36,8 @@ local_meson_correlator( const struct spinor S1 ,
       // gamma matrix conventions
       sign = ( SRC.g[d1] + ADJ.g[id1] + SNK.g[d2] + ADJ.g[id2] )&3 ;
 
-      register double rloc_corr = 0.0 , iloc_corr = 0.0 ;
+      rloc_corr = 0.0 ;
+      iloc_corr = 0.0 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  //loc_corr += conj( S1.D[d1][d2].C[c1][c2] ) * S1.D[id1][id2].C[c1][c2];
@@ -46,7 +48,6 @@ local_meson_correlator( const struct spinor S1 ,
 	    cimag( S1.D[d1][d2].C[c1][c2] ) * creal( S1.D[id1][id2].C[c1][c2] ) ;
 	}
       }
-
       // is just a permutation with this basis this requires NS = 4
       switch( sign ) {
       case 0 : corr += rloc_corr + I * iloc_corr ; break ;

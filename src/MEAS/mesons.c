@@ -177,7 +177,7 @@ double_mesons( FILE *prop1 ,
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
+	  sum += local_meson_correlator( S1[ site ] , S2[ site ] , 
 					 GAMMAS[ 5 ] , 
 					 GAMMAS[ GAMMA_1 ] , 
 					 GAMMAS[ GAMMA_2 ] ) ;
