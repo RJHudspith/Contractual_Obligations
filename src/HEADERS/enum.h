@@ -7,6 +7,32 @@
 #define ENUM_H
 
 /**
+   @enum gamma_labels
+   @brief different conventions have different labelling
+*/
+#ifdef CHROMA_DIRAC_CONVENTION
+// degrand rossi on a chroma basis
+typedef enum {
+  IDENTITY = 0 ,
+  GAMMA_0 = 1 ,
+  GAMMA_1 = 2 ,
+  GAMMA_2 = 4 ,
+  GAMMA_3 = 8 ,
+  GAMMA_5 = 15 ,
+} gamma_labels ;
+#else
+// Mainz labelling
+typedef enum {
+  GAMMA_0 = 0 ,
+  GAMMA_1 = 1 ,
+  GAMMA_2 = 2 ,
+  GAMMA_3 = 3 ,
+  IDENTITY = 4 ,
+  GAMMA_5 = 5 ,
+} gamma_labels ;
+#endif
+
+/**
    @enum GLU_endian
    @brief enumeration of the endianess
 */
