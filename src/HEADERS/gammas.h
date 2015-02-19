@@ -6,12 +6,11 @@
 #define GAMMAS_H
 
 /**
-   @fn int gamma_matrix( struct gamma *G , const int mu )
-   @brief reshuffles indices (implicit gamma multiplication)
+   @fn int gamma_matrix( struct gamma *G )
+   @brief defines the gamma matrices in whatever compiled convention
  */
-int 
-gamma_matrix( struct gamma *G ,
-	      const int mu ) ;
+void
+make_gammas( struct gamma *GAMMA ) ;
 
 #endif
 
