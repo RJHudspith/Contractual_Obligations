@@ -6,24 +6,45 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-// color matrix
+/**
+   @struct colormatrix
+   @brief color matrix
+*/
 struct colormatrix {
   double complex C[ NC ][ NC ] ;
 } ;
 
-// spin matrix
+/**
+   @struct spinmatrix
+   @brief dirac components
+*/
 struct spinmatrix {
   double complex D[ NS ][ NS ] ;
 } ;
 
-// spinor is a spinmatrix of colormatrices
-struct spinor {
+/**
+   @struct spinor
+   @brief spinor is a spinmatrix of colormatrices
+*/
+struct spinor{
   struct colormatrix D[ NS ][ NS ] ;
 } ;
 
-// little struct for the correlator data
+/**
+   @struct correlator
+   @brief correlator data storage
+ */
 struct correlator{
   double complex *C ;
+} ;
+
+/**
+   @struct gamma
+   @brief gamma matrix type
+*/
+struct gamma{
+  int g[ NS ] ;  // one of the 4 roots of unity
+  int ig[ NS ] ; // index is non zero column
 } ;
 
 /**

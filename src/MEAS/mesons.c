@@ -1,6 +1,8 @@
 /**
    @file mesons.c
    @brief meson computation codes
+
+   TODO :: write out computed correlated matrix, format? crc?
  */
 
 #include "common.h"
@@ -54,8 +56,8 @@ single_mesons( FILE *prop1 ,
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   // Compute lookup index for adjoint props 
-  int iadj[ NS ] , sadj[ NS ] ;
-  gamma_matrix( sadj , iadj , 5 ) ;
+  struct gamma ADJ ;
+  gamma_matrix( &ADJ , 5 ) ;
 
   int t ;
   // Time slice loop 
@@ -68,21 +70,32 @@ single_mesons( FILE *prop1 ,
     // parallelise the furthest out loop
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
+
+      // Source gamma index 
+      struct gamma SRC , SNK ;
+      gamma_matrix( &SRC , GAMMA_1 ) ;
+
       int GAMMA_2 ;
       for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
+	
+	// precompute Sink gamma
+	gamma_matrix( &SNK , GAMMA_2 ) ;
+
 	register double complex sum = 0.0 ;
+
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
 	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 sadj , iadj , 
-					 GAMMA_1 , GAMMA_2 ) ;
+					 ADJ , SRC , SNK ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
   }
+
+  // & do something with the computed correlators
 
   // free our correlator measurement
   free_corrs( corr ) ;
@@ -109,8 +122,8 @@ double_mesons( FILE *prop1 ,
   struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   // Compute lookup index for adjoint props 
-  int iadj[ NS ] , sadj[ NS ] ;
-  gamma_matrix( sadj , iadj , 5 ) ;
+  struct gamma ADJ ;
+  gamma_matrix( &ADJ , 5 ) ;
 
   int t ;
   // Time slice loop 
@@ -124,17 +137,25 @@ double_mesons( FILE *prop1 ,
     // parallelise the furthest out loop
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
+
+      // source and sink gamma labels
+      struct gamma SRC , SNK ;
+
+      // Source gamma index 
+      gamma_matrix( &SRC , GAMMA_1 ) ;
+
       int GAMMA_2 ;
-      //for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
-      for( GAMMA_2 = 0 ; GAMMA_2 < 1 ; GAMMA_2++ ) {
+      for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
+
+	// Sink gamma index 
+	gamma_matrix( &SNK , GAMMA_2 ) ;
 
 	register complex sum = 0.0 ;
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum = sum + (double complex)local_meson_correlator( S1[ site ] , S2[ site ] , 
-							      sadj , iadj , 
-							      GAMMA_1 , GAMMA_2 ) ;
+	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
+					 ADJ , SRC , SNK ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;

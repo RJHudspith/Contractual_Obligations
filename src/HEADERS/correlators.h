@@ -8,28 +8,17 @@
 
 
 /**
-   @fn double complex local_meson_correlator( const struct spinor S1 , const struct spinor S2 , const int *sadj , const int *iadj, const int mu1, const int mu2 )
+   @fn double complex local_meson_correlator( const struct spinor S1 , const struct spinor S2 , const struct gamma ADJ , const struct gamma SRC , const struct gamma SNK )
+   @param S1 :: propagator solution at a site
+   @param S2 :: second propagator solution at a site
+
    @return C(t) from spin-color trace
  */
 double complex 
 local_meson_correlator( const struct spinor S1 , 
 			const struct spinor S2 , 
-			const int *sadj ,
-			const int *iadj , 
-			const int mu1 , 
-			const int mu2 ) ;
-
-/**
-   @fn double complex local_conserved_meson_correlator( const struct spinor S1 , const struct spinor S2 , const int *sadj , const int *iadj, const int mu1, const int mu2 )
-   @brief local-conserved correlator
- */
-double complex 
-local_conserved_meson_correlator( const struct spinor S1 , 
-				  const struct spinor S2 , 
-				  const int *sadj ,
-				  const int *iadj , 
-				  const int mu1 , 
-				  const int mu2 ) ;
-
+			const struct gamma ADJ ,
+			const struct gamma SRC ,
+			const struct gamma SNK ) ;
 
 #endif

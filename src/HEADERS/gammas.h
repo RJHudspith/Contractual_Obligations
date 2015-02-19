@@ -6,12 +6,11 @@
 #define GAMMAS_H
 
 /**
-   @fn int gamma_matrix( int *g , int *ig , const int mu )
+   @fn int gamma_matrix( struct gamma *G , const int mu )
    @brief reshuffles indices (implicit gamma multiplication)
  */
 int 
-gamma_matrix( int *g , 
-	      int *ig , 
+gamma_matrix( struct gamma *G ,
 	      const int mu ) ;
 
 #endif
