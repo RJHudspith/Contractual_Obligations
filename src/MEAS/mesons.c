@@ -11,6 +11,8 @@
 #include "gammas.h"       // gamma matrices
 #include "io.h"           // read prop
 
+//#define DEBUG
+
 // allocate the correlator matrix
 static void
 allocate_corrs( struct correlator **corr )
@@ -55,9 +57,14 @@ single_mesons( FILE *prop1 ,
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
-  // Compute lookup index for adjoint props 
-  struct gamma ADJ ;
-  gamma_matrix( &ADJ , 5 ) ;
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+
+  // precompute the gamma basis
+  int s ;
+  for( s = 0 ; s < NS * NS ; s++ ) {
+    gamma_matrix( &GAMMAS[ s ] , s ) ;
+  }
 
   int t ;
   // Time slice loop 
@@ -71,23 +78,18 @@ single_mesons( FILE *prop1 ,
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
 
-      // Source gamma index 
-      struct gamma SRC , SNK ;
-      gamma_matrix( &SRC , GAMMA_1 ) ;
-
       int GAMMA_2 ;
       for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
 	
-	// precompute Sink gamma
-	gamma_matrix( &SNK , GAMMA_2 ) ;
-
 	register double complex sum = 0.0 ;
 
-	//
+	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
 	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 ADJ , SRC , SNK ) ;
+					 GAMMAS[ 5 ] , 
+					 GAMMAS[ GAMMA_1 ] , 
+					 GAMMAS[ GAMMA_2 ] ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
@@ -96,9 +98,34 @@ single_mesons( FILE *prop1 ,
   }
 
   // & do something with the computed correlators
+#ifdef DEBUG
+  printf( "PION\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[5][5].C[t] ) , cimag( corr[5][5].C[t] ) ) ;
+  }
+  printf( "00\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[0][0].C[t] ) , cimag( corr[0][0].C[t] ) ) ;
+  }
+  printf( "11\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[1][1].C[t] ) , cimag( corr[1][1].C[t] ) ) ;
+  }
+  printf( "22\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[2][2].C[t] ) , cimag( corr[2][2].C[t] ) ) ;
+  }
+  printf( "33\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[3][3].C[t] ) , cimag( corr[3][3].C[t] ) ) ;
+  }
+#endif
 
   // free our correlator measurement
   free_corrs( corr ) ;
+
+  // free our GAMMAS
+  free( GAMMAS ) ;
 
   // free our spinor
   free( S1 ) ;
@@ -121,9 +148,14 @@ double_mesons( FILE *prop1 ,
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
   struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
-  // Compute lookup index for adjoint props 
-  struct gamma ADJ ;
-  gamma_matrix( &ADJ , 5 ) ;
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+
+  // precompute the gamma basis
+  int s ;
+  for( s = 0 ; s < NS * NS ; s++ ) {
+    gamma_matrix( &GAMMAS[ s ] , s ) ;
+  }
 
   int t ;
   // Time slice loop 
@@ -138,24 +170,17 @@ double_mesons( FILE *prop1 ,
     #pragma omp parallel for private(GAMMA_1)
     for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
 
-      // source and sink gamma labels
-      struct gamma SRC , SNK ;
-
-      // Source gamma index 
-      gamma_matrix( &SRC , GAMMA_1 ) ;
-
       int GAMMA_2 ;
       for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
-
-	// Sink gamma index 
-	gamma_matrix( &SNK , GAMMA_2 ) ;
 
 	register complex sum = 0.0 ;
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
 	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 ADJ , SRC , SNK ) ;
+					 GAMMAS[ 5 ] , 
+					 GAMMAS[ GAMMA_1 ] , 
+					 GAMMAS[ GAMMA_2 ] ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
@@ -165,6 +190,9 @@ double_mesons( FILE *prop1 ,
 
   // free our correlator measurement
   free_corrs( corr ) ;
+
+  // free our gamma matrices
+  free( GAMMAS ) ;
 
   // free our spinors
   free( S1 ) ;
