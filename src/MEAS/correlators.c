@@ -40,6 +40,8 @@ local_meson_correlator( const struct spinor S1 ,
       iloc_corr = 0.0 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  // should this conjugate be conj( S1.D[d2][d1].C[c2][c1] ) ? This is daggered right?
+
 	  //loc_corr += conj( S1.D[d1][d2].C[c1][c2] ) * S1.D[id1][id2].C[c1][c2];
 	  rloc_corr += creal( S1.D[d1][d2].C[c1][c2] ) * creal( S1.D[id1][id2].C[c1][c2] ) + \
 	    cimag( S1.D[d1][d2].C[c1][c2] ) * cimag( S1.D[id1][id2].C[c1][c2] ) ;

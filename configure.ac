@@ -9,7 +9,7 @@ AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_LANG([C]) 
-AM_PROG_AR
+##AM_PROG_AR
 AC_PROG_RANLIB ## include a check for libtool if not use ranlib?
 AC_C_BIGENDIAN 
 

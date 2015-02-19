@@ -61,10 +61,7 @@ single_mesons( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
-    gamma_matrix( &GAMMAS[ s ] , s ) ;
-  }
+  make_gammas( GAMMAS ) ;
 
   int t ;
   // Time slice loop 
@@ -152,10 +149,7 @@ double_mesons( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
-    gamma_matrix( &GAMMAS[ s ] , s ) ;
-  }
+  make_gammas( GAMMAS ) ;
 
   int t ;
   // Time slice loop 
