@@ -8,6 +8,7 @@ AC_INIT([CORR], [0.1], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlem
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O
+AM_PROG_AR
 AC_LANG([C]) 
 ##AM_PROG_AR
 AC_PROG_RANLIB ## include a check for libtool if not use ranlib?
@@ -82,6 +83,121 @@ AC_ARG_WITH([NS],
 	    ],[
 	    AC_MSG_NOTICE([User unspecified NS, default to 4])	
 	    ])
+
+## Finally we have routines for this node or many machines
+## historically targeted at "CONDOR", default is CONDOR_MODE
+AC_ARG_ENABLE([notcondor],
+	[ --enable-notcondor Allows for the saving of FFT plans and some simple hashing and whatever],
+	[case "${enableval}" in
+	yes) ## Check the condor enable creates the dirs $prefix/Local/(Wisdom && Moments)
+	     ## used for some light caching of previous results
+             if [ test "$prefix" == "NONE" ] ;then
+             	AC_MSG_NOTICE([Cannot save wisdom as we are not prefixed, defining CONDOR_MODE by default])
+             else
+		AC_MSG_NOTICE([FFTW's WISDOM routines being used, targeted specifically for this node])
+		AC_DEFINE([NOT_CONDOR_MODE],,[targeted, has been seen to be quicker but do not distribute the binaries!])
+		mkdir $prefix/Local/	
+		mkdir $prefix/Local/Wisdom
+		mkdir $prefix/Local/Moments 
+             fi
+	     AC_MSG_NOTICE([FFTW plans created ONCE. Subsequent transforms are read from Local/Wisdom/])
+	     ;;
+	no) AC_MSG_NOTICE([default condor routines called, i.e. FFTW plans created here and now]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-notcondor]) ;;
+	esac],[])
+
+## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
+######################################### FFTW3 ###############################################
+##                                                                                           ##
+##    This one is tricky, looks first for the static link to FFTW library, if not found      ##
+##    then the shared. If --with-fftw= then it looks in /usr/lib for the shared              ##
+##    otherwise we miss out on all of the Fourier transform stuff like Fourier acceleration, ##
+##    Momentum space gluons and quenched U(1). Not a necessity.                              ##
+##                                                                                           ##
+###############################################################################################
+
+## I have now written the code to utilise OpenMP parallel FFT routines
+AC_ARG_ENABLE([OMP_FFTW],
+	[ --enable-OMP_FFTW Utilise FFTW's OpenMP parallel FFTs],
+	[case "${enableval}" in
+	yes) OMP_FFTW=true ;;
+	no) OMP_FFTW=false ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-OMP_FFTW]) ;;
+	esac],[OMP_FFTW=false])
+
+## Look for openmp, cannot turn on the omp fftw routines without it!
+AC_CHECK_HEADERS([omp.h],[],[OMP_FFTW=false])
+
+## Look for fftw in the useer specified place
+fftw=false 
+AC_ARG_WITH([fftw],
+	AC_HELP_STRING([--with-fftw=<name>],
+		       [Specify FFTW location for the GF]),
+            [
+	    ## see if we already have it	
+	    AC_CHECK_HEADERS([fftw3.h],[local_fftw=true],[local_fftw=false])
+	    
+	    FFTW=${with_fftw}
+
+	    ## are we compiling for single precision or not?
+	    if test x$single = xtrue ; then
+	       float_version=f
+	    else	
+	       float_version=""
+	    fi
+
+	    AC_CHECK_HEADERS([${FFTW}include/fftw3.h],[
+	    AC_MSG_NOTICE([User defined fftw library @ $FFTW])
+	    AC_MSG_NOTICE([Attempting linking to the user's FFTW lib ${FFTW}lib/libfftw3${float_version}])
+	
+	    ## if we use the user one, only link to the static lib
+	    if [ test -a ${FFTW}lib/libfftw3${float_version}.a ]; then
+		AC_MSG_NOTICE([Statically linking to the user's FFTW lib])
+	    	CFLAGS="$CFLAGS -I${FFTW}include"
+	    	LDFLAGS="$LDFLAGS ${FFTW}lib/libfftw3${float_version}.a"
+		if test x$OMP_FFTW = xtrue ; then
+		   if test -a ${FFTW}lib/libfftw3${float_version}_omp.a ; then
+		      LDFLAGS="$LDFLAGS ${FFTW}lib/libfftw3${float_version}_omp.a"
+		      AC_DEFINE([OMP_FFTW],[],[OpenMP-parallel FFT routines.])
+		   fi
+		fi
+	        AC_DEFINE([HAVE_FFTW3_H],[],[FFTW library.])
+	    ## Have a look for the shared object library ...
+            elif [ test -a ${FFTW}lib/libfftw3${float_version}.so ]; then
+		AC_MSG_NOTICE([Static link not found !! Shared object (.so) linking to the user's FFTW lib])
+	    	CFLAGS="$CFLAGS -I${FFTW}include -L${FFTW}lib/"
+	    	LDFLAGS="$LDFLAGS -lfftw3${float_version}"
+		if test x$OMP_FFTW = xtrue ; then
+		   ## check to see if it is there otherwise don't include it
+		   if test -a ${FFTW}lib/libfftw3${float_version}_omp.so ; then
+		      LDFLAGS="$LDFLAGS -lfftw3${float_version}_omp"
+		      AC_DEFINE([OMP_FFTW],[],[OpenMP-parallel FFT routines.])
+		   fi
+		fi
+	        AC_DEFINE([HAVE_FFTW3_H],[],[FFTW library.])
+            else
+	    	AC_MSG_ERROR([fftw3.h found, but cannot find the shared or static libraries!])
+	    fi
+	    ]	    
+	    , [
+	    ## see if we already have it	
+	    AC_CHECK_HEADERS([fftw3.h],[local_fftw=true],[local_fftw=false])
+
+	    ## get desperate here and check for the header in the usual places
+	    ## as omp routines are special I doubt they will be installed, maybe should do a special check
+	    if test x$local_fftw = "xtrue" ; then
+	       LDFLAGS="$LDFLAGS -lfftw3${float_version}"
+	       AC_MSG_NOTICE([Using the system's fftw])	       
+	       AC_DEFINE([HAVE_FFTW3_H],[],[FFTW library.])
+	    else
+	       AC_MSG_NOTICE([No local fftw3.h found either!])
+	    fi
+     ]) ## closes the check headers ...
+]
+## closes with-FFTW
+)
+AM_CONDITIONAL([DEFFFTW],[$fftw])
+AC_SUBST(FFTW)
 
 ## C standard libraries
 AC_CHECK_HEADERS([math.h],[LDFLAGS="$LDFLAGS -lm" ])

@@ -14,6 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_FFTW3_H
+#include <fftw3.h>
+#endif
+
 #define WORDS_BIGENDIAN 0
 
 #include "definitions.h"

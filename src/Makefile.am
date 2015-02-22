@@ -12,12 +12,14 @@ include_HEADERS = \
 	./HEADERS/geometry.h ./HEADERS/GLU_bswap.h ./HEADERS/GLU_timer.h \
 	./HEADERS/gramschmidt.h ./HEADERS/input_reader.h ./HEADERS/io.h ./HEADERS/mesons.h \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
-	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/XML_info.h
+	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
+	./HEADERS/XML_info.h
 
 libCORR_a_SOURCES = \
-	./GEOM/gammas.c ./GEOM/geometry.c ./IO/chklat_stuff.c ./IO/io.c \
-	./IO/input_reader.c ./IO/read_config.c ./IO/readers.c ./IO/read_headers.c \
-	./IO/Scidac.c ./IO/XML_info.c ./MEAS/correlators.c ./MEAS/mesons.c \
+	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
+	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
+	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
+	./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/wall_mesons.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c
 
