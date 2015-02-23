@@ -31,4 +31,18 @@ read_prop( FILE *fprop,
 	   const long int header, 
 	   const int tslice ) ;
 
+
+/**
+     @fn int read_nrprop( FILE *fprop, struct spinor *S , const long int header, const int tslice )
+     @brief read the NRQCD propagator for a timeslice and transform it into the chiral basis
+       
+  */
+int
+read_nrprop( FILE *fprop,
+       struct spinor *S ,
+       const long int header,
+       const int tslice ) ;
+
+
+
 #endif

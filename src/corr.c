@@ -17,8 +17,6 @@
 // to be taken from the gauge configuration file OR the input file
 struct latt_info Latt ;
 
-//gittst
-
 // enumeration for the arguments to our binary
 enum{ INFILE = 2 , GAUGE_FILE = 4 } ;
 
@@ -82,12 +80,15 @@ main( const int argc,
   start_timer( ) ;
 
   const long int header = 122 ;
+  const long int header2= 218 ;
 
   // want to switch on these or call a wrapper
-  single_mesons( fprops[0] , header ) ;
-  // double_mesons( fprops[0] , fprops[1] , header ) ;
-  // conserved_local( fprops[0] , fprops[1] , header ) ;
-  // wall_mesons( fprops[0] , header ) ;
+  single_mesons( fprops[2] , header ) ;
+  hheavy_mesons( fprops[1] , header2) ;
+  double_mesons( fprops[2] , fprops[1] , header, header2 ) ;
+  double_mesons( fprops[2] , fprops[3] , header, header2 ) ;
+  // conserved_local( fprop1 , fprop2 , header ) ;
+  // wall_mesons( frop1 , fprop2 , header ) ;
   // ... etc
 
   print_time( ) ;

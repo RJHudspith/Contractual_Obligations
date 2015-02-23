@@ -17,7 +17,7 @@ single_mesons( FILE *fprop ,
 	       const int header ) ;
 
 /**
-   @fn int double_mesons( FILE *prop1 , FILE *prop2 , const int header )
+   @fn int double_mesons( FILE *prop1 , FILE *prop2 , const int header, const int header2 )
    @brief compute mesons from two propagators
 
    @return #SUCCESS or #FAILURE
@@ -25,6 +25,20 @@ single_mesons( FILE *fprop ,
 int
 double_mesons( FILE *prop1 , 
 	       FILE *prop2 ,  
-	       const int header ) ;
+	       const int header, 
+	       const int header2 ) ;
+
+
+/**
+     @fn int hheavy_mesons( FILE *prop1 , FILE *prop2 , const int header )       
+	 @brief compute mesons from two NRQCD propagators
+ 
+     @return #SUCCESS or #FAILURE
+ */
+int
+hheavy_mesons( FILE *prop1 ,
+           const int header ) ;
+
+
 
 #endif
