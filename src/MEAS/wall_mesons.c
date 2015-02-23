@@ -114,10 +114,11 @@ wall_mesons( FILE *prop1 ,
 
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator_singlet( S1[ site ] ,
-						 GAMMAS[ GAMMA_5 ] , 
-						 GAMMAS[ G1 ] , 
-						 GAMMAS[ G2 ] ) ;
+	  sum += local_meson_correlator( S1[ site ] ,
+					 S1[ site ] ,
+					 GAMMAS[ GAMMA_5 ] , 
+					 GAMMAS[ G1 ] , 
+					 GAMMAS[ G2 ] ) ;
 	}
 
 	// normal wall-local meson correlator
@@ -126,6 +127,7 @@ wall_mesons( FILE *prop1 ,
 	// correlator computed just out of the summed walls
 	wwcorr[ G1 ][ G2 ].C[ t ] =	\
 	  local_meson_correlator_singlet( SUM1 ,
+					  SUM1 ,
 					  GAMMAS[ GAMMA_5 ] , 
 					  GAMMAS[ G1 ] , 
 					  GAMMAS[ G2 ] ) ;

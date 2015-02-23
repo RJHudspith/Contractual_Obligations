@@ -57,50 +57,20 @@ read_prop( FILE *fprop,
   long int jumper;
 
   // Set position in file 
-  jumper = header + VOL3 * tslice * spinsize *2 * sizeof(double);
+  jumper = header + VOL3 * tslice * spinsize * sizeof(double complex);
   fseek(fprop, jumper, SEEK_SET);
 
   // read in site-by-site
-  double *tmp = malloc( spinsize * 2 * sizeof( double ) ) ;
-
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
     // Read in three timeslices from tslice 
-    if( fread( tmp , sizeof(double), spinsize*2 , fprop) != 
-	spinsize*2 ) {
+    if( fread( S[i].D , sizeof(double complex), spinsize , fprop) != 
+	spinsize ) {
       printf( "Fread propagator failure \n" ) ;
-      free( tmp ) ;
       return FAILURE ;
     }
-
-    // poke it into our struct
-    int d1 , d2 , k = 0 ;
-    for( d1 = 0 ; d1 < NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NS ; d2++ ) {
-	#if NC == 3
-	S[i].D[d1][d2].C[0][0] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[0][1] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[0][2] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[1][0] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[1][1] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[1][2] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[2][0] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[2][1] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	S[i].D[d1][d2].C[2][2] = tmp[k] + I * tmp[k+1] ; k+=2 ;
-	#else
-	int c1 , c2 ;
-	for( c1 = 0 ; c1 < NC ; c1++ ) {
-	  for( c2 = 0 ; c2 < NC ; c2++ ) {
-	    S[i].D[d1][d2].C[c1][c2] = tmp[ k ] + I * tmp[ k + 1 ] ; k+= 2 ;
-	  }
-	}
-	#endif
-      }
-    }
-    // checksum that noise
-
+    // checksum that noise?
   }
-  free( tmp ) ;
 
   return SUCCESS ;
 }
