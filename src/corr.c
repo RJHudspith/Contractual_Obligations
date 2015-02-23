@@ -17,6 +17,8 @@
 // to be taken from the gauge configuration file OR the input file
 struct latt_info Latt ;
 
+//gittst
+
 // enumeration for the arguments to our binary
 enum{ INFILE = 2 , GAUGE_FILE = 4 } ;
 
