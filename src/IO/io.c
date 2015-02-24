@@ -5,6 +5,7 @@
 
 #include "common.h"
 
+#include "crc32.h"
 #include "GLU_bswap.h"
 
 // the question is ... Who checks the checksum?
@@ -28,7 +29,7 @@ check_checksum( FILE *fprop )
     }
     // we need to know what end is up, this is actually kinda tricky
     DML_checksum_accum( &CRCsum29 , &CRCsum31 , site , 
-			(unsigned char*)prop_buf , 
+			(char*)prop_buf , 
 			2 * spinsize * sizeof(double) ) ;
   }
   
@@ -51,17 +52,17 @@ check_checksum( FILE *fprop )
   return SUCCESS ;
 }
 
-// Read propagator time slice 
-// should we accumulate the checksum? I think we should in fact I will probably do that next - J
-int 
-read_prop( FILE *fprop, 
-	   struct spinor *S )
+// Read light propagator on a time slice 
+// should we accumulate the checksum? Probably
+static int 
+read_chiralprop( FILE *fprop, 
+		 struct spinor *S )
 {
   const int spinsize = NC * NC * NS * NS ;
 
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
-    // Read in three timeslices from tslice 
+    // Read in propagator on a timeslice
     if( fread( S[i].D , sizeof(double complex), spinsize , fprop) != 
 	spinsize ) {
       printf( "Fread propagator failure \n" ) ;
@@ -73,14 +74,12 @@ read_prop( FILE *fprop,
 }
 
 // Read NRQCD propagator time slice 
-int 
+static int 
 read_nrprop( FILE *fprop, 
 	     struct spinor *S )
 {
-  int NR_NS = NS/2 ;
+  const int NR_NS = NS/2 ;
   const int spinsize = NC * NC * NR_NS * NR_NS ;
-  long int jumper;
-  struct spinor P;
 
   // read in site-by-site
   double *tmp = malloc( spinsize * 2 * sizeof( double ) ) ;
@@ -95,7 +94,7 @@ read_nrprop( FILE *fprop,
       return FAILURE ;
     }
 
-    int d1 , d2 , c1 , c2 , k = 0 ;
+    int d1 , d2 , k = 0 ;
     // Now fill the non-zero components from the buffer
     for( d1 = 0 ; d1 < NR_NS ; d1++ ) {
       for( d2 = 0 ; d2 < NR_NS ; d2++ ) {
@@ -110,6 +109,7 @@ read_nrprop( FILE *fprop,
 	S[i].D[d1][d2].C[2][1] = tmp[k] + I * tmp[k+1] ; k+=2 ;
 	S[i].D[d1][d2].C[2][2] = tmp[k] + I * tmp[k+1] ; k+=2 ;
 	#else
+	int c1 , c2 ;
 	for( c1 = 0 ; c1 < NC ; c1++ ) {
 	  for( c2 = 0 ; c2 < NC ; c2++ ) {
 	    S[i].D[d1][d2].C[c1][c2] = tmp[ k ] + I * tmp[ k + 1 ] ; k+= 2 ;
@@ -125,12 +125,13 @@ read_nrprop( FILE *fprop,
 }
 
 // Read light propagator time slice and change to nrel basis
-int 
+static int 
 read_chiral2nrel( FILE *fprop, 
 		  struct spinor *S )
 {
   const int spinsize = NC * NC * NS * NS ;
 
+  int c1, c2 ;
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
 
@@ -141,8 +142,6 @@ read_chiral2nrel( FILE *fprop,
       printf( "[C2NR] Fread propagator failure \n" ) ;
       return FAILURE ;
     }
-
-    int c1, c2 , d1 , d2 ;
 
     // change from chiral into nrel basis
     //  
@@ -186,4 +185,20 @@ read_chiral2nrel( FILE *fprop,
   return SUCCESS ;
 }
 
+// thin wrapper for propagator reading
+int
+read_prop( FILE *fprop ,
+	   struct spinor *S ,
+	   const proptype prop )
+{
+  switch( prop ) {
+  case CHIRAL :
+    return read_chiralprop( fprop , S ) ;
+  case CHIRAL_TO_NREL :
+    return read_chiral2nrel( fprop , S ) ;
+  case NREL :
+    return read_nrprop( fprop , S ) ;
+  }
+  return FAILURE ;
+}
 

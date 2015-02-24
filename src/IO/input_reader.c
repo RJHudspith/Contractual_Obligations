@@ -159,8 +159,6 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
   // if we can open the file we push it into a big structure
   pack_inputs( infile ) ;
 
-  int INPUT_FAILS = 0 ; // counter for the number of failures
-
   // get the header
   Latt.head = header_type( ) ;
   if( Latt.head == FAILURE ) STATUS = FAILURE ;

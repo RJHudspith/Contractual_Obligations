@@ -2,16 +2,18 @@
    @file corr.c
    @brief mainfile
  */
-#include "common.h"       // one header to rule them all
+#include "common.h"          // one header to rule them all
 
-#include "GLU_timer.h"    // sys/time.h wrapper
-#include "io.h"           // file IO stuff
-#include "input_reader.h" // input file reader
-#include "mesons.h"       // meson contractions
-#include "plaqs_links.h"  // plaquettes and links of gauge field
-#include "readers.h"      // gauge config reader
-#include "read_config.h"  // read a gauge configuration file
-#include "read_headers.h" // read the header file in gauge config
+#include "geometry.h"        // init_geom and init_navig
+#include "GLU_timer.h"       // sys/time.h wrapper
+#include "io.h"              // file IO stuff
+#include "input_reader.h"    // input file reader
+#include "mesons.h"          // meson contractions
+#include "plaqs_links.h"     // plaquettes and links of gauge field
+#include "readers.h"         // gauge config reader
+#include "read_config.h"     // read a gauge configuration file
+#include "read_headers.h"    // read the header file in gauge config
+#include "read_propheader.h" // read the propagator file header
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -85,12 +87,12 @@ main( const int argc,
   start_timer( ) ;
 
   // want to switch on these or call a wrapper
-  single_mesons( fprops[0] ) ;
-  //hheavy_mesons( fprops[0] ) ;
-  //double_mesons( fprops[0] , fprops[1] ) ;
-  //double_mesons( fprops[2] , fprops[3] ) ;
-  //conserved_local( fprops[0] , fprops[1] ) ;
-  //wall_mesons( frops[0] , fprops[1] ) ;
+  single_mesons( fprops[0] , CHIRAL ) ;
+  //hheavy_mesons( fprops[0] , NREL ) ;
+  //double_mesons( fprops[0] , CHIRAL_TO_NREL , fprops[1] , NREL ) ;
+  //double_mesons( fprops[2] , NREL , fprops[3] , NREL ) ;
+  //conserved_local( fprops[0] , CHIRAL , fprops[1] , CHIRAL ) ;
+  //wall_mesons( frops[0] , CHIRAL , fprops[1] , CHIRAL ) ;
 
   print_time( ) ;
 

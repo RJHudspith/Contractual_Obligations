@@ -23,8 +23,7 @@ contract_conserved_local( struct fftdata *FFTDATA_VV ,
 }
 
 int
-conserved_local( FILE *fprop1 ,
-		 const int header )
+conserved_local( FILE *fprop1 )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
@@ -46,6 +45,8 @@ conserved_local( FILE *fprop1 ,
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
   struct spinor *S1UP = malloc( VOL3 * sizeof( struct spinor ) ) ;
+
+  // contractions in this
 
 #ifdef HAVE_FFTW3_H
   // might be (but I doubt it) slow, most memory efficient way I could think of

@@ -6,14 +6,14 @@
 #define CRC32_H
 
 /**
-   @fn void DML_checksum_accum( uint32_t *checksuma , uint32_t *checksumb , const uint32_t rank, unsigned char *buf, size_t size )
+   @fn void DML_checksum_accum( uint32_t *checksuma , uint32_t *checksumb , const uint32_t rank, char *buf, size_t size )
    @brief compute the CRC32 checksum
  */
 void 
 DML_checksum_accum( uint32_t *checksuma , 
 		    uint32_t *checksumb , 
 		    const uint32_t rank, 
-		    unsigned char *buf, 
+		    char *buf, 
 		    size_t size ) ;
 
 /**

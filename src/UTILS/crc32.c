@@ -147,7 +147,7 @@ static uLongf crc_table[256] = {
 
 
 static uint32_t
-crc32( uLong crc , const unsigned char *buf , size_t len )
+crc32( uLong crc , const char *buf , size_t len )
 {
     if (buf == Z_NULL) return 0L;
 #ifdef DYNAMIC_CRC_TABLE
@@ -273,7 +273,7 @@ void
 DML_checksum_accum( uint32_t *checksuma , 
 		    uint32_t *checksumb , 
 		    const uint32_t rank, 
-		    unsigned char *buf, 
+		    char *buf, 
 		    size_t size )
 {
 #ifdef DEBUG

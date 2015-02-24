@@ -25,8 +25,11 @@
 
 #include "common.h"
 
+#include "geometry.h"      // init_navig is here 
 #include "plaqs_links.h"   // average plaquette, link traces
+#include "Scidac.h"        // Scidac header reading
 #include "readers.h"       // read config files
+#include "read_headers.h"  // header readers
 
 // identity matrix
 static inline void
@@ -155,7 +158,6 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 		 struct site *__restrict lat ,
 		 const struct head_data HEAD_DATA )
 {
-  uint32_t chksum ;
   switch( Latt.head ) {
   case LIME_HEADER : // is the same but doesn't care about the checksums
   case ILDG_BQCD_HEADER : // basically all the same NERSC NCxNC

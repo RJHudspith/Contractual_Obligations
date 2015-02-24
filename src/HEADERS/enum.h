@@ -33,6 +33,15 @@ typedef enum {
 #endif
 
 /**
+   @enum proptype
+   @brief propagator type definition
+ */
+typedef enum {
+  CHIRAL ,
+  CHIRAL_TO_NREL ,
+  NREL } proptype ;
+
+/**
    @enum GLU_endian
    @brief enumeration of the endianess
 */

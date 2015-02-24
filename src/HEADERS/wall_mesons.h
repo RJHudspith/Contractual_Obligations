@@ -7,20 +7,21 @@
 #define WALL_MESONS_H
 
 /**
-   @fn int wall_mesons( FILE *prop1 , const int header )
-   @brief singlet wall meson code
+   @fn int wall_mesons( FILE *prop1 , const proptype proptype1 )
+   @brief wall meson code
  */
 int
-wall_mesons( FILE *prop1 , 
-	     const int header ) ;
+wall_mesons( FILE *prop1 ,
+	     const proptype proptype1 ) ;
 
 /**
-   @fn int wall_double_mesons( FILE *prop1 , FILE *prop2 ,const int header )
-   @brief singlet wall meson code
+   @fn int wall_double_mesons( FILE *prop1 , const proptype proptype1 , FILE *prop2 , const proptype proptype2 )
+   @brief wall meson code for two wall props
  */
 int
 wall_double_mesons( FILE *prop1 , 
-		    FILE *prop2 , 
-		    const int header ) ;
+		    const proptype proptype1 ,
+		    FILE *prop2 ,
+		    const proptype proptype2 ) ;
 
 #endif

@@ -6,11 +6,10 @@
 #define CONSERVED_LOCAL_H
 
 /**
-   @fn int conserved_local( FILE *fprop1 , const int header )
+   @fn int conserved_local( FILE *fprop1 )
    @brief conserved-local contractions
  */
 int
-conserved_local( FILE *fprop1 ,
-		 const int header ) ;
+conserved_local( FILE *fprop1 ) ;
 
 #endif

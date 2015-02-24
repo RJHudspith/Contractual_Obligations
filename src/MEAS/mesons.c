@@ -14,7 +14,7 @@
 #define DEBUG
 
 // allocate the correlator matrix
-static void
+void
 allocate_corrs( struct correlator **corr )
 {
   int s ;
@@ -29,7 +29,7 @@ allocate_corrs( struct correlator **corr )
 }
 
 // free the correlator matrix
-static void
+void
 free_corrs( struct correlator **corr )
 {
   int s ;
@@ -45,7 +45,7 @@ free_corrs( struct correlator **corr )
 }
 
 #ifdef DEBUG
-static void
+void
 debug_mesons( const char *message , 
 	      const struct correlator **corr )
 {
@@ -79,7 +79,8 @@ debug_mesons( const char *message ,
 
 // computes meson correlators
 int
-single_mesons( FILE *prop1 )
+single_mesons( FILE *prop1 , 
+	       const proptype proptype1 )
 {
   // data structure for holding the contractions
   struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
@@ -93,14 +94,14 @@ single_mesons( FILE *prop1 )
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  make_gammas( GAMMAS ) ;
+  make_gammas( GAMMAS , proptype1 ) ;
 
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 ) ;
+    read_prop( prop1 , S1 , proptype1 ) ;
 
     int GSRC = 0 ;
     // parallelise the furthest out loop
@@ -115,10 +116,10 @@ single_mesons( FILE *prop1 )
 	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	    sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					   GAMMAS[ GAMMA_5 ] , 
-					   GAMMAS[ GSRC ] , 
-					   GAMMAS[ GSNK ] ) ;
+	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
+					 GAMMAS[ GAMMA_5 ] , 
+					 GAMMAS[ GSRC ] , 
+					 GAMMAS[ GSNK ] ) ;
 	}
 	//
 	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
@@ -145,81 +146,12 @@ single_mesons( FILE *prop1 )
   return SUCCESS ;
 }
 
-// computes heavy-heavy meson correlators
-// Note: Backwards propagators are automatically turned around due to the save-format
-int
-hheavy_mesons( FILE *prop1 )
-{
-  // data structure for holding the contractions
-  struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
-  allocate_corrs( corr ) ;
-
-  // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
-
-  // precompute the gamma basis
-  make_gammas( GAMMAS ) ;
-
-  int t ;
-  // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
-
-    // read in the file
-    read_nrprop( prop1 , S1 ) ;
-
-    int GSRC = 0 ;
-    // parallelise the furthest out loop
-    #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
-
-      int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
-	
-	register double complex sum = 0.0 ;
-
-	// loop spatial hypercube
-	int site ;
-	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
-	}
-	//
-	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
-      }
-    }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
-  }
-  printf("\n");
-
-  // & do something with the computed correlators
-#ifdef DEBUG
-  debug_mesons( "HH mesons" , (const struct correlator**)corr ) ;
-#endif
-
-  // free our correlator measurement
-  free_corrs( corr ) ; 
-  
-  // free our GAMMAS
-  free( GAMMAS ) ; 
-  
-  // free our spinor
-  free( S1 ) ; 
-  
-return SUCCESS ;
-}
-
-
 // computes meson correlators from two propagators
 int
 double_mesons( FILE *prop1 , 
+	       const proptype proptype1 ,
 	       FILE *prop2 ,
-	       const int header,
-	       const int header2 )
+	       const proptype proptype2 )
 {
   // data structure for holding the contractions
   struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
@@ -234,15 +166,15 @@ double_mesons( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
   // precompute the non relativistic gamma basis
-  make_gammas_nrel( GAMMAS ) ;
+  make_gammas( GAMMAS , proptype1 ) ;
 
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_chiral2nrel( prop1 , S1 ) ;
-    read_nrprop( prop2 , S2 ) ;
+    read_prop( prop1 , S1 , proptype1 ) ;
+    read_prop( prop2 , S2 , proptype2 ) ;
 
     int GSRC ;
     // parallelise the furthest out loop
@@ -256,14 +188,10 @@ double_mesons( FILE *prop1 ,
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-          #ifdef DEBUG
-	  sum += pion_correlator( S1[ site ] , S2[ site ] );
-          #else 
 	  sum += local_meson_correlator( S1[ site ] , S2[ site ] , 
-					 GAMMAS[ GAMMA_FIVE ] , 
+					 GAMMAS[ GAMMA_5 ] , 
 					 GAMMAS[ GSRC ] , 
 					 GAMMAS[ GSNK ] ) ;
-          #endif
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
