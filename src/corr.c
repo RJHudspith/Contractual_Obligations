@@ -44,18 +44,6 @@ main( const int argc,
     return FAILURE ;
   }
 
-  // open up some propagator files
-  FILE *fprops[ nprops ] ;
-  int i = 0 ;
-  for( i = 0 ; i < nprops ; i++ ) {
-    // open and check all the files
-    if( ( fprops[i] = fopen( prop_files[i] , "r" ) ) == NULL ) {
-      printf( "[IO] Propagator file %s empty! Leaving \n" , prop_files[i] ) ;
-      return FAILURE ;
-    }
-    //
-  }
-
   // at the moment we read in the whole gauge field
   // maybe that will change I am not sure, we could probably live with it
   // like this, the gauge field is a big beast but not as big as a prop
@@ -74,33 +62,35 @@ main( const int argc,
     init_geom( ) ;
   }
 
+  // open up some propagator files
+  FILE *fprops[ nprops ] ;
+  int i = 0 ;
+  for( i = 0 ; i < nprops ; i++ ) {
+    // open and check all the files
+    if( ( fprops[i] = fopen( prop_files[i] , "r" ) ) == NULL ) {
+      printf( "[IO] Propagator file %s empty! Leaving \n" , prop_files[i] ) ;
+      if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
+      return FAILURE ;
+    }
+    //
+    if( read_check_header( fprops[i] ) == FAILURE ) {
+      if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
+      return FAILURE ;
+    }
+  }
+
   // Calculate Mesons 
   printf("Calculating meson correlators\n") ;
 
   start_timer( ) ;
 
-<<<<<<< HEAD
-  check_checksum( fprops[0] ) ;
   // want to switch on these or call a wrapper
-  //single_mesons( fprops[0] ) ;
-  //hheavy_mesons( fprops[1] ) ;
-  //double_mesons( fprops[2] , fprops[1] ) ;
+  single_mesons( fprops[0] ) ;
+  //hheavy_mesons( fprops[0] ) ;
+  //double_mesons( fprops[0] , fprops[1] ) ;
   //double_mesons( fprops[2] , fprops[3] ) ;
-  // conserved_local( fprop1 , fprop2 ) ;
-  // wall_mesons( frop1 , fprop2 ) ;
-=======
-  const long int header = 122 ;
-  const long int header2= 218 ;
-
-  // want to switch on these or call a wrapper
-  single_mesons( fprops[0] , header ) ;
-  hheavy_mesons( fprops[1] , header2) ;
-  double_mesons( fprops[2] , fprops[1] , header, header2 ) ;
-  //double_mesons( fprops[2] , fprops[3] , header, header2 ) ;
-  // conserved_local( fprop1 , fprop2 , header ) ;
-  // wall_mesons( frop1 , fprop2 , header ) ;
->>>>>>> 1ab5d94b3290dcf61052aaf15ee2dc2436d2d3b1
-  // ... etc
+  //conserved_local( fprops[0] , fprops[1] ) ;
+  //wall_mesons( frops[0] , fprops[1] ) ;
 
   print_time( ) ;
 

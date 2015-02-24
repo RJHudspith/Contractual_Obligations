@@ -82,5 +82,3 @@ pion_correlator( const struct spinor S1 ,
   }
   return corr ;
 }
-
-// TODO -> Conserved local should go here. I deleted it for now.
