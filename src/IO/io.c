@@ -8,39 +8,47 @@
 #include "GLU_bswap.h"
 
 // the question is ... Who checks the checksum?
-void 
+int
 check_checksum( FILE *fprop )
 {
+  // spinsize
   const int spinsize = NS * NS * NC * NC ;
 
-  int site;
+  double *prop_buf = malloc( spinsize*2 * sizeof( double ) ) ;
+
+  // crc accumulators
   uint32_t CRCsum29 = 0 , CRCsum31 = 0 ;
 
-  double *prop_buf = malloc( 2 * spinsize * sizeof(double) ) ;	
-
-  for( site = 0 ; site < VOL4 ; site++ ) {
-    if( fread(prop_buf, sizeof(double), spinsize*2 , fprop) != spinsize*2 ) {
-      printf( "fread failure ... exiting \n" ) ;
-      exit( -1 ) ;
+  // ok so this must be a geometry/dirac thing
+  int site;
+  for( site = 0 ; site < LVOLUME ; site++ ) {
+    if( fread( prop_buf , sizeof(double) , spinsize*2 , fprop ) != spinsize*2 ) {
+      printf( "[IO] fread failure ... exiting \n" ) ;
+      return FAILURE ;
     }
     // we need to know what end is up, this is actually kinda tricky
-    bswap_64( 2*spinsize , prop_buf ) ; 
-    DML_checksum_accum( &CRCsum29, &CRCsum31, site, (unsigned char*)(prop_buf), 2*spinsize*sizeof(double) );
-  }	
+    DML_checksum_accum( &CRCsum29 , &CRCsum31 , site , 
+			(unsigned char*)prop_buf , 
+			2 * spinsize * sizeof(double) ) ;
+  }
   
-  // computed
-  printf("[Computed Checksums] %x %x\n", CRCsum29 , CRCsum31 ) ;
-  
-  /*
   // we are at the end of the file now so we can fscanf for the value I will have to grok the output
   uint32_t rCRCsum29 , rCRCsum31 ;
-  fscanf( file , "%x %x" , &rCRCsum29 , &rCRCsum31 ) ;
-  printf("[File Read Checksums] %x %x\n", CRCsum29 , CRCsum31 ) ;
-  */
+  if( fscanf( fprop , "%x %x" , &rCRCsum29 , &rCRCsum31 ) != 2 ) {
+    printf( "[IO] file read failure at the checksums \n" ) ;
+    free( prop_buf ) ;
+    return FAILURE ;
+  }
 
-  free( prop_buf ) ;
+  if( CRCsum29 != rCRCsum29 || CRCsum31 != rCRCsum31 ) {
+    printf( "[IO] mismatched checksums \n" ) ;
+    printf( "[IO] Computed Checksums %x %x\n" , CRCsum29 , CRCsum31 ) ;
+    printf( "[IO] File Read Checksums %x %x\n" , rCRCsum29 , rCRCsum31 ) ;
+    free( prop_buf ) ;
+    return FAILURE ;
+  }
 
-  return ;
+  return SUCCESS ;
 }
 
 // Read propagator time slice 
@@ -61,7 +69,6 @@ read_prop( FILE *fprop,
       printf( "Fread propagator failure \n" ) ;
       return FAILURE ;
     }
-    // checksum that noise?
   }
 
   return SUCCESS ;
@@ -91,6 +98,7 @@ read_nrprop( FILE *fprop,
       return FAILURE ;
     }
 
+    int d1 , d2 , c1 , c2 , k = 0 ;
     // Now fill the non-zero components from the buffer
     for( d1 = 0 ; d1 < NR_NS ; d1++ ) {
       for( d2 = 0 ; d2 < NR_NS ; d2++ ) {
@@ -113,8 +121,6 @@ read_nrprop( FILE *fprop,
 	#endif
       }
     }
-    // checksum that noise
-
 
     // change from nrel into chiral basis
     //  
@@ -131,7 +137,6 @@ read_nrprop( FILE *fprop,
     //       
     //  Note: There is another gamma_0 at the end!
     //
-
     for( c1 = 0 ; c1 < NC ; c1++ ) {
       for( c2 = 0 ; c2 < NC ; c2++ ) {
 

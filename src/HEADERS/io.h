@@ -6,18 +6,11 @@
 #define IO_H
 
 /**
-   @fn void read_infile( const int argc , const char *argv[] )
-   @brief read the input file
- */
-void
-read_infile( const int argc , 
-	     const char *argv[] ) ;
-
-/**
    @fn void check_checksum( FILE *fprop )
    @brief have a look at the checksum
+   @return #SUCCESS or #FAILURE
  */
-void 
+int
 check_checksum( FILE *fprop ) ;
 
 /**

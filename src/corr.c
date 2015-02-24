@@ -89,8 +89,9 @@ main( const int argc,
 
   start_timer( ) ;
 
+  check_checksum( fprops[0] ) ;
   // want to switch on these or call a wrapper
-  single_mesons( fprops[0] ) ;
+  //single_mesons( fprops[0] ) ;
   //hheavy_mesons( fprops[1] ) ;
   //double_mesons( fprops[2] , fprops[1] ) ;
   //double_mesons( fprops[2] , fprops[3] ) ;
