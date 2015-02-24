@@ -21,6 +21,8 @@ struct latt_info Latt ;
 // enumeration for the arguments to our binary
 enum{ INFILE = 2 , GAUGE_FILE = 4 } ;
 
+//gittest
+
 // enumerated mode type
 typedef enum{ PROPAGATORS_ONLY , GAUGE_AND_PROPS } corrmode ;
 
