@@ -44,42 +44,10 @@ free_corrs( struct correlator **corr )
   return ;
 }
 
-#ifdef DEBUG
-static void
-debug_mesons( const char *message , 
-	      const struct correlator **corr )
-{
-  int t ;
-  printf( "%s PION\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_5][GAMMA_5].C[t] ) , cimag( corr[GAMMA_5][GAMMA_5].C[t] ) ) ;
-  }
-  printf( "%s 00\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_0][GAMMA_0].C[t] ) , cimag( corr[GAMMA_0][GAMMA_0].C[t] ) ) ;
-  }
-  printf( "%s 11\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_1][GAMMA_1].C[t] ) , cimag( corr[GAMMA_1][GAMMA_1].C[t] ) ) ;
-  }
-  printf( "%s 22\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_2][GAMMA_2].C[t] ) , cimag( corr[GAMMA_2][GAMMA_2].C[t] ) ) ;
-  }
-  printf( "%s 33\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_3][GAMMA_3].C[t] ) , cimag( corr[GAMMA_3][GAMMA_3].C[t] ) ) ;
-  }
-  printf( "%s 1010\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[10][10].C[t] ) , cimag( corr[10][10].C[t] ) ) ;
-  }
-}
-#endif
-
 // computes meson correlators
 int
-single_mesons( FILE *prop1 )
+single_mesons( FILE *prop1 , 
+	       const int header )
 {
   // data structure for holding the contractions
   struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
@@ -87,7 +55,7 @@ single_mesons( FILE *prop1 )
   allocate_corrs( corr ) ;
 
   // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
+  struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
@@ -100,15 +68,15 @@ single_mesons( FILE *prop1 )
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 ) ;
+    read_prop( prop1 , S1 , header , t ) ;
 
-    int GSRC = 0 ;
+    int GAMMA_1 = 0 ;
     // parallelise the furthest out loop
-    #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    #pragma omp parallel for private(GAMMA_1)
+    for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
 
-      int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      int GAMMA_2 ;
+      for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
 	
 	register double complex sum = 0.0 ;
 
@@ -116,21 +84,32 @@ single_mesons( FILE *prop1 )
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
 	    sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					   GAMMAS[ GAMMA_5 ] , 
-					   GAMMAS[ GSRC ] , 
-					   GAMMAS[ GSNK ] ) ;
+					 GAMMAS[ 5 ] , 
+					 GAMMAS[ GAMMA_1 ] , 
+					 GAMMAS[ GAMMA_2 ] ) ;
 	}
 	//
-	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
+	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
+	printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
   }
-  printf("\n");	
+    printf("\n");	
 
   // & do something with the computed correlators
 #ifdef DEBUG
-  debug_mesons( "LL-mesons" , (const struct correlator**)corr ) ;
+  printf( "LL_PION\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[5][5].C[t] ) , cimag( corr[5][5].C[t] ) ) ;
+  }
+  printf( "LL_11\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[1][1].C[t] ) , cimag( corr[1][1].C[t] ) ) ;
+  }
+  printf( "LL_1010\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[10][10].C[t] ) , cimag( corr[10][10].C[t] ) ) ;
+  }
 #endif
 
   // free our correlator measurement
@@ -145,60 +124,78 @@ single_mesons( FILE *prop1 )
   return SUCCESS ;
 }
 
+
+
+
 // computes heavy-heavy meson correlators
 // Note: Backwards propagators are automatically turned around due to the save-format
 int
-hheavy_mesons( FILE *prop1 )
+hheavy_mesons( FILE *prop1 , 
+	       const int header )
 {
   // data structure for holding the contractions
   struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
+
   allocate_corrs( corr ) ;
 
   // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
+  struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
+  struct spinor *P1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
-  // precompute the gamma basis
-  make_gammas( GAMMAS ) ;
+  // precompute the gamma basis -> non-rel. rep.
+  make_gammas_nrel( GAMMAS ) ;
 
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_nrprop( prop1 , S1 ) ;
+    read_nrprop( prop1 , S1 , header , t ) ;
 
-    int GSRC = 0 ;
+    int GAMMA_1 = 0 ;
     // parallelise the furthest out loop
-    #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    #pragma omp parallel for private(GAMMA_1)
+    for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
 
-      int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      int GAMMA_2 ;
+      for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
 	
 	register double complex sum = 0.0 ;
 
 	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
+	    sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
+					 GAMMAS[ 5 ] , 
+					 GAMMAS[ GAMMA_1 ] , 
+					 GAMMAS[ GAMMA_2 ] ) ;
 	}
 	//
-	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
+	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
+	printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
   }
-  printf("\n");
+	printf("\n");
+
 
   // & do something with the computed correlators
 #ifdef DEBUG
-  debug_mesons( "HH mesons" , (const struct correlator**)corr ) ;
+  printf( "HH_PION\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[5][5].C[t] ) , cimag( corr[5][5].C[t] ) ) ;
+  }
+  printf( "HH_11\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[1][1].C[t] ) , cimag( corr[1][1].C[t] ) ) ;
+  }
+  printf( "HH_1010\n" ) ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[10][10].C[t] ) , cimag( corr[10][10].C[t] ) ) ;
+  }
 #endif
 
   // free our correlator measurement
@@ -227,54 +224,69 @@ double_mesons( FILE *prop1 ,
   allocate_corrs( corr ) ;
 
   // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S2 = calloc( VOL3 , sizeof( struct spinor ) ) ;
+  struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
+  struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
-  // precompute the gamma basis
-  make_gammas( GAMMAS ) ;
+  // precompute the gamma basis -> non-rel. rep.
+  make_gammas_nrel( GAMMAS ) ;
 
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 ) ;
-    read_nrprop( prop2 , S2 ) ;
+    read_chiral2nrel( prop1 , S1 , header , t ) ;
+    read_nrprop( prop2 , S2 , header2 , t ) ;
 
-    int GSRC ;
+    int GAMMA_1 ;
     // parallelise the furthest out loop
-    #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    #pragma omp parallel for private(GAMMA_1)
+    for( GAMMA_1 = 0 ; GAMMA_1 < NS*NS ; GAMMA_1++ ) {
 
-      int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      int GAMMA_2 ;
+      for( GAMMA_2 = 0 ; GAMMA_2 < NS*NS ; GAMMA_2++ ) {
 
 	register complex sum = 0.0 ;
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-          #ifdef DEBUG
-	  sum += pion_correlator( S1[ site ] , S2[ site ] );
-          #else 
-	  sum += local_meson_correlator( S1[ site ] , S2[ site ] , 
-					 GAMMAS[ GAMMA_FIVE ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
-          #endif
+		sum += local_meson_correlator( S1[ site ] , S2[ site ] , 
+					 GAMMAS[ 5 ] , 
+					 GAMMAS[ GAMMA_1 ] , 
+					 GAMMAS[ GAMMA_2 ] ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
+	printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
   }
-  printf("\n");
+	printf("\n");
 
 #ifdef DEBUG
-  debug_mesons( "HS-mesons" , (const struct correlator**)corr ) ;
+  printf( "HL_PION\n" ) ; 
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[5][5].C[t] ) , cimag( corr[5][5].C[t] ) ) ;
+  } 
+  printf( "HL_11\n" ) ; 
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[1][1].C[t] ) , cimag( corr[1][1].C[t] ) ) ;
+  } 
+  printf( "HL_22\n" ) ; 
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[2][2].C[t] ) , cimag( corr[2][2].C[t] ) ) ;
+  } 
+  printf( "HL_33\n" ) ; 
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[3][3].C[t] ) , cimag( corr[3][3].C[t] ) ) ;
+  } 
+  printf( "HL_1010\n" ) ; 
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[10][10].C[t] ) , cimag( corr[10][10].C[t] ) ) ;
+  } 
 #endif
 
   // free our correlator measurement

@@ -63,37 +63,19 @@ local_meson_correlator( const struct spinor S1 ,
   return corr ;
 }
 
-
+// Simple pion correlator for testing/debug purposes
 double complex 
 pion_correlator( const struct spinor S1 , 
 		 const struct spinor S2 )
 {
   int d1, d2, c1, c2;
   register double corr = 0.0 ;
-  register double rloc_corr , iloc_corr ;
-  double complex tmp1,tmp2;
-
-  rloc_corr = 0.0 ;
-  iloc_corr = 0.0 ;
 
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 		for( c2 = 0 ; c2 < NC ; c2++ ) {
-
-			//corr += creal( S1.D[d1][d2].C[c1][c2] ) * creal( S2.D[d1][d2].C[c1][c2] ) + \
-        	//		cimag( S1.D[d1][d2].C[c1][c2] ) * cimag( S2.D[d1][d2].C[c1][c2] ) ;
-
 			corr += cabs(S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]);		
-
-			tmp1 = sqrt(creal( S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]) * creal( S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]) +  \
-                   cimag( S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]) * cimag( S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2])) ;
-			
-			tmp2 = cabs(S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]);		
-
-			//printf("tmp1: %e %e  tmp2 %e %e\n", creal(tmp1),cimag(tmp1),creal(tmp2),cimag(tmp2));
-			//printf("-----------------------S1: %e %e  S2 %e %e\n", creal(S1.D[d1][d2].C[c1][c2]),cimag(S1.D[d1][d2].C[c1][c2]),creal(S2.D[d1][d2].C[c1][c2]),cimag(S2.D[d1][d2].C[c1][c2]));
-
 			}
       	}
     }

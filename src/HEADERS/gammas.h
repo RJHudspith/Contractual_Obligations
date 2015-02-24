@@ -12,6 +12,9 @@
 void
 make_gammas( struct gamma *GAMMA ) ;
 
+void
+make_gammas_nrel( struct gamma *GAMMA ) ;
+
 #endif
 
 
