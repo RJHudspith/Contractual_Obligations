@@ -7,38 +7,28 @@
 #define MESONS_H
 
 /**
-   @fn int single_mesons( FILE *fprop , const int header )
+   @fn int single_mesons( FILE *fprop )
    @brief compute mesons from a single propagator
-
    @return #SUCCESS or #FAILURE
  */
 int
-single_mesons( FILE *fprop , 
-	       const int header ) ;
+single_mesons( FILE *fprop ) ;
 
 /**
-   @fn int double_mesons( FILE *prop1 , FILE *prop2 , const int header, const int header2 )
+   @fn int double_mesons( FILE *prop1 , FILE *prop2 )
    @brief compute mesons from two propagators
-
    @return #SUCCESS or #FAILURE
  */
 int
 double_mesons( FILE *prop1 , 
-	       FILE *prop2 ,  
-	       const int header, 
-	       const int header2 ) ;
-
+	       FILE *prop2 ) ;
 
 /**
-     @fn int hheavy_mesons( FILE *prop1 , FILE *prop2 , const int header )       
-	 @brief compute mesons from two NRQCD propagators
- 
+     @fn int hheavy_mesons( FILE *prop1 , FILE *prop2 )       
+     @brief compute mesons from two NRQCD propagators
      @return #SUCCESS or #FAILURE
  */
 int
-hheavy_mesons( FILE *prop1 ,
-           const int header ) ;
-
-
+hheavy_mesons( FILE *prop1 ) ;
 
 #endif

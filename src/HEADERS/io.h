@@ -14,34 +14,29 @@ read_infile( const int argc ,
 	     const char *argv[] ) ;
 
 /**
-   @fn void check_checksum( FILE *fprop , long int header )
+   @fn void check_checksum( FILE *fprop )
    @brief have a look at the checksum
  */
 void 
-check_checksum( FILE *fprop , 
-		long int header ) ;
+check_checksum( FILE *fprop ) ;
 
 /**
-   @fn int read_prop( FILE *fprop, struct spinor *S , const long int header, const int tslice )
+   @fn int read_prop( FILE *fprop, struct spinor *S )
    @brief read the propagator for a timeslice
  */
 int
 read_prop( FILE *fprop, 
-	   struct spinor *S , 
-	   const long int header, 
-	   const int tslice ) ;
+	   struct spinor *S ) ;
 
 
 /**
-     @fn int read_nrprop( FILE *fprop, struct spinor *S , const long int header, const int tslice )
+     @fn int read_nrprop( FILE *fprop , struct spinor *S , const int tslice )
      @brief read the NRQCD propagator for a timeslice and transform it into the chiral basis
        
   */
 int
 read_nrprop( FILE *fprop,
-       struct spinor *S ,
-       const long int header,
-       const int tslice ) ;
+	     struct spinor *S ) ;
 
 
 
