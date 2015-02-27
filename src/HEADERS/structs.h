@@ -48,6 +48,14 @@ struct gamma{
 } ;
 
 /**
+   @struct PIdata
+   @brief VPF storage
+ */
+struct PIdata {
+  double complex PI[ ND ][ ND ] ;
+} ;
+
+/**
    @struct site
    @brief the gauge field format
  */

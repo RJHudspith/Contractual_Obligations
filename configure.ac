@@ -8,9 +8,7 @@ AC_INIT([CORR], [0.1], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlem
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O
-AM_PROG_AR
 AC_LANG([C]) 
-##AM_PROG_AR
 AC_PROG_RANLIB ## include a check for libtool if not use ranlib?
 AC_C_BIGENDIAN 
 

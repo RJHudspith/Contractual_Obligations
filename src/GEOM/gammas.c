@@ -5,29 +5,31 @@
    int gamma_matrix: 
    	gamma matrices for mesons, returns reshuffled index and sign
  
-       0 -> gamma_0 (time-component)
-       1 -> gamma_1
-       2 -> gamma_2
-       3 -> gamma_3
-       4 -> unity
-       5 -> gamma_5
-       6 -> gamma_0 gamma_5
-       7 -> gamma_1 gamma_5
-       8 -> gamma_2 gamma_5
-       9 -> gamma_3 gamma_5
-       10-> gamma_0 gamma_1
-       11-> gamma_0 gamma_2
-       12-> gamma_0 gamma_3
-       13-> gamma_1 gamma_2
-       14-> gamma_1 gamma_3
-       15-> gamma_2 gamma_3    
+   Changed to match the convention of the gauge fields x,y,z,t - J
+   
+   0 -> gamma_0
+   1 -> gamma_1
+   2 -> gamma_2
+   3 -> gamma_3 (time-component)
+   4 -> unity
+   5 -> gamma_5
+   6 -> gamma_0 gamma_5
+   7 -> gamma_1 gamma_5
+   8 -> gamma_2 gamma_5
+   9 -> gamma_3 gamma_5
+   10-> gamma_0 gamma_1
+   11-> gamma_0 gamma_2
+   12-> gamma_0 gamma_3
+   13-> gamma_1 gamma_2
+   14-> gamma_1 gamma_3
+   15-> gamma_2 gamma_3  
 
-	Mapping of the sign:
+   Mapping of the sign:
 
-	0-> ( 1 + 0 * I)
-	1-> ( 0 + 1 * I)
-	2-> (-1 + 0 * I)
-	3-> ( 0 - 1 * I)
+   0-> ( 1 + 0 * I)
+   1-> ( 0 + 1 * I)
+   2-> (-1 + 0 * I)
+   3-> ( 0 - 1 * I)
 
  */
 #include "common.h" // needed for struct gamma definition
@@ -93,6 +95,7 @@ make_gammas( struct gamma *GAMMA ,
       gamma_mmul( &GAMMA[ sub + inner ] , GAMMA[inner] , GAMMA[ sub ] ) ;
     }
   }
+
   return ;
 }
 
@@ -105,29 +108,29 @@ make_gammas( struct gamma *GAMMA ,
   switch( prop ) {
   case NREL :
   case CHIRAL_TO_NREL :
-    // gamma_0
-    GAMMA[0].ig[0] = 0 ; GAMMA[0].g[0] = 0 ;
-    GAMMA[0].ig[1] = 1 ; GAMMA[0].g[1] = 0 ;
-    GAMMA[0].ig[2] = 2 ; GAMMA[0].g[2] = 2 ;
-    GAMMA[0].ig[3] = 3 ; GAMMA[0].g[3] = 2 ;
+    // gamma_0 -- x direction
+    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] =  3 ;
+    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] =  3 ;
+    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] =  1 ;
+    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] =  1 ;
 
-    // gamma_1
-    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] =  3 ;
-    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] =  3 ;
-    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] =  1 ;
-    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] =  1 ;
+    // gamma_1 -- y direction
+    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] = 2 ;
+    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] = 0 ;
+    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] = 0 ;
+    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] = 2 ;
 
-    // gamma_2
-    GAMMA[2].ig[0] = 3 ; GAMMA[2].g[0] = 2 ;
-    GAMMA[2].ig[1] = 2 ; GAMMA[2].g[1] = 0 ;
-    GAMMA[2].ig[2] = 1 ; GAMMA[2].g[2] = 0 ;
-    GAMMA[2].ig[3] = 0 ; GAMMA[2].g[3] = 2 ;
+    // gamma_2 -- z direction
+    GAMMA[2].ig[0] = 2 ; GAMMA[2].g[0] = 3 ;
+    GAMMA[2].ig[1] = 3 ; GAMMA[2].g[1] = 1 ;
+    GAMMA[2].ig[2] = 0 ; GAMMA[2].g[2] = 1 ;
+    GAMMA[2].ig[3] = 1 ; GAMMA[2].g[3] = 3 ;
 
-    // gamma_3
-    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 3 ;
-    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 1 ;
-    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 1 ;
-    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 3 ;
+    // gamma_3 -- t direction
+    GAMMA[3].ig[0] = 0 ; GAMMA[3].g[0] = 0 ;
+    GAMMA[3].ig[1] = 1 ; GAMMA[3].g[1] = 0 ;
+    GAMMA[3].ig[2] = 2 ; GAMMA[3].g[2] = 2 ;
+    GAMMA[3].ig[3] = 3 ; GAMMA[3].g[3] = 2 ;
   
     // gamma_5 
     GAMMA[5].ig[0] = 2 ; GAMMA[5].g[0] = 0 ;
@@ -137,28 +140,28 @@ make_gammas( struct gamma *GAMMA ,
     break ;
   case CHIRAL :
     // gamma_0
-    GAMMA[0].ig[0] = 2 ; GAMMA[0].g[0] = 2 ;
-    GAMMA[0].ig[1] = 3 ; GAMMA[0].g[1] = 2 ;
-    GAMMA[0].ig[2] = 0 ; GAMMA[0].g[2] = 2 ;
-    GAMMA[0].ig[3] = 1 ; GAMMA[0].g[3] = 2 ;
+    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] =  3 ;
+    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] =  3 ;
+    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] =  1 ;
+    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] =  1 ;
 
     // gamma_1
-    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] =  3 ;
-    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] =  3 ;
-    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] =  1 ;
-    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] =  1 ;
+    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] = 2 ;
+    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] = 0 ;
+    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] = 0 ;
+    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] = 2 ;
 
     // gamma_2
-    GAMMA[2].ig[0] = 3 ; GAMMA[2].g[0] = 2 ;
-    GAMMA[2].ig[1] = 2 ; GAMMA[2].g[1] = 0 ;
-    GAMMA[2].ig[2] = 1 ; GAMMA[2].g[2] = 0 ;
-    GAMMA[2].ig[3] = 0 ; GAMMA[2].g[3] = 2 ;
+    GAMMA[2].ig[0] = 2 ; GAMMA[2].g[0] = 3 ;
+    GAMMA[2].ig[1] = 3 ; GAMMA[2].g[1] = 1 ;
+    GAMMA[2].ig[2] = 0 ; GAMMA[2].g[2] = 1 ;
+    GAMMA[2].ig[3] = 1 ; GAMMA[2].g[3] = 3 ;
 
     // gamma_3
-    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 3 ;
-    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 1 ;
-    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 1 ;
-    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 3 ;
+    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 2 ;
+    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 2 ;
+    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 2 ;
+    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 2 ;
   
     // gamma_5 
     GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 0 ;
@@ -175,7 +178,7 @@ make_gammas( struct gamma *GAMMA ,
   GAMMA[4].ig[3] = 3 ; GAMMA[4].g[3] = 0 ;
 
   // and multiply out the rest
-  // amma_0 gamma_5 
+  // gamma_0 gamma_5 
   gamma_mmul( &GAMMA[6] , GAMMA[0] , GAMMA[5] ) ;
 
   // gamma_1 gamma_5 

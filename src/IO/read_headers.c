@@ -313,7 +313,11 @@ read_header( FILE *__restrict infile ,
   case ILDG_SCIDAC_HEADER : // ILDG and SCIDAC are basically the same ...
   case ILDG_BQCD_HEADER : // ILDG and SCIDAC are basically the same ...
     return get_header_data_SCIDAC( infile , HEAD_DATA ) ; // in Scidac.c
-  default :
+  case UNIT_GAUGE :
+  case INSTANTON :
+  case RANDOM_CONFIG :
+    return SUCCESS ;
+  case UNSUPPORTED :
     return FAILURE ;
   }
   return FAILURE ;
