@@ -11,18 +11,16 @@
 #include "gammas.h"       // gamma matrices
 #include "io.h"           // read prop
 
-#define DEBUG
-
 // allocate the correlator matrix
 void
 allocate_corrs( struct correlator **corr )
 {
   int s ;
   for( s = 0 ; s < NS * NS ; s++ ) {
-    corr[ s ] = ( struct correlator* )malloc( NS * NS * sizeof( struct correlator ) ) ;
+    corr[ s ] = ( struct correlator* )calloc( NS * NS , sizeof( struct correlator ) ) ;
     int t ;
     for( t = 0 ; t < NS * NS ; t++ ) {
-      corr[s][t].C = malloc( L0 * sizeof( double complex ) ) ;
+      corr[s][t].C = calloc( L0 , sizeof( double complex ) ) ;
     }
   }
   return ;
@@ -82,6 +80,15 @@ int
 single_mesons( FILE *prop1 , 
 	       const proptype proptype1 )
 {
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+
+  // precompute the gamma basis
+  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+    free( GAMMAS ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
   struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
 
@@ -89,12 +96,6 @@ single_mesons( FILE *prop1 ,
 
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
-
-  // precompute the gamma basis
-  make_gammas( GAMMAS , proptype1 ) ;
 
   int t ;
   // Time slice loop 
@@ -153,20 +154,23 @@ double_mesons( FILE *prop1 ,
 	       FILE *prop2 ,
 	       const proptype proptype2 )
 {
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+
+  // precompute the non relativistic gamma basis
+  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+    free( GAMMAS ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
-  struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
+  struct correlator **corr = malloc( NSNS * sizeof( struct correlator* ) ) ;
  
   allocate_corrs( corr ) ;
 
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
   struct spinor *S2 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
-
-  // precompute the non relativistic gamma basis
-  make_gammas( GAMMAS , proptype1 ) ;
 
   int t ;
   // Time slice loop 
@@ -197,7 +201,7 @@ double_mesons( FILE *prop1 ,
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
+    printf("\rdone %.f %%",(t+1)/((L0)/100.));fflush(stdout);
   }
   printf("\n");
 

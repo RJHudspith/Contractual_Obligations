@@ -17,7 +17,7 @@ sumprop( struct spinor *__restrict SUM ,
 {
   int d1d2 ;
 #pragma omp parallel for private(d1d2)
-  for( d1d2 = 0 ; d1d2 < NS*NS ; d1d2++ ) {
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
 
     const int d1 = d1d2 / NS ;
     const int d2 = d1d2 % NS ;
@@ -49,9 +49,20 @@ int
 wall_mesons( FILE *prop1 ,
 	     const proptype proptype1 )
 {
+  printf( "Computing Wall-Source mesons \n" ) ;
+
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+
+  // precompute the gamma basis
+  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+    free( GAMMAS ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
-  struct correlator **wlcorr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
-  struct correlator **wwcorr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
+  struct correlator **wlcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
+  struct correlator **wwcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
 
   allocate_corrs( wlcorr ) ;
   allocate_corrs( wwcorr ) ;
@@ -59,18 +70,18 @@ wall_mesons( FILE *prop1 ,
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
-
-  // precompute the gamma basis
-  make_gammas( GAMMAS , proptype1 ) ;
-
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 , proptype1 ) ;
+    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
+      free_corrs( wlcorr ) ;
+      free_corrs( wwcorr ) ;
+      free( GAMMAS ) ;
+      free( S1 ) ;
+      return FAILURE ;
+    }
     
     // single sum
     struct spinor SUM1 ;
@@ -79,10 +90,10 @@ wall_mesons( FILE *prop1 ,
     int GSRC = 0 ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 	
 	register double complex sum = 0.0 ;
 
@@ -108,8 +119,8 @@ wall_mesons( FILE *prop1 ,
   }
 
 #ifdef DEBUG
-  debug_mesons( "WL-mesons" , wlcorr ) ;
-  debug_mesons( "WW-mesons" , wwcorr ) ;
+  debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
+  debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
 #endif
 
   // free our correlator measurement
@@ -134,9 +145,18 @@ wall_double_mesons( FILE *prop1 ,
 		    FILE *prop2 ,
 		    const proptype proptype2 )
 {
+  // allocate the basis, maybe extern this as it is important ...
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+
+  // precompute the gamma basis
+  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+    free( GAMMAS ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
-  struct correlator **wlcorr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
-  struct correlator **wwcorr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
+  struct correlator **wlcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
+  struct correlator **wwcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
 
   allocate_corrs( wlcorr ) ;
   allocate_corrs( wwcorr ) ;
@@ -145,19 +165,20 @@ wall_double_mesons( FILE *prop1 ,
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
   struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
-
-  // precompute the gamma basis
-  make_gammas( GAMMAS , proptype1 ) ;
-
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 , proptype1 ) ;
-    read_prop( prop2 , S2 , proptype2 ) ;
+    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ||
+	read_prop( prop2 , S2 , proptype2 ) == FAILURE ) {
+      free_corrs( wlcorr ) ;
+      free_corrs( wwcorr ) ;
+      free( GAMMAS ) ;
+      free( S1 ) ;
+      free( S2 ) ;
+      return FAILURE ;
+    }
 
     // prop sums
     struct spinor SUM1 , SUM2 ;
@@ -167,10 +188,10 @@ wall_double_mesons( FILE *prop1 ,
     int GSRC = 0 ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 	
 	register double complex sum = 0.0 ;
 
@@ -194,6 +215,11 @@ wall_double_mesons( FILE *prop1 ,
       }
     }
   }
+
+#ifdef DEBUG
+  debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
+  debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
+#endif
 
   // free our correlator measurement
   free_corrs( wlcorr ) ;

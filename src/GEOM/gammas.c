@@ -7,10 +7,10 @@
  
    Changed to match the convention of the gauge fields x,y,z,t - J
    
-   0 -> gamma_0
-   1 -> gamma_1
-   2 -> gamma_2
-   3 -> gamma_3 (time-component)
+   0 -> gamma_0 ( x )
+   1 -> gamma_1 ( y )
+   2 -> gamma_2 ( z )
+   3 -> gamma_3 ( time-component )
    4 -> unity
    5 -> gamma_5
    6 -> gamma_0 gamma_5
@@ -47,6 +47,57 @@ gamma_mmul( struct gamma *a ,
     a -> g[i] = ( b.g[i] + c.g[j] ) & 3 ;
   }
   return ;
+}
+
+// gamma matrix comparison
+static int
+gamma_comparison( const struct gamma G1 , 
+		  const struct gamma G2 ,
+		  const char *message )
+{
+  int j ;
+  for( j = 0 ; j < NS ; j++ ) {
+    if( G1.ig[j] != G2.ig[j] ||
+	G1.g[j] != G2.g[j] ) {
+      printf( "%s\n" , message ) ;
+      return 1 ;
+    }
+  }
+  return 0 ;
+}
+
+// check our gamma matrices are sensible
+static int
+check_gammas( const struct gamma *GAMMA ) 
+{
+  // multiply by identity
+  struct gamma res ;
+  int mu , flag = 0 ;
+  for( mu = 0 ; mu < NSNS ; mu++ ) {
+    gamma_mmul( &res , GAMMA[ IDENTITY ] , GAMMA[ mu ] ) ;
+    flag += gamma_comparison( res , GAMMA[ mu ] , "Identity Multiply" ) ;
+    gamma_mmul( &res , GAMMA[ mu ] , GAMMA[ IDENTITY ] ) ;
+    flag += gamma_comparison( res , GAMMA[ mu ] , "Identity Multiply" ) ;
+  }
+
+  // check gamma_5 * gamma_5 is the identity
+  gamma_mmul( &res , GAMMA[ GAMMA_0 ] , GAMMA[ GAMMA_0 ] ) ;
+  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma0 Gamma0" ) ;
+  gamma_mmul( &res , GAMMA[ GAMMA_1 ] , GAMMA[ GAMMA_1 ] ) ;
+  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma1 Gamma1" ) ;
+  gamma_mmul( &res , GAMMA[ GAMMA_2 ] , GAMMA[ GAMMA_2 ] ) ;
+  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma2 Gamma2" ) ;
+  gamma_mmul( &res , GAMMA[ GAMMA_3 ] , GAMMA[ GAMMA_3 ] ) ;
+  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma3 Gamma3" ) ;
+  gamma_mmul( &res , GAMMA[ GAMMA_5 ] , GAMMA[ GAMMA_5 ] ) ;
+  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma5 Gamma5" ) ;
+
+  // should have more checks here
+
+  if( flag != 0 ) {
+    return FAILURE ;
+  }
+  return SUCCESS ;
 }
 
 #ifdef CHROMA_DIRAC_CONVENTION
@@ -96,12 +147,12 @@ make_gammas( struct gamma *GAMMA ,
     }
   }
 
-  return ;
+  return check_gammas( GAMMA ) ;
 }
 
 #else
 
-void 
+int
 make_gammas( struct gamma *GAMMA ,
 	     const proptype prop )
 {
@@ -163,11 +214,12 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 2 ;
     GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 2 ;
   
-    // gamma_5 
-    GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 0 ;
-    GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 0 ;
-    GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 2 ;
-    GAMMA[5].ig[3] = 3 ; GAMMA[5].g[3] = 2 ;
+    // gamma_5 gets flipped no?
+    GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 2 ;
+    GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 2 ;
+    GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 0 ;
+    GAMMA[5].ig[3] = 3 ; GAMMA[5].g[3] = 0 ;
+
     break ;
   }
 
@@ -208,7 +260,7 @@ make_gammas( struct gamma *GAMMA ,
   // gamma_2 gamma_3 
   gamma_mmul( &GAMMA[15] , GAMMA[2] , GAMMA[3] ) ;
   
-  return ;
+  return check_gammas( GAMMA ) ;
 }
 
 #endif

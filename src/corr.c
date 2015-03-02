@@ -4,6 +4,7 @@
  */
 #include "common.h"          // one header to rule them all
 
+#include "conserved_local.h" // conserved local currents
 #include "geometry.h"        // init_geom and init_navig
 #include "GLU_timer.h"       // sys/time.h wrapper
 #include "io.h"              // file IO stuff
@@ -14,6 +15,7 @@
 #include "read_config.h"     // read a gauge configuration file
 #include "read_headers.h"    // read the header file in gauge config
 #include "read_propheader.h" // read the propagator file header
+#include "brutal_mesons.h"   // brutal mesons
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -46,23 +48,23 @@ main( const int argc,
     return FAILURE ;
   }
 
+  // geometry has to come from the input file
+  int mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    Latt.dims[ mu ] = dims[ mu ] ;
+  }
+  init_geom( ) ;
+
   // at the moment we read in the whole gauge field
   // maybe that will change I am not sure, we could probably live with it
   // like this, the gauge field is a big beast but not as big as a prop
   // and we can probably free it if needs be
-  struct site *lat ;
+  struct site *lat = NULL ;
   struct head_data HEAD_DATA ;
   if( MODE == GAUGE_AND_PROPS ) {
     lat = read_gauge_file( &HEAD_DATA , argv[GAUGE_FILE] ) ;
     // check input file versus gauge field dimensions? Probably should
-  } else {
-    // geometry has to come from the input file
-    int mu ;
-    for( mu = 0 ; mu < ND ; mu++ ) {
-      Latt.dims[ mu ] = dims[ mu ] ;
-    }
-    init_geom( ) ;
-  }
+  } 
 
   // open up some propagator files
   FILE *fprops[ nprops ] ;
@@ -81,18 +83,20 @@ main( const int argc,
     }
   }
 
-  // Calculate Mesons 
-  printf("Calculating meson correlators\n") ;
-
   start_timer( ) ;
 
   // want to switch on these or call a wrapper
-  single_mesons( fprops[0] , CHIRAL ) ;
+  //single_mesons( fprops[0] , CHIRAL ) ;
+  //single_mesons_bruteforce( fprops[0] , CHIRAL ) ;
   //hheavy_mesons( fprops[0] , NREL ) ;
   //double_mesons( fprops[0] , CHIRAL_TO_NREL , fprops[1] , NREL ) ;
   //double_mesons( fprops[2] , NREL , fprops[3] , NREL ) ;
-  //conserved_local( fprops[0] , CHIRAL , fprops[1] , CHIRAL ) ;
-  //wall_mesons( frops[0] , CHIRAL , fprops[1] , CHIRAL ) ;
+
+  if( lat != NULL ) {
+    conserved_local( fprops[0] , CHIRAL , lat ) ;
+  }
+
+  //wall_mesons( fprops[0] , CHIRAL ) ;
 
   print_time( ) ;
 

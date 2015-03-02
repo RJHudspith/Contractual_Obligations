@@ -48,7 +48,7 @@ project( struct PIdata *data ,
       }
     }
     sum *= ( spsq * NORM ) ;
-    // printf( "%f %e \n" , psq[i] , sum ) ;
+    printf( "%f %e \n" , psq[i] , sum ) ;
   }
   return ;
 }
@@ -185,7 +185,7 @@ tmoments( struct PIdata *data ,
     }
     sum *= invpsq / (double)( ND - 1 ) ;
 
-    //printf( "%e %e \n" , psq , creal( sum ) ) ;
+    printf( "%e %e %e \n" , psq , creal( sum ) , cimag( sum ) ) ;
   }
 
   free( cp ) ;
@@ -201,7 +201,7 @@ momspace_PImunu( struct PIdata *DATA_AA ,
 
   // have a look at the ( 0 , 0 , 0 , T ) data TMOMENTS ?
   tmoments( DATA_VV , PROJ ) ;
-  tmoments( DATA_AA , PROJ ) ;
+  //tmoments( DATA_AA , PROJ ) ;
 
   // if we have FFTW we can unleash it
 #ifdef HAVE_FFTW3_H

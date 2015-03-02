@@ -140,6 +140,7 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./MEAS/conserved_local.$(OBJEXT) \
 	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/plaqs_links.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
+	./MEAS/brutal_mesons.$(OBJEXT) ./MEAS/currents.$(OBJEXT) \
 	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
 	./UTILS/matrix_ops.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
@@ -317,7 +318,8 @@ include_HEADERS = \
 	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h ./HEADERS/mesons.h \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
 	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
-	./HEADERS/XML_info.h ./HEADERS/read_propheader.h
+	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
+	./HEADERS/currents.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -327,6 +329,7 @@ libCORR_a_SOURCES = \
 	./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/wall_mesons.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
+	./MEAS/brutal_mesons.c ./MEAS/currents.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c 
 
 @PREF_FALSE@Bindir = "${prefix}"/bin
@@ -460,6 +463,10 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_bswap.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/brutal_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/currents.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_timer.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/gramschmidt.$(OBJEXT): UTILS/$(am__dirstamp) \
@@ -541,8 +548,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_headers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_propheader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/readers.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/brutal_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/conserved_local.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/correlators.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/currents.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/momspace_PImunu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/plaqs_links.Po@am__quote@

@@ -1,16 +1,24 @@
 /**
    @file correlators.c
    @brief correlation function calculations
-
-   TODO :: Profile this -> see if we can gain much by unrolling the c1, c2 loop
-   could be done with double pointers and some shenanigans I guess ..
  */
 
 #include "common.h"
 
-#include "gammas.h"
-
 // compute the local meson correlator
+/**
+   How this works ::
+
+   Meson correlator is defined by
+
+   Tr[ \gamma_snk \gamma_5 adj( S2 ) \gamma_5 \gamma_src S1 ]
+
+   Where the trace is over spin and color indices
+
+   The code computes the sign the product of the matrices
+   as they are defined by ( 1 )^{n/4} [ Perm ]
+   Where Perm is a permutation matrix
+ */
 double complex 
 local_meson_correlator( const struct spinor S1 , 
 			const struct spinor S2 , 

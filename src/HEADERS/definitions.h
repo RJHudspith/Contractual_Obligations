@@ -40,7 +40,9 @@
   #define ND 4
 #endif
 
-#define NCNC NC*NC
+#define NSNS ( NS*NS )
+
+#define NCNC ( NC*NC )
 
 #define PLAQ_AND_TRACE_TOL 1E-6
 

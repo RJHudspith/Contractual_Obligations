@@ -6,10 +6,11 @@
 #define GAMMAS_H
 
 /**
-   @fn void gamma_matrix( struct gamma *G , const proptype prop )
+   @fn int gamma_matrix( struct gamma *G , const proptype prop )
    @brief defines the gamma matrices in whatever compiled convention
+   @return #SUCCESS or #FAILURE
  */
-void
+int
 make_gammas( struct gamma *GAMMA ,
 	     const proptype prop ) ;
 
