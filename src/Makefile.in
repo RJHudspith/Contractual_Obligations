@@ -120,7 +120,6 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(includedir)"
 LIBRARIES = $(lib_LIBRARIES)
-AR = ar
 ARFLAGS = cru
 AM_V_AR = $(am__v_AR_@AM_V@)
 am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
@@ -142,7 +141,7 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
 	./MEAS/brutal_mesons.$(OBJEXT) ./MEAS/currents.$(OBJEXT) \
 	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
-	./UTILS/matrix_ops.$(OBJEXT)
+	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__CORR_SOURCES_DIST = corr.c
@@ -215,6 +214,7 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -267,6 +267,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -319,7 +320,7 @@ include_HEADERS = \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
 	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
-	./HEADERS/currents.h
+	./HEADERS/currents.h ./HEADERS/spinor_ops.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -330,7 +331,8 @@ libCORR_a_SOURCES = \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c \
-	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c 
+	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
+	./UTILS/spinor_ops.c
 
 @PREF_FALSE@Bindir = "${prefix}"/bin
 @PREF_FALSE@CORR_SOURCES = corr.c
@@ -473,6 +475,8 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/matrix_ops.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/spinor_ops.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
 
 libCORR.a: $(libCORR_a_OBJECTS) $(libCORR_a_DEPENDENCIES) $(EXTRA_libCORR_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libCORR.a
@@ -561,6 +565,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/crc32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

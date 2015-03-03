@@ -4,8 +4,8 @@
  */
 #include "common.h"
 
-#include "mesons.h"
-#include "matrix_ops.h"
+#include "mesons.h"      // for the allocate and free correlator functions
+#include "spinor_ops.h"  // bilinear trace
 
 double complex
 meson_trace2( const struct gamma GSNK ,

@@ -6,7 +6,7 @@
 #include "common.h"
 
 #include "brutal_mesons.h"  // for the brute-force meson trace
-#include "matrix_ops.h"     // for the full adjoint and color matrix multiply
+#include "spinor_ops.h"     // for the full adjoint and color matrix multiply
 
 // Wilson non-local non-conserved axial
 static double complex
