@@ -47,6 +47,15 @@ gamma_mul_r( struct spinor *res ,
 	     const struct gamma GAMMA ) ;
 
 /**
+   @fn void gamma_mul_lr( struct spinor *S , const struct gamma GLEFT , const struct gamma GRIGHT )
+   @brief multiply a spinor from the left and right by gamma matrices
+ */
+void
+gamma_mul_lr( struct spinor *S , 
+	      const struct gamma GLEFT ,
+	      const struct gamma GRIGHT ) ;
+
+/**
    @fn void gauge_spinor( struct spinor *res , const double complex link[ NCNC ] , const struct spinor S )
    @brief multiplies a spinor with a link matrix res = link * S
  */
@@ -72,6 +81,26 @@ void
 gauge_spinordag( struct spinor *res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S ) ;
+
+/**
+   @fn double complex meson_contract( const struct gamma GSNK ,	const struct spinor bwd , const struct gamma GSRC , const struct spinor fwd , const struct gamma G5 )
+   @brief contraction of bilinears, uses gamma_5 hermiticity
+   @params GSNK :: sink gamma matrix
+   @params bwd :: backward propagator solution
+   @params GSRC :: source gamma matrix
+   @params fwd :: forward propagator solution
+   @params G5 :: gamma matrix #GAMMA_5
+
+   Performs \[ \text{Tr}\left[ \gamma_{SNK} \gamma_5 ( \text{bwd} )^{\dagger} \gamma_5 \gamma_{SRC} \text{fwd} \right] \]
+
+   @return the trace
+ */
+double complex
+meson_contract( const struct gamma GSNK ,		
+		const struct spinor bwd , 
+		const struct gamma GSRC ,
+		const struct spinor fwd ,
+		const struct gamma G5 ) ;
 
 /**
    @fn void gauge_spinor( struct spinor *res , const double complex link[ NCNC ] , const struct spinor S )

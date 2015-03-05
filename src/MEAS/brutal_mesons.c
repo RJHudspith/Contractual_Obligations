@@ -7,68 +7,19 @@
 #include "mesons.h"      // for the allocate and free correlator functions
 #include "spinor_ops.h"  // bilinear trace
 
-double complex
-meson_trace2( const struct gamma GSNK ,
-	      const struct spinor adj ,
-	      const struct gamma GSRC ,
-	      const struct spinor fwd )
-{
-  // loop counters
-  int d1 , d2 , c1 , c2 ;
-  int sign ; // permutation of the fourth roots of unity
-
-  register double complex corr = 0.0 ;
-  register double rloc_corr , iloc_corr ;
-
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-
-      // map the gamma multiplied indices for legibility 
-      const int id1 = GSRC.ig[ d1 ] ;
-      const int id2 = GSNK.ig[ d2 ] ;
-
-      // adjust the sign is a permutation of the fourth roots of unity for all sensible
-      // gamma matrix conventions
-      sign = ( GSRC.g[d1] + GSNK.g[d2] ) & 3 ;
-
-      rloc_corr = 0.0 ;
-      iloc_corr = 0.0 ;
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  // this does color trace of [ fwd[c1][c2] * adj[c2][c1] ]
-	  // real sum
-	  rloc_corr += ( creal( fwd.D[d1][d2].C[c1][c2] ) * creal( adj.D[id1][id2].C[c1][c2] ) + \
-			 cimag( fwd.D[d1][d2].C[c1][c2] ) * cimag( adj.D[id1][id2].C[c1][c2] ) ) ;
-	  //
-	  iloc_corr += ( creal( fwd.D[d1][d2].C[c1][c2] ) * cimag( adj.D[id1][id2].C[c1][c2] ) - \
-			 cimag( fwd.D[d1][d2].C[c1][c2] ) * creal( adj.D[id1][id2].C[c1][c2] ) ) ;
-	}
-      }
-      // is just a permutation. With this basis this requires NS = 4
-      switch( sign ) {
-      case 0 : corr += rloc_corr + I * iloc_corr ; break ;
-      case 1 : corr += -iloc_corr + I * rloc_corr ; break ;
-      case 2 : corr += -rloc_corr - I * iloc_corr ; break ;
-      case 3 : corr += iloc_corr - I * rloc_corr ; break ;
-      }
-    } 
-  }
-  return -corr ;
-}
-
-// dirty computation of mesons
+// meson trace
 double complex
 meson_trace( const struct gamma GSNK ,
-	     const struct spinor adj ,
+	     const struct spinor S2 ,
 	     const struct gamma GSRC ,
-	     const struct spinor fwd )
+	     const struct spinor S1 )
 {
-  struct spinor tmp1 = adj ; 
+  struct spinor tmp1 = S2 ;
   gamma_mul_l( &tmp1 , GSNK ) ;
 
-  struct spinor tmp2 = fwd ; 
+  struct spinor tmp2 = S1 ;
   gamma_mul_l( &tmp2 , GSRC ) ;
-
+  
   return bilinear_trace( tmp1 , tmp2 ) ;
 }
 
@@ -99,14 +50,14 @@ single_mesons_bruteforce( FILE *prop1 ,
     // read in the file
     read_prop( prop1 , S1 , proptype1 ) ;
 
-    // loop spatial hypercube
-    int site ;
-    #pragma omp parallel for private( site )
-    for( site = 0 ; site < VOL3 ; site++ ) {
-      // pre-compute the adjoint
-      full_adj( &S1adj[site] , S1[ site ] , GAMMAS[ GAMMA_5 ] ) ;
+    // compute the full adjoint
+    int i ;
+#pragma omp parallel for private(i)
+    for( i = 0 ; i < VOL3 ; i++ ) {
+      full_adj( &S1adj[ i ] , S1[ i ] , GAMMAS[ GAMMA_5 ] ) ;
     }
 
+    // loop over all source and sink indices
     int GSRC = 0 ;
     #pragma omp parallel for private(GSRC)
     for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
@@ -117,7 +68,13 @@ single_mesons_bruteforce( FILE *prop1 ,
 	register double complex sum = 0.0 ;
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	   sum += meson_trace2( GAMMAS[ GSNK ] , S1adj[site] , GAMMAS[ GSRC ] , S1[ site ] ) ;		      
+	  sum += meson_trace( GAMMAS[ GSNK ] , S1adj[ site ] ,
+			      GAMMAS[ GSRC ] , S1[ site ] ) ;
+	    /*
+meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
+				 GAMMAS[ GSRC ] , S1[ site ] , 
+				 GAMMAS[ GAMMA_5 ] ) ;
+	    */
 	}
 	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
       }
@@ -130,21 +87,6 @@ single_mesons_bruteforce( FILE *prop1 ,
   // & do something with the computed correlators
 #ifdef DEBUG
   debug_mesons( "LL-mesons" , (const struct correlator**)corr ) ;
-#endif
-
-#if 0
-  int GS , GN ;
-  for( GS = 0 ; GS < NS*NS ; GS++ ){
-    for( GN = 0 ; GN < NS*NS ; GN++ ) {
-
-      int t ;
-      for( t = 0 ; t < L0 ; t++ ) {
-	printf( "[ %d %d %d ] %e %e \n" , GS , GN , t , creal( corr[ GS ][ GN ].C[t] ) , cimag( corr[GS][GN].C[t] )) ;
-      }
-      //
-      printf( "\n" ) ;
-    }
-  }
 #endif
 
   // free our correlator measurement

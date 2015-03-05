@@ -1,37 +1,31 @@
 /**
    @file correlators.h
-   @brief correlation function calculation prototypes
+   @brief correlator IO and storage types prototype functions
  */
 
 #ifndef CORRELATORS_H
 #define CORRELATORS_H
 
+/**
+   @fn void allocate_corrs( struct correlator **corr )
+   @brief allocate NS*NS correlator matrix
+ */
+void
+allocate_corrs( struct correlator **corr ) ;
 
 /**
-   @fn double complex local_meson_correlator( const struct spinor S1 , const struct spinor S2 , const struct gamma ADJ , const struct gamma SRC , const struct gamma SNK )
-   @param S1 :: propagator solution at a site
-   @param S2 :: second propagator solution at a site
-
-   @return C(t) from spin-color trace
+   @fn void free_corrs( struct correlator **corr )
+   @brief free correlator matrix
  */
-double complex 
-local_meson_correlator( const struct spinor S1 , 
-			const struct spinor S2 , 
-			const struct gamma ADJ ,
-			const struct gamma SRC ,
-			const struct gamma SNK ) ;
-
+void
+free_corrs( struct correlator **corr ) ;
 
 /**
-   @fn double complex pion_correlator( const struct spinor S1 , const struct spinor S2 )
-   @param S1 :: propagator solution at a site
-   @param S2 :: second propagator solution at a site
-
-   @return C(t) from spin-color trace
+   @void void debug_mesons( const char *message , const struct correlator **corr )
+   @brief print to stdout some correlator information
  */
-double complex
-pion_correlator( const struct spinor S1 ,
-            const struct spinor S2 );
-
+void
+debug_mesons( const char *message , 
+	      const struct correlator **corr ) ;
 
 #endif

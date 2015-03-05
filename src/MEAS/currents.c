@@ -1,11 +1,13 @@
 /**
    @file currents.c
    @brief various current implementations and contractions
+
+   TODO :: Check the NCAA and NCVV codes, I implemented quickly without much
+   care - J
  */
 
 #include "common.h"
 
-#include "brutal_mesons.h"  // for the brute-force meson trace
 #include "spinor_ops.h"     // for the full adjoint and color matrix multiply
 
 // Wilson non-local non-conserved axial
@@ -18,16 +20,9 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const int mu ,
 	    const int nu )
 {
-  double complex sum = 0.0 ;
-  struct spinor adj ;
-  full_adj( &adj , S2 , GAMMAS[ GAMMA_5 ] ) ;
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , US1xpmu ) ;
-
-  // and the other half
-  full_adj( &adj , S2xpmu , GAMMAS[ GAMMA_5 ] ) ; 
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , UdS1x ) ;
-
-  return sum * 0.5 ;
+  return \
+    0.5 * ( meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) +
+	    meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ mu ] , UdS1x , GAMMAS[ GAMMA_5 ] ) ) ;
 }
 
 // non-conserved non-local vector current 
@@ -38,16 +33,11 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor S2xpmu ,   // S_2( x + \mu )
 	     const struct gamma *GAMMAS ,
 	     const int mu ,
-	     const int nu )
+ 	     const int nu )
 {
-  double complex sum = 0.0 ;
-  struct spinor adj ;
-  full_adj( &adj , S2 , GAMMAS[ GAMMA_5 ] ) ;
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , US1xpmu ) ;
-  // and the other half
-  full_adj( &adj , S2xpmu , GAMMAS[ GAMMA_5 ] ) ; 
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , UdS1x ) ;
-  return sum * 0.5 ;
+  return \
+    0.5 * ( meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) +
+	    meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ mu ] , UdS1x , GAMMAS[ GAMMA_5 ] ) ) ;
 }
 
 // Conserved-Local Vector current
@@ -60,20 +50,13 @@ CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const int mu ,
 	    const int nu )
 {
-  double complex sum = 0.0 ;
-  struct spinor adj ;
-  full_adj( &adj , S2 , GAMMAS[ GAMMA_5 ] ) ;
-
-  sum -= meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ IDENTITY ] , US1xpmu ) ;
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , US1xpmu ) ;
-
-  // and the other half
-  full_adj( &adj , S2xpmu , GAMMAS[ GAMMA_5 ] ) ; 
- 
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ IDENTITY ] , UdS1x ) ;
-  sum += meson_trace( GAMMAS[ nu ] , adj , GAMMAS[ mu ] , UdS1x ) ;
-
-  return sum * 0.5 ;
+  return \
+    0.5 * (
+	   -meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ IDENTITY ] , US1xpmu , GAMMAS[ GAMMA_5 ] )
+	   +meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) 
+	   +meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ IDENTITY ] , UdS1x , GAMMAS[ GAMMA_5 ] )
+	   +meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ mu ] , UdS1x , GAMMAS[ GAMMA_5 ] )
+	    ) ;
 }
 
 // man this has a lot of arguments -> TODO :: reduce these somehow
@@ -143,22 +126,20 @@ contract_local_local( struct PIdata *DATA_AA ,
   #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
 
-    // precompute the adjoint
-    struct spinor adj ;
-    full_adj( &adj , S2[x] , GAMMAS[ GAMMA_5 ] ) ;
-
     const int i = x + LCU * t ;
     int mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {
 
 	DATA_AA[i].PI[mu][nu] = \
-	  meson_trace( GAMMAS[ AGMAP[ mu ] ] , adj , 
-		       GAMMAS[ AGMAP[nu] ] , S1[x] ) ;
+	  meson_contract( GAMMAS[ AGMAP[ mu ] ] , S2[x] , 
+			  GAMMAS[ AGMAP[nu] ] , S1[x] ,
+			  GAMMAS[ GAMMA_5 ] ) ;
 
 	DATA_VV[i].PI[mu][nu] = \
-	  meson_trace( GAMMAS[ VGMAP[ mu ] ] , adj , 
-		       GAMMAS[ VGMAP[nu] ] , S1[x] ) ;
+	  meson_contract( GAMMAS[ VGMAP[ mu ] ] , S2[x] , 
+			  GAMMAS[ VGMAP[nu] ] , S1[x] ,
+			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
   }

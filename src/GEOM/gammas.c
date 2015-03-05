@@ -35,18 +35,29 @@
 #include "common.h" // needed for struct gamma definition
 
 // gamma multiply
-static void
+inline void
 gamma_mmul( struct gamma *a ,
 	    const struct gamma b ,
 	    const struct gamma c )
 {
+#if NS == 4
+  a -> ig[0] = c.ig[ b.ig[0] ] ;
+  a ->  g[0] = ( b.g[0] + c.g[ b.ig[0] ] ) & 3 ;
+  a -> ig[1] = c.ig[ b.ig[1] ] ;
+  a ->  g[1] = ( b.g[1] + c.g[ b.ig[1] ] ) & 3 ;
+  a -> ig[2] = c.ig[ b.ig[2] ] ;
+  a ->  g[2] = ( b.g[2] + c.g[ b.ig[2] ] ) & 3 ;
+  a -> ig[3] = c.ig[ b.ig[3] ] ;
+  a ->  g[3] = ( b.g[3] + c.g[ b.ig[3] ] ) & 3 ;
+#else
   int i ;
   for( i = 0 ; i < NS ; i++ ) {
     const int j = b.ig[i] ; // non-zero column
     a -> ig[i] = c.ig[j] ;
-    a -> g[i] = ( b.g[i] + c.g[j] ) & 3 ;
+    a -> g[i] = ( b.g[i] + c.g[j] ) % NS ;
   }
   return ;
+#endif
 }
 
 // gamma matrix comparison

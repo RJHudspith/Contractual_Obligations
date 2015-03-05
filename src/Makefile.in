@@ -134,14 +134,14 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./IO/input_reader.$(OBJEXT) ./IO/read_config.$(OBJEXT) \
 	./IO/readers.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT) \
-	./IO/read_propheader.$(OBJEXT) ./MEAS/correlators.$(OBJEXT) \
-	./MEAS/mesons.$(OBJEXT) ./MEAS/wall_mesons.$(OBJEXT) \
-	./MEAS/conserved_local.$(OBJEXT) \
-	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/plaqs_links.$(OBJEXT) \
-	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
-	./MEAS/brutal_mesons.$(OBJEXT) ./MEAS/currents.$(OBJEXT) \
-	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
-	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT)
+	./IO/read_propheader.$(OBJEXT) ./MEAS/mesons.$(OBJEXT) \
+	./MEAS/wall_mesons.$(OBJEXT) ./MEAS/conserved_local.$(OBJEXT) \
+	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/correlators.$(OBJEXT) \
+	./MEAS/plaqs_links.$(OBJEXT) ./UTILS/crc32.$(OBJEXT) \
+	./UTILS/GLU_bswap.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
+	./MEAS/currents.$(OBJEXT) ./UTILS/GLU_timer.$(OBJEXT) \
+	./UTILS/gramschmidt.$(OBJEXT) ./UTILS/matrix_ops.$(OBJEXT) \
+	./UTILS/spinor_ops.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__CORR_SOURCES_DIST = corr.c
@@ -327,8 +327,8 @@ libCORR_a_SOURCES = \
 	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c \
-	./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/wall_mesons.c \
-	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c \
+	./MEAS/mesons.c ./MEAS/wall_mesons.c \
+	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
@@ -443,8 +443,6 @@ MEAS/$(am__dirstamp):
 MEAS/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./MEAS/$(DEPDIR)
 	@: > MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/correlators.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wall_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
@@ -452,6 +450,8 @@ MEAS/$(DEPDIR)/$(am__dirstamp):
 ./MEAS/conserved_local.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/momspace_PImunu.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/correlators.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/plaqs_links.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)

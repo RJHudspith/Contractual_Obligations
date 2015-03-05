@@ -23,8 +23,8 @@ libCORR_a_SOURCES = \
 	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c \
-	./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/wall_mesons.c \
-	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c \
+	./MEAS/mesons.c ./MEAS/wall_mesons.c \
+	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \

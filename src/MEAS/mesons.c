@@ -7,73 +7,10 @@
 
 #include "common.h"
 
-#include "correlators.h"  // correlators
+#include "correlators.h"  // for allocate_corrs and free_corrs
 #include "gammas.h"       // gamma matrices
 #include "io.h"           // read prop
-
-// allocate the correlator matrix
-void
-allocate_corrs( struct correlator **corr )
-{
-  int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
-    corr[ s ] = ( struct correlator* )calloc( NS * NS , sizeof( struct correlator ) ) ;
-    int t ;
-    for( t = 0 ; t < NS * NS ; t++ ) {
-      corr[s][t].C = calloc( L0 , sizeof( double complex ) ) ;
-    }
-  }
-  return ;
-}
-
-// free the correlator matrix
-void
-free_corrs( struct correlator **corr )
-{
-  int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
-    int t ;
-    for( t = 0 ; t < NS * NS ; t++ ) {
-      free( corr[ s ][ t ].C ) ;
-    }
-    free( corr[ s ] ) ;
-  }
-  free( corr ) ;
-  return ;
-}
-
-#ifdef DEBUG
-void
-debug_mesons( const char *message , 
-	      const struct correlator **corr )
-{
-  int t ;
-  printf( "%s PION\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_5][GAMMA_5].C[t] ) , cimag( corr[GAMMA_5][GAMMA_5].C[t] ) ) ;
-  }
-  printf( "%s 00\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_0][GAMMA_0].C[t] ) , cimag( corr[GAMMA_0][GAMMA_0].C[t] ) ) ;
-  }
-  printf( "%s 11\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_1][GAMMA_1].C[t] ) , cimag( corr[GAMMA_1][GAMMA_1].C[t] ) ) ;
-  }
-  printf( "%s 22\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_2][GAMMA_2].C[t] ) , cimag( corr[GAMMA_2][GAMMA_2].C[t] ) ) ;
-  }
-  printf( "%s 33\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GAMMA_3][GAMMA_3].C[t] ) , cimag( corr[GAMMA_3][GAMMA_3].C[t] ) ) ;
-  }
-  printf( "%s 1010\n" , message ) ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[10][10].C[t] ) , cimag( corr[10][10].C[t] ) ) ;
-  }
-}
-#endif
+#include "spinor_ops.h"   // meson contract
 
 // computes meson correlators
 int
@@ -102,7 +39,12 @@ single_mesons( FILE *prop1 ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 , proptype1 ) ;
+    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
+      free_corrs( corr ) ;
+      free( GAMMAS ) ;
+      free( S1 ) ;
+      return FAILURE ;
+    }
 
     int GSRC = 0 ;
     // parallelise the furthest out loop
@@ -117,16 +59,17 @@ single_mesons( FILE *prop1 ,
 	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S1[ site ] , 
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
+	  sum += meson_contract( GAMMAS[ GSNK ] ,		
+				 S1[ site ] , 
+				 GAMMAS[ GSRC ] ,
+				 S1[ site ] ,
+				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 	//
 	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",t/((L0-1)/100.));fflush(stdout);
+    printf("\rdone %.f %%",(t+1)/((L0)/100.));fflush(stdout);
   }
   printf("\n");	
 
@@ -177,8 +120,14 @@ double_mesons( FILE *prop1 ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 , proptype1 ) ;
-    read_prop( prop2 , S2 , proptype2 ) ;
+    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ||
+	read_prop( prop2 , S2 , proptype2 ) == FAILURE ) {
+      free_corrs( corr ) ;
+      free( GAMMAS ) ;
+      free( S1 ) ;
+      free( S2 ) ;
+      return FAILURE ;
+    }
 
     int GSRC ;
     // parallelise the furthest out loop
@@ -192,10 +141,11 @@ double_mesons( FILE *prop1 ,
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S2[ site ] , 
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
+	  sum += meson_contract( GAMMAS[ GSNK ] ,		
+				 S2[ site ] , 
+				 GAMMAS[ GSRC ] ,
+				 S1[ site ] ,
+				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 	//
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;

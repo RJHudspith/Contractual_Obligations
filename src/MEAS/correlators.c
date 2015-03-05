@@ -1,92 +1,75 @@
 /**
    @file correlators.c
-   @brief correlation function calculations
+   @brief now holds the correlator definitions and IO
  */
 
 #include "common.h"
 
-// compute the local meson correlator
-/**
-   How this works ::
-
-   Meson correlator is defined by
-
-   Tr[ \gamma_snk \gamma_5 adj( S2 ) \gamma_5 \gamma_src S1 ]
-
-   Where the trace is over spin and color indices
-
-   The code computes the sign the product of the matrices
-   as they are defined by ( 1 )^{n/4} [ Perm ]
-   Where Perm is a permutation matrix
- */
-double complex 
-local_meson_correlator( const struct spinor S1 , 
-			const struct spinor S2 , 
-			const struct gamma ADJ ,
-			const struct gamma SRC ,
-			const struct gamma SNK )
+// allocate the correlator matrix
+void
+allocate_corrs( struct correlator **corr )
 {
-  // loop counters
-  int d1 , d2 , c1 , c2 ;
-  int sign ; // permutation of the fourth roots of unity
-
-  register double complex corr = 0.0 ;
-  register double rloc_corr , iloc_corr ;
-
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-
-      // map the gamma multiplied indices for legibility 
-      const int id1 = SRC.ig[ ADJ.ig[ d1 ] ] ;
-      const int id2 = SNK.ig[ ADJ.ig[ d2 ] ] ;
-
-      // adjust the sign is a permutation of the fourth roots of unity for all sensible
-      // gamma matrix conventions
-      sign = ( SRC.g[d1] + ADJ.g[id1] + SNK.g[d2] + ADJ.g[id2] )&3 ;
-
-      rloc_corr = 0.0 ;
-      iloc_corr = 0.0 ;
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  // should this conjugate be conj( S1.D[d2][d1].C[c2][c1] ) ? This is daggered right?
-
-	  //loc_corr += conj( S1.D[d1][d2].C[c1][c2] ) * S1.D[id1][id2].C[c1][c2];
-	  rloc_corr += creal( S1.D[d1][d2].C[c1][c2] ) * creal( S2.D[id1][id2].C[c1][c2] ) + \
-	    cimag( S1.D[d1][d2].C[c1][c2] ) * cimag( S2.D[id1][id2].C[c1][c2] ) ;
-	  //
-	  iloc_corr += creal( S1.D[d1][d2].C[c1][c2] ) * cimag( S2.D[id1][id2].C[c1][c2] ) - \
-	    cimag( S1.D[d1][d2].C[c1][c2] ) * creal( S2.D[id1][id2].C[c1][c2] ) ;
-	}
-      }
-      // is just a permutation with this basis this requires NS = 4
-      switch( sign ) {
-      case 0 : corr += rloc_corr + I * iloc_corr ; break ;
-      case 1 : corr += -iloc_corr + I * rloc_corr ; break ;
-      case 2 : corr += -rloc_corr - I * iloc_corr ; break ;
-      case 3 : corr += iloc_corr - I * rloc_corr ; break ;
-      }
-      //
-    } 
-  }
-  return corr ;
-}
-
-// Simple pion correlator for testing/debug purposes
-double complex 
-pion_correlator( const struct spinor S1 , 
-		 const struct spinor S2 )
-{
-  int d1, d2, c1, c2;
-  register double corr = 0.0 ;
-
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-		for( c2 = 0 ; c2 < NC ; c2++ ) {
-			corr += cabs(S1.D[d1][d2].C[c1][c2] * S2.D[d1][d2].C[c1][c2]);		
-			}
-      	}
+  int s ;
+  for( s = 0 ; s < NS * NS ; s++ ) {
+    corr[ s ] = ( struct correlator* )calloc( NS * NS , sizeof( struct correlator ) ) ;
+    int t ;
+    for( t = 0 ; t < NS * NS ; t++ ) {
+      corr[s][t].C = calloc( L0 , sizeof( double complex ) ) ;
     }
   }
-  return corr ;
+  return ;
+}
+
+// free the correlator matrix
+void
+free_corrs( struct correlator **corr )
+{
+  int s ;
+  for( s = 0 ; s < NS * NS ; s++ ) {
+    int t ;
+    for( t = 0 ; t < NS * NS ; t++ ) {
+      free( corr[ s ][ t ].C ) ;
+    }
+    free( corr[ s ] ) ;
+  }
+  free( corr ) ;
+  return ;
+}
+
+// little convenience funtion
+static void
+print_convenience( const struct correlator **corr ,
+		   const int GSRC ,
+		   const int GSNK ) 
+{
+  int t ;
+  for( t = 0 ; t < L0 ; t++ ) {
+    printf( "%d %e %e \n" , t , creal( corr[GSRC][GSNK].C[t] ) , cimag( corr[GSRC][GSNK].C[t] ) ) ;
+  }
+  return ;
+}
+
+// debug printing
+void
+debug_mesons( const char *message , 
+	      const struct correlator **corr )
+{
+  printf( "%s PION\n" , message ) ;
+  print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
+
+  printf( "%s 00\n" , message ) ;
+  print_convenience( corr , GAMMA_0 , GAMMA_0 ) ;
+
+  printf( "%s 11\n" , message ) ;
+  print_convenience( corr , GAMMA_1 , GAMMA_1 ) ;
+
+  printf( "%s 22\n" , message ) ;
+  print_convenience( corr , GAMMA_2 , GAMMA_2 ) ;
+
+  printf( "%s 33\n" , message ) ;
+  print_convenience( corr , GAMMA_3 , GAMMA_3 ) ;
+
+  printf( "%s 1010\n" , message ) ;
+  print_convenience( corr , 10 , 10 ) ;
+  return ;
 }

@@ -5,10 +5,10 @@
 
 #include "common.h"
 
-#include "correlators.h" // contractions
-#include "gammas.h"      // gamma matrices
-#include "io.h"          // read_prop
-#include "mesons.h"      // correlator matrix allocate and free
+#include "correlators.h"  // for allocate_corrs and free_corrs
+#include "gammas.h"       // gamma matrices
+#include "io.h"           // read_prop
+#include "spinor_ops.h"   // meson_contract
 
 // sums a timeslice worth of S into SUM, is threaded but not how you would expect
 static void
@@ -99,10 +99,12 @@ wall_mesons( FILE *prop1 ,
 
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] ,S1[ site ] ,
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
+	  sum += meson_contract( GAMMAS[ GSNK ] , 
+				 S1[ site ] ,
+				 GAMMAS[ GSRC ] ,
+				 S1[ site ] ,
+				 GAMMAS[ GAMMA_5 ] ) ;
+				 
 	}
 
 	// normal wall-local meson correlator
@@ -110,10 +112,11 @@ wall_mesons( FILE *prop1 ,
 
 	// correlator computed just out of the summed walls
 	wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
-	  local_meson_correlator( SUM1 , SUM1 ,
-				  GAMMAS[ GAMMA_5 ] , 
-				  GAMMAS[ GSRC ] , 
-				  GAMMAS[ GSNK ] ) ;
+	  meson_contract( GAMMAS[ GSNK ] , 
+			  SUM1 ,
+			  GAMMAS[ GSRC ] ,
+			  SUM1 ,
+			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
   }
@@ -157,7 +160,6 @@ wall_double_mesons( FILE *prop1 ,
   // data structure for holding the contractions
   struct correlator **wlcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
   struct correlator **wwcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
-
   allocate_corrs( wlcorr ) ;
   allocate_corrs( wwcorr ) ;
 
@@ -197,10 +199,11 @@ wall_double_mesons( FILE *prop1 ,
 
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += local_meson_correlator( S1[ site ] , S2[ site ] ,
-					 GAMMAS[ GAMMA_5 ] , 
-					 GAMMAS[ GSRC ] , 
-					 GAMMAS[ GSNK ] ) ;
+	  sum += meson_contract( GAMMAS[ GSNK ] , 
+				 S2[ site ] ,
+				 GAMMAS[ GSRC ] ,
+				 S1[ site ] ,
+				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 
 	// normal wall-local meson correlator
@@ -208,10 +211,11 @@ wall_double_mesons( FILE *prop1 ,
 
 	// correlator computed just out of the summed walls
 	wwcorr[ GSRC ][ GSNK ].C[ t ] =	\
-	  local_meson_correlator( SUM1 , SUM2 ,
-				  GAMMAS[ GAMMA_5 ] , 
-				  GAMMAS[ GSRC ] , 
-				  GAMMAS[ GSNK ] ) ;
+	  meson_contract( GAMMAS[ GSNK ] , 
+			  SUM2 ,
+			  GAMMAS[ GSRC ] ,
+			  SUM1 ,
+			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
   }

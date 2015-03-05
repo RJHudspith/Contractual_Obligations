@@ -18,12 +18,9 @@
 
 #include "common.h"
 
-#include "correlators.h"     // our contraction code
 #include "gammas.h"          // gamma matrices
 #include "io.h"              // read_prop
 #include "momspace_PImunu.h" // momentum space VPF
-
-#define CL
 
 // compute the conserved local for a correlator
 int
@@ -89,16 +86,10 @@ conserved_local( FILE *fprop1 ,
     // read the one above it apart from the last one
     read_prop( fprop1 , S1UP , proptype1 ) ;
 
-    // do the contractions
-#ifdef CL
+    // do the conserved-local contractions
     contract_conserved_local( DATA_AA , DATA_VV , 
 			      lat , S1 , S1UP , S1 , S1UP ,
 			      GAMMAS , AGMAP , VGMAP , t ) ;
-#else
-    contract_local_local( DATA_AA , DATA_VV ,
-	  		  S1 , S1 ,
-			  GAMMAS , AGMAP , VGMAP , t ) ;
-#endif
 
     #pragma omp parallel for private(x)
     for( x = 0 ; x < LCU ; x++ ) {
@@ -108,15 +99,9 @@ conserved_local( FILE *fprop1 ,
   }
 
   // and contract the final timeslice
-#ifdef CL
   contract_conserved_local( DATA_AA , DATA_VV , 
 			    lat , S1 , S1END , S1 , S1END ,
 			    GAMMAS , AGMAP , VGMAP , t ) ;
-#else
-  contract_local_local( DATA_AA , DATA_VV ,
-			S1 , S1 ,
-			GAMMAS , AGMAP , VGMAP , t ) ;
-#endif
 
   // free our spinors
   free( S1 ) ;
@@ -125,22 +110,6 @@ conserved_local( FILE *fprop1 ,
 
   // free our gamma matrices
   free( GAMMAS ) ;
-
-  /*
-  // compute the correlators
-  double c[ L0 ] ;
-  double complex sum2 = 0.0 ;
-  for( t = 0 ; t < L0 ; t++ ) {
-    double complex sum = 0.0 ;
-    int i ;
-    for( i = 0 ; i < LCU ; i++ ) {
-      sum += DATA_VV[i+LCU*t].PI[3][3] ;
-    }
-    printf( "%d %e %e \n" , t , creal( sum ) , cimag( sum ) ) ;
-    sum2 += sum ;
-  }
-  printf( "WARD :: %e %e \n" , creal( sum2 ) , cimag( sum2 ) ) ;
-  */
 
   // do all the momspace stuff away from the contractions
   momspace_PImunu( DATA_AA , DATA_VV ) ;
