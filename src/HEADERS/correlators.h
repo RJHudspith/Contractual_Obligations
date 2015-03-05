@@ -8,7 +8,7 @@
 
 /**
    @fn void allocate_corrs( struct correlator **corr )
-   @brief allocate NS*NS correlator matrix
+   @brief allocate \f$ NS*NS \f$ correlator matrix
  */
 void
 allocate_corrs( struct correlator **corr ) ;
@@ -21,7 +21,7 @@ void
 free_corrs( struct correlator **corr ) ;
 
 /**
-   @void void debug_mesons( const char *message , const struct correlator **corr )
+   @fn void debug_mesons( const char *message , const struct correlator **corr )
    @brief print to stdout some correlator information
  */
 void

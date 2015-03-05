@@ -1,19 +1,6 @@
 /**
    @file conserved_local.c
    @brief conserved-local Wilson currents
-
-   For the vector ...
-  \[ Tr[ ( 1 - \gamma_\mu )U_\mu S( x + \mu ) gamma_\nu adj( S( x ) ) 
-      + ( 1 + \gamma_\mu) U_\mu^{\dagger} S( x ) \gamma_\nu \adj( S( x + \mu ) ) ]\]
-  
-  Doing the four contractions
-  \[
-    sum += Tr( Id * U_\mu(x) S( x + \mu ) \gamma_\nu adj( S( x ) ) ],\\
-    sum += -Tr( gamma_\mu U_\mu(x) S( x + \mu ) \gamma_\nu adj( S( x ) ) ],\\
-    sum += Tr( Id * U_\mu^{\dagger}(x) S( x ) \gamma_\nu adj( S( x + \mu ) ) ],\\
-    sum += Tr( gamma_\mu U_\mu^{\dagger}(x) S( x ) \gamma_\nu adj( S( x + \mu ) ) ].
-   \]
-   Once we have U_\mu S( x + \mu ) computed we can ship this out to our meson contracting code right?
  */
 
 #include "common.h"

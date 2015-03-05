@@ -1,12 +1,14 @@
 /**
    @file io.h
-   @brief IO reader
+   @brief IO prototype functions
  */
 #ifndef IO_H
 #define IO_H
 
 /**
    @fn void check_checksum( FILE *fprop )
+   @brief check the checksum at the end of the file
+   @return #SUCCESS or #FAILURE
 */
 int
 check_checksum( FILE *fprop ) ;

@@ -6,11 +6,11 @@
 #define GAMMAS_H
 
 /**
-   @fn void gamma_mmul( struct gamma *a , const struct gamma b , const struct gamma c )
+   @fn void gamma_mmul( struct gamma *__restrict a , const struct gamma b , const struct gamma c )
    @brief gamma multiplication
  */
 void
-gamma_mmul( struct gamma *a ,
+gamma_mmul( struct gamma *__restrict a ,
 	    const struct gamma b ,
 	    const struct gamma c ) ;
 
@@ -20,7 +20,7 @@ gamma_mmul( struct gamma *a ,
    @return #SUCCESS or #FAILURE
  */
 int
-make_gammas( struct gamma *GAMMA ,
+make_gammas( struct gamma *__restrict GAMMA ,
 	     const proptype prop ) ;
 
 #endif

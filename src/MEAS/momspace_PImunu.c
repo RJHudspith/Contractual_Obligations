@@ -1,6 +1,6 @@
 /**
    @file momspace_PImunu.c
-   @brief computes the momentum-space Pi_{\mu\nu}(q) from our data
+   @brief computes the momentum-space \f$ \Pi_{\mu\nu}(q) \f$ from our data
 
    TODO :: projections, cuts, etc etc
  */

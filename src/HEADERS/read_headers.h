@@ -30,7 +30,7 @@
    @param HEAD_DATA :: header information taken from the file
    @param VERB :: verbose output or not?
 
-   @return #GLU_SUCCESS or #GLU_FAILURE
+   @return #SUCCESS or #FAILURE
  */
 int
 read_header( FILE *__restrict infile ,

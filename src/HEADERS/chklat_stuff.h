@@ -97,7 +97,7 @@ get_float( char *s ,
    @fn int skip_hdr( FILE *__restrict file ) ;
    @brief Skips the header completely, dangeous
    @param file :: NERSC configuration file
-   @return #GLU_SUCCESS or #GLU_FAILURE
+   @return #SUCCESS or #FAILURE
  */
 int 
 skip_hdr( FILE *__restrict file ) ;

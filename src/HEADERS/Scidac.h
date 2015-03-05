@@ -55,6 +55,7 @@ write_header_SCIDAC( FILE *__restrict out ) ;
 /**
    @fn void write_trailing_header_SCIDAC( FILE *__restrict out , const uint32_t cksuma , const uint32_t cksumb ) 
    @brief writes the checksums for the configuration file
+   @param out :: outfile
    @param cksuma :: the computed CRC checksum (rank29)
    @param cksumb :: the CRC checksum (rank31)
  */

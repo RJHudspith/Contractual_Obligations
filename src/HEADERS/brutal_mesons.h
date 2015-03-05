@@ -6,6 +6,10 @@
 #ifndef BRUTAL_MESONS_H
 #define BRUTAL_MESONS_H
 
+/**
+   @fn double complex meson_trace( const struct gamma GSNK , const struct spinor S2 , const struct gamma GSRC , const struct spinor S1 ) 
+   @brief brute force meson trace
+ */
 double complex
 meson_trace( const struct gamma GSNK ,
 	     const struct spinor S2 ,

@@ -16,22 +16,4 @@ DML_checksum_accum( uint32_t *checksuma ,
 		    char *buf, 
 		    size_t size ) ;
 
-/**
-   @fn void CKSUM_ADD( void *memptr , const uint32_t nbytes )
-   @brief BQCD's crc accumulator
-   @param memptr :: start of the memory that we crc
-   @param nbytes :: total number of bytes allocated in memptr
- */
-void 
-CKSUM_ADD( void *memptr , 
-	   const uint32_t nbytes ) ;
-
-/**
-   @fn void CKSUM_GET( uint32_t *total_crc, uint32_t *total_bytes ) ;
-   @brief BQCD's crc
- */
-void 
-CKSUM_GET( uint32_t *total_crc, 
-	   uint32_t *total_bytes ) ;
-
 #endif

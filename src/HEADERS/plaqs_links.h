@@ -41,8 +41,8 @@
  */
 double 
 all_plaquettes( const struct site *__restrict lat ,
-		double *sp_plaq ,
-		double *t_plaq ) ;
+		double *__restrict sp_plaq ,
+		double *__restrict t_plaq ) ;
 
 /**
    @fn double av_plaquette( const struct site *__restrict lat ) 

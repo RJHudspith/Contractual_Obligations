@@ -30,7 +30,7 @@
    @param in :: NERSC configuration being read
    @param HEAD_DATA :: the header data
 
-   @returns #GLU_SUCCESS or #GLU_FAILURE
+   @returns #SUCCESS or #FAILURE
  **/
 uint32_t
 lattice_reader_suNC( struct site *__restrict lat , 
@@ -44,7 +44,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
    @param in :: NERSC configuration being read
    @param HEAD_DATA :: the header data
 
-   @returns #GLU_SUCCESS or #GLU_FAILURE
+   @returns #SUCCESS or #FAILURE
  **/
 uint32_t
 lattice_reader_suNC_cheaper( struct site *__restrict lat , 

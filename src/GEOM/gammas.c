@@ -36,7 +36,7 @@
 
 // gamma multiply
 inline void
-gamma_mmul( struct gamma *a ,
+gamma_mmul( struct gamma *__restrict a ,
 	    const struct gamma b ,
 	    const struct gamma c )
 {
@@ -54,7 +54,7 @@ gamma_mmul( struct gamma *a ,
   for( i = 0 ; i < NS ; i++ ) {
     const int j = b.ig[i] ; // non-zero column
     a -> ig[i] = c.ig[j] ;
-    a -> g[i] = ( b.g[i] + c.g[j] ) % NS ;
+    a -> g[i] = ( b.g[i] + c.g[j] ) & 3 ;
   }
   return ;
 #endif

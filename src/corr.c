@@ -86,15 +86,17 @@ main( const int argc,
   start_timer( ) ;
 
   // want to switch on these or call a wrapper
-  //single_mesons( fprops[0] , CHIRAL ) ;
+  single_mesons( fprops[0] , CHIRAL ) ;
   //single_mesons_bruteforce( fprops[0] , CHIRAL ) ;
   //hheavy_mesons( fprops[0] , NREL ) ;
   //double_mesons( fprops[0] , CHIRAL_TO_NREL , fprops[1] , NREL ) ;
   //double_mesons( fprops[2] , NREL , fprops[3] , NREL ) ;
 
+  /*
   if( lat != NULL ) {
     conserved_local( fprops[0] , CHIRAL , lat ) ;
   }
+  */
 
   //wall_mesons( fprops[0] , CHIRAL ) ;
 

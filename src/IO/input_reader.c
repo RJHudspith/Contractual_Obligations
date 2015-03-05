@@ -23,12 +23,6 @@
 
 #include "common.h"
 
-// we might want to change this at some point
-#define GLU_STR_LENGTH 96
-
-// maximum number of tokens
-#define INPUTS_LENGTH 36
-
 // tokenize the input file
 struct inputs {
   char TOKEN[ GLU_STR_LENGTH ] ;
@@ -49,7 +43,7 @@ are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str
 static void 
 pack_inputs( FILE *setup )
 {
-  INPUT = ( struct inputs* )malloc( INPUTS_LENGTH * sizeof( struct inputs ) ) ;
+  INPUT = ( struct inputs* )malloc( MAX_TOKENS * sizeof( struct inputs ) ) ;
   // and put into the buffer
   while( NTAGS++ , fscanf( setup , "%s = %s" , INPUT[ NTAGS ].TOKEN , INPUT[ NTAGS ].VALUE )  != EOF ) { }
   return ;

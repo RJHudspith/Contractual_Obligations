@@ -211,7 +211,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  if( are_equal( pch , "/suma" ) ) break ;
 	  sscanf( pch , "%x" , &(HEAD_DATA -> checksum) ) ;
 	  #ifdef DEBUG
-	  printf( "[IO] checksum %x \n" , &(HEAD_DATA -> checksum) ) ;
+	  printf( "[IO] checksum %x \n" , HEAD_DATA -> checksum ) ;
 	  #endif
 	}
 	continue ;

@@ -10,7 +10,7 @@
 
 // conjugate transpose of dirac indices
 void
-adjoint_spinor( struct spinor *adj ,
+adjoint_spinor( struct spinor *__restrict adj ,
 		const struct spinor S )
 {
   int d1 , d2 , c1 , c2 ;
@@ -41,7 +41,7 @@ bilinear_trace( const struct spinor A ,
 
 // computes G5 ( adj( S ) ) G5
 void
-full_adj( struct spinor *adj ,
+full_adj( struct spinor *__restrict adj ,
 	  const struct spinor S ,
 	  const struct gamma G5 )
 {
@@ -53,7 +53,7 @@ full_adj( struct spinor *adj ,
 
 // atomic left multiply by a gamma matrix
 void
-gamma_mul_l( struct spinor *res ,
+gamma_mul_l( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
@@ -83,7 +83,7 @@ gamma_mul_l( struct spinor *res ,
 
 // multiply a spinor on the right with a gamma matrix
 void
-gamma_mul_r( struct spinor *res ,
+gamma_mul_r( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
@@ -111,7 +111,7 @@ gamma_mul_r( struct spinor *res ,
 
 //
 void
-gamma_mul_lr( struct spinor *S , 
+gamma_mul_lr( struct spinor *__restrict S , 
 	      const struct gamma GLEFT ,
 	      const struct gamma GRIGHT )
 {
@@ -142,7 +142,7 @@ gamma_mul_lr( struct spinor *S ,
 
 // multiply by a link :: res = link * S
 void
-gauge_spinor( struct spinor *res ,  
+gauge_spinor( struct spinor *__restrict res ,  
 	      const double complex link[ NCNC ] ,
 	      const struct spinor S )
 {
@@ -160,7 +160,7 @@ gauge_spinor( struct spinor *res ,
 
 // multiply by a daggered link res = link^{\dagger} * S
 void
-gaugedag_spinor( struct spinor *res ,
+gaugedag_spinor( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
@@ -178,7 +178,7 @@ gaugedag_spinor( struct spinor *res ,
 
 // right multiply link by a daggered spinor res = link * S^{\dagger}
 void
-gauge_spinordag( struct spinor *res ,
+gauge_spinordag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
@@ -204,22 +204,22 @@ meson_contract( const struct gamma GSNK ,
 {
   // left and right multiply gammas by gamma_5
   struct gamma G1 , G2 ;
-  gamma_mmul( &G1 , GSNK , G5 ) ;
   gamma_mmul( &G2 , G5 , GSRC ) ;
+  gamma_mmul( &G1 , GSNK , G5 ) ;
 
-  register double sumr , sumi ;
   double complex sum = 0.0 ;
-
+  register double sumr , sumi ;
   int i , j , c1 , c2 ;
-  // loop columns
-  for( i = 0 ; i < NS ; i++ ) {
-    
-    const int col1 = G1.ig[ i ] ;
 
-    for( j = 0 ; j < NS ; j++ ) {
-      
-      const int col2 = G2.ig[ j ] ;
+  for( j = 0 ; j < NS ; j++ ) {
 
+    const int col2 = G2.ig[ j ] ;
+
+    // loop columns
+    for( i = 0 ; i < NS ; i++ ) {
+	
+      const int col1 = G1.ig[ i ] ;
+	
       // sums in double to avoid complex multiply
       sumr = sumi = 0.0 ;
       for( c2 = 0 ; c2 < NC ; c2++ ) {
@@ -246,7 +246,7 @@ meson_contract( const struct gamma GSNK ,
 
 // multiply by a link :: res = S * link
 void
-spinor_gauge( struct spinor *res ,  
+spinor_gauge( struct spinor *__restrict res ,  
 	      const struct spinor S ,
 	      const double complex link[ NCNC ] )
 {
@@ -263,7 +263,7 @@ spinor_gauge( struct spinor *res ,
 
 // multiply by a daggered link res = S^{\dagger} link
 void
-spinordag_gauge( struct spinor *res ,
+spinordag_gauge( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {
@@ -280,7 +280,7 @@ spinordag_gauge( struct spinor *res ,
 
 // right multiply by a daggered link res = S * link^{\dagger}
 void
-spinor_gaugedag( struct spinor *res ,
+spinor_gaugedag( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {

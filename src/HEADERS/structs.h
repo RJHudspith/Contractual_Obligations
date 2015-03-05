@@ -41,10 +41,11 @@ struct correlator{
 /**
    @struct gamma
    @brief gamma matrix type
+   uint8_t so it behaves better in cache
 */
 struct gamma{
-  int g[ NS ] ;  // one of the 4 roots of unity
-  int ig[ NS ] ; // index is non zero column
+  uint8_t g[ NS ] ;  // one of the 4 roots of unity
+  uint8_t ig[ NS ] ; // index is non zero column
 } ;
 
 /**

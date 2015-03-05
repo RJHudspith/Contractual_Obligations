@@ -7,7 +7,7 @@
 
 /**
    @fn void momspace_PImunu( struct PIdata *DATA_AA , struct PIdata *DATA_VV )
-   @brief FFTs (if available) the config-space PI_\mu\nu
+   @brief FFTs (if available) the config-space \f$ \Pi_{\mu\nu}(q) \f$
  */
 void
 momspace_PImunu( struct PIdata *DATA_AA ,
