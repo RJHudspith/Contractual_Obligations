@@ -8,7 +8,8 @@
 
 #include "common.h"
 
-#include "spinor_ops.h"     // for the full adjoint and color matrix multiply
+#include "contractions.h" // meson_contract
+#include "spinor_ops.h"   // spinor - color matrix multiply
 
 /**
    @brief Wilson non-local non-conserved axial

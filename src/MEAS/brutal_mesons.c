@@ -4,8 +4,8 @@
  */
 #include "common.h"
 
-#include "mesons.h"      // for the allocate and free correlator functions
-#include "spinor_ops.h"  // bilinear trace
+#include "contractions.h" // bilinear trace and gamma multiplies
+#include "correlators.h"  // for the allocate and free correlator functions
 
 // meson trace
 double complex
@@ -26,10 +26,11 @@ meson_trace( const struct gamma GSNK ,
 // computes meson correlators
 int
 single_mesons_bruteforce( FILE *prop1 , 
-			  const proptype proptype1 )
+			  const proptype proptype1 ,
+			  const char *outfile )
 {
   // data structure for holding the contractions
-  struct correlator **corr = calloc( NS*NS , sizeof( struct correlator* ) ) ;
+  struct correlator **corr = calloc( NSNS , sizeof( struct correlator* ) ) ;
 
   allocate_corrs( corr ) ;
 
@@ -38,7 +39,7 @@ single_mesons_bruteforce( FILE *prop1 ,
   struct spinor *S1adj = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
   make_gammas( GAMMAS , proptype1 ) ;
@@ -68,13 +69,8 @@ single_mesons_bruteforce( FILE *prop1 ,
 	register double complex sum = 0.0 ;
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_trace( GAMMAS[ GSNK ] , S1adj[ site ] ,
+	  sum += meson_trace( GAMMAS[ GSNK ] , S1adj[ site ] , 
 			      GAMMAS[ GSRC ] , S1[ site ] ) ;
-	    /*
-meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
-				 GAMMAS[ GSRC ] , S1[ site ] , 
-				 GAMMAS[ GAMMA_5 ] ) ;
-	    */
 	}
 	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
       }

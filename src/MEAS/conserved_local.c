@@ -7,11 +7,12 @@
 
 #include "gammas.h"          // gamma matrices
 #include "io.h"              // read_prop
+#include "matrix_ops.h"      // constant_mul_gauge
 #include "momspace_PImunu.h" // momentum space VPF
 
 // compute the conserved local for a correlator
 int
-conserved_local( FILE *fprop1 , 
+conserved_local( FILE *prop1 , 
 		 const proptype proptype1 ,
 		 const struct site *lat )
 {
@@ -45,7 +46,7 @@ conserved_local( FILE *fprop1 ,
   struct spinor *S1END = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // I think this is for the vector  
-  read_prop( fprop1 , S1 , proptype1 ) ;
+  read_prop( prop1 , S1 , proptype1 ) ;
 
   // copy for the final timeslice
   int x ;
@@ -55,13 +56,8 @@ conserved_local( FILE *fprop1 ,
     // crossing a boundary flips the sign only for antiperiodic BC
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
-	int c1, c2 ;
-	for( c1 = 0 ; c1 < NC ; c1++ ) {
-	  for( c2 = 0 ; c2 < NC ; c2++ ) {
-	    S1END[x].D[d1][d2].C[c1][c2] = -S1[x].D[d1][d2].C[c1][c2] ;
-	  }
-	}
-	//
+	constant_mul_gauge( (double complex*)S1END[x].D[d1][d2].C , 
+			    -1 , (double complex*)S1[x].D[d1][d2].C ) ;
       }
     }
   }
@@ -71,7 +67,7 @@ conserved_local( FILE *fprop1 ,
   for( t = 0 ; t < L0-1 ; t++ ) {
 
     // read the one above it apart from the last one
-    read_prop( fprop1 , S1UP , proptype1 ) ;
+    read_prop( prop1 , S1UP , proptype1 ) ;
 
     // do the conserved-local contractions
     contract_conserved_local( DATA_AA , DATA_VV , 

@@ -5,10 +5,10 @@
 
 #include "common.h"
 
+#include "contractions.h" // meson contract
 #include "correlators.h"  // for allocate_corrs and free_corrs
 #include "gammas.h"       // gamma matrices
 #include "io.h"           // read_prop
-#include "spinor_ops.h"   // meson_contract
 
 // sums a timeslice worth of S into SUM, is threaded but not how you would expect
 static void

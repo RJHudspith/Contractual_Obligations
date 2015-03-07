@@ -39,15 +39,6 @@ struct correlator{
 } ;
 
 /**
-   @struct lilgamma
-   @brief tiny structure for the gammas
- */
-struct lilgamma {
-  unsigned int g : 2 ;
-  unsigned int ig : 2 ;
-} ;
-
-/**
    @struct gamma
    @brief gamma matrix type
    uint8_t so it behaves better in cache

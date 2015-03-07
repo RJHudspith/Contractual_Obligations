@@ -7,10 +7,10 @@
 
 #include "common.h"
 
+#include "contractions.h" // meson contract
 #include "correlators.h"  // for allocate_corrs and free_corrs
 #include "gammas.h"       // gamma matrices
 #include "io.h"           // read prop
-#include "spinor_ops.h"   // meson contract
 
 // computes meson correlators
 int
@@ -37,7 +37,7 @@ single_mesons( FILE *prop1 ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < 1 ; t++ ) {
+  for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
     if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
