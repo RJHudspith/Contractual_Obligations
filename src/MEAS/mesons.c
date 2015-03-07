@@ -15,7 +15,8 @@
 // computes meson correlators
 int
 single_mesons( FILE *prop1 , 
-	       const proptype proptype1 )
+	       const proptype proptype1 ,
+	       const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
@@ -36,7 +37,7 @@ single_mesons( FILE *prop1 ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < 1 ; t++ ) {
 
     // read in the file
     if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
@@ -53,16 +54,14 @@ single_mesons( FILE *prop1 ,
 
       int GSNK ;
       for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
-	
+
 	register double complex sum = 0.0 ;
 
 	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] ,		
-				 S1[ site ] , 
-				 GAMMAS[ GSRC ] ,
-				 S1[ site ] ,
+	  sum += meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
+				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 	//
@@ -77,6 +76,9 @@ single_mesons( FILE *prop1 ,
 #ifdef DEBUG
   debug_mesons( "LL-mesons" , (const struct correlator**)corr ) ;
 #endif
+
+  // and write out a file
+  write_correlators( outfile , (const struct correlator**)corr ) ;
 
   // free our correlator measurement
   free_corrs( corr ) ;
@@ -95,7 +97,8 @@ int
 double_mesons( FILE *prop1 , 
 	       const proptype proptype1 ,
 	       FILE *prop2 ,
-	       const proptype proptype2 )
+	       const proptype proptype2 ,
+	       const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
@@ -128,6 +131,21 @@ double_mesons( FILE *prop1 ,
       free( S2 ) ;
       return FAILURE ;
     }
+    
+    // if we are doing nonrel-chiral mesons we switch chiral to nrel
+    if( proptype1 == CHIRAL && proptype2 == NREL ) {
+      int site ;
+      #pragma omp parallel for private(site) 
+      for( site = 0 ; site < LCU ; site++ ) {
+	chiral_to_nrel( &S1[ site ] ) ;
+      }
+    } else if( proptype1 == NREL && proptype2 == CHIRAL ) {
+      int site ;
+      #pragma omp parallel for private(site) 
+      for( site = 0 ; site < LCU ; site++ ) {
+	chiral_to_nrel( &S2[ site ] ) ;
+      }
+    }
 
     int GSRC ;
     // parallelise the furthest out loop
@@ -137,14 +155,13 @@ double_mesons( FILE *prop1 ,
       int GSNK ;
       for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
 
-	register complex sum = 0.0 ;
+	register double complex sum = 0.0 ;
+
 	//
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] ,		
-				 S2[ site ] , 
-				 GAMMAS[ GSRC ] ,
-				 S1[ site ] ,
+	  sum += meson_contract( GAMMAS[ GSNK ] , S2[ site ] , 
+				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 	//
@@ -158,6 +175,9 @@ double_mesons( FILE *prop1 ,
 #ifdef DEBUG
   debug_mesons( "HL-mesons" , (const struct correlator**)corr ) ;
 #endif
+
+  // and write out a file
+  write_correlators( outfile , (const struct correlator**)corr ) ;
 
   // free our correlator measurement
   free_corrs( corr ) ;

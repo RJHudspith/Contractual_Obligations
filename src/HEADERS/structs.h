@@ -39,13 +39,22 @@ struct correlator{
 } ;
 
 /**
+   @struct lilgamma
+   @brief tiny structure for the gammas
+ */
+struct lilgamma {
+  unsigned int g : 2 ;
+  unsigned int ig : 2 ;
+} ;
+
+/**
    @struct gamma
    @brief gamma matrix type
    uint8_t so it behaves better in cache
 */
 struct gamma{
-  uint8_t g[ NS ] ;  // one of the 4 roots of unity
-  uint8_t ig[ NS ] ; // index is non zero column
+  uint8_t g[ NS ] ;
+  uint8_t ig[ NS ] ;
 } ;
 
 /**
@@ -129,6 +138,23 @@ struct latt_info{
   int flow ; // config number , gets passed around a bit
   header_mode head ;// Which header type are we using
   double twiddles[ ND ] ; // fourier transform twiddles
+} ;
+
+/**
+   @struct meson_info
+   @brief meson contraction information
+   @param map :: maps contractions indices
+   @param source :: of type #sourcetype
+   @param proptype1 :: type of prop1
+   @param proptype2 :: type of prop2
+   @param outfile :: output file name
+ */
+struct meson_info {
+  int map[2] ;
+  sourcetype source ;
+  proptype proptype1 ;
+  proptype proptype2 ;
+  char outfile[ 256 ] ;
 } ;
 
 #endif

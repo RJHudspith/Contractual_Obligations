@@ -124,67 +124,6 @@ read_nrprop( FILE *fprop,
   return SUCCESS ;
 }
 
-// Read light propagator time slice and change to nrel basis
-static int 
-read_chiral2nrel( FILE *fprop, 
-		  struct spinor *S )
-{
-  const int spinsize = NC * NC * NS * NS ;
-
-  int c1, c2 ;
-  int i ;
-  for( i = 0 ; i < LCU ; i++ ) {
-
-    struct spinor P ;
-    // Read in three timeslices from tslice 
-    if( fread( P.D , sizeof(double complex), spinsize , fprop ) != 
-	spinsize ) {
-      printf( "[C2NR] Fread propagator failure \n" ) ;
-      return FAILURE ;
-    }
-
-    // change from chiral into nrel basis
-    //  
-    //  chiral S = T * S * T^dagger
-    // 
-    //  here T:
-    // 
-    //        1/s    0       1/s     0
-    //        0      1/s     0       1/s
-    //        -1/s   0       1/s     0
-    //        0      -1/s    0       1/s
-    // 
-    //  with 1/s = 1/sqrt(2)
-    //       
-    for( c1 = 0 ; c1 < NC ; c1++ ) {
-      for( c2 = 0 ; c2 < NC ; c2++ ) {
-	S[i].D[0][0].C[c1][c2] = 0.5 * (  P.D[0][0].C[c1][c2] + P.D[2][0].C[c1][c2] + P.D[0][2].C[c1][c2] + P.D[2][2].C[c1][c2] );
-	S[i].D[1][0].C[c1][c2] = 0.5 * (  P.D[1][0].C[c1][c2] + P.D[3][0].C[c1][c2] + P.D[1][2].C[c1][c2] + P.D[3][2].C[c1][c2] );
-	S[i].D[2][0].C[c1][c2] = 0.5 * ( -P.D[0][0].C[c1][c2] + P.D[2][0].C[c1][c2] - P.D[0][2].C[c1][c2] + P.D[2][2].C[c1][c2] );
-	S[i].D[3][0].C[c1][c2] = 0.5 * ( -P.D[1][0].C[c1][c2] + P.D[3][0].C[c1][c2] - P.D[1][2].C[c1][c2] + P.D[3][2].C[c1][c2] );
-
-	S[i].D[0][1].C[c1][c2] = 0.5 * (  P.D[0][1].C[c1][c2] + P.D[2][1].C[c1][c2] + P.D[0][3].C[c1][c2] + P.D[2][3].C[c1][c2] );
-	S[i].D[1][1].C[c1][c2] = 0.5 * (  P.D[1][1].C[c1][c2] + P.D[3][1].C[c1][c2] + P.D[1][3].C[c1][c2] + P.D[3][3].C[c1][c2] );
-	S[i].D[2][1].C[c1][c2] = 0.5 * ( -P.D[0][1].C[c1][c2] + P.D[2][1].C[c1][c2] - P.D[0][3].C[c1][c2] + P.D[2][3].C[c1][c2] );
-	S[i].D[3][1].C[c1][c2] = 0.5 * ( -P.D[1][1].C[c1][c2] + P.D[3][1].C[c1][c2] - P.D[1][3].C[c1][c2] + P.D[3][3].C[c1][c2] );
-
-	S[i].D[0][2].C[c1][c2] = 0.5 * ( -P.D[0][0].C[c1][c2] - P.D[2][0].C[c1][c2] + P.D[0][2].C[c1][c2] + P.D[2][2].C[c1][c2] );
-	S[i].D[1][2].C[c1][c2] = 0.5 * ( -P.D[1][0].C[c1][c2] - P.D[3][0].C[c1][c2] + P.D[1][2].C[c1][c2] + P.D[3][2].C[c1][c2] );
-	S[i].D[2][2].C[c1][c2] = 0.5 * (  P.D[0][0].C[c1][c2] - P.D[2][0].C[c1][c2] - P.D[0][2].C[c1][c2] + P.D[2][2].C[c1][c2] );
-	S[i].D[3][2].C[c1][c2] = 0.5 * (  P.D[1][0].C[c1][c2] - P.D[3][0].C[c1][c2] - P.D[1][2].C[c1][c2] + P.D[3][2].C[c1][c2] );
-
-	S[i].D[0][3].C[c1][c2] = 0.5 * ( -P.D[0][1].C[c1][c2] - P.D[2][1].C[c1][c2] + P.D[0][3].C[c1][c2] + P.D[2][3].C[c1][c2] );
-	S[i].D[1][3].C[c1][c2] = 0.5 * ( -P.D[1][1].C[c1][c2] - P.D[3][1].C[c1][c2] + P.D[1][3].C[c1][c2] + P.D[3][3].C[c1][c2] );
-	S[i].D[2][3].C[c1][c2] = 0.5 * (  P.D[0][1].C[c1][c2] - P.D[2][1].C[c1][c2] - P.D[0][3].C[c1][c2] + P.D[2][3].C[c1][c2] );
-	S[i].D[3][3].C[c1][c2] = 0.5 * (  P.D[1][1].C[c1][c2] - P.D[3][1].C[c1][c2] - P.D[1][3].C[c1][c2] + P.D[3][3].C[c1][c2] );	
-      }
-    }
-    //
-  }
-
-  return SUCCESS ;
-}
-
 // thin wrapper for propagator reading
 int
 read_prop( FILE *fprop ,
@@ -194,8 +133,6 @@ read_prop( FILE *fprop ,
   switch( prop ) {
   case CHIRAL :
     return read_chiralprop( fprop , S ) ;
-  case CHIRAL_TO_NREL :
-    return read_chiral2nrel( fprop , S ) ;
   case NREL :
     return read_nrprop( fprop , S ) ;
   }

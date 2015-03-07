@@ -16,7 +16,7 @@ include_HEADERS = \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
 	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
-	./HEADERS/currents.h ./HEADERS/spinor_ops.h
+	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h 
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -26,7 +26,7 @@ libCORR_a_SOURCES = \
 	./MEAS/mesons.c ./MEAS/wall_mesons.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
-	./MEAS/brutal_mesons.c ./MEAS/currents.c \
+	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c
 

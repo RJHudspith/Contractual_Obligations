@@ -22,6 +22,25 @@ bilinear_trace( const struct spinor A ,
 		const struct spinor B ) ;
 
 /**
+   @fn void chiral_to_nrel( struct spinor *S )
+   @brief convert chiral basis to non-relativistic
+
+   change from chiral into nrel basis
+    
+   chiral \f$ S = T * S * T^\dagger \f$
+   here T:
+   
+           1/s    0       1/s     0
+           0      1/s     0       1/s
+           -1/s   0       1/s     0
+           0      -1/s    0       1/s
+    
+   with \f$s = \sqrt{2} \f$
+ */
+void
+chiral_to_nrel( struct spinor *S ) ;
+
+/**
    @fn void full_adj( struct spinor *__restrict adj , const struct spinor S , const struct gamma G5 )
    @brief computes \f$ gamma_5 adj( S ) gamma_5 \f$ , puts result in adj
  */
@@ -89,7 +108,7 @@ gauge_spinordag( struct spinor *__restrict res ,
    @param bwd :: backward propagator solution
    @param GSRC :: source gamma matrix
    @param fwd :: forward propagator solution
-   @param G5 :: gamma matrix #GAMMA_5
+   @param G5 :: gamma 5
 
    @return \f[
     \textrm{Tr} \left[ \gamma_{\textrm{GSNK}} \gamma_5 ( \textrm{bwd} )^{\dagger} \gamma_5 \gamma_{\textrm{GSRC}} ( \textrm{fwd} ) \right]

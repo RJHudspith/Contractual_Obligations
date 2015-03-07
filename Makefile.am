@@ -1,5 +1,5 @@
 ## everything is in src and tests
-SUBDIRS = src
+SUBDIRS = src tests
 
 ACLOCAL_AMFLAGS = -I m4
 

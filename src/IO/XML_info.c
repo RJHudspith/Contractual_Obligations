@@ -25,7 +25,7 @@
 #include "common.h"
 
 // this prints to stdout all of the header information ...
-//#define DEBUG
+//#define DEBUG_ILDG
 
 // slightly clearer (for me) string equality function
 static int
@@ -92,7 +92,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
   char *pch = strtok( xml_info , "<>" ) ;
 
   if (strncmp( pch , "?xml" , 4 ) ) {
-    #ifdef DEBUG
+    #ifdef DEBUG_ILDG
     printf( "[IO] No xml data found in this record ... \n" ) ;
     #endif
     return 0 ;
@@ -130,7 +130,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	    return FAILURE ;
 	  }
 	}
-	#ifdef DEBUG
+	#ifdef DEBUG_ILDG
 	printf( "[IO] spacetime :: %d \n" , dimensions ) ;
 	#endif
       }
@@ -144,7 +144,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	    return FAILURE ;
 	  }
 	}
-	#ifdef DEBUG
+	#ifdef DEBUG_ILDG
 	printf( "[IO] colors :: %d \n" , dimensions ) ;
 	#endif
       }
@@ -162,7 +162,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	    return FAILURE ;
 	  }
 	}
-	#ifdef DEBUG
+	#ifdef DEBUG_ILDG
 	printf( "[IO] typesize :: %d \n" , dimensions ) ;
 	#endif
       }
@@ -193,7 +193,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  while( ( token = strsep( &pch , " " ) ) ) {
 	    if(  ( are_equal( token , "/dims" ) ) ) break ;
 	    Latt.dims[ idx ] = atoi( token ) ;
-	    #ifdef DEBUG
+	    #ifdef DEBUG_ILDG
 	    printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
 	    #endif
 	    idx++ ;
@@ -210,7 +210,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	while( ( pch = strtok( 0 , "<>" ) ) ) {
 	  if( are_equal( pch , "/suma" ) ) break ;
 	  sscanf( pch , "%x" , &(HEAD_DATA -> checksum) ) ;
-	  #ifdef DEBUG
+	  #ifdef DEBUG_ILDG
 	  printf( "[IO] checksum %x \n" , HEAD_DATA -> checksum ) ;
 	  #endif
 	}
@@ -228,7 +228,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	if( are_equal( pch , search[mu] ) ) {
 	  if( ( length = get_int_tag( pch , search[mu] ) ) != 0 ) {
 	    Latt.dims[ mu ] = length ;
-            #ifdef DEBUG
+            #ifdef DEBUG_ILDG
 	    printf( "[IO] ILDG Lx :: %d \n" , length ) ;
             #endif
 	  }
@@ -247,7 +247,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  sprintf( compare , "su%dgauge" , NC ) ;
 	  if( !strncmp( compare , token , 8 ) ) {
 	    HEAD_DATA -> config_type = OUTPUT_NCxNC ;
-	    #ifdef DEBUG
+	    #ifdef DEBUG_ILDG
 	    printf( "[ILDG] configuration type %d \n" , 
 		    HEAD_DATA -> config_type ) ; 
 	    #endif
@@ -265,6 +265,6 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 }
 // YUCK
 
-#ifdef DEBUG
-  #undef DEBUG
+#ifdef DEBUG_ILDG
+  #undef DEBUG_ILDG
 #endif

@@ -1,17 +1,19 @@
 /**
-   @file crc.c
+   @file crc32.c
    @brief computation of the CRC checksum
  */
+/* 
+Taken from the MILC codebase and modified by RJ Hudspith
+in 2013.
 
-/* Taken from the GNU CVS distribution and
-modified for SciDAC use C. DeTar 10/11/2003 */
+Taken from the GNU CVS distribution and
+modified for SciDAC use C. DeTar 10/11/2003 
 
-/* crc32.c -- compute the CRC-32 of a data stream
-   Copyright (C) 1995-1996 Mark Adler
-   For conditions of distribution and use, see copyright notice in zlib.h
-*/
+crc32.c -- compute the CRC-32 of a data stream
+Copyright (C) 1995-1996 Mark Adler
+For conditions of distribution and use, see copyright notice in zlib.h
 
-/* Copyright notice reproduced from zlib.h -- (C. DeTar)
+Copyright notice reproduced from zlib.h -- (C. DeTar)
 
 version 1.0.4, Jul 24th, 1996.
 
@@ -40,51 +42,51 @@ gzip@prep.ai.mit.edu madler@alumni.caltech.edu
 The data format used by the zlib library is described by RFCs (Request for
 Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
 (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
-*/
 
-/* Copyright notice reproduced from zlib.h -- (C. DeTar)
+Copyright notice reproduced from zlib.h -- (C. DeTar)
+version 1.0.4, Jul 24th, 1996.
+Copyright (C) 1995-1996 Jean-loup Gailly and Mark Adler
 
-  version 1.0.4, Jul 24th, 1996.
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
 
-  Copyright (C) 1995-1996 Jean-loup Gailly and Mark Adler
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
 
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
+Jean-loup Gailly        Mark Adler
+gzip@prep.ai.mit.edu    madler@alumni.caltech.edu
 
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
-
-  Jean-loup Gailly        Mark Adler
-  gzip@prep.ai.mit.edu    madler@alumni.caltech.edu
-
-
-  The data format used by the zlib library is described by RFCs (Request for
-  Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
-  (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
+The data format used by the zlib library is described by RFCs (Request for
+Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
+(zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef uint32_t uLong;            /* At least 32 bits */
-typedef unsigned char Byte;
-typedef Byte Bytef;
-typedef uLong uLongf;
-#define Z_NULL  0  /* for initializing zalloc, zfree, opaque */
+// these get accumulated in here
+static uint32_t the_crc   = 0 ;
+static uint32_t the_bytes = 0 ;
 
-/* Table of CRC-32's of all single-byte values (made by make_crc_table)*/
-static uLongf crc_table[256] = {
+// macros for quick access
+#define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+#define DO2(buf)  DO1(buf); DO1(buf);
+#define DO4(buf)  DO2(buf); DO2(buf);
+#define DO8(buf)  DO4(buf); DO4(buf);
+
+/// Table of CRC-32's of all single-byte values (made by make_crc_table)
+static uint32_t crc_table[256] = {
   0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
   0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
   0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
@@ -139,45 +141,7 @@ static uLongf crc_table[256] = {
   0x2d02ef8dL
 };
 
-
-#define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-#define DO2(buf)  DO1(buf); DO1(buf);
-#define DO4(buf)  DO2(buf); DO2(buf);
-#define DO8(buf)  DO4(buf); DO4(buf);
-
-
-static uint32_t
-crc32( uLong crc , const char *buf , size_t len )
-{
-    if (buf == Z_NULL) return 0L;
-#ifdef DYNAMIC_CRC_TABLE
-    if (crc_table_empty)
-      make_crc_table();
-#endif
-    crc = crc ^ 0xffffffffL;
-    while (len >= 8)
-    {
-      DO8(buf);
-      len -= 8;
-    }
-    if (len) do {
-      DO1(buf);
-    } while (--len);
-    return crc ^ 0xffffffffL;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-/**
-   This code is for computing the crc32, which is the same as
-   cksum the linux command
- */
-
-typedef uint32_t INT8 ;
-static INT8 the_crc = 0 ;
-static INT8 the_bytes = 0 ;
-
-static const INT8 crctab[256] =
+static const uint32_t crctab[256] =
 {
   0x0,
   0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B,
@@ -233,11 +197,33 @@ static const INT8 crctab[256] =
   0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4
 };
 
-void 
-CKSUM_ADD( void *memptr , const INT8 nbytes )
+// do the crc
+static uint32_t
+crc32( uint32_t crc , const char *buf , size_t len )
 {
-  register INT8 crc ;
-  register INT8 i ;
+  if( buf == 0 ) return 0L ;
+#ifdef DYNAMIC_CRC_TABLE
+  if (crc_table_empty)
+    make_crc_table();
+#endif
+  crc = crc ^ 0xffffffffL;
+  while (len >= 8) {
+    DO8(buf);
+    len -= 8;
+  } 
+  if (len) do {
+      DO1(buf);
+    } while (--len);
+  return crc ^ 0xffffffffL;
+}
+
+// add the crcs
+void 
+CKSUM_ADD( void *memptr , 
+	   const uint32_t nbytes )
+{
+  register uint32_t crc ;
+  register uint32_t i ;
   register unsigned char *cp ;
 
   crc = the_crc ;
@@ -250,11 +236,13 @@ CKSUM_ADD( void *memptr , const INT8 nbytes )
   return ;
 }
 
+// get the checksum
 void 
-CKSUM_GET( INT8 *total_crc , INT8 *total_bytes )
+CKSUM_GET( uint32_t *total_crc , 
+	   uint32_t *total_bytes )
 {
-  register INT8 crc ;
-  register INT8 i ;
+  register uint32_t crc ;
+  register uint32_t i ;
 
   crc = the_crc;
 
@@ -263,7 +251,7 @@ CKSUM_GET( INT8 *total_crc , INT8 *total_bytes )
   }
   crc = (~crc & 0xFFFFFFFF);
 
-  *total_crc = (INT8) crc;
+  *total_crc = (uint32_t)crc;
   *total_bytes = the_bytes;
   return ;
 }
@@ -295,9 +283,7 @@ DML_checksum_accum( uint32_t *checksuma ,
   return ;
 }
 
-/* clear these up */
-#undef Z_NULL
-#undef local
+// clear these up 
 #undef DO1
 #undef DO2
 #undef DO4

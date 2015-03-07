@@ -133,9 +133,103 @@ header_type( void )
   return FAILURE ; 
 }
 
+// tokenize each meson
+static int
+twopoint_tokens( struct meson_info *mesons ,
+		 const char *meson_str ,
+		 const int nprops ,
+		 const int meas_idx ) 
+{
+  printf( "\n" ) ;
+  char *token = (char*)strtok( (char*)meson_str , "," ) ;
+  mesons -> map[ 0 ] = (int)atoi( token ) ;
+  token = (char*)strtok( NULL , "," ) ;
+  mesons -> map[ 1 ] = (int)atoi( token ) ;
+  token = (char*)strtok( NULL , "," ) ;
+  if( token == NULL || 
+      mesons -> map[0] >= nprops || mesons -> map[1] >= nprops ||
+      mesons -> map[0] < 0 || mesons -> map[1] < 0 ) {
+    printf( "[IO] Meson_%d :: Unexpected end of line or map mismatch \n" ,
+	    meas_idx ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] Meson_%d :: Contracting prop %d with prop %d \n" , 
+	  meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
+  // check for sourcetype
+  if( are_equal( token , "WALL" ) ) {
+    mesons -> source = WALL ;
+  } else if( are_equal( token , "POINT" ) ) {
+    mesons -> source = POINT ;
+  } else {
+    printf( "[IO] Meson_%d :: I don't understand source type %s\n" , 
+	    meas_idx , token ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] Meson_%d :: Propagators are %s sources \n" , 
+	  meas_idx , token ) ;
+  // check for proptype
+  token = (char*)strtok( NULL , "," ) ;
+  if( are_equal( token , "CHIRAL" ) ) {
+    mesons -> proptype1 = CHIRAL ;
+  } else if( are_equal( token , "NREL" ) ) {
+    mesons -> proptype1 = NREL ;
+  } else {
+    printf( "[IO] Meson_%d :: I don't understand gamma basis %s\n" , 
+	    meas_idx , token ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] Meson_%d :: Contracting %s propagators " , 
+	  meas_idx , token ) ;
+  token = (char*)strtok( NULL , "," ) ;
+  if( are_equal( token , "CHIRAL" ) ) {
+    mesons -> proptype2 = CHIRAL ;
+  } else if( are_equal( token , "NREL" ) ) {
+    mesons -> proptype2 = NREL ;
+  } else {
+    printf( "[IO] Meson_%d :: I don't understand gamma basis %s\n" , 
+	    meas_idx , token ) ;
+    return FAILURE ;
+  }
+  printf( "with %s propagators \n" , token ) ;
+  // summarise
+  token = (char*)strtok( NULL , "," ) ;
+  sprintf( mesons -> outfile , "%s" , token ) ;
+  printf( "[IO] Meson_%d :: Contraction file in %s \n" , 
+	  meas_idx , token ) ;
+  token = (char*)strtok( NULL , "," ) ;
+  if( token != NULL ) {
+    printf( "[IO] Meson_%d :: Unexpected extra contraction info %s \n" ,
+	    meas_idx , token ) ;
+  }
+  return SUCCESS ;
+}
+
+// meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
+static int
+meson_contractions( struct meson_info *mesons , 
+		    int *nmesons ,
+		    const int nprops ) 
+{
+  *nmesons ;
+  char str[ 32 ] ;
+  while( *nmesons < nprops*nprops ) {
+    sprintf( str , "MESON%d" , *nmesons ) ;
+    const int meson_idx = tag_search( str ) ;
+    if( meson_idx == FAILURE ) return SUCCESS ;
+    if( twopoint_tokens( &mesons[ *nmesons ] , 
+			 INPUT[ meson_idx ].VALUE , 
+			 nprops , *nmesons ) 
+	== FAILURE ) return FAILURE ;
+    *nmesons = *nmesons + 1 ;
+  }
+  return SUCCESS ;
+}
+
 // fills the INFILE struct with all the useful information
 int
 get_input_data( char prop[][ GLU_STR_LENGTH ] ,
+		struct meson_info *mesons ,
+		int *nmesons ,
 		int *nprops , 
 		int *dims ,
 		const char *file_name )
@@ -172,6 +266,12 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
     STATUS = FAILURE ;
   }
   *nprops = count ;
+
+  // meson contractions
+  if( meson_contractions( mesons , nmesons , 
+			  *nprops ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
 
   // read the dimensions from the input file
   int mu ;

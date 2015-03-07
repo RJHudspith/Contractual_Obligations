@@ -47,7 +47,8 @@ sumprop( struct spinor *__restrict SUM ,
 // computes meson correlators
 int
 wall_mesons( FILE *prop1 ,
-	     const proptype proptype1 )
+	     const proptype proptype1 ,
+	     const char *outfile )
 {
   printf( "Computing Wall-Source mesons \n" ) ;
 
@@ -93,18 +94,16 @@ wall_mesons( FILE *prop1 ,
     for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
-	
+      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+
 	register double complex sum = 0.0 ;
 
+	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] , 
-				 S1[ site ] ,
-				 GAMMAS[ GSRC ] ,
-				 S1[ site ] ,
+	  sum += meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
+				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
-				 
 	}
 
 	// normal wall-local meson correlator
@@ -112,10 +111,8 @@ wall_mesons( FILE *prop1 ,
 
 	// correlator computed just out of the summed walls
 	wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
-	  meson_contract( GAMMAS[ GSNK ] , 
-			  SUM1 ,
-			  GAMMAS[ GSRC ] ,
-			  SUM1 ,
+	  meson_contract( GAMMAS[ GSNK ] , SUM1 , 
+			  GAMMAS[ GSRC ] , SUM1 ,
 			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
@@ -125,6 +122,14 @@ wall_mesons( FILE *prop1 ,
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
   debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
 #endif
+
+  // and write the output files
+  char outstr[ 256 ] ;
+  sprintf( outstr , "%s.wl" , outfile ) ;
+  write_correlators( outstr , (const struct correlator**)wlcorr ) ;
+
+  sprintf( outstr , "%s.ww" , outfile ) ;
+  write_correlators( outstr , (const struct correlator**)wwcorr ) ;
 
   // free our correlator measurement
   free_corrs( wlcorr ) ;
@@ -146,7 +151,8 @@ int
 wall_double_mesons( FILE *prop1 , 
 		    const proptype proptype1 ,
 		    FILE *prop2 ,
-		    const proptype proptype2 )
+		    const proptype proptype2 ,
+		    const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
@@ -182,6 +188,21 @@ wall_double_mesons( FILE *prop1 ,
       return FAILURE ;
     }
 
+    // if we are doing nonrel-chiral mesons we switch chiral to nrel
+    if( proptype1 == CHIRAL && proptype2 == NREL ) {
+      int site ;
+      #pragma omp parallel for private(site) 
+      for( site = 0 ; site < LCU ; site++ ) {
+	chiral_to_nrel( &S1[ site ] ) ;
+      }
+    } else if( proptype1 == NREL && proptype2 == CHIRAL ) {
+      int site ;
+      #pragma omp parallel for private(site) 
+      for( site = 0 ; site < LCU ; site++ ) {
+	chiral_to_nrel( &S2[ site ] ) ;
+      }
+    }
+
     // prop sums
     struct spinor SUM1 , SUM2 ;
     sumprop( &SUM1 , S1 ) ;
@@ -192,17 +213,24 @@ wall_double_mesons( FILE *prop1 ,
     #pragma omp parallel for private(GSRC)
     for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
+      struct gamma G2 , G1 ;
+
+      // left multiply source gamma matrix by gamma_5
+      gamma_mmul( &G2 , GAMMAS[ GAMMA_5 ] , GAMMAS[ GSRC ] ) ;
+
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
 	
+	// right multiply sink gamma matrix by gamma_5
+	gamma_mmul( &G1 , GAMMAS[ GSNK ] , GAMMAS[ GAMMA_5 ] ) ;
+
 	register double complex sum = 0.0 ;
 
+	// loop spatial hypercube
 	int site ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] , 
-				 S2[ site ] ,
-				 GAMMAS[ GSRC ] ,
-				 S1[ site ] ,
+	  sum += meson_contract( GAMMAS[ GSNK ] , S2[ site ] , 
+				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 
@@ -210,11 +238,9 @@ wall_double_mesons( FILE *prop1 ,
 	wlcorr[ GSRC ][ GSNK ].C[ t ] = sum ;
 
 	// correlator computed just out of the summed walls
-	wwcorr[ GSRC ][ GSNK ].C[ t ] =	\
-	  meson_contract( GAMMAS[ GSNK ] , 
-			  SUM2 ,
-			  GAMMAS[ GSRC ] ,
-			  SUM1 ,
+	wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
+	  meson_contract( GAMMAS[ GSNK ] , SUM2 , 
+			  GAMMAS[ GSRC ] , SUM1 ,
 			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
@@ -224,6 +250,14 @@ wall_double_mesons( FILE *prop1 ,
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
   debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
 #endif
+
+  // outputs
+  char outstr[ 256 ] ;
+  sprintf( outstr , "%s.wl" , outfile ) ;
+  write_correlators( outstr , (const struct correlator**)wlcorr ) ;
+
+  sprintf( outstr , "%s.ww" , outfile ) ;
+  write_correlators( outstr , (const struct correlator**)wwcorr ) ;
 
   // free our correlator measurement
   free_corrs( wlcorr ) ;

@@ -8,14 +8,13 @@
 #include "geometry.h"        // init_geom and init_navig
 #include "GLU_timer.h"       // sys/time.h wrapper
 #include "io.h"              // file IO stuff
-#include "input_reader.h"    // input file reader
-#include "mesons.h"          // meson contractions
-#include "plaqs_links.h"     // plaquettes and links of gauge field
+#include "input_reader.h"    // input file readers
+
 #include "readers.h"         // gauge config reader
 #include "read_config.h"     // read a gauge configuration file
 #include "read_headers.h"    // read the header file in gauge config
 #include "read_propheader.h" // read the propagator file header
-#include "brutal_mesons.h"   // brutal mesons
+#include "wrap_mesons.h"     // meson contraction wrappers
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -42,9 +41,11 @@ main( const int argc,
   }
 
   // we should loop this section to read in many files
-  int nprops = 4 , dims[ ND ] ;
+  int nprops = 4 , dims[ ND ] , nmesons = 0 ;
   char prop_files[ nprops ][ GLU_STR_LENGTH ] ;
-  if( get_input_data( prop_files , &nprops , dims , argv[INFILE] ) == FAILURE ) {
+  struct meson_info mesons[ nprops * nprops ] ;
+  if( get_input_data( prop_files , mesons , &nmesons , &nprops , 
+		      dims , argv[INFILE] ) == FAILURE ) {
     return FAILURE ;
   }
 
@@ -86,17 +87,11 @@ main( const int argc,
   start_timer( ) ;
 
   // want to switch on these or call a wrapper
-  single_mesons( fprops[0] , CHIRAL ) ;
-  //single_mesons_bruteforce( fprops[0] , CHIRAL ) ;
-  //hheavy_mesons( fprops[0] , NREL ) ;
-  //double_mesons( fprops[0] , CHIRAL_TO_NREL , fprops[1] , NREL ) ;
-  //double_mesons( fprops[2] , NREL , fprops[3] , NREL ) ;
+  contract_mesons( fprops , mesons , nmesons ) ;
 
-  /*
   if( lat != NULL ) {
     conserved_local( fprops[0] , CHIRAL , lat ) ;
   }
-  */
 
   //wall_mesons( fprops[0] , CHIRAL ) ;
 

@@ -70,21 +70,29 @@ read_check_header( FILE *propfile )
   int dims[ ND ] = {} ;
   int src[ ND ] ;
 
+  // read the propagator header
   if( read_header( propfile , dims , src ) == FAILURE ) {
     return FAILURE ;
   }
 
   // check lattice dimensions
-  printf( "PROP DIMS :: ( " ) ;
   int mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( dims[ mu ] != Latt.dims[ mu ] ) {
-      printf( "prop header dimensions do not match lattice dims .. Leaving\n" ) ;
+      printf( "\n" ) ;
+      printf( "[IO] PROP dim %d :: %d\n" , mu , dims[mu] ) ;
+      printf( "[IO] Does not match lattice dim %d :: %d \n" , mu , Latt.dims[mu] ) ;
+      printf( "[IO] Leaving\n" ) ;
       return FAILURE ;
     }
-    printf( "%d " , dims[ mu ] ) ;
   }
-  printf( ")\n" ) ;
+  
+  // otherwise write out the propagator dimensions
+  printf( "[DIMENSIONS-PROP] ( " ) ;
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    printf( "%d x " , dims[ mu ] ) ;
+  }
+  printf( "%d )\n" , dims[ ND - 1 ] ) ;
 
   // maybe we should check the source position as well?
   

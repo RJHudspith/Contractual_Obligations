@@ -56,15 +56,15 @@ CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2 ,       // S_2
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
-	    const struct gamma *GAMMAS ,
-	    const int mu ,
-	    const int nu )
+	     const struct gamma *GAMMAS ,
+	     const int mu ,
+ 	     const int nu )
 {
   return \
     0.5 * (
 	   -meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ IDENTITY ] , US1xpmu , GAMMAS[ GAMMA_5 ] )
-	   +meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) 
-	   +meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ IDENTITY ] , UdS1x , GAMMAS[ GAMMA_5 ] )
+	   +meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] )
+	   +meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ IDENTITY ], UdS1x , GAMMAS[ GAMMA_5 ] )
 	   +meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ mu ] , UdS1x , GAMMAS[ GAMMA_5 ] )
 	    ) ;
 }
@@ -86,6 +86,9 @@ contract_conserved_local( struct PIdata *DATA_AA ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
+
+    struct gamma G1 , G2 ;
+
     struct spinor US1xpmu , UdS1x , S2xpmu ; // temporary storage for the gauge-multiplied
     const int i = x + LCU * t ;
     int mu , nu ;
@@ -104,6 +107,7 @@ contract_conserved_local( struct PIdata *DATA_AA ,
       gaugedag_spinor( &UdS1x , lat[i].O[mu] , S1[x] ) ;       // U^{\dagger} S(x)
 
       for( nu = 0 ; nu < ND ; nu++ ) {
+
 	// I need to think about the axial
 	DATA_AA[i].PI[mu][nu] = CL_munu_AA( US1xpmu , UdS1x , 
 					    S1[x] , S2xpmu ,
@@ -113,8 +117,8 @@ contract_conserved_local( struct PIdata *DATA_AA ,
 	// vectors 
 	DATA_VV[i].PI[mu][nu] = CL_munu_VV( US1xpmu , UdS1x , 
 					    S1[x] , S2xpmu ,
-					    GAMMAS , 
-					    VGMAP[ mu ] , VGMAP[ nu ] ) ;
+					    GAMMAS ,
+					    VGMAP[mu] , VGMAP[ nu ] ) ;
       }
     }
   }
@@ -142,13 +146,13 @@ contract_local_local( struct PIdata *DATA_AA ,
       for( nu = 0 ; nu < ND ; nu++ ) {
 
 	DATA_AA[i].PI[mu][nu] = \
-	  meson_contract( GAMMAS[ AGMAP[ mu ] ] , S2[x] , 
-			  GAMMAS[ AGMAP[nu] ] , S1[x] ,
+	  meson_contract( GAMMAS[ AGMAP[ nu ] ] , S2[x] , 
+			  GAMMAS[ AGMAP[ mu ] ] , S1[x] ,
 			  GAMMAS[ GAMMA_5 ] ) ;
 
 	DATA_VV[i].PI[mu][nu] = \
-	  meson_contract( GAMMAS[ VGMAP[ mu ] ] , S2[x] , 
-			  GAMMAS[ VGMAP[nu] ] , S1[x] ,
+	  meson_contract( GAMMAS[ VGMAP[ nu ] ] , S2[x] , 
+			  GAMMAS[ VGMAP[ mu ] ] , S1[x] ,
 			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }

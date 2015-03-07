@@ -300,7 +300,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
     sum31 = sum31 ^ (uint32_t)sum31_loc ;
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] NERSC cksum   :: %x \n" , k ) ;
   printf( "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
   printf( "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
@@ -448,7 +448,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
   uint32_t CRC_BQCD , nbytes ;
   CKSUM_GET( &CRC_BQCD , &nbytes ) ;
 
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] NERSC cksum   :: %x \n" , k ) ;
   printf( "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
   printf( "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
@@ -478,6 +478,6 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
 }
 
 // clean this up for scope
-#ifdef DEBUG
-  #undef DEBUG
+#ifdef DEBUG_ILDG
+  #undef DEBUG_ILDG
 #endif

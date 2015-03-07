@@ -37,6 +37,14 @@ typedef enum {
 #endif
 
 /**
+   @enum sourcetype
+   @brief propagator source type
+ */
+typedef enum {
+  WALL , 
+  POINT } sourcetype ;
+
+/**
    @enum proptype
    @brief propagator type definition
  */

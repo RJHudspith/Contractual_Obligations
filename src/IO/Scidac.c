@@ -30,10 +30,10 @@
 
 // again, define the debug if you would like to look at the header info
 
-/**< Message Begin Mask (Internal) */
+// < Message Begin Mask (Internal)
 #define MB_MASK ((unsigned char)0x80)
 
-/**< Message End Mask (Internal) */
+// < Message End Mask (Internal)
 #define ME_MASK ((unsigned char)0x40)
 
 #define MAX_HDR64 18
@@ -72,7 +72,7 @@ parse_SCIDAC_hdr( FILE *infile ,
 		  struct head_data *HEAD_DATA , 
 		  const int record )
 {
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "\n[IO] Header for record :: %d \n\n" , record ) ;
 #endif
   // assumes we have opened it fine and are at the start of the file
@@ -85,7 +85,7 @@ parse_SCIDAC_hdr( FILE *infile ,
   uint32_t i_magic_no[1] = { magic_number( ) } ;
   if( !WORDS_BIGENDIAN ) { bswap_32( 1 , i_magic_no ) ; }
 
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] Magic number :: %x \n" , i_magic_no[0] ) ;
 #endif
   if( i_magic_no[0] != 1164413355 ) {
@@ -97,12 +97,12 @@ parse_SCIDAC_hdr( FILE *infile ,
   // now we look at the version number
   unsigned int i_version[1] = { header_version( ) } ;
   if( !WORDS_BIGENDIAN ) { bswap_32( 1 , i_version ) ; }
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] Reading Scidac header version %x \n" , i_version[0] ) ;
 #endif
 
   // I don't really care about the ME or MB record type
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   GLU_bool i_MB, i_ME;
   if( header_mbme( ) & MB_MASK ) { 
     i_MB = GLU_TRUE ; 
@@ -121,18 +121,18 @@ parse_SCIDAC_hdr( FILE *infile ,
 
   uint64_t i_data_length[1] = { header_datalength() } ;
   if( !WORDS_BIGENDIAN ) { bswap_64( 1 , i_data_length ) ; }
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] %s DATALENGTH %llu \n" , myname , (unsigned long long)i_data_length[0] ) ;
 #endif
 
   int padding = lime_padding( (size_t)i_data_length[0] ) ;
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] Using %d bytes of padding for this record \n" , padding ) ;
 #endif
 
   // again, typebuf is uninteresting ...
   unsigned char *typebuf = (unsigned char*)lime_hdr_rec_type ;
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] %s type %s \n" , myname , typebuf ) ;
 #endif
 
@@ -166,7 +166,7 @@ parse_SCIDAC_hdr( FILE *infile ,
     tmp.checksum = (uint32_t)cksum ;
     *HEAD_DATA = tmp ;
   }
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   printf( "[IO] %s \n" , io_data ) ;
 #endif
 
@@ -244,7 +244,7 @@ get_header_data_SCIDAC( FILE *infile ,
     }
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_ILDG
   struct head_data tem = *HEAD_DATA ;
   printf( "[IO] ENDIAN :: %d \n" , tem.endianess ) ;
   printf( "[IO] PRECISION :: %d \n" , tem.precision ) ;
@@ -384,8 +384,8 @@ write_header_ILDG( FILE *__restrict out )
 }
 
 // clean this up
-#ifdef DEBUG
-  #undef DEBUG
+#ifdef DEBUG_ILDG
+  #undef DEBUG_ILDG
 #endif
 
 // and undefs to clear up local macros

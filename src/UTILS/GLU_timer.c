@@ -28,6 +28,8 @@
 
 #include <sys/time.h>
 
+static GLU_bool TIMER_STARTED = GLU_FALSE ;
+
 /**
    @struct GLUtimer
    @brief the timer from sys/time.h
@@ -63,8 +65,11 @@ print_time( void )
 void
 start_timer( void )
 {
-  gettimeofday( &GLUtimer , NULL ) ;
-  t1 = GLUtimer.tv_sec + ( GLUtimer.tv_usec / 1E6 ) ;
+  if( TIMER_STARTED == GLU_FALSE ) {
+    gettimeofday( &GLUtimer , NULL ) ;
+    t1 = GLUtimer.tv_sec + ( GLUtimer.tv_usec / 1E6 ) ;
+    TIMER_STARTED = GLU_TRUE ;
+  }
   return ;
 }
 #else // do nothing
