@@ -6,7 +6,7 @@
 #define MOMSPACE_PIMUNU
 
 /**
-   @fn void momspace_PImunu( struct PIdata *DATA_AA , struct PIdata *DATA_VV )
+   @fn void momspace_PImunu( struct PIdata *DATA_AA , struct PIdata *DATA_VV , const PImunu_projtype PROJ )
    @brief FFTs (if available) the config-space \f$ \Pi_{\mu\nu}(q) \f$
  */
 void

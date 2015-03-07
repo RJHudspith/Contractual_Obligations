@@ -93,8 +93,6 @@ main( const int argc,
     conserved_local( fprops[0] , CHIRAL , lat ) ;
   }
 
-  //wall_mesons( fprops[0] , CHIRAL ) ;
-
   print_time( ) ;
 
   // we will have to move this around only place where this is freed

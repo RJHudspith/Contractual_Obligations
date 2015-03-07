@@ -110,4 +110,17 @@ typedef enum
     UNIT_GAUGE ,
     INSTANTON } header_mode ;
 
+// enumerated type for the projection
+typedef enum {
+  TRANS_PROJ ,
+  LONG_PROJ ,
+  ZERO_PLUS_ONE } PImunu_projtype ;
+
+// enumerated type for the WI correction index
+typedef enum {
+  CORR_MU ,
+  CORR_NU ,
+  CORR_MUpNU ,
+  UNCORR } correction_dir ;
+
 #endif

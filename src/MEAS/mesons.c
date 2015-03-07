@@ -7,10 +7,11 @@
 
 #include "common.h"
 
-#include "contractions.h" // meson contract
-#include "correlators.h"  // for allocate_corrs and free_corrs
-#include "gammas.h"       // gamma matrices
-#include "io.h"           // read prop
+#include "basis_conversions.h" // chiral->nrel
+#include "contractions.h"      // meson contract
+#include "correlators.h"       // for allocate_corrs and free_corrs
+#include "gammas.h"            // gamma matrices
+#include "io.h"                // read prop
 
 // computes meson correlators
 int
