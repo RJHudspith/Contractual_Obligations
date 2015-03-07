@@ -107,8 +107,9 @@ write_correlators( const char *outfile ,
 			  sizeof( double complex ) * L0 ) ;
     }
   }
-  uint32_t csum[ 1 ] = { cksuma } ;
-  fwrite( csum , sizeof( uint32_t ) , 1 , output_file ) ;
+  // write out both checksums
+  uint32_t csum[ 2 ] = { cksuma , cksumb } ;
+  fwrite( csum , sizeof( uint32_t ) , 2 , output_file ) ;
 
   fclose( output_file ) ;
 
