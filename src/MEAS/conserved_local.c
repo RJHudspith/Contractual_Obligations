@@ -14,7 +14,8 @@
 int
 conserved_local( FILE *prop1 , 
 		 const proptype proptype1 ,
-		 const struct site *lat )
+		 const struct site *lat ,
+		 const struct cut_info CUTINFO )
 {
   // vector gamma map
   const int VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
@@ -95,7 +96,7 @@ conserved_local( FILE *prop1 ,
   free( GAMMAS ) ;
 
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV ) ;
+  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;

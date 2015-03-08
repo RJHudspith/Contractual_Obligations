@@ -4,6 +4,10 @@ DIMS1 = 16
 DIMS2 = 16
 DIMS3 = 16
 PROP0 = propagator_16x16x16x16b6.000000k0.12500c1.000000id1.1n1
-## this contracts 0 with 0. They are point source in the chiral basis
-## and outputs to ll.bin for further analysis
+## this contracts prop 0 with prop 0, point source props in the
+## chiral basis and outputs to ll.bin
 MESON0 = 0,0,POINT,CHIRAL,CHIRAL,ll.bin
+## momentum information
+MOM_CUT = CYLINDER_CUT
+MAXMOM = 30
+CYL_WIDTH = 2.0

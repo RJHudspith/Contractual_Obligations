@@ -44,8 +44,9 @@ main( const int argc,
   int nprops = 4 , dims[ ND ] , nmesons = 0 ;
   char prop_files[ nprops ][ GLU_STR_LENGTH ] ;
   struct meson_info mesons[ nprops * nprops ] ;
-  if( get_input_data( prop_files , mesons , &nmesons , &nprops , 
-		      dims , argv[INFILE] ) == FAILURE ) {
+  struct cut_info CUTINFO ;
+  if( get_input_data( prop_files , mesons , &CUTINFO , &nmesons , 
+		      &nprops , dims , argv[INFILE] ) == FAILURE ) {
     return FAILURE ;
   }
 
@@ -86,11 +87,13 @@ main( const int argc,
 
   start_timer( ) ;
 
-  // want to switch on these or call a wrapper
-  contract_mesons( fprops , mesons , nmesons ) ;
-
   if( lat != NULL ) {
-    conserved_local( fprops[0] , CHIRAL , lat ) ;
+    // this will get wrapped and will have local-local
+    // and conserved-conserved placeholders
+    conserved_local( fprops[0] , CHIRAL , lat , CUTINFO ) ;
+  } else {
+    // want to switch on these or call a wrapper
+    contract_mesons( fprops , mesons , nmesons ) ;
   }
 
   print_time( ) ;

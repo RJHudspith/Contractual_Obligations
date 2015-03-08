@@ -109,6 +109,24 @@ struct head_data{
 } ;
 
 /**
+   @struct cut_info
+   @brief cutting information storage
+   @param dir :: either spatial or temporal cuts allowed for now
+   @param type :: psq,hypercubic,cylinder or conical
+   @param max_mom :: maximum allowed p^2 for the vector of ints definition
+   @param max_t :: maximum T allowed in static potential
+   @param where :: where is our file outputted to?
+   @param definition :: are our gauge fields logarithmic or AntiHermitian_projly defined?
+   @param angle :: conical angle from the p=0.
+   @param cyl_width :: width of the cylinder in lattice units
+ */
+struct cut_info{
+  momentum_cut_def type ; // enumerated cutting type
+  int max_mom ; // maximum momentum allowed for the cut
+  double cyl_width ; // cylinder with
+} ;
+
+/**
    @struct latt_info
    @brief (useful?) lattice information
    @param dims[mu] :: lattice dimensions in c-order, x moves quickest
@@ -146,6 +164,15 @@ struct meson_info {
   proptype proptype1 ;
   proptype proptype2 ;
   char outfile[ 256 ] ;
+} ;
+
+/**
+   @struct veclist
+   @brief storage for the momenta
+ */
+struct veclist {
+  int idx ;
+  int MOM[ ND ] ;
 } ;
 
 #endif

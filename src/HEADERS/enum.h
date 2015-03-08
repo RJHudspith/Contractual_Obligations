@@ -123,4 +123,14 @@ typedef enum {
   CORR_MUpNU ,
   UNCORR } correction_dir ;
 
+/**
+   @enum momentum_cut_def
+   @brief enumerate the cutting types
+ */
+typedef enum
+  { HYPERCUBIC_CUT , 
+    PSQ_CUT ,
+    CYLINDER_CUT ,
+    CYLINDER_AND_CONICAL_CUT } momentum_cut_def ;
+
 #endif

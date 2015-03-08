@@ -144,7 +144,7 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
 	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT) \
 	./UTILS/basis_conversions.$(OBJEXT) \
-	./UTILS/contractions.$(OBJEXT)
+	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__CORR_SOURCES_DIST = corr.c
@@ -325,7 +325,7 @@ include_HEADERS = \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h
+	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -338,7 +338,8 @@ libCORR_a_SOURCES = \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
-	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c
+	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
+	./UTILS/cut_routines.c 
 
 @PREF_FALSE@Bindir = "${prefix}"/bin
 @PREF_FALSE@CORR_SOURCES = corr.c
@@ -493,6 +494,8 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/contractions.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/cut_routines.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
 
 libCORR.a: $(libCORR_a_OBJECTS) $(libCORR_a_DEPENDENCIES) $(EXTRA_libCORR_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libCORR.a
@@ -584,6 +587,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/basis_conversions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/crc32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/cut_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops.Po@am__quote@

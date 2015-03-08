@@ -6,13 +6,14 @@
 #define CONSERVED_LOCAL_H
 
 /**
-   @fn int conserved_local( FILE *prop1 , const proptype proptype1 , const struct site *lat )
+   @fn int conserved_local( FILE *prop1 , const proptype proptype1 , const struct site *lat , const struct cut_info CUTINFO )
    @brief conserved-local contractions
    @return #SUCCESS or #FAILURE
 */
 int
 conserved_local( FILE *prop1 , 
 		 const proptype proptype1 , 
-		 const struct site *lat ) ;
+		 const struct site *lat ,
+		 const struct cut_info CUTINFO ) ;
 
 #endif

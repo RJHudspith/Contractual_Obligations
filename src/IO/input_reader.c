@@ -133,6 +133,33 @@ header_type( void )
   return FAILURE ; 
 }
 
+// pack the cut_info struct
+static int
+read_cuts_struct( struct cut_info *CUTINFO )
+{
+  // momentum space cut def
+  const int momcut_idx = tag_search( "MOM_CUT" ) ;
+  if( momcut_idx == FAILURE ) { return tag_failure( "MOM_CUT" ) ; }
+  if ( are_equal( INPUT[momcut_idx].VALUE , "HYPERCUBIC_CUT" ) ) {
+    CUTINFO -> type = HYPERCUBIC_CUT ; 
+  } else if ( are_equal( INPUT[momcut_idx].VALUE , "SPHERICAL_CUT" ) ) {
+    CUTINFO -> type = PSQ_CUT ; 
+  } else if ( are_equal( INPUT[momcut_idx].VALUE , "CYLINDER_CUT" ) ) {
+    CUTINFO -> type = CYLINDER_CUT ; 
+  } else {
+    printf( "[IO] Unrecognised type [%s] \n" , INPUT[momcut_idx].VALUE ) ; 
+    printf( "[IO] Defaulting to SPHERICAL_CUT \n" ) ; 
+  }
+  // minmom, maxmom angle and cylinder width
+  const int maxmom_idx = tag_search( "MAXMOM" ) ;
+  if( maxmom_idx == FAILURE ) { return tag_failure( "MAXMOM" ) ; }
+  CUTINFO -> max_mom = atoi( INPUT[maxmom_idx].VALUE ) ;
+  const int cyl_idx = tag_search( "CYL_WIDTH" ) ;
+  if( cyl_idx == FAILURE ) { return tag_failure( "CYL_WIDTH" ) ; }
+  CUTINFO -> cyl_width = atof( INPUT[cyl_idx].VALUE ) ;
+  return SUCCESS ;
+}
+
 // tokenize each meson
 static int
 twopoint_tokens( struct meson_info *mesons ,
@@ -229,6 +256,7 @@ meson_contractions( struct meson_info *mesons ,
 int
 get_input_data( char prop[][ GLU_STR_LENGTH ] ,
 		struct meson_info *mesons ,
+		struct cut_info *CUTINFO ,
 		int *nmesons ,
 		int *nprops , 
 		int *dims ,
@@ -272,6 +300,9 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
 			  *nprops ) == FAILURE ) {
     STATUS = FAILURE ;
   }
+
+  // at some point we should check this to make sure it is read ok
+  read_cuts_struct( CUTINFO ) ;
 
   // read the dimensions from the input file
   int mu ;
