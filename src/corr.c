@@ -90,7 +90,7 @@ main( const int argc,
   if( lat != NULL ) {
     // this will get wrapped and will have local-local
     // and conserved-conserved placeholders
-    conserved_local( fprops[0] , CHIRAL , lat , CUTINFO ) ;
+    conserved_local( fprops[0] , CHIRAL , lat , CUTINFO , "test" ) ;
   } else {
     // want to switch on these or call a wrapper
     contract_mesons( fprops , mesons , nmesons ) ;

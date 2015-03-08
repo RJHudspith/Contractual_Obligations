@@ -71,6 +71,13 @@
  */
 #define TWOPI ( 2.0 * M_PI )
 
+/**
+   @def VPF_MAGIC
+   @brief magic number for this library's data
+   spells VPF in ASCII
+ */
+#define VPF_MAGIC 717685
+
 #ifndef NC
 /**
    @def NC

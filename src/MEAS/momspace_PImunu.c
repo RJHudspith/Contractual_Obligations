@@ -1,31 +1,32 @@
 /**
    @file momspace_PImunu.c
    @brief computes the momentum-space \f$ \Pi_{\mu\nu}(q) \f$ from our data
-
-   TODO :: cuts, etc etc
  */
 
 #include "common.h"
 
+#include "cut_output.h"   // cut output format
 #include "cut_routines.h" // cuts
 #include "geometry.h"     // mapping between 0->2Pi BZ that FFTW uses
 #include "plan_ffts.h"    // for FFTW planning
 #include "WardIdentity.h" // compute the ward identity
 
-// projections
+// projections should go in their own file right?
 static void
-project( double *trans ,
-	 double *longitudinal ,
-	 const struct PIdata *data ,
+project( const struct PIdata *data ,
 	 const double **p ,
 	 const double *psq ,
 	 const struct veclist *list ,
-	 const int NMOM )
+	 const int *__restrict NMOM ,
+	 const char *outfile )
 {
+  double *trans = malloc( NMOM[0] * sizeof( double ) ) ;
+  double *longitudinal = malloc( NMOM[0] * sizeof( double ) ) ;
+
   const double NORM = 1.0 / (double)( ND - 1 ) ;
   int i ;
 #pragma omp parallel for private(i)
-  for( i = 0 ; i < NMOM ; i++ ) {
+  for( i = 0 ; i < NMOM[0] ; i++ ) {
     const int list_idx = list[i].idx ;
     const double spsq = ( psq[i] == 0.0 ) ? 1.0 : 1.0 / psq[i] ;
     double sumtrans = 0.0 , sumlong = 0 ;
@@ -41,10 +42,57 @@ project( double *trans ,
     trans[ i ] = sumtrans * ( spsq * NORM ) ;
     longitudinal[ i ] = sumlong * spsq ;
   }
+
+  // write out a file
+  char str[ 256 ] ;
+  sprintf( str , "%s.trans" , outfile ) ;
+  write_momspace_data( str , NMOM , trans , list , ND ) ;
+
+  sprintf( str , "%s.long" , outfile ) ;
+  write_momspace_data( str , NMOM , longitudinal , list , ND ) ;
+
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < NMOM[0] ; i++ ) {
+    trans[ i ] += longitudinal[ i ] ; // put the 0+1 contribution in too
+  }
+
+  sprintf( str , "%s.transPlong" , outfile ) ;
+  write_momspace_data( str , NMOM , longitudinal , list , ND ) ;
+
+  // free the projected data
+  free( trans ) ;
+  free( longitudinal ) ;
+
   return ;
 }
 
-// FFT our data
+// we have the zero at index [0] as the FFT is in the 0->2Pi BZ
+static void
+subtract_zeromom( struct PIdata *__restrict data )
+{
+  // precompute subtraction point
+  double complex sub[ ND ][ ND ] = {} ;
+  int i , j ;
+  for( i = 0 ; i < ND ; i++ ) {
+    for( j = 0 ; j < ND ; j++ ) {
+      sub[ i ][ j ] = data[ 0 ].PI[ i ][ j ] ;
+    }
+  }
+  // and subtract the noisy zero
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    int mu , nu ;
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      for( nu = 0 ; nu < ND ; nu++ ) {
+	data[ i ].PI[ mu ][ nu ] -= sub[ mu ][ nu ] ;
+      }
+    }
+  }
+  return ;
+}
+
+// FFT our mu,nu data
+#ifdef HAVE_FFTW3_H
 static void
 FFT_PImunu( struct PIdata *DATA ,
 	    double complex *in , 
@@ -70,17 +118,21 @@ FFT_PImunu( struct PIdata *DATA ,
   }
   return ;
 }
+#endif
 
 //
 void
 momspace_PImunu( struct PIdata *DATA_AA ,
 		 struct PIdata *DATA_VV ,
-		 const struct cut_info CUTINFO )
+		 const struct cut_info CUTINFO ,
+		 const char *outfile )
 {
   // if we have FFTW we can unleash it
 #ifdef HAVE_FFTW3_H
+  // temporary space
   double complex *in = malloc( LVOLUME * sizeof( double complex ) ) ;
   double complex *out = malloc( LVOLUME * sizeof( double complex ) ) ;
+
   fftw_plan forward , backward ;
   small_create_plans_DFT( &forward , &backward , in , out , ND ) ;
 
@@ -94,7 +146,6 @@ momspace_PImunu( struct PIdata *DATA_AA ,
 
   fftw_destroy_plan( forward ) ;
   fftw_destroy_plan( backward ) ;
-
   fftw_cleanup( ) ;
 
   // here is where the call to the cuts routine goes
@@ -117,25 +168,13 @@ momspace_PImunu( struct PIdata *DATA_AA ,
   // correct the WI on the vector
   correct_WI( DATA_VV , CORR_MU , list , NMOM[0] ) ;
   compute_WI( DATA_VV , (const double**)p , list , NMOM[0] ) ;
-
-  double *trans = malloc( NMOM[0] * sizeof( double ) ) ;
-  double *longitudinal = malloc( NMOM[0] * sizeof( double ) ) ;
  
   // projection
-  project( trans , longitudinal , DATA_VV , 
-	   (const double**)p , (const double*)psq ,
-	   list , NMOM[0] ) ;
+  project( DATA_VV , (const double**)p , (const double*)psq ,
+	   list , NMOM , outfile ) ;
 
-  
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
-    printf( "%f %f \n" , psq[i] , trans[i] ) ;
-  }
-
+  // free the momentum list
   free( NMOM ) ;
-
-  // free our transverse and longitudinal components
-  free( trans ) ;
-  free( longitudinal ) ;
 
   // free our momenta
   for( i = 0 ; i < NMOM[0] ; i++ ) {

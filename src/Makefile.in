@@ -134,9 +134,10 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./IO/input_reader.$(OBJEXT) ./IO/read_config.$(OBJEXT) \
 	./IO/readers.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT) \
-	./IO/read_propheader.$(OBJEXT) ./MEAS/mesons.$(OBJEXT) \
-	./MEAS/wall_mesons.$(OBJEXT) ./MEAS/tmoments_PImunu.$(OBJEXT) \
-	./MEAS/WardIdentity.$(OBJEXT) ./MEAS/conserved_local.$(OBJEXT) \
+	./IO/read_propheader.$(OBJEXT) ./IO/cut_output.$(OBJEXT) \
+	./MEAS/mesons.$(OBJEXT) ./MEAS/wall_mesons.$(OBJEXT) \
+	./MEAS/tmoments_PImunu.$(OBJEXT) ./MEAS/WardIdentity.$(OBJEXT) \
+	./MEAS/conserved_local.$(OBJEXT) \
 	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/correlators.$(OBJEXT) \
 	./MEAS/plaqs_links.$(OBJEXT) ./UTILS/crc32.$(OBJEXT) \
 	./UTILS/GLU_bswap.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
@@ -325,13 +326,13 @@ include_HEADERS = \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h
+	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h 
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
 	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
-	./IO/read_propheader.c \
+	./IO/read_propheader.c ./IO/cut_output.c \
 	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
 	./MEAS/WardIdentity.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
@@ -443,6 +444,8 @@ IO/$(DEPDIR)/$(am__dirstamp):
 ./IO/XML_info.$(OBJEXT): IO/$(am__dirstamp) \
 	IO/$(DEPDIR)/$(am__dirstamp)
 ./IO/read_propheader.$(OBJEXT): IO/$(am__dirstamp) \
+	IO/$(DEPDIR)/$(am__dirstamp)
+./IO/cut_output.$(OBJEXT): IO/$(am__dirstamp) \
 	IO/$(DEPDIR)/$(am__dirstamp)
 MEAS/$(am__dirstamp):
 	@$(MKDIR_P) ./MEAS
@@ -565,6 +568,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/Scidac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/XML_info.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/chklat_stuff.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/cut_output.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/input_reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/io.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_config.Po@am__quote@

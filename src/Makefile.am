@@ -18,13 +18,13 @@ include_HEADERS = \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h
+	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h 
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
 	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
-	./IO/read_propheader.c \
+	./IO/read_propheader.c ./IO/cut_output.c \
 	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
 	./MEAS/WardIdentity.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
