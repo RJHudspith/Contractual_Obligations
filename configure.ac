@@ -105,6 +105,16 @@ AC_ARG_ENABLE([notcondor],
 	*) AC_MSG_ERROR([bad value ${enableval} for --enable-notcondor]) ;;
 	esac],[])
 
+## printfs debug information
+AC_ARG_ENABLE([debug],
+	[ --enable-debug prints to stdout some general debugging information],
+	[case "${enableval}" in
+	yes) AC_DEFINE([DEBUG],,[general debug information])
+	     AC_MSG_NOTICE([Printing debug information to stdout]) ;;	
+	no) AC_MSG_NOTICE([Not printing debug information to stdout]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+	esac],[])
+
 ## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
 ######################################### FFTW3 ###############################################
 ##                                                                                           ##

@@ -73,6 +73,8 @@ main( const int argc ,
   }
   if( must_swap ) bswap_32( 1 , NGSNK ) ;
 
+  printf( "NGSNK %d :: NGSRC %d \n" , NGSNK[0] , NGSRC[0] ) ;
+
   // read in an LT
   uint32_t LT[1] ;
   if( fread( LT , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
@@ -99,6 +101,7 @@ main( const int argc ,
 	// read the timeslice stuff
 	uint32_t LT[1] ;
 	if( fread( LT , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
+	  printf( "LT :: %d \n" , LT[0] ) ;
 	  return FAILURE ;
 	}
 	if( must_swap ) bswap_32( 1 , LT ) ;
@@ -117,8 +120,8 @@ main( const int argc ,
   }
 
   // check our checksums
-  uint32_t csum[ 2 ] ; 
-  if( fread( csum , sizeof( uint32_t ) , 2 , infile ) != 1 ) {
+  uint32_t csum[ 2 ] = {} ; 
+  if( fread( csum , sizeof( uint32_t ) , 2 , infile ) != 2 ) {
     return FAILURE ;
   }
   if( must_swap ) bswap_32( 2 , csum ) ;
@@ -132,12 +135,19 @@ main( const int argc ,
   for( i = 2 ; i < ( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
-    char *tok2 = strtok( NULL , "," ) ;
-
-    if( tok1 == NULL || tok2 == NULL ) break ;
-
+    if( tok1 == NULL ) break ;
     const int idx1 = atoi( tok1 ) ;
+    if( idx1 > NGSRC[0] || idx1 < 0 ) { 
+      printf( "Non-sensical source index %d \n" , idx1 ) ;
+      break ;
+    } 
+    char *tok2 = strtok( NULL , "," ) ;
+    if( tok2 == NULL ) break ;
     const int idx2 = atoi( tok2 ) ;
+    if( idx2 > NGSRC[0] || idx2 < 0 ) { 
+      printf( "Non-sensical sink index %d \n" , idx2 ) ;
+      break ;
+    } 
 
     printf( "Correlator [ %d %d ] \n" , idx1 , idx2 ) ;
     int t ;

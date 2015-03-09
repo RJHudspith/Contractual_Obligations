@@ -12,6 +12,7 @@
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "gammas.h"            // gamma matrices
 #include "io.h"                // read prop
+#include "read_propheader.h"   // (re)read the header
 
 // computes meson correlators
 int
@@ -89,6 +90,10 @@ single_mesons( FILE *prop1 ,
 
   // free our spinor
   free( S1 ) ;
+
+  // rewind file and read header again
+  rewind( prop1 ) ;
+  read_check_header( prop1 , GLU_FALSE ) ;
 
   return SUCCESS ;
 }
@@ -189,6 +194,12 @@ double_mesons( FILE *prop1 ,
   // free our spinors
   free( S1 ) ;
   free( S2 ) ;
+
+  // rewind file and read header again
+  rewind( prop1 ) ;
+  read_check_header( prop1 , GLU_FALSE ) ;
+  rewind( prop2 ) ;
+  read_check_header( prop2 , GLU_FALSE ) ;
 
   return SUCCESS ;
 }

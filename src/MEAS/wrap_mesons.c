@@ -53,26 +53,30 @@ contract_mesons( FILE **fprops ,
 		 const struct meson_info *mesons ,
 		 const int nmesons )
 {
-  printf( "[MESONS] performing %d contractions \n" , nmesons ) ;
+  printf( "\n[MESONS] performing %d contractions \n" , nmesons ) ;
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {
     if( mesons[ measurements ].map[0] == mesons[ measurements ].map[0] ) {
       select_callback_single( mesons[ measurements ].source ) ;
       // and we use the function pointer we have set
-      return single_callback( fprops[ mesons[ measurements ].map[0] ] , 
-			      mesons[ measurements ].proptype1 ,
-			      mesons[ measurements ].outfile ) ;
+      if( single_callback( fprops[ mesons[ measurements ].map[0] ] , 
+			   mesons[ measurements ].proptype1 ,
+			   mesons[ measurements ].outfile ) == FAILURE ) {
+	return FAILURE ;
+      }
     } else {
       select_callback_double( mesons[ measurements ].source ) ;
-      return double_callback( fprops[ mesons[ measurements ].map[0] ] , 
-			      mesons[ measurements ].proptype1 ,
-			      fprops[ mesons[ measurements ].map[1] ] , 
-			      mesons[ measurements ].proptype2 ,
-			      mesons[ measurements ].outfile ) ;
+      if( double_callback( fprops[ mesons[ measurements ].map[0] ] , 
+			   mesons[ measurements ].proptype1 ,
+			   fprops[ mesons[ measurements ].map[1] ] , 
+			   mesons[ measurements ].proptype2 ,
+			   mesons[ measurements ].outfile ) == FAILURE ) {
+	return FAILURE ;
+      }
     }
+    // loop on measurements
   }
-  // should never get here unless nmesons == 0 in that case we successfully
-  // do nothing
+  // I would consider getting here to be most successful, quite.
   return SUCCESS ;
 }

@@ -18,7 +18,8 @@ include_HEADERS = \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h 
+	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -26,10 +27,11 @@ libCORR_a_SOURCES = \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c ./IO/cut_output.c \
 	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
-	./MEAS/WardIdentity.c \
+	./MEAS/WardIdentity.c ./MEAS/local_local.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
+	./MEAS/wrap_VPF.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c 

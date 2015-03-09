@@ -160,6 +160,79 @@ read_cuts_struct( struct cut_info *CUTINFO )
   return SUCCESS ;
 }
 
+// get the map for our props
+static int
+get_contraction_map( int *map ,
+		     const char *token ,
+		     const int nprops ) 
+{
+  *map = (int)atoi( token ) ;
+  if( *map < 0 || *map >= nprops ) {
+    printf( "[IO] non-sensical contraction index %d \n" , *map ) ;
+    return FAILURE ;
+  }
+  return SUCCESS ;
+}
+
+// get the propagator types
+static int
+get_proptype( proptype *prop ,
+	      const char *token ) 
+{
+  if( are_equal( token , "CHIRAL" ) ) {
+    *prop = CHIRAL ;
+  } else if( are_equal( token , "NREL" ) ) {
+    *prop = NREL ;
+  } else {
+    printf( "[IO] I don't understand gamma basis %s\n" , 
+	    token ) ;
+    return FAILURE ;
+  }
+  return SUCCESS ;
+}
+
+///
+static int
+get_sourcetype( sourcetype *source ,
+		const char *token ) 
+{
+  if( are_equal( token , "WALL" ) ) {
+    *source = WALL ;
+  } else if( are_equal( token , "POINT" ) ) {
+    *source = POINT ;
+  } else {
+    printf( "[IO] I don't understand source type %s\n" , token ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] Propagators are %s sources \n" , token ) ;
+  return SUCCESS ;
+}
+
+// get the various contraction types
+static int
+get_current_type( current_type *current ,
+		  const char *token ) 
+{
+  if( are_equal( token , "LOCAL_LOCAL" ) ) {
+    *current = LOCAL_LOCAL ;
+  } else if( are_equal( token , "CONSERVED_LOCAL" ) ) {
+    *current = CONSERVED_LOCAL ;
+  } else {
+    printf( "[IO] I don't understand VPF type %s\n" , token ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] We are performing %s contractions \n" , token ) ;
+  return SUCCESS ;
+}
+
+//
+static int
+unexpected_NULL( void ) 
+{
+  printf( "[IO] unexpected NULL in contraction string \n" ) ;
+  return FAILURE ;
+}
+
 // tokenize each meson
 static int
 twopoint_tokens( struct meson_info *mesons ,
@@ -168,63 +241,36 @@ twopoint_tokens( struct meson_info *mesons ,
 		 const int meas_idx ) 
 {
   printf( "\n" ) ;
+
+  // starts with the contraction indices
   char *token = (char*)strtok( (char*)meson_str , "," ) ;
-  mesons -> map[ 0 ] = (int)atoi( token ) ;
-  token = (char*)strtok( NULL , "," ) ;
-  mesons -> map[ 1 ] = (int)atoi( token ) ;
-  token = (char*)strtok( NULL , "," ) ;
-  if( token == NULL || 
-      mesons -> map[0] >= nprops || mesons -> map[1] >= nprops ||
-      mesons -> map[0] < 0 || mesons -> map[1] < 0 ) {
-    printf( "[IO] Meson_%d :: Unexpected end of line or map mismatch \n" ,
-	    meas_idx ) ;
+  if( get_contraction_map( &( mesons -> map[0] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( mesons -> map[1] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
   printf( "[IO] Meson_%d :: Contracting prop %d with prop %d \n" , 
 	  meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
+
   // check for sourcetype
-  if( are_equal( token , "WALL" ) ) {
-    mesons -> source = WALL ;
-  } else if( are_equal( token , "POINT" ) ) {
-    mesons -> source = POINT ;
-  } else {
-    printf( "[IO] Meson_%d :: I don't understand source type %s\n" , 
-	    meas_idx , token ) ;
-    return FAILURE ;
-  }
-  printf( "[IO] Meson_%d :: Propagators are %s sources \n" , 
-	  meas_idx , token ) ;
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_sourcetype( &( mesons -> source ) , token ) == FAILURE ) return FAILURE ;
+
   // check for proptype
-  token = (char*)strtok( NULL , "," ) ;
-  if( are_equal( token , "CHIRAL" ) ) {
-    mesons -> proptype1 = CHIRAL ;
-  } else if( are_equal( token , "NREL" ) ) {
-    mesons -> proptype1 = NREL ;
-  } else {
-    printf( "[IO] Meson_%d :: I don't understand gamma basis %s\n" , 
-	    meas_idx , token ) ;
-    return FAILURE ;
-  }
-  printf( "[IO] Meson_%d :: Contracting %s propagators " , 
-	  meas_idx , token ) ;
-  token = (char*)strtok( NULL , "," ) ;
-  if( are_equal( token , "CHIRAL" ) ) {
-    mesons -> proptype2 = CHIRAL ;
-  } else if( are_equal( token , "NREL" ) ) {
-    mesons -> proptype2 = NREL ;
-  } else {
-    printf( "[IO] Meson_%d :: I don't understand gamma basis %s\n" , 
-	    meas_idx , token ) ;
-    return FAILURE ;
-  }
-  printf( "with %s propagators \n" , token ) ;
-  // summarise
-  token = (char*)strtok( NULL , "," ) ;
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_proptype( &( mesons -> proptype1 ) , token ) == FAILURE ) return FAILURE ;
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_proptype( &( mesons -> proptype2 ) , token ) == FAILURE ) return FAILURE ;
+
+  // output file
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( mesons -> outfile , "%s" , token ) ;
-  printf( "[IO] Meson_%d :: Contraction file in %s \n" , 
-	  meas_idx , token ) ;
-  token = (char*)strtok( NULL , "," ) ;
-  if( token != NULL ) {
+  printf( "[IO] Meson_%d :: Contraction file in %s \n" , meas_idx , token ) ;
+
+  // tell us if we get more than we expect
+  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
     printf( "[IO] Meson_%d :: Unexpected extra contraction info %s \n" ,
 	    meas_idx , token ) ;
   }
@@ -237,7 +283,7 @@ meson_contractions( struct meson_info *mesons ,
 		    int *nmesons ,
 		    const int nprops ) 
 {
-  *nmesons ;
+  *nmesons = 0 ;
   char str[ 32 ] ;
   while( *nmesons < nprops*nprops ) {
     sprintf( str , "MESON%d" , *nmesons ) ;
@@ -252,13 +298,80 @@ meson_contractions( struct meson_info *mesons ,
   return SUCCESS ;
 }
 
+// tokenize each vpf contraction
+static int
+VPF_tokens( struct VPF_info *VPF ,
+	    const char *VPF_str ,
+	    const int nprops ,
+	    const int meas_idx ) 
+{
+  printf( "\n" ) ;
+
+  // starts with the propagator map
+  char *token = (char*)strtok( (char*)VPF_str , "," ) ;
+  if( get_contraction_map( &( VPF -> map[0] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( VPF -> map[1] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  printf( "[IO] VPF_%d :: Contracting prop %d with prop %d \n" , 
+	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
+
+  // check for sourcetype
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_current_type( &( VPF -> current ) , token ) == FAILURE ) return FAILURE ;
+
+  // check for proptype
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_proptype( &( VPF -> proptype1 ) , token ) == FAILURE ) return FAILURE ;
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_proptype( &( VPF -> proptype2 ) , token ) == FAILURE ) return FAILURE ;
+
+  // output file
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  sprintf( VPF -> outfile , "%s" , token ) ;
+  printf( "[IO] VPF_%d :: Contraction file in %s \n" , meas_idx , token ) ;
+
+  // tell us if we get more than we expect
+  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
+    printf( "[IO] VPF_%d :: Unexpected extra contraction info %s \n" ,
+	    meas_idx , token ) ;
+  }
+  return SUCCESS ;
+}
+
+// meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
+static int
+VPF_contractions( struct VPF_info *VPF , 
+		  int *nVPF ,
+		  const int nprops ) 
+{
+  *nVPF = 0 ;
+  char str[ 32 ] ;
+  while( *nVPF < nprops*nprops ) {
+    sprintf( str , "VPF%d" , *nVPF ) ;
+    const int VPF_idx = tag_search( str ) ;
+    if( VPF_idx == FAILURE ) return SUCCESS ;
+    if( VPF_tokens( &VPF[ *nVPF ] , 
+		    INPUT[ VPF_idx ].VALUE , 
+		    nprops , *nVPF ) 
+	== FAILURE ) return FAILURE ;
+    *nVPF = *nVPF + 1 ;
+  }
+  return SUCCESS ;
+}
+
 // fills the INFILE struct with all the useful information
 int
 get_input_data( char prop[][ GLU_STR_LENGTH ] ,
+		int *nprops ,
 		struct meson_info *mesons ,
-		struct cut_info *CUTINFO ,
 		int *nmesons ,
-		int *nprops , 
+		struct VPF_info *VPF ,
+		int *nVPF ,
+		struct cut_info *CUTINFO ,
 		int *dims ,
 		const char *file_name )
 {
@@ -298,6 +411,12 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
   // meson contractions
   if( meson_contractions( mesons , nmesons , 
 			  *nprops ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
+
+  // vacuum polarisation stuff
+  if( VPF_contractions( VPF , nVPF , 
+			*nprops ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 

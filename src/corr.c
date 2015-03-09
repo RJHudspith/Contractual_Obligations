@@ -4,7 +4,6 @@
  */
 #include "common.h"          // one header to rule them all
 
-#include "conserved_local.h" // conserved local currents
 #include "geometry.h"        // init_geom and init_navig
 #include "GLU_timer.h"       // sys/time.h wrapper
 #include "io.h"              // file IO stuff
@@ -15,6 +14,7 @@
 #include "read_headers.h"    // read the header file in gauge config
 #include "read_propheader.h" // read the propagator file header
 #include "wrap_mesons.h"     // meson contraction wrappers
+#include "wrap_VPF.h"     // meson contraction wrappers
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -41,12 +41,18 @@ main( const int argc,
   }
 
   // we should loop this section to read in many files
-  int nprops = 4 , dims[ ND ] , nmesons = 0 ;
+  int nprops = 4 , dims[ ND ] , nmesons = 0 , nVPF = 0 ;
+
+  // this needs to be cleaned up, get nprops first?-J
   char prop_files[ nprops ][ GLU_STR_LENGTH ] ;
-  struct meson_info mesons[ nprops * nprops ] ;
+  struct meson_info mesons[ nprops * nprops ] ; 
+  struct VPF_info VPF[ nprops * nprops ] ; 
   struct cut_info CUTINFO ;
-  if( get_input_data( prop_files , mesons , &CUTINFO , &nmesons , 
-		      &nprops , dims , argv[INFILE] ) == FAILURE ) {
+  if( get_input_data( prop_files , &nprops ,
+		      mesons , &nmesons , 
+		      VPF , &nVPF ,
+		      &CUTINFO , 
+		      dims , argv[INFILE] ) == FAILURE ) {
     return FAILURE ;
   }
 
@@ -79,7 +85,7 @@ main( const int argc,
       return FAILURE ;
     }
     //
-    if( read_check_header( fprops[i] ) == FAILURE ) {
+    if( read_check_header( fprops[i] , GLU_TRUE ) == FAILURE ) {
       if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
       return FAILURE ;
     }
@@ -87,14 +93,14 @@ main( const int argc,
 
   start_timer( ) ;
 
+  // if we don't have a gauge field we can't do conserved-local
   if( lat != NULL ) {
-    // this will get wrapped and will have local-local
-    // and conserved-conserved placeholders
-    conserved_local( fprops[0] , CHIRAL , lat , CUTINFO , "test" ) ;
-  } else {
     // want to switch on these or call a wrapper
-    contract_mesons( fprops , mesons , nmesons ) ;
-  }
+    contract_VPF( fprops , lat , VPF , nVPF , CUTINFO ) ;
+  } 
+
+  // want to switch on these or call a wrapper
+  contract_mesons( fprops , mesons , nmesons ) ;
 
   print_time( ) ;
 

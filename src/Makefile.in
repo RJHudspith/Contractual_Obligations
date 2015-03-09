@@ -137,13 +137,14 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./IO/read_propheader.$(OBJEXT) ./IO/cut_output.$(OBJEXT) \
 	./MEAS/mesons.$(OBJEXT) ./MEAS/wall_mesons.$(OBJEXT) \
 	./MEAS/tmoments_PImunu.$(OBJEXT) ./MEAS/WardIdentity.$(OBJEXT) \
-	./MEAS/conserved_local.$(OBJEXT) \
+	./MEAS/local_local.$(OBJEXT) ./MEAS/conserved_local.$(OBJEXT) \
 	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/correlators.$(OBJEXT) \
 	./MEAS/plaqs_links.$(OBJEXT) ./UTILS/crc32.$(OBJEXT) \
 	./UTILS/GLU_bswap.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
 	./MEAS/currents.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT) \
-	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
-	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT) \
+	./MEAS/wrap_VPF.$(OBJEXT) ./UTILS/GLU_timer.$(OBJEXT) \
+	./UTILS/gramschmidt.$(OBJEXT) ./UTILS/matrix_ops.$(OBJEXT) \
+	./UTILS/spinor_ops.$(OBJEXT) \
 	./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
@@ -326,7 +327,8 @@ include_HEADERS = \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h 
+	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -334,10 +336,11 @@ libCORR_a_SOURCES = \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c ./IO/cut_output.c \
 	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
-	./MEAS/WardIdentity.c \
+	./MEAS/WardIdentity.c ./MEAS/local_local.c \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
+	./MEAS/wrap_VPF.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c 
@@ -461,6 +464,8 @@ MEAS/$(DEPDIR)/$(am__dirstamp):
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/WardIdentity.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/local_local.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/conserved_local.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/momspace_PImunu.$(OBJEXT): MEAS/$(am__dirstamp) \
@@ -484,6 +489,8 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 ./MEAS/currents.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wrap_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/wrap_VPF.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_timer.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
@@ -580,11 +587,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/conserved_local.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/correlators.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/currents.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/local_local.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/momspace_PImunu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/plaqs_links.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/tmoments_PImunu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wall_mesons.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_VPF.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_bswap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_timer.Po@am__quote@

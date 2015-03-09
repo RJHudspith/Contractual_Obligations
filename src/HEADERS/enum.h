@@ -6,8 +6,6 @@
 #ifndef ENUM_H
 #define ENUM_H
 
-#define DEBUG
-
 //#define CHROMA_DIRAC_CONVENTION
 
 /**
@@ -43,6 +41,14 @@ typedef enum {
 typedef enum {
   WALL , 
   POINT } sourcetype ;
+
+/**
+   @enum current_type
+   @brief fermionic current type
+ */
+typedef enum {
+  LOCAL_LOCAL , 
+  CONSERVED_LOCAL } current_type ;
 
 /**
    @enum proptype

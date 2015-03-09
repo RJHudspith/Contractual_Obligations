@@ -7,11 +7,12 @@
 #define READ_PROPHEADER_H
 
 /**
-   @fn int read_check_header( FILE *propfile )
+   @fn int read_check_header( FILE *propfile , const GLU_bool first_read )
    @brief read and check a propagator file header
    @return #SUCCESS or #FAILURE
  */
 int
-read_check_header( FILE *propfile ) ;
+read_check_header( FILE *propfile ,
+		   const GLU_bool first_read ) ;
 
 #endif

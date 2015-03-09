@@ -11,15 +11,17 @@
 #define INPUT_READER_H
 
 /**
-   @fn int get_input_data( char **prop , struct meson_info *mesons , struct cut_info *CUTINFO , int *nmesons , int *nprops , const char *file_name )
+   @fn int
    @brief set the gauge field header and pass a propagator name for now
  */
 int
 get_input_data( char prop[][GLU_STR_LENGTH] ,
-		struct meson_info *mesons ,
-		struct cut_info *CUTINFO ,
-		int *nmesons ,
 		int *nprops ,
+		struct meson_info *mesons ,
+		int *nmesons ,
+		struct VPF_info *VPF ,
+		int *nVPF ,
+		struct cut_info *CUTINFO ,
 		int *dims ,
 		const char *file_name ) ;
 

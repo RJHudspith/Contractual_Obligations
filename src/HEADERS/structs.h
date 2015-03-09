@@ -167,6 +167,23 @@ struct meson_info {
 } ;
 
 /**
+   @struct VPF_info
+   @brief VPF contractions information
+   @param map :: maps contractions indices
+   @param current :: of type #current_type
+   @param proptype1 :: type of prop1
+   @param proptype2 :: type of prop2
+   @param outfile :: output file name
+ */
+struct VPF_info {
+  int map[2] ;
+  current_type current ;
+  proptype proptype1 ;
+  proptype proptype2 ;
+  char outfile[ 256 ] ;
+} ;
+
+/**
    @struct veclist
    @brief storage for the momenta
  */

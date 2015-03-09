@@ -64,8 +64,10 @@ read_header( FILE *prop ,
   return SUCCESS ;
 }
 
+// read and check the header against the global lattice state
 int
-read_check_header( FILE *propfile )
+read_check_header( FILE *propfile ,
+		   const GLU_bool first_read )
 {
   int dims[ ND ] = {} ;
   int src[ ND ] ;
@@ -88,11 +90,13 @@ read_check_header( FILE *propfile )
   }
   
   // otherwise write out the propagator dimensions
-  printf( "[DIMENSIONS-PROP] ( " ) ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    printf( "%d x " , dims[ mu ] ) ;
+  if( first_read == GLU_TRUE ) {
+    printf( "[DIMENSIONS-PROP] ( " ) ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      printf( "%d x " , dims[ mu ] ) ;
+    }
+    printf( "%d )\n" , dims[ ND - 1 ] ) ;
   }
-  printf( "%d )\n" , dims[ ND - 1 ] ) ;
 
   // maybe we should check the source position as well?
   

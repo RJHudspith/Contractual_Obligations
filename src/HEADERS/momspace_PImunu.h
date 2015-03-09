@@ -8,6 +8,8 @@
 /**
    @fn void momspace_PImunu( struct PIdata *DATA_AA , struct PIdata *DATA_VV , const PImunu_projtype PROJ , const struct cut_info CUTINFO , const char *outfile )
    @brief FFTs (if available) the config-space \f$ \Pi_{\mu\nu}(q) \f$
+
+   @warning overwrites the PIdatas with their fourier transform
  */
 void
 momspace_PImunu( struct PIdata *DATA_AA ,
