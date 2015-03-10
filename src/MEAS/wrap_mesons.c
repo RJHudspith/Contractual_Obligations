@@ -58,6 +58,12 @@ contract_mesons( FILE **fprops ,
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {
     if( mesons[ measurements ].map[0] == mesons[ measurements ].map[0] ) {
+      // logic bomb, cannot contract same prop with different bases
+      if( mesons[ measurements ].proptype1 != mesons[ measurements ].proptype2 ) {
+	printf( "[MESONS] we cannot contract a meson with itself with two "
+		"different bases \n" ) ;
+	return FAILURE ;
+      }
       select_callback_single( mesons[ measurements ].source ) ;
       // and we use the function pointer we have set
       if( single_callback( fprops[ mesons[ measurements ].map[0] ] , 

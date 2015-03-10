@@ -56,7 +56,6 @@ typedef enum {
  */
 typedef enum {
   CHIRAL ,
-  CHIRAL_TO_NREL ,
   NREL } proptype ;
 
 /**
@@ -138,5 +137,13 @@ typedef enum
     PSQ_CUT ,
     CYLINDER_CUT ,
     CYLINDER_AND_CONICAL_CUT } momentum_cut_def ;
+
+/**
+   @enum vector_axial
+   @brief enumerate the currents we have available
+ */
+typedef enum
+  { VECTOR , 
+    AXIAL } vector_axial ;
 
 #endif

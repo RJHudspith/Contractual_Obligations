@@ -19,7 +19,7 @@ include_HEADERS = \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
 	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
-	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -31,7 +31,7 @@ libCORR_a_SOURCES = \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
-	./MEAS/wrap_VPF.c \
+	./MEAS/wrap_VPF.c ./MEAS/PImunu_projections.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c 

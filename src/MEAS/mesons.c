@@ -113,11 +113,13 @@ double_mesons( FILE *prop1 ,
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
-  // precompute the non relativistic gamma basis
-  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+  // precompute the correct gamma basis, if either are nrel we use nrel
+  if( make_gammas( GAMMAS , ( proptype1 == NREL || proptype2 == NREL ) ? \
+		   NREL : proptype1 ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
+  
 
   // data structure for holding the contractions
   struct correlator **corr = malloc( NSNS * sizeof( struct correlator* ) ) ;
@@ -160,10 +162,10 @@ double_mesons( FILE *prop1 ,
     int GSRC ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 
 	register double complex sum = 0.0 ;
 

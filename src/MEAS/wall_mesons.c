@@ -171,7 +171,8 @@ wall_double_mesons( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , ( proptype1 == NREL || proptype2 == NREL ) ? \
+		   NREL : proptype1 ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -226,16 +227,8 @@ wall_double_mesons( FILE *prop1 ,
     #pragma omp parallel for private(GSRC)
     for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
-      struct gamma G2 , G1 ;
-
-      // left multiply source gamma matrix by gamma_5
-      gamma_mmul( &G2 , GAMMAS[ GAMMA_5 ] , GAMMAS[ GSRC ] ) ;
-
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
-	
-	// right multiply sink gamma matrix by gamma_5
-	gamma_mmul( &G1 , GAMMAS[ GSNK ] , GAMMAS[ GAMMA_5 ] ) ;
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 
 	register double complex sum = 0.0 ;
 

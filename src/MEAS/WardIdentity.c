@@ -1,8 +1,6 @@
 /**
    @file WardIdentity.c
    @brief check the ward identity
-
-   TODO :: we should probably have a config-space check also right?
  */
 
 #include "common.h"
@@ -106,3 +104,24 @@ correct_WI( struct PIdata *data ,
   return ;
 }
 
+// computes \delta_\mu V_\mu V_\nu 
+void
+WI_configspace( const struct PIdata *data ,
+		const struct site *lat )
+{
+  double sum = 0.0 ;
+  int i ;
+#pragma omp parallel for private(i) reduction(+:sum) 
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    register double complex der = 0.0 ;
+    int mu , nu ;
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      for( nu = 0 ; nu < ND ; nu++ ) {
+	der += data[ i ].PI[mu][nu] - data[ lat[i].back[mu] ].PI[mu][nu] ;
+      }
+    }
+    sum = sum + cabs( der ) ;
+  }
+  printf( "\n[VPF] config-space violation %e \n\n" , sum / ( double)LVOLUME ) ;
+  return ;
+}

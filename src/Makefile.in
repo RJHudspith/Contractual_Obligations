@@ -142,9 +142,9 @@ am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
 	./MEAS/plaqs_links.$(OBJEXT) ./UTILS/crc32.$(OBJEXT) \
 	./UTILS/GLU_bswap.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
 	./MEAS/currents.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT) \
-	./MEAS/wrap_VPF.$(OBJEXT) ./UTILS/GLU_timer.$(OBJEXT) \
-	./UTILS/gramschmidt.$(OBJEXT) ./UTILS/matrix_ops.$(OBJEXT) \
-	./UTILS/spinor_ops.$(OBJEXT) \
+	./MEAS/wrap_VPF.$(OBJEXT) ./MEAS/PImunu_projections.$(OBJEXT) \
+	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
+	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT) \
 	./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
@@ -328,7 +328,7 @@ include_HEADERS = \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
 	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
-	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h
 
 libCORR_a_SOURCES = \
 	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
@@ -340,7 +340,7 @@ libCORR_a_SOURCES = \
 	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
-	./MEAS/wrap_VPF.c \
+	./MEAS/wrap_VPF.c ./MEAS/PImunu_projections.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c 
@@ -492,6 +492,8 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wrap_VPF.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/PImunu_projections.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_timer.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/gramschmidt.$(OBJEXT): UTILS/$(am__dirstamp) \
@@ -582,6 +584,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_headers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_propheader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/readers.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/PImunu_projections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/WardIdentity.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/brutal_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/conserved_local.Po@am__quote@

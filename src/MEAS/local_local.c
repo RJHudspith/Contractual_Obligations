@@ -75,8 +75,12 @@ local_local( FILE *prop1 ,
   // free our gamma matrices
   free( GAMMAS ) ;
 
+  // temporal data too
+  tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
+
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ) ;
+  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		   LOCAL_LOCAL ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;
@@ -159,8 +163,12 @@ local_local_double( FILE *prop1 ,
   // free our gamma matrices
   free( GAMMAS ) ;
 
+  // time moment data
+  tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
+
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ) ;
+  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		   LOCAL_LOCAL ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;

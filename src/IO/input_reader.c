@@ -155,6 +155,7 @@ read_cuts_struct( struct cut_info *CUTINFO )
   } else {
     printf( "[IO] Unrecognised type [%s] \n" , INPUT[momcut_idx].VALUE ) ; 
     printf( "[IO] Defaulting to SPHERICAL_CUT \n" ) ; 
+    CUTINFO -> type = PSQ_CUT ; 
   }
   // minmom, maxmom angle and cylinder width
   const int maxmom_idx = tag_search( "MAXMOM" ) ;

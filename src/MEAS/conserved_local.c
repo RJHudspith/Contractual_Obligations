@@ -9,6 +9,7 @@
 #include "io.h"              // read_prop
 #include "matrix_ops.h"      // constant_mul_gauge
 #include "momspace_PImunu.h" // momentum space VPF
+#include "tmoments_PImunu.h" // time moments too
 
 // compute the conserved local for a correlator
 int
@@ -26,7 +27,7 @@ conserved_local( FILE *prop1 ,
   const int AGMAP[ ND ] = { GAMMA_5^GAMMA_0 , GAMMA_5^GAMMA_1 , GAMMA_5^GAMMA_2 , GAMMA_5^GAMMA_3 } ;
 #else
   // need to look these up
-  const int AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const int AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
 #endif
 
   // allocate the basis, maybe extern this as it is important ...
@@ -104,6 +105,9 @@ conserved_local( FILE *prop1 ,
 
   printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 
+  // derivatives delta_\mu V_\mu(x)
+  WI_configspace( DATA_VV , lat ) ;
+
   // free our spinors
   free( S1 ) ;
   free( S1UP ) ;
@@ -112,8 +116,11 @@ conserved_local( FILE *prop1 ,
   // free our gamma matrices
   free( GAMMAS ) ;
 
+  tmoments( DATA_AA , DATA_VV , outfile , CONSERVED_LOCAL ) ;
+
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ) ;
+  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		   CONSERVED_LOCAL ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;
@@ -151,7 +158,8 @@ conserved_local_double( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , ( proptype1 == NREL || proptype2 == NREL ) ? \
+		   NREL : proptype1 ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -233,6 +241,9 @@ conserved_local_double( FILE *prop1 ,
 
   printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 
+  // derivatives delta_\mu V_\mu(x)
+  WI_configspace( DATA_VV , lat ) ;
+
   // free our spinors
   free( S1 ) ;
   free( S1UP ) ;
@@ -245,8 +256,12 @@ conserved_local_double( FILE *prop1 ,
   // free our gamma matrices
   free( GAMMAS ) ;
 
+  // time moments are interesting also
+  tmoments( DATA_AA , DATA_VV , outfile , CONSERVED_LOCAL ) ;
+
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ) ;
+  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		   CONSERVED_LOCAL ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;

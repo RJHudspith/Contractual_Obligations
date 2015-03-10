@@ -7,11 +7,13 @@
 #define TMOMENTS_PIMUNU_H
 
 /**
-   @fn void tmoments( const struct PIdata *data , const projtype PROJ ) 
+   @fn void tmoments( const struct PIdata *data , const current_type current ) 
    @brief time moments computation
  */
 void
-tmoments( const struct PIdata *data ,
-	  const projtype PROJ ) ;
+tmoments( const struct PIdata *AA ,
+	  const struct PIdata *VV ,
+	  const char *outfile ,
+	  const current_type current ) ;
 
 #endif

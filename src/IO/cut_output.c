@@ -71,3 +71,58 @@ write_momspace_data( const char *filename ,
   fclose( outfile ) ;
   return ;
 }
+
+// file writer
+void
+write_tmoments( const double **tcorr ,
+		const char *filename ,
+		const current_type current ,
+		const vector_axial VA )
+{
+  char str[ 256 ] ;
+  switch( current ) {
+  case CONSERVED_LOCAL :
+    switch( VA ) {
+    case AXIAL :
+      sprintf( str , "%s.CALA.tcorr.bin" , filename ) ;
+      break ;
+    case VECTOR :
+      sprintf( str , "%s.CVLV.tcorr.bin" , filename ) ;
+      break ;
+    } break ;
+  case LOCAL_LOCAL :
+    switch( VA ) {
+    case AXIAL :
+      sprintf( str , "%s.LALA.tcorr.bin" , filename ) ;
+      break ;
+    case VECTOR :
+      sprintf( str , "%s.LVLV.tcorr.bin" , filename ) ;
+      break ;
+    } break ;
+  }
+  printf( "[IO] writing temporal correlators to %s \n" , str ) ;
+
+  FILE *outfile = fopen( str , "wb" ) ;
+
+  // write a magic number
+  const uint32_t magic[ 1 ] = { VPF_MAGIC } ;
+
+  // write out the magic number
+  fwrite( magic , sizeof( uint32_t ) , 1 , outfile ) ;
+
+  // write out ND*ND
+  uint32_t in[ 1 ] = { ND * ND } ;
+  fwrite( in , sizeof( uint32_t ) , 1 , outfile ) ;
+
+  // write out each munu loop
+  int munu ;
+  for( munu = 0 ; munu < ND*ND ; munu++ ) {
+    in[ 0 ] = Latt.dims[ ND - 1 ] ;
+    fwrite( in , sizeof( uint32_t ) , 1 , outfile ) ;
+    fwrite( tcorr[ munu ] , sizeof( double ) , Latt.dims[ ND - 1 ] , 
+	    outfile ) ; 
+  }
+  fclose( outfile ) ;
+
+  return ;
+}

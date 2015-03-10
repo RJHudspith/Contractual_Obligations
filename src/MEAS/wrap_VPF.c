@@ -64,6 +64,12 @@ contract_VPF( FILE **fprops ,
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {
     if( VPF[ measurements ].map[0] == VPF[ measurements ].map[0] ) {
+      // logic bomb, cannot contract same prop with different bases
+      if( VPF[ measurements ].proptype1 != VPF[ measurements ].proptype2 ) {
+	printf( "[VPF] we cannot contract a meson with itself with two "
+		"different bases \n" ) ;
+	return FAILURE ;
+      }
       select_callback_single( VPF[ measurements ].current ) ;
       // and we use the function pointer we have set
       if( single_callback( fprops[ VPF[ measurements ].map[0] ] , 

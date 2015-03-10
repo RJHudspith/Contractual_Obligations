@@ -1,9 +1,6 @@
 /**
    @file currents.c
    @brief various current implementations and contractions
-
-   TODO :: Check the NCAA and NCVV codes, I implemented quickly without much
-   care - J
  */
 
 #include "common.h"
@@ -57,9 +54,9 @@ CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2 ,       // S_2
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
-	     const struct gamma *GAMMAS ,
-	     const int mu ,
- 	     const int nu )
+	    const struct gamma *GAMMAS ,
+	    const int mu ,
+	    const int nu )
 {
   return \
     0.5 * (
