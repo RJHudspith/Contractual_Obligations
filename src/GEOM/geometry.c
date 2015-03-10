@@ -333,7 +333,7 @@ init_geom( void )
   } 
   Latt.Lcu = Latt.Lsq * Latt.dims[ ND - 2 ] ;     // defined :: LCU
   Latt.Volume = Latt.Lcu * Latt.dims[ ND - 1 ] ;  // defined :: LVOLUME
-  printf( " %d x %d )\n\n" , Latt.dims[mu] , Latt.dims[ mu+1 ] ) ; 
+  printf( " %d x %d )\n" , Latt.dims[mu] , Latt.dims[ mu+1 ] ) ; 
 #endif
   // precompute the twiddle factors
   for( mu = 0 ; mu < ND ; mu++ ) {

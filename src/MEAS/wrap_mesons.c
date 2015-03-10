@@ -53,7 +53,7 @@ contract_mesons( FILE **fprops ,
 		 const struct meson_info *mesons ,
 		 const int nmesons )
 {
-  printf( "\n[MESONS] performing %d contractions \n" , nmesons ) ;
+  printf( "\n[MESONS] performing %d contraction(s) \n" , nmesons ) ;
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {

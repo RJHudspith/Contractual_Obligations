@@ -11,18 +11,19 @@
 #define INPUT_READER_H
 
 /**
-   @fn int
+   @fn void free_inputs( struct input_info inputs )
+   @brief free the input struct
+ */
+void
+free_inputs( struct input_info inputs ) ;
+
+/**
+   @fn int get_input_data( struct input_info *inputs , const char *file_name )
    @brief set the gauge field header and pass a propagator name for now
+   @warning several objects in inputs get malloc'd here
  */
 int
-get_input_data( char prop[][GLU_STR_LENGTH] ,
-		int *nprops ,
-		struct meson_info *mesons ,
-		int *nmesons ,
-		struct VPF_info *VPF ,
-		int *nVPF ,
-		struct cut_info *CUTINFO ,
-		int *dims ,
+get_input_data( struct input_info *inputs , 
 		const char *file_name ) ;
 
 #endif

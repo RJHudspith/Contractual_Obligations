@@ -59,7 +59,7 @@ contract_VPF( FILE **fprops ,
 	      const int nVPF ,
 	      const struct cut_info CUTINFO )
 {
-  printf( "\n[VPF] performing %d contractions \n" , nVPF ) ;
+  printf( "\n[VPF] performing %d contraction(s) \n" , nVPF ) ;
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {

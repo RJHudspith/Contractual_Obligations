@@ -175,6 +175,7 @@ momspace_PImunu( struct PIdata *DATA_AA ,
 
   // free the momentum list
   free( NMOM ) ;
+  free( (void*)list ) ;
 
   // free our momenta
   for( i = 0 ; i < NMOM[0] ; i++ ) {

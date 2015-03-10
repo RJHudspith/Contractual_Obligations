@@ -90,12 +90,19 @@ conserved_local( FILE *prop1 ,
       // copy spinors over a timeslice
       memcpy( &S1[x] , &S1UP[x] , sizeof( struct spinor ) ) ;
     }
+
+    // status
+    printf("\r[VPF] cl-flavour diagonal done %.f %%", 
+	   (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
 
   // and contract the final timeslice
   contract_conserved_local( DATA_AA , DATA_VV , 
 			    lat , S1 , S1END , S1 , S1END ,
 			    GAMMAS , AGMAP , VGMAP , t ) ;
+
+  printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 
   // free our spinors
   free( S1 ) ;
@@ -212,12 +219,19 @@ conserved_local_double( FILE *prop1 ,
       memcpy( &S1[x] , &S1UP[x] , sizeof( struct spinor ) ) ;
       memcpy( &S2[x] , &S2UP[x] , sizeof( struct spinor ) ) ;
     }
+
+    // status
+    printf("\r[VPF] cl-flavour diagonal done %.f %%", 
+	   (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
 
   // and contract the final timeslice
   contract_conserved_local( DATA_AA , DATA_VV , 
 			    lat , S1 , S1END , S2 , S2END ,
 			    GAMMAS , AGMAP , VGMAP , t ) ;
+
+  printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 
   // free our spinors
   free( S1 ) ;

@@ -11,6 +11,7 @@
 #include "contractions.h"      // meson contract
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "gammas.h"            // gamma matrices
+#include "GLU_timer.h"         // print time
 #include "io.h"                // read prop
 #include "read_propheader.h"   // (re)read the header
 
@@ -70,7 +71,7 @@ single_mesons( FILE *prop1 ,
 	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",(t+1)/((L0)/100.));fflush(stdout);
+    printf("\r[MESONS] done %.f %%",(t+1)/((L0)/100.));fflush(stdout);
   }
   printf("\n");	
 
@@ -94,6 +95,9 @@ single_mesons( FILE *prop1 ,
   // rewind file and read header again
   rewind( prop1 ) ;
   read_check_header( prop1 , GLU_FALSE ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
 
   return SUCCESS ;
 }
@@ -174,7 +178,7 @@ double_mesons( FILE *prop1 ,
 	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
       }
     }
-    printf("\rdone %.f %%",(t+1)/((L0)/100.));fflush(stdout);
+    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; fflush( stdout ) ;
   }
   printf("\n");
 
@@ -200,6 +204,9 @@ double_mesons( FILE *prop1 ,
   read_check_header( prop1 , GLU_FALSE ) ;
   rewind( prop2 ) ;
   read_check_header( prop2 , GLU_FALSE ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
 
   return SUCCESS ;
 }

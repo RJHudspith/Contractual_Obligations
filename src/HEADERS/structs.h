@@ -192,4 +192,27 @@ struct veclist {
   int MOM[ ND ] ;
 } ;
 
+/**
+   @struct propfile
+   @brief propagator file storage
+ */
+struct propfile {
+  char filename[ GLU_STR_LENGTH ] ;
+} ;
+
+/**
+   @struct input_info
+   @brief input data struct 
+ */
+struct input_info {
+  struct propfile *prop_files ;
+  int nprops ;
+  struct meson_info *mesons ;
+  int nmesons ;
+  struct VPF_info *VPF ;
+  int nVPF ;
+  struct cut_info CUTINFO ;
+  int dims[ ND ] ;
+} ;
+
 #endif

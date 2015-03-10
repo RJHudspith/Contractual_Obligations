@@ -191,7 +191,8 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 // read a file, has to be out of order because it is called by the others
 struct site*
 read_gauge_file( struct head_data *HEAD_DATA , 
-		 const char *config_in )
+		 const char *config_in ,
+		 const int refdims[ ND ] )
 {
   /// here we include the usual stuff look at header for global stuff
   // open our configuration
@@ -211,6 +212,17 @@ read_gauge_file( struct head_data *HEAD_DATA ,
 
   // initialise geometry so that we can use LVOLUME and stuff
   init_geom( ) ;
+
+  // read_gauge_file overwrites Latt.dims, check against input file
+  int mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    if( Latt.dims[ mu ] != refdims[ mu ] ) {
+      printf( "[IO] gauge_field and input file dimensions mismatch %d != %d \n" 
+	      , Latt.dims[ mu ] , refdims[ mu ] ) ;
+      fclose( infile ) ;
+      return NULL ;
+    }
+  }
 
   // check for having enough memory for the gauge field
   /*

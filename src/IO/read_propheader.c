@@ -102,3 +102,24 @@ read_check_header( FILE *propfile ,
   
   return SUCCESS ;
 }
+
+// open the files and parse the header
+int
+read_propheaders( FILE **fprops ,
+		  const struct input_info inputs )
+{
+  int i = 0 ;
+  for( i = 0 ; i < inputs.nprops ; i++ ) {
+    // open and check all the files
+    if( ( fprops[i] = fopen( inputs.prop_files[i].filename , "r" ) ) == NULL ) {
+      printf( "[IO] Propagator file %s empty! Leaving \n" , 
+	      inputs.prop_files[i].filename ) ;
+      return FAILURE ;
+    }
+    //
+    if( read_check_header( fprops[i] , GLU_TRUE ) == FAILURE ) {
+      return FAILURE ;
+    }
+  }
+  return SUCCESS ;
+}

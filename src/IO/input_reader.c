@@ -19,9 +19,15 @@
 /**
    @file input_reader.c
    @brief reader for the input file
+
+   Some of it was taken from my library GLU, some is new
 */
 
 #include "common.h"
+
+// break for the while loops can be made really large
+// I just don't like infinite while loops
+#define MAX_CONTRACTIONS 20
 
 // tokenize the input file
 struct inputs {
@@ -174,6 +180,23 @@ get_contraction_map( int *map ,
   return SUCCESS ;
 }
 
+// get the various contraction types
+static int
+get_current_type( current_type *current ,
+		  const char *token ) 
+{
+  if( are_equal( token , "LOCAL_LOCAL" ) ) {
+    *current = LOCAL_LOCAL ;
+  } else if( are_equal( token , "CONSERVED_LOCAL" ) ) {
+    *current = CONSERVED_LOCAL ;
+  } else {
+    printf( "[IO] I don't understand VPF type %s\n" , token ) ;
+    return FAILURE ;
+  }
+  printf( "[IO] We are performing %s contractions \n" , token ) ;
+  return SUCCESS ;
+}
+
 // get the propagator types
 static int
 get_proptype( proptype *prop ,
@@ -205,23 +228,6 @@ get_sourcetype( sourcetype *source ,
     return FAILURE ;
   }
   printf( "[IO] Propagators are %s sources \n" , token ) ;
-  return SUCCESS ;
-}
-
-// get the various contraction types
-static int
-get_current_type( current_type *current ,
-		  const char *token ) 
-{
-  if( are_equal( token , "LOCAL_LOCAL" ) ) {
-    *current = LOCAL_LOCAL ;
-  } else if( are_equal( token , "CONSERVED_LOCAL" ) ) {
-    *current = CONSERVED_LOCAL ;
-  } else {
-    printf( "[IO] I don't understand VPF type %s\n" , token ) ;
-    return FAILURE ;
-  }
-  printf( "[IO] We are performing %s contractions \n" , token ) ;
   return SUCCESS ;
 }
 
@@ -281,18 +287,21 @@ twopoint_tokens( struct meson_info *mesons ,
 static int
 meson_contractions( struct meson_info *mesons , 
 		    int *nmesons ,
-		    const int nprops ) 
+		    const int nprops ,
+		    const GLU_bool first_pass ) 
 {
   *nmesons = 0 ;
   char str[ 32 ] ;
-  while( *nmesons < nprops*nprops ) {
+  while( *nmesons < MAX_CONTRACTIONS ) {
     sprintf( str , "MESON%d" , *nmesons ) ;
     const int meson_idx = tag_search( str ) ;
     if( meson_idx == FAILURE ) return SUCCESS ;
-    if( twopoint_tokens( &mesons[ *nmesons ] , 
-			 INPUT[ meson_idx ].VALUE , 
-			 nprops , *nmesons ) 
-	== FAILURE ) return FAILURE ;
+    if( first_pass == GLU_FALSE ) {
+      if( twopoint_tokens( &mesons[ *nmesons ] , 
+			   INPUT[ meson_idx ].VALUE , 
+			   nprops , *nmesons ) 
+	  == FAILURE ) return FAILURE ;
+    }
     *nmesons = *nmesons + 1 ;
   }
   return SUCCESS ;
@@ -346,33 +355,76 @@ VPF_tokens( struct VPF_info *VPF ,
 static int
 VPF_contractions( struct VPF_info *VPF , 
 		  int *nVPF ,
-		  const int nprops ) 
+		  const int nprops ,
+		  const GLU_bool first_pass ) 
 {
   *nVPF = 0 ;
   char str[ 32 ] ;
-  while( *nVPF < nprops*nprops ) {
+  while( *nVPF < MAX_CONTRACTIONS ) {
     sprintf( str , "VPF%d" , *nVPF ) ;
     const int VPF_idx = tag_search( str ) ;
     if( VPF_idx == FAILURE ) return SUCCESS ;
-    if( VPF_tokens( &VPF[ *nVPF ] , 
-		    INPUT[ VPF_idx ].VALUE , 
-		    nprops , *nVPF ) 
-	== FAILURE ) return FAILURE ;
+    if( first_pass == GLU_FALSE ) {
+      if( VPF_tokens( &VPF[ *nVPF ] , 
+		      INPUT[ VPF_idx ].VALUE , 
+		      nprops , *nVPF ) 
+	  == FAILURE ) return FAILURE ;
+    }
     *nVPF = *nVPF + 1 ;
   }
   return SUCCESS ;
 }
 
-// fills the INFILE struct with all the useful information
+// get the lattice dimensions from the input_file
+static int
+get_dims( int *dims )
+{
+  char str[ 32 ] ;
+  int mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    sprintf( str , "DIMS%d" , mu ) ;
+    const int dims_idx = tag_search( str ) ;
+    if( dims_idx == FAILURE ) { 
+      return tag_failure( str ) ; 
+    }
+    dims[ mu ] = (int)atoi( INPUT[ dims_idx ].VALUE ) ;
+  }
+  return SUCCESS ;
+}
+
+// get prop tags
+static int
+get_props( struct propfile *propfiles ,
+	   int *nprops ,
+	   const GLU_bool first_pass )
+{
+  *nprops = 0 ;
+  char str[ 32 ] ;
+  while( *nprops < 10 ) {
+    sprintf( str , "PROP%d" , *nprops ) ;
+    const int prop_idx = tag_search( str ) ;
+    if( prop_idx == FAILURE ) break ;
+    if( first_pass == GLU_FALSE ) {
+      strcpy( propfiles[ *nprops ].filename , INPUT[ prop_idx ].VALUE ) ;
+    }
+    *nprops = *nprops + 1 ;
+  }
+  return SUCCESS ;
+}
+
+// little wrapper to free our inputs. I invisage it will grow with time
+void
+free_inputs( struct input_info inputs ) 
+{
+  free( inputs.mesons ) ;
+  free( inputs.prop_files ) ;
+  free( inputs.VPF ) ;
+  return ;
+}
+
+// pack the input_info struct with all our contractions
 int
-get_input_data( char prop[][ GLU_STR_LENGTH ] ,
-		int *nprops ,
-		struct meson_info *mesons ,
-		int *nmesons ,
-		struct VPF_info *VPF ,
-		int *nVPF ,
-		struct cut_info *CUTINFO ,
-		int *dims ,
+get_input_data( struct input_info *inputs ,
 		const char *file_name )
 {
   // open the input file in here and free it at the bottom
@@ -392,48 +444,39 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
   Latt.head = header_type( ) ;
   if( Latt.head == FAILURE ) STATUS = FAILURE ;
 
-  // read some props
-  int count = 0 ;
-  char str[ 32 ] ;
-  while( count < *nprops ) {
-    sprintf( str , "PROP%d" , count ) ;
-    const int prop_idx = tag_search( str ) ;
-    if( prop_idx == FAILURE ) break ;
-    strcpy( prop[ count ] , INPUT[ prop_idx ].VALUE ) ;
-    count++ ;
+  // read some props, although strange I wouldn't consider no props being an error
+  get_props( inputs -> prop_files , &( inputs -> nprops ) , GLU_TRUE ) ;
+  if( inputs -> nprops == 0 ) { 
+    printf( "[IO] No propagator files specified \n" ) ;
   }
-  if( count == 0 ) { 
-    printf( "[IO] No propagator files specified ... Leaving \n" ) ;
-    STATUS = FAILURE ;
-  }
-  *nprops = count ;
+  inputs -> prop_files = (struct propfile*)malloc( ( inputs -> nprops ) * sizeof( struct propfile ) ) ;
+  get_props( inputs -> prop_files , &( inputs -> nprops ) , GLU_FALSE ) ;
 
   // meson contractions
-  if( meson_contractions( mesons , nmesons , 
-			  *nprops ) == FAILURE ) {
+  meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> mesons = (struct meson_info*)malloc( ( inputs -> nmesons ) * sizeof( struct meson_info ) ) ;
+  if( meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , 
+			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 
   // vacuum polarisation stuff
-  if( VPF_contractions( VPF , nVPF , 
-			*nprops ) == FAILURE ) {
+  VPF_contractions( inputs -> VPF , &( inputs -> nVPF ) , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> VPF = (struct VPF_info*)malloc( ( inputs -> nVPF ) * sizeof( struct VPF_info ) ) ;
+  if( VPF_contractions( inputs -> VPF , &( inputs -> nVPF ) , 
+			inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 
-  // at some point we should check this to make sure it is read ok
-  read_cuts_struct( CUTINFO ) ;
+  // so I think that not having the cuts isn't a problem apart from if we
+  // need them, maybe this is a bit dodgy - J
+  if( ( inputs -> nVPF ) != 0 && read_cuts_struct( &( inputs -> CUTINFO ) ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
 
   // read the dimensions from the input file
-  int mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    sprintf( str , "DIMS%d" , mu ) ;
-    const int dims_idx = tag_search( str ) ;
-    if( dims_idx == FAILURE ) { 
-      tag_failure( str ) ; 
-      STATUS = FAILURE ; 
-      break ; 
-    }
-    dims[ mu ] = (int)atoi( INPUT[ dims_idx ].VALUE ) ;
+  if( get_dims( inputs -> dims ) == FAILURE ) {
+    STATUS = FAILURE ;
   }
 
   // close the file and deallocate the buffer
@@ -443,3 +486,4 @@ get_input_data( char prop[][ GLU_STR_LENGTH ] ,
   // if we have hit ANY problem we return GLU_FAILURE this causes it to exit
   return STATUS ;
 }
+

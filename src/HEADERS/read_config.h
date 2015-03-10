@@ -52,13 +52,15 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 		 const struct head_data HEAD_DATA ) ;
 
 /**
-   @fn struct site* read_gauge_file( struct head_data *HEAD_DATA , const char *config_in )
+   @fn struct site* read_gauge_file( struct head_data *HEAD_DATA , const char *config_in , const int refdims[ ND ] )
    @brief read the gauge field in
    @param HEAD_DATA :: header data stripped out
    @param config_in :: gauge configuration file
+   @param refdims :: reference dimensions to check against header
  */
 struct site*
 read_gauge_file( struct head_data *HEAD_DATA , 
-		 const char *config_in ) ;
+		 const char *config_in ,
+		 const int refdims[ ND ] ) ;
 
 #endif

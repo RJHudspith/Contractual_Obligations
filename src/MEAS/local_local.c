@@ -45,9 +45,6 @@ local_local( FILE *prop1 ,
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
-  // read the prop
-  read_prop( prop1 , S1 , proptype1 ) ;
-
   // loop the timeslices
   int t ;
   for( t = 0 ; t < L0 ; t++ ) {
@@ -64,7 +61,13 @@ local_local( FILE *prop1 ,
     // do the conserved-local contractions
     contract_local_local( DATA_AA , DATA_VV , S1 , S1 , 
 			  GAMMAS , AGMAP , VGMAP , t ) ;
+
+    // status
+    printf("\r[VPF] ll-flavour diagonal done %.f %%", 
+	   (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
+  printf( "\n" ) ;
 
   // free our spinor(s)
   free( S1 ) ;
@@ -124,9 +127,6 @@ local_local_double( FILE *prop1 ,
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
   struct spinor *S2 = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
-  // read the prop
-  read_prop( prop1 , S1 , proptype1 ) ;
-
   // loop the timeslices
   int t ;
   for( t = 0 ; t < L0 ; t++ ) {
@@ -144,7 +144,13 @@ local_local_double( FILE *prop1 ,
     // do the conserved-local contractions
     contract_local_local( DATA_AA , DATA_VV , S1 , S2 , 
 			  GAMMAS , AGMAP , VGMAP , t ) ;
+
+    // status
+    printf("\r[VPF] ll-flavour off diagonal done %.f %%", 
+	   (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
+  printf( "\n" ) ;
 
   // free our spinor(s)
   free( S1 ) ;

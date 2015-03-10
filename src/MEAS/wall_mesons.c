@@ -9,6 +9,7 @@
 #include "contractions.h"      // meson contract
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "gammas.h"            // gamma matrices
+#include "GLU_timer.h"         // print_time() 
 #include "io.h"                // read_prop
 #include "read_propheader.h"   // (re)read the propagator header
 
@@ -52,8 +53,6 @@ wall_mesons( FILE *prop1 ,
 	     const proptype proptype1 ,
 	     const char *outfile )
 {
-  printf( "Computing Wall-Source mesons \n" ) ;
-
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
@@ -118,7 +117,12 @@ wall_mesons( FILE *prop1 ,
 			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
+
+    // status of the computation
+    printf("\r[MESONS] Wall done %.f %%", (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
+  printf( "\n" ) ;
 
 #ifdef DEBUG
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
@@ -148,6 +152,9 @@ wall_mesons( FILE *prop1 ,
   // rewind file and read header again
   rewind( prop1 ) ;
   read_check_header( prop1 , GLU_FALSE ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
 
   return SUCCESS ;
 }
@@ -250,7 +257,12 @@ wall_double_mesons( FILE *prop1 ,
 			  GAMMAS[ GAMMA_5 ] ) ;
       }
     }
+
+    // status of the computation
+    printf("\r[MESONS] Wall done %.f %%", (t+1)/((L0)/100.) ) ; 
+    fflush( stdout ) ;
   }
+  printf( "\n" ) ;
 
 #ifdef DEBUG
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
@@ -283,6 +295,9 @@ wall_double_mesons( FILE *prop1 ,
   read_check_header( prop1 , GLU_FALSE ) ;
   rewind( prop2 ) ;
   read_check_header( prop2 , GLU_FALSE ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
 
   return SUCCESS ;
 }
