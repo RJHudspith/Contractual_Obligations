@@ -13,7 +13,7 @@ int
 check_checksum( FILE *fprop )
 {
   // spinsize
-  const int spinsize = NS * NS * NC * NC ;
+  const int spinsize = NSNS * NCNC ;
 
   double *prop_buf = malloc( spinsize*2 * sizeof( double ) ) ;
 
@@ -58,7 +58,7 @@ static int
 read_chiralprop( FILE *fprop, 
 		 struct spinor *S )
 {
-  const int spinsize = NC * NC * NS * NS ;
+  const int spinsize = NCNC * NSNS ;
 
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
@@ -78,8 +78,8 @@ static int
 read_nrprop( FILE *fprop, 
 	     struct spinor *S )
 {
-  const int NR_NS = NS/2 ;
-  const int spinsize = NC * NC * NR_NS * NR_NS ;
+  const int NR_NS = NS >> 1 ;
+  const int spinsize = NCNC * NR_NS * NR_NS ;
 
   // read in site-by-site
   double *tmp = malloc( spinsize * 2 * sizeof( double ) ) ;

@@ -183,3 +183,21 @@ meson_contract( const struct gamma GSNK ,
   }
   return gsumr + I * gsumi ;
 }
+
+// multiplies two spinors A = B * A
+void
+spinmul_atomic_left( struct spinor *A ,
+		     const struct spinor B )
+{
+  struct spinor tmp = *A ;
+  int d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      // color matrix multiply
+      multab( (double complex*)A -> D[d1][d2].C ,
+	      (const double complex*)B.D[d2][d1].C ,
+	      (const double complex*)tmp.D[d1][d2].C ) ;
+    }
+  }
+  return ;
+}

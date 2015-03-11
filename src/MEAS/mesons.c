@@ -202,10 +202,8 @@ double_mesons( FILE *prop1 ,
   free( S2 ) ;
 
   // rewind file and read header again
-  rewind( prop1 ) ;
-  read_check_header( prop1 , GLU_FALSE ) ;
-  rewind( prop2 ) ;
-  read_check_header( prop2 , GLU_FALSE ) ;
+  rewind( prop1 ) ; read_check_header( prop1 , GLU_FALSE ) ;
+  rewind( prop2 ) ; read_check_header( prop2 , GLU_FALSE ) ;
 
   // tell us how long it all took
   print_time( ) ;

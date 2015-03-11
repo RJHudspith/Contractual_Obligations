@@ -184,6 +184,25 @@ struct VPF_info {
 } ;
 
 /**
+   @struct WME_info
+   @brief WME information
+   @param map :: maps contractions indices
+   @param proptype1 :: type of prop0
+   @param proptype2 :: type of prop1
+   @param proptype3 :: type of prop2
+   @param proptype4 :: type of prop3
+   @param outfile :: output file name
+ */
+struct WME_info {
+  int map[4] ;
+  proptype proptype1 ;
+  proptype proptype2 ;
+  proptype proptype3 ;
+  proptype proptype4 ;
+  char outfile[ 256 ] ;
+} ;
+
+/**
    @struct veclist
    @brief storage for the momenta
  */
@@ -211,6 +230,8 @@ struct input_info {
   int nmesons ;
   struct VPF_info *VPF ;
   int nVPF ;
+  struct WME_info *WME ;
+  int nWME ;
   struct cut_info CUTINFO ;
   int dims[ ND ] ;
 } ;

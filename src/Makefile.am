@@ -6,6 +6,9 @@ lib_LIBRARIES = libCORR.a
 ## just include the header directory
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
+## c files in ./BARYONS/
+BARYONFILES=./BARYONS/wrap_baryons.c
+
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 
@@ -28,6 +31,9 @@ UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c
 
+## c files in ./WME/
+WMEFILES=./WME/WME.c ./WME/wrap_WME.c
+
 ## now I think I can probably pattern substitute all the c files into headers TODO
 
 include_HEADERS = \
@@ -43,14 +49,17 @@ include_HEADERS = \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
 	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
-	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h \
+	./HEADERS/WME.h ./HEADERS/wrap_WME.h ./HEADERS/wrap_baryons.h 
 
 libCORR_a_SOURCES = \
+	${BARYONFILES} \
 	${GEOMFILES} \
 	${IOFILES} \
 	${MEASFILES} \
 	${UTILSFILES} \
-	${VPFFILES}
+	${VPFFILES} \
+	${WMEFILES}
 
 if !PREF
 

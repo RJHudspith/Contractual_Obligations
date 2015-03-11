@@ -128,25 +128,33 @@ am__v_AR_1 =
 libCORR_a_AR = $(AR) $(ARFLAGS)
 libCORR_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libCORR_a_OBJECTS = ./GEOM/gammas.$(OBJEXT) \
-	./GEOM/geometry.$(OBJEXT) ./GEOM/plan_ffts.$(OBJEXT) \
-	./IO/chklat_stuff.$(OBJEXT) ./IO/io.$(OBJEXT) \
+am__objects_1 = ./BARYONS/wrap_baryons.$(OBJEXT)
+am__objects_2 = ./GEOM/gammas.$(OBJEXT) ./GEOM/geometry.$(OBJEXT) \
+	./GEOM/plan_ffts.$(OBJEXT)
+am__objects_3 = ./IO/chklat_stuff.$(OBJEXT) ./IO/io.$(OBJEXT) \
 	./IO/input_reader.$(OBJEXT) ./IO/read_config.$(OBJEXT) \
 	./IO/readers.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT) \
-	./IO/read_propheader.$(OBJEXT) ./IO/cut_output.$(OBJEXT) \
-	./MEAS/mesons.$(OBJEXT) ./MEAS/wall_mesons.$(OBJEXT) \
-	./MEAS/tmoments_PImunu.$(OBJEXT) ./MEAS/WardIdentity.$(OBJEXT) \
-	./MEAS/local_local.$(OBJEXT) ./MEAS/conserved_local.$(OBJEXT) \
-	./MEAS/momspace_PImunu.$(OBJEXT) ./MEAS/correlators.$(OBJEXT) \
-	./MEAS/plaqs_links.$(OBJEXT) ./UTILS/crc32.$(OBJEXT) \
-	./UTILS/GLU_bswap.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
-	./MEAS/currents.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT) \
-	./MEAS/wrap_VPF.$(OBJEXT) ./MEAS/PImunu_projections.$(OBJEXT) \
-	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
-	./UTILS/matrix_ops.$(OBJEXT) ./UTILS/spinor_ops.$(OBJEXT) \
+	./IO/read_propheader.$(OBJEXT) ./IO/cut_output.$(OBJEXT)
+am__objects_4 = ./MEAS/mesons.$(OBJEXT) ./MEAS/wall_mesons.$(OBJEXT) \
+	./MEAS/correlators.$(OBJEXT) ./MEAS/plaqs_links.$(OBJEXT) \
+	./MEAS/brutal_mesons.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT)
+am__objects_5 = ./UTILS/GLU_timer.$(OBJEXT) \
+	./UTILS/gramschmidt.$(OBJEXT) ./UTILS/matrix_ops.$(OBJEXT) \
+	./UTILS/spinor_ops.$(OBJEXT) \
 	./UTILS/basis_conversions.$(OBJEXT) \
-	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT)
+	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT) \
+	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT)
+am__objects_6 = ./VPF/wrap_VPF.$(OBJEXT) \
+	./VPF/PImunu_projections.$(OBJEXT) ./VPF/currents.$(OBJEXT) \
+	./VPF/WardIdentity.$(OBJEXT) ./VPF/local_local.$(OBJEXT) \
+	./VPF/conserved_local.$(OBJEXT) \
+	./VPF/momspace_PImunu.$(OBJEXT) \
+	./VPF/tmoments_PImunu.$(OBJEXT)
+am__objects_7 = ./WME/WME.$(OBJEXT) ./WME/wrap_WME.$(OBJEXT)
+am_libCORR_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
+	$(am__objects_6) $(am__objects_7)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__CORR_SOURCES_DIST = corr.c
@@ -315,6 +323,24 @@ TOPDIR = @top_srcdir@
 BUILDDIR = @top_builddir@
 lib_LIBRARIES = libCORR.a
 AM_CFLAGS = -I${TOPDIR}/src/HEADERS/
+BARYONFILES = ./BARYONS/wrap_baryons.c
+GEOMFILES = ./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
+IOFILES = ./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
+	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
+	./IO/read_propheader.c ./IO/cut_output.c
+
+MEASFILES = ./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/correlators.c \
+	./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c ./MEAS/wrap_mesons.c 
+
+VPFFILES = ./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
+	./VPF/WardIdentity.c ./VPF/local_local.c ./VPF/conserved_local.c \
+	./VPF/momspace_PImunu.c ./VPF/tmoments_PImunu.c
+
+UTILSFILES = ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
+	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
+	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c
+
+WMEFILES = ./WME/WME.c ./WME/wrap_WME.c
 include_HEADERS = \
 	../config.h ./HEADERS/chklat_stuff.h ./HEADERS/common.h ./HEADERS/correlators.h \
 	./HEADERS/conserved_local.h \
@@ -328,22 +354,17 @@ include_HEADERS = \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
 	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
-	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h
+	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h \
+	./HEADERS/WME.h ./HEADERS/wrap_WME.h ./HEADERS/wrap_baryons.h 
 
 libCORR_a_SOURCES = \
-	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
-	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
-	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
-	./IO/read_propheader.c ./IO/cut_output.c \
-	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
-	./MEAS/WardIdentity.c ./MEAS/local_local.c \
-	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
-	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
-	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
-	./MEAS/wrap_VPF.c ./MEAS/PImunu_projections.c \
-	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
-	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/cut_routines.c 
+	${BARYONFILES} \
+	${GEOMFILES} \
+	${IOFILES} \
+	${MEASFILES} \
+	${UTILSFILES} \
+	${VPFFILES} \
+	${WMEFILES}
 
 @PREF_FALSE@Bindir = "${prefix}"/bin
 @PREF_FALSE@CORR_SOURCES = corr.c
@@ -414,6 +435,14 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+BARYONS/$(am__dirstamp):
+	@$(MKDIR_P) ./BARYONS
+	@: > BARYONS/$(am__dirstamp)
+BARYONS/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./BARYONS/$(DEPDIR)
+	@: > BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/wrap_baryons.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
 GEOM/$(am__dirstamp):
 	@$(MKDIR_P) ./GEOM
 	@: > GEOM/$(am__dirstamp)
@@ -460,19 +489,13 @@ MEAS/$(DEPDIR)/$(am__dirstamp):
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wall_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/tmoments_PImunu.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/WardIdentity.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/local_local.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/conserved_local.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/momspace_PImunu.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/correlators.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/plaqs_links.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/brutal_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/wrap_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 UTILS/$(am__dirstamp):
 	@$(MKDIR_P) ./UTILS
@@ -480,20 +503,6 @@ UTILS/$(am__dirstamp):
 UTILS/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./UTILS/$(DEPDIR)
 	@: > UTILS/$(DEPDIR)/$(am__dirstamp)
-./UTILS/crc32.$(OBJEXT): UTILS/$(am__dirstamp) \
-	UTILS/$(DEPDIR)/$(am__dirstamp)
-./UTILS/GLU_bswap.$(OBJEXT): UTILS/$(am__dirstamp) \
-	UTILS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/brutal_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/currents.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/wrap_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/wrap_VPF.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/PImunu_projections.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_timer.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/gramschmidt.$(OBJEXT): UTILS/$(am__dirstamp) \
@@ -508,6 +517,41 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/cut_routines.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/crc32.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/GLU_bswap.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
+VPF/$(am__dirstamp):
+	@$(MKDIR_P) ./VPF
+	@: > VPF/$(am__dirstamp)
+VPF/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./VPF/$(DEPDIR)
+	@: > VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/wrap_VPF.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/PImunu_projections.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/currents.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/WardIdentity.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/local_local.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/conserved_local.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/momspace_PImunu.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+./VPF/tmoments_PImunu.$(OBJEXT): VPF/$(am__dirstamp) \
+	VPF/$(DEPDIR)/$(am__dirstamp)
+WME/$(am__dirstamp):
+	@$(MKDIR_P) ./WME
+	@: > WME/$(am__dirstamp)
+WME/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./WME/$(DEPDIR)
+	@: > WME/$(DEPDIR)/$(am__dirstamp)
+./WME/WME.$(OBJEXT): WME/$(am__dirstamp) WME/$(DEPDIR)/$(am__dirstamp)
+./WME/wrap_WME.$(OBJEXT): WME/$(am__dirstamp) \
+	WME/$(DEPDIR)/$(am__dirstamp)
 
 libCORR.a: $(libCORR_a_OBJECTS) $(libCORR_a_DEPENDENCIES) $(EXTRA_libCORR_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libCORR.a
@@ -562,15 +606,19 @@ CORR$(EXEEXT): $(CORR_OBJECTS) $(CORR_DEPENDENCIES) $(EXTRA_CORR_DEPENDENCIES)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f ./BARYONS/*.$(OBJEXT)
 	-rm -f ./GEOM/*.$(OBJEXT)
 	-rm -f ./IO/*.$(OBJEXT)
 	-rm -f ./MEAS/*.$(OBJEXT)
 	-rm -f ./UTILS/*.$(OBJEXT)
+	-rm -f ./VPF/*.$(OBJEXT)
+	-rm -f ./WME/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CORR-corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/wrap_baryons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/gammas.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/plan_ffts.Po@am__quote@
@@ -584,19 +632,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_headers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_propheader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/readers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/PImunu_projections.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/WardIdentity.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/brutal_mesons.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/conserved_local.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/correlators.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/currents.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/local_local.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/momspace_PImunu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/plaqs_links.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/tmoments_PImunu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wall_mesons.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_VPF.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_bswap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_timer.Po@am__quote@
@@ -607,6 +647,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/PImunu_projections.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/WardIdentity.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/conserved_local.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/currents.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/local_local.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/momspace_PImunu.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/tmoments_PImunu.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/wrap_VPF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./WME/$(DEPDIR)/WME.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./WME/$(DEPDIR)/wrap_WME.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -774,6 +824,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f BARYONS/$(DEPDIR)/$(am__dirstamp)
+	-rm -f BARYONS/$(am__dirstamp)
 	-rm -f GEOM/$(DEPDIR)/$(am__dirstamp)
 	-rm -f GEOM/$(am__dirstamp)
 	-rm -f IO/$(DEPDIR)/$(am__dirstamp)
@@ -782,6 +834,10 @@ distclean-generic:
 	-rm -f MEAS/$(am__dirstamp)
 	-rm -f UTILS/$(DEPDIR)/$(am__dirstamp)
 	-rm -f UTILS/$(am__dirstamp)
+	-rm -f VPF/$(DEPDIR)/$(am__dirstamp)
+	-rm -f VPF/$(am__dirstamp)
+	-rm -f WME/$(DEPDIR)/$(am__dirstamp)
+	-rm -f WME/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -792,7 +848,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./MEAS/$(DEPDIR) ./UTILS/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./MEAS/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -838,7 +894,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./MEAS/$(DEPDIR) ./UTILS/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./MEAS/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
