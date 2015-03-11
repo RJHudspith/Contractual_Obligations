@@ -61,10 +61,6 @@ projection( const struct PIdata *data ,
     trans[ i ] += longitudinal[ i ] ; // put the 0+1 contribution in too
   }
 
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
-    printf( "%e %e \n" , psq[i] , longitudinal[i] ) ;
-  }
-
   sprintf( str , "%s.transPlong.bin" , outfile ) ;
   write_momspace_data( str , NMOM , longitudinal , list , ND ) ;
 

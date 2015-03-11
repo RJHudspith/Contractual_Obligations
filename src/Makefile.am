@@ -6,6 +6,30 @@ lib_LIBRARIES = libCORR.a
 ## just include the header directory
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
+## c files in ./GEOM/
+GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
+
+## c files in ./IO/
+IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
+	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
+	./IO/read_propheader.c ./IO/cut_output.c
+
+## c files in ./MEAS/
+MEASFILES=./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/correlators.c \
+	./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c ./MEAS/wrap_mesons.c 
+
+## c files in ./VPF
+VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
+	./VPF/WardIdentity.c ./VPF/local_local.c ./VPF/conserved_local.c \
+	./VPF/momspace_PImunu.c ./VPF/tmoments_PImunu.c
+
+## c files in ./UTILS/
+UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
+	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
+	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c
+
+## now I think I can probably pattern substitute all the c files into headers TODO
+
 include_HEADERS = \
 	../config.h ./HEADERS/chklat_stuff.h ./HEADERS/common.h ./HEADERS/correlators.h \
 	./HEADERS/conserved_local.h \
@@ -22,19 +46,11 @@ include_HEADERS = \
 	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h
 
 libCORR_a_SOURCES = \
-	./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c \
-	./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
-	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
-	./IO/read_propheader.c ./IO/cut_output.c \
-	./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/tmoments_PImunu.c \
-	./MEAS/WardIdentity.c ./MEAS/local_local.c \
-	./MEAS/conserved_local.c ./MEAS/momspace_PImunu.c ./MEAS/correlators.c \
-	./MEAS/plaqs_links.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
-	./MEAS/brutal_mesons.c ./MEAS/currents.c ./MEAS/wrap_mesons.c \
-	./MEAS/wrap_VPF.c ./MEAS/PImunu_projections.c \
-	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
-	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/cut_routines.c 
+	${GEOMFILES} \
+	${IOFILES} \
+	${MEASFILES} \
+	${UTILSFILES} \
+	${VPFFILES}
 
 if !PREF
 
