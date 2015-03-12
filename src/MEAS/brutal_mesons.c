@@ -25,8 +25,7 @@ meson_trace( const struct gamma GSNK ,
 
 // computes meson correlators
 int
-single_mesons_bruteforce( FILE *prop1 , 
-			  const proptype proptype1 ,
+single_mesons_bruteforce( struct propagator prop ,
 			  const char *outfile )
 {
   // data structure for holding the contractions
@@ -42,14 +41,14 @@ single_mesons_bruteforce( FILE *prop1 ,
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  make_gammas( GAMMAS , proptype1 ) ;
+  make_gammas( GAMMAS , prop.basis ) ;
 
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    read_prop( prop1 , S1 , proptype1 ) ;
+    read_prop( prop , S1 ) ;
 
     // compute the full adjoint
     int i ;

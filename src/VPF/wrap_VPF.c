@@ -9,8 +9,7 @@
 #include "local_local.h"      // local-local currents
 
 static int 
-( *single_callback ) ( FILE *prop1 , 
-		       const proptype proptype1 ,
+( *single_callback ) ( struct propagator prop ,
 		       const struct site *lat ,
 		       const struct cut_info CUTINFO ,
 		       const char *outfile ) ;
@@ -31,8 +30,8 @@ select_callback_single( const current_type current )
 }
 
 static int 
-( *double_callback ) ( FILE *prop1 , const proptype proptype1 ,
-		       FILE *prop2 , const proptype proptype2 ,
+( *double_callback ) ( struct propagator prop1 ,
+		       struct propagator prop2 ,
 		       const struct site *lat ,
 		       const struct cut_info CUTINFO ,
 		       const char *outfile ) ;
@@ -53,7 +52,7 @@ select_callback_double( const current_type current )
 
 // meson contraction driver
 int
-contract_VPF( FILE **fprops ,
+contract_VPF( struct propagator *prop ,
 	      const struct site *lat ,
 	      const struct VPF_info *VPF ,
 	      const int nVPF ,
@@ -63,28 +62,22 @@ contract_VPF( FILE **fprops ,
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {
-    if( VPF[ measurements ].map[0] == VPF[ measurements ].map[0] ) {
-      // logic bomb, cannot contract same prop with different bases
-      if( VPF[ measurements ].proptype1 != VPF[ measurements ].proptype2 ) {
-	printf( "[VPF] we cannot contract a meson with itself with two "
-		"different bases \n" ) ;
-	return FAILURE ;
-      }
+    const int p1 = VPF[ measurements ].map[0] ;
+    const int p2 = VPF[ measurements ].map[1] ;
+    if( p1 == p2 ) {
       select_callback_single( VPF[ measurements ].current ) ;
       // and we use the function pointer we have set
-      if( single_callback( fprops[ VPF[ measurements ].map[0] ] , 
-			   VPF[ measurements ].proptype1 ,
-			   lat , CUTINFO ,
+      if( single_callback( prop[ p1 ] , lat , CUTINFO ,
 			   VPF[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
     } else {
+      if( prop[ p1 ].source != prop[ p2 ].source ) {
+	printf( "[VPF] thwarted attempt contracting different sources \n" ) ;
+	return FAILURE ;
+      }
       select_callback_double( VPF[ measurements ].current ) ;
-      if( double_callback( fprops[ VPF[ measurements ].map[0] ] , 
-			   VPF[ measurements ].proptype1 ,
-			   fprops[ VPF[ measurements ].map[1] ] , 
-			   VPF[ measurements ].proptype2 ,
-			   lat , CUTINFO ,
+      if( double_callback( prop[ p1 ] , prop[ p2 ] , lat , CUTINFO ,
 			   VPF[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }

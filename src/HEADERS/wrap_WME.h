@@ -7,7 +7,7 @@
 #define WRAP_WME_H
 
 /**
-   @fn int contract_WME( FILE **fprops , const struct WME_info *wme , const int nWME )
+   @fn int contract_WME( struct propagator *prop , const struct WME_info *wme , const int nWME )
    @brief performs the contractions specified in the input file
 
    @warning propagator files must be wall sources
@@ -15,7 +15,7 @@
    @return #SUCCESS or #FAILURE
  */
 int
-contract_WME( FILE **fprops ,
+contract_WME( struct propagator *prop , 
 	      const struct WME_info *wme ,
 	      const int nWME ) ;
 

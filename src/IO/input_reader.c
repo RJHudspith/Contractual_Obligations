@@ -261,16 +261,6 @@ twopoint_tokens( struct meson_info *mesons ,
   printf( "[IO] Meson_%d :: Contracting prop %d with prop %d \n" , 
 	  meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
 
-  // check for sourcetype
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_sourcetype( &( mesons -> source ) , token ) == FAILURE ) return FAILURE ;
-
-  // check for proptype
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( mesons -> proptype1 ) , token ) == FAILURE ) return FAILURE ;
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( mesons -> proptype2 ) , token ) == FAILURE ) return FAILURE ;
-
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( mesons -> outfile , "%s" , token ) ;
@@ -329,15 +319,9 @@ VPF_tokens( struct VPF_info *VPF ,
   printf( "[IO] VPF_%d :: Contracting prop %d with prop %d \n" , 
 	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
 
-  // check for sourcetype
+  // check for current
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   if( get_current_type( &( VPF -> current ) , token ) == FAILURE ) return FAILURE ;
-
-  // check for proptype
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( VPF -> proptype1 ) , token ) == FAILURE ) return FAILURE ;
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( VPF -> proptype2 ) , token ) == FAILURE ) return FAILURE ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
@@ -405,16 +389,6 @@ matrix_element_tokens( struct WME_info *wme ,
   printf( "[IO] WME_%d :: Contracting prop %d with prop %d with %d with %d \n" , 
 	  meas_idx , wme -> map[0] , wme -> map[1] , wme -> map[2] , wme -> map[3] ) ;
 
-  // check for proptype
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( wme -> proptype1 ) , token ) == FAILURE ) return FAILURE ;
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( wme -> proptype2 ) , token ) == FAILURE ) return FAILURE ;
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( wme -> proptype3 ) , token ) == FAILURE ) return FAILURE ;
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_proptype( &( wme -> proptype4 ) , token ) == FAILURE ) return FAILURE ;
-
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( wme -> outfile , "%s" , token ) ;
@@ -471,7 +445,7 @@ get_dims( int *dims )
 
 // get prop tags
 static int
-get_props( struct propfile *propfiles ,
+get_props( struct propagator *props ,
 	   int *nprops ,
 	   const GLU_bool first_pass )
 {
@@ -482,7 +456,23 @@ get_props( struct propfile *propfiles ,
     const int prop_idx = tag_search( str ) ;
     if( prop_idx == FAILURE ) break ;
     if( first_pass == GLU_FALSE ) {
-      strcpy( propfiles[ *nprops ].filename , INPUT[ prop_idx ].VALUE ) ;
+      char *token ;
+      //strcpy( propfiles[ *nprops ].filename , INPUT[ prop_idx ].VALUE ) ;
+      if( ( token = (char*)strtok( INPUT[ prop_idx ].VALUE  , "," ) ) == NULL ) {
+	return unexpected_NULL( ) ;
+      }
+      // open file
+      props[ *nprops ].file = fopen( token , "rb" ) ;
+      if( props[ *nprops ].file == NULL ) {
+	printf( "[IO] propfile %s not found \n" , token ) ;
+	return FAILURE ;
+      }
+      // get the basis
+      if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+      if( get_proptype( &( props[ *nprops ].basis ) , token ) == FAILURE ) return FAILURE ;
+      // check for sourcetype
+      if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+      if( get_sourcetype( &( props[ *nprops ].source ) , token ) == FAILURE ) return FAILURE ;
     }
     *nprops = *nprops + 1 ;
   }
@@ -494,15 +484,28 @@ void
 free_inputs( struct input_info inputs ) 
 {
   free( inputs.mesons ) ;
-  free( inputs.prop_files ) ;
   free( inputs.VPF ) ;
   free( inputs.wme ) ;
   return ;
 }
 
+// free the propagators, another structure that might get quite big
+void
+free_props( struct propagator *props , 
+	    const int nprops )
+{
+  int i ;
+  for( i = 0 ; i < nprops ; i++ ) {
+    fclose( props[i].file ) ;
+  }
+  free( props ) ;
+  return ;
+}
+
 // pack the input_info struct with all our contractions
 int
-get_input_data( struct input_info *inputs ,
+get_input_data( struct propagator **prop ,
+		struct input_info *inputs ,
 		const char *file_name )
 {
   // open the input file in here and free it at the bottom
@@ -523,12 +526,12 @@ get_input_data( struct input_info *inputs ,
   if( Latt.head == FAILURE ) STATUS = FAILURE ;
 
   // read some props, although strange I wouldn't consider no props being an error
-  get_props( inputs -> prop_files , &( inputs -> nprops ) , GLU_TRUE ) ;
+  get_props( *prop , &( inputs -> nprops ) , GLU_TRUE ) ;
+  *prop = (struct propagator*)malloc( ( inputs -> nprops ) * sizeof( struct propagator ) ) ;
   if( inputs -> nprops == 0 ) { 
     printf( "[IO] No propagator files specified \n" ) ;
   }
-  inputs -> prop_files = (struct propfile*)malloc( ( inputs -> nprops ) * sizeof( struct propfile ) ) ;
-  get_props( inputs -> prop_files , &( inputs -> nprops ) , GLU_FALSE ) ;
+  get_props( *prop , &( inputs -> nprops ) , GLU_FALSE ) ;
 
   // meson contractions
   meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , inputs -> nprops , GLU_TRUE ) ;
@@ -555,7 +558,7 @@ get_input_data( struct input_info *inputs ,
   // matrix element stuff
   matrix_element_contractions( inputs -> wme , &( inputs -> nWME ) , inputs -> nprops , GLU_TRUE ) ;
   inputs -> wme = (struct WME_info*)malloc( ( inputs -> nWME ) * sizeof( struct WME_info ) ) ;
-  if( matrix_element_contractions( inputs -> wme , &( inputs -> nVPF ) , 
+  if( matrix_element_contractions( inputs -> wme , &( inputs -> nWME ) , 
 				   inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }

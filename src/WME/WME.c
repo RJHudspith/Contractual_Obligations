@@ -65,10 +65,10 @@ four_quark_trace( const struct spinor SWALL_0 ,
 // what we put in this is quite general, usually light quark is 
 // backward propagating for some reason
 int
-WME( FILE *S0 , const proptype s0proptype ,
-     FILE *D0 , const proptype d0proptype ,
-     FILE *S1 , const proptype s1proptype ,
-     FILE *D1 , const proptype d1proptype ,
+WME( struct propagator s0 ,
+     struct propagator d0 ,
+     struct propagator s1 ,
+     struct propagator d1 ,
      const char *outfile )
 {
   // usual cruft
@@ -77,8 +77,8 @@ WME( FILE *S0 , const proptype s0proptype ,
 
   // precompute the gamma basis
   GLU_bool NREL_FLAG = GLU_FALSE ;
-  if( s0proptype == NREL || d0proptype == NREL ||
-      s1proptype == NREL || d1proptype == NREL ) {
+  if( s0.basis == NREL || d0.basis == NREL ||
+      s1.basis == NREL || d1.basis == NREL ) {
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
       free( GAMMAS ) ;
       return FAILURE ;
@@ -92,7 +92,7 @@ WME( FILE *S0 , const proptype s0proptype ,
   }
 
   // data structure for holding the contractions
-  struct correlator **corr = (struct correlator**)malloc( NS * NS * sizeof( struct correlator* ) ) ;
+  struct correlator **corr = (struct correlator**)malloc( NSNS * sizeof( struct correlator* ) ) ;
 
   allocate_corrs( corr ) ;
 
@@ -107,10 +107,10 @@ WME( FILE *S0 , const proptype s0proptype ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    if( read_prop( S0 , SWALL_0 , s0proptype ) == FAILURE ||
-	read_prop( D0 , DWALL_0 , d0proptype ) == FAILURE ||
-	read_prop( S1 , SWALL_L_2 , s1proptype ) == FAILURE ||
-	read_prop( D1 , DWALL_L_2 , d1proptype ) == FAILURE ) {
+    if( read_prop( s0 , SWALL_0 ) == FAILURE || 
+	read_prop( d0 , DWALL_0 ) == FAILURE ||
+	read_prop( s1 , SWALL_L_2 ) == FAILURE ||
+	read_prop( d1 , DWALL_L_2 ) == FAILURE ) {
       free( SWALL_0 ) ; free( SWALL_L_2 ) ; free( DWALL_0 ) ; 
       free( DWALL_L_2 ) ; free( GAMMAS ) ; free_corrs( corr ) ;
       return FAILURE ;
@@ -118,10 +118,10 @@ WME( FILE *S0 , const proptype s0proptype ,
 
     // if any of these are a mix of chiral && nrel we rotate all to NREL
     if( NREL_FLAG == GLU_TRUE ) {
-      if( s0proptype == CHIRAL ) rotate_to_NREL( SWALL_0 ) ;
-      if( d0proptype == CHIRAL ) rotate_to_NREL( DWALL_0 ) ;
-      if( s1proptype == CHIRAL ) rotate_to_NREL( SWALL_L_2 ) ;
-      if( d1proptype == CHIRAL ) rotate_to_NREL( DWALL_L_2 ) ;
+      if( s0.basis == CHIRAL ) rotate_to_NREL( SWALL_0 ) ;
+      if( d0.basis == CHIRAL ) rotate_to_NREL( DWALL_0 ) ;
+      if( s1.basis == CHIRAL ) rotate_to_NREL( SWALL_L_2 ) ;
+      if( d1.basis == CHIRAL ) rotate_to_NREL( DWALL_L_2 ) ;
     }
 
     const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ GAMMA_5 + 1 ] for projection onto A0 state
@@ -173,16 +173,14 @@ WME( FILE *S0 , const proptype s0proptype ,
   free( GAMMAS ) ;
 
   // free the space
-  free( DWALL_0 ) ;
-  free( DWALL_L_2 ) ;
-  free( SWALL_0 ) ;
-  free( SWALL_L_2 ) ;
+  free( DWALL_0 ) ; free( DWALL_L_2 ) ;
+  free( SWALL_0 ) ; free( SWALL_L_2 ) ;
 
   // reread headers 
-  rewind( S0 ) ; read_check_header( S0 , GLU_FALSE ) ;
-  rewind( D0 ) ; read_check_header( D0 , GLU_FALSE ) ;
-  rewind( S1 ) ; read_check_header( S1 , GLU_FALSE ) ;
-  rewind( D1 ) ; read_check_header( D1 , GLU_FALSE ) ;
+  rewind( s0.file ) ; read_check_header( &s0 , GLU_FALSE ) ;
+  rewind( d0.file ) ; read_check_header( &d0 , GLU_FALSE ) ;
+  rewind( s1.file ) ; read_check_header( &s1 , GLU_FALSE ) ;
+  rewind( d1.file ) ; read_check_header( &d1 , GLU_FALSE ) ;
 
   // tell us how long it all took, my guess is a long time
   print_time( ) ;

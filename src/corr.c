@@ -4,13 +4,11 @@
  */
 #include "common.h"          // one header to rule them all
 
-#include "geometry.h"        // init_geom and init_navig
+//#include "geometry.h"        // init_geom and init_navig
 #include "GLU_timer.h"       // sys/time.h wrapper
-#include "io.h"              // file IO stuff
+///#include "io.h"              // file IO stuff
 #include "input_reader.h"    // input file readers
-//#include "readers.h"         // gauge config reader
 #include "read_config.h"     // read a gauge configuration file
-//#include "read_headers.h"    // read the header file in gauge config
 #include "read_propheader.h" // read the propagator file header
 
 #include "wrap_mesons.h"     // meson contraction wrappers
@@ -42,9 +40,11 @@ main( const int argc,
   }
 
   // read the inputs in the input file
+  struct propagator *prop ; // gets allocated in input data
   struct input_info inputs ;
-  if( get_input_data( &inputs ,
+  if( get_input_data( &prop , &inputs ,
 		      argv[INFILE] ) == FAILURE ) {
+    free_props( prop ) ;
     free_inputs( inputs ) ; 
     return FAILURE ;
   }
@@ -65,15 +65,16 @@ main( const int argc,
   if( MODE == GAUGE_AND_PROPS ) {
     if( ( lat = read_gauge_file( &HEAD_DATA , argv[GAUGE_FILE] ,
 				 inputs.dims ) ) == NULL ) {
+      free_props( prop ) ;
       free_inputs( inputs ) ; 
       return FAILURE ;
     }
   } 
 
   // open up some propagator files and parse the header checking the geometry
-  FILE *fprops[ inputs.nprops ] ;
-  if( read_propheaders( fprops , inputs ) == FAILURE ) {
+  if( read_propheaders( prop , inputs ) == FAILURE ) {
     if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
+    free_props( prop ) ;
     free_inputs( inputs ) ;
     return FAILURE ;
   }
@@ -82,23 +83,22 @@ main( const int argc,
 
   // if we don't have a gauge field we can't do conserved-local
   if( lat != NULL ) {
-    if( contract_VPF( fprops , lat , inputs.VPF ,
+    if( contract_VPF( prop , lat , inputs.VPF ,
 		      inputs.nVPF , inputs.CUTINFO ) == FAILURE ) {
       goto FREES ; // do not pass GO, do not collect £200
     }
   } 
 
   // want to switch on these or call a wrapper
-  if( contract_mesons( fprops , inputs.mesons , 
+  if( contract_mesons( prop , inputs.mesons , 
 		       inputs.nmesons ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }
 
   // WME contraction, props have to be wall source
-  if( contract_WME( fprops , inputs.wme , inputs.nWME ) == FAILURE ) {
+  if( contract_WME( prop , inputs.wme , inputs.nWME ) == FAILURE ) {
     goto FREES ;
   }
-
 
  FREES :
   // free our contraction tables
@@ -109,11 +109,8 @@ main( const int argc,
     free( lat ) ;
   }
 
-  // is this ok?
-  int i ;
-  for( i = 0 ; i < inputs.nprops ; i++ ) {
-    fclose( fprops[i] ) ;
-  }
+  // free the propagators
+  free_props( prop ) ;
 
   return SUCCESS ;
 }

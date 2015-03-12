@@ -7,22 +7,22 @@
 #define WEAK_MATRIX_ELEMENT_H
 
 /**
-   @fn int WME( FILE *S0 , const proptype s0proptype , FILE *D0 , const proptype d0proptype , FILE *S1 , const proptype s1proptype , FILE *D1 , const proptype d1proptype , const char *outfile )
+   @fn int WME( struct propagator s0 , struct propagator d0 , struct propagator s1 , struct propagator d1 , const char *outfile )
    @brief weak matrix element four quark operator insertion
-   @param S0 :: strange quark propagator at Wall 0
-   @param D0 :: down quark propagator at Wall 0
-   @param S1 :: strange quark propagator at Wall LT/2
-   @param D1 :: down quark propagator at Wall LT/2
-
+   @param s0 :: strange quark propagator at Wall 0
+   @param d0 :: down quark propagator at Wall 0
+   @param s1 :: strange quark propagator at Wall LT/2
+   @param d1 :: down quark propagator at Wall LT/2
+   @param outfile :: output file
    @warning propagators have to be wall sources
 
    @return #FAILURE or #SUCCESS
  */
 int
-WME( FILE *S0 , const proptype s0proptype ,
-     FILE *D0 , const proptype d0proptype ,
-     FILE *S1 , const proptype s1proptype ,
-     FILE *D1 , const proptype d1proptype ,
+WME( struct propagator s0 ,
+     struct propagator d0 ,
+     struct propagator s1 ,
+     struct propagator d1 ,
      const char *outfile ) ;
 
 #endif

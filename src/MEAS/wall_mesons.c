@@ -49,15 +49,14 @@ sumprop( struct spinor *__restrict SUM ,
 
 // computes meson correlators
 int
-wall_mesons( FILE *prop1 ,
-	     const proptype proptype1 ,
+wall_mesons( struct propagator prop ,
 	     const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -77,11 +76,9 @@ wall_mesons( FILE *prop1 ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
-      free_corrs( wlcorr ) ;
-      free_corrs( wwcorr ) ;
-      free( GAMMAS ) ;
-      free( S1 ) ;
+    if( read_prop( prop , S1 ) == FAILURE ) {
+      free_corrs( wlcorr ) ; free_corrs( wwcorr ) ;
+      free( GAMMAS ) ; free( S1 ) ;
       return FAILURE ;
     }
     
@@ -95,7 +92,7 @@ wall_mesons( FILE *prop1 ,
     for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 
 	register double complex sum = 0.0 ;
 
@@ -150,8 +147,7 @@ wall_mesons( FILE *prop1 ,
   free( S1 ) ;
 
   // rewind file and read header again
-  rewind( prop1 ) ;
-  read_check_header( prop1 , GLU_FALSE ) ;
+  rewind( prop.file ) ; read_check_header( &prop , GLU_FALSE ) ;
 
   // tell us how long it all took
   print_time( ) ;
@@ -161,18 +157,16 @@ wall_mesons( FILE *prop1 ,
 
 // computes meson correlators
 int
-wall_double_mesons( FILE *prop1 , 
-		    const proptype proptype1 ,
-		    FILE *prop2 ,
-		    const proptype proptype2 ,
+wall_double_mesons( struct propagator prop1 ,
+		    struct propagator prop2 ,
 		    const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , ( proptype1 == NREL || proptype2 == NREL ) ? \
-		   NREL : proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
+		   NREL : prop1.basis ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -192,24 +186,21 @@ wall_double_mesons( FILE *prop1 ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ||
-	read_prop( prop2 , S2 , proptype2 ) == FAILURE ) {
-      free_corrs( wlcorr ) ;
-      free_corrs( wwcorr ) ;
-      free( GAMMAS ) ;
-      free( S1 ) ;
-      free( S2 ) ;
+    if( read_prop( prop1 , S1 ) == FAILURE ||
+	read_prop( prop2 , S2 ) == FAILURE ) {
+      free_corrs( wlcorr ) ; free_corrs( wwcorr ) ;
+      free( GAMMAS ) ; free( S1 ) ; free( S2 ) ;
       return FAILURE ;
     }
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    if( proptype1 == CHIRAL && proptype2 == NREL ) {
+    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
       int site ;
       #pragma omp parallel for private(site) 
       for( site = 0 ; site < LCU ; site++ ) {
 	chiral_to_nrel( &S1[ site ] ) ;
       }
-    } else if( proptype1 == NREL && proptype2 == CHIRAL ) {
+    } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
       int site ;
       #pragma omp parallel for private(site) 
       for( site = 0 ; site < LCU ; site++ ) {
@@ -284,10 +275,8 @@ wall_double_mesons( FILE *prop1 ,
   free( S2 ) ;
 
   // rewind file and read header again
-  rewind( prop1 ) ;
-  read_check_header( prop1 , GLU_FALSE ) ;
-  rewind( prop2 ) ;
-  read_check_header( prop2 , GLU_FALSE ) ;
+  rewind( prop1.file ) ; read_check_header( &prop1 , GLU_FALSE ) ;
+  rewind( prop2.file ) ; read_check_header( &prop2 , GLU_FALSE ) ;
 
   // tell us how long it all took
   print_time( ) ;

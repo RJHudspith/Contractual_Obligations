@@ -11,7 +11,7 @@
 #include "wall_mesons.h"     // wall mesons
 
 static int 
-( *single_callback ) ( FILE *prop1 , const proptype proptype1 ,
+( *single_callback ) ( struct propagator prop ,
 		       const char *outfile ) ;
 
 static void
@@ -29,8 +29,8 @@ select_callback_single( const sourcetype source )
 }
 
 static int 
-( *double_callback ) ( FILE *prop1 , const proptype proptype1 ,
-		       FILE *prop2 , const proptype proptype2 ,
+( *double_callback ) ( struct propagator prop1 ,
+		       struct propagator prop2 ,
 		       const char *outfile ) ;
 
 static void
@@ -49,7 +49,7 @@ select_callback_double( const sourcetype source )
 
 // meson contraction driver
 int
-contract_mesons( FILE **fprops ,
+contract_mesons( struct propagator *prop ,
 		 const struct meson_info *mesons ,
 		 const int nmesons )
 {
@@ -57,26 +57,26 @@ contract_mesons( FILE **fprops ,
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {
-    if( mesons[ measurements ].map[0] == mesons[ measurements ].map[0] ) {
-      // logic bomb, cannot contract same prop with different bases
-      if( mesons[ measurements ].proptype1 != mesons[ measurements ].proptype2 ) {
-	printf( "[MESONS] we cannot contract a meson with itself with two "
-		"different bases \n" ) ;
-	return FAILURE ;
-      }
-      select_callback_single( mesons[ measurements ].source ) ;
+    // to make it more legible
+    const int p1 = mesons[ measurements ].map[0] ;
+    const int p2 = mesons[ measurements ].map[1] ;
+
+    if( p1 == p2 ) {
+      select_callback_single( prop[ p1 ].source ) ;
       // and we use the function pointer we have set
-      if( single_callback( fprops[ mesons[ measurements ].map[0] ] , 
-			   mesons[ measurements ].proptype1 ,
+      if( single_callback( prop[ p1 ] ,
 			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
     } else {
-      select_callback_double( mesons[ measurements ].source ) ;
-      if( double_callback( fprops[ mesons[ measurements ].map[0] ] , 
-			   mesons[ measurements ].proptype1 ,
-			   fprops[ mesons[ measurements ].map[1] ] , 
-			   mesons[ measurements ].proptype2 ,
+      // I can't think of a time when this would be legitimate
+      if( prop[ p1 ].source != prop[ p2 ].source ) {
+	printf( "[MESONS] attempt to contract two different source type propagators thwarted \n" ) ;
+	return FAILURE ;
+      }
+      select_callback_double( prop[ p1 ].source ) ;
+      if( double_callback( prop[ p1 ] ,
+			   prop[ p2 ] ,
 			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }

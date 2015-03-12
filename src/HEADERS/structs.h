@@ -212,19 +212,10 @@ struct veclist {
 } ;
 
 /**
-   @struct propfile
-   @brief propagator file storage
- */
-struct propfile {
-  char filename[ GLU_STR_LENGTH ] ;
-} ;
-
-/**
    @struct input_info
    @brief input data struct 
  */
 struct input_info {
-  struct propfile *prop_files ;
   int nprops ;
   struct meson_info *mesons ;
   int nmesons ;
@@ -234,6 +225,20 @@ struct input_info {
   int nWME ;
   struct cut_info CUTINFO ;
   int dims[ ND ] ;
+} ;
+
+/**
+   @struct propagator
+   @brief container for the propagator
+   @param prop :: propagator file
+   @param basis :: is it chiral or nrel?
+   @param origin :: source position, not used yet
+ */
+struct propagator {
+  FILE *file ;
+  proptype basis ;
+  sourcetype source ;
+  int origin[ ND ] ;
 } ;
 
 #endif

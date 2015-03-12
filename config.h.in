@@ -3,6 +3,12 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* general debug information */
+#undef DEBUG
+
+/* FFTW library. */
+#undef HAVE_FFTW3_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -11,6 +17,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <omp.h> header file. */
+#undef HAVE_OMP_H
 
 /* Look for where we prefix to */
 #undef HAVE_PREFIX
@@ -48,8 +57,15 @@
 /* Compiled for ND */
 #undef ND
 
+/* targeted, has been seen to be quicker but do not distribute the binaries!
+   */
+#undef NOT_CONDOR_MODE
+
 /* Compiled for NS */
 #undef NS
+
+/* OpenMP-parallel FFT routines. */
+#undef OMP_FFTW
 
 /* Name of package */
 #undef PACKAGE

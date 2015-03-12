@@ -18,15 +18,15 @@ get_tag( char line[ MAX_LINE_LENGTH ] )
 
 //
 static int
-read_header( FILE *prop ,
-	     int dims[ ND ] ,
-	     int src[ ND ] )
+read_header( struct propagator *prop ,
+	     int dims[ ND ] )
 {
   const int MAX_HEADER_LINES = 32 ;
   char line[ MAX_LINE_LENGTH ] ;
   int n = 0 ;
   while( n < MAX_HEADER_LINES ) {
-    if( fgets( line , MAX_LINE_LENGTH , prop ) == NULL ) {
+
+    if( fgets( line , MAX_LINE_LENGTH , prop -> file ) == NULL ) {
       printf( "[IO] prop Header reading failed ... Leaving \n" ) ;
       return FAILURE ;
     }
@@ -48,7 +48,7 @@ read_header( FILE *prop ,
       int N = 0 ;
       char *token ;
       while( ( token = strtok( NULL , " " ) ) != NULL ) {
-	src[ N ] = (int)atoi( token ) ;
+	prop -> origin[ N ] = (int)atoi( token ) ;
 	if( N == ND ) break ;
 	N++ ;
       }
@@ -66,14 +66,14 @@ read_header( FILE *prop ,
 
 // read and check the header against the global lattice state
 int
-read_check_header( FILE *propfile ,
+read_check_header( struct propagator *prop ,
 		   const GLU_bool first_read )
 {
+  // to check against the overall lattice geometry
   int dims[ ND ] = {} ;
-  int src[ ND ] ;
 
   // read the propagator header
-  if( read_header( propfile , dims , src ) == FAILURE ) {
+  if( read_header( prop , dims ) == FAILURE ) {
     return FAILURE ;
   }
 
@@ -105,19 +105,13 @@ read_check_header( FILE *propfile ,
 
 // open the files and parse the header
 int
-read_propheaders( FILE **fprops ,
+read_propheaders( struct propagator *prop ,
 		  const struct input_info inputs )
 {
-  int i = 0 ;
+  int i ;
   for( i = 0 ; i < inputs.nprops ; i++ ) {
-    // open and check all the files
-    if( ( fprops[i] = fopen( inputs.prop_files[i].filename , "r" ) ) == NULL ) {
-      printf( "[IO] Propagator file %s empty! Leaving \n" , 
-	      inputs.prop_files[i].filename ) ;
-      return FAILURE ;
-    }
-    //
-    if( read_check_header( fprops[i] , GLU_TRUE ) == FAILURE ) {
+    // read and check 'em
+    if( read_check_header( &prop[i] , GLU_TRUE ) == FAILURE ) {
       return FAILURE ;
     }
   }

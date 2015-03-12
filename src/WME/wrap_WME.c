@@ -9,7 +9,7 @@
 
 // perform a WME contraction
 int
-contract_WME( FILE **fprops ,
+contract_WME( struct propagator *prop ,
 	      const struct WME_info *wme ,
 	      const int nWME )
 {
@@ -17,15 +17,20 @@ contract_WME( FILE **fprops ,
   int measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nWME ; measurements++ ) {
+
+    const int p0 = wme[ measurements ].map[0] ;
+    const int p1 = wme[ measurements ].map[1] ;
+    const int p2 = wme[ measurements ].map[2] ;
+    const int p3 = wme[ measurements ].map[3] ;
+
+    if( prop[p0].source != WALL || prop[p1].source != WALL ||
+	prop[p2].source != WALL || prop[p3].source != WALL ) {
+      printf( "[WME] routine only works for WALL sources \n" ) ;
+      return FAILURE ;
+    }
+
     // loop the WME measurements
-    if( WME( fprops[ wme[ measurements ].map[0] ] , 
-	     wme[ measurements ].proptype1 ,
-	     fprops[ wme[ measurements ].map[1] ] , 
-	     wme[ measurements ].proptype2 ,
-	     fprops[ wme[ measurements ].map[2] ] , 
-	     wme[ measurements ].proptype3 ,
-	     fprops[ wme[ measurements ].map[3] ] , 
-	     wme[ measurements ].proptype4 ,
+    if( WME( prop[p0] , prop[p1] , prop[p2] , prop[p3] ,
 	     wme[ measurements ].outfile ) == FAILURE ) {
       return FAILURE ;
     }

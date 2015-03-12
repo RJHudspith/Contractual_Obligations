@@ -126,15 +126,14 @@ read_nrprop( FILE *fprop,
 
 // thin wrapper for propagator reading
 int
-read_prop( FILE *fprop ,
-	   struct spinor *S ,
-	   const proptype prop )
+read_prop( struct propagator prop ,
+	   struct spinor *S )
 {
-  switch( prop ) {
+  switch( prop.basis ) {
   case CHIRAL :
-    return read_chiralprop( fprop , S ) ;
+    return read_chiralprop( prop.file , S ) ;
   case NREL :
-    return read_nrprop( fprop , S ) ;
+    return read_nrprop( prop.file , S ) ;
   }
   return FAILURE ;
 }

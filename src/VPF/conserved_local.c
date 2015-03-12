@@ -13,8 +13,7 @@
 
 // compute the conserved local for a correlator
 int
-conserved_local( FILE *prop1 , 
-		 const proptype proptype1 ,
+conserved_local( struct propagator prop ,
 		 const struct site *lat ,
 		 const struct cut_info CUTINFO ,
 		 const char *outfile )
@@ -31,10 +30,10 @@ conserved_local( FILE *prop1 ,
 #endif
 
   // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -45,7 +44,7 @@ conserved_local( FILE *prop1 ,
   struct spinor *S1END = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // I think this is for the vector  
-  if( read_prop( prop1 , S1 , proptype1 ) == FAILURE ) {
+  if( read_prop( prop , S1 ) == FAILURE ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ;
     free( GAMMAS ) ;
     return FAILURE ;
@@ -74,7 +73,7 @@ conserved_local( FILE *prop1 ,
   for( t = 0 ; t < L0-1 ; t++ ) {
 
     // read the one above it apart from the last one
-    if( read_prop( prop1 , S1UP , proptype1 ) == FAILURE ) {
+    if( read_prop( prop , S1UP ) == FAILURE ) {
       free( S1 ) ; free( S1UP ) ; free( S1END ) ;
       free( DATA_AA ) ; free( DATA_VV ) ;
       free( GAMMAS ) ;
@@ -127,18 +126,15 @@ conserved_local( FILE *prop1 ,
   free( DATA_VV ) ;
 
   // rewind file and read header again
-  rewind( prop1 ) ;
-  read_check_header( prop1 , GLU_FALSE ) ;
+  rewind( prop.file ) ; read_check_header( &prop , GLU_FALSE ) ;
 
   return SUCCESS ;
 }
 
 // compute the conserved local for a correlator
 int
-conserved_local_double( FILE *prop1 , 
-			const proptype proptype1 ,
-			FILE *prop2 , 
-			const proptype proptype2 ,
+conserved_local_double( struct propagator prop1 ,
+			struct propagator prop2 ,
 			const struct site *lat ,
 			const struct cut_info CUTINFO ,
 			const char *outfile )
@@ -155,11 +151,11 @@ conserved_local_double( FILE *prop1 ,
 #endif
 
   // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , ( proptype1 == NREL || proptype2 == NREL ) ? \
-		   NREL : proptype1 ) == FAILURE ) {
+  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
+		   NREL : prop1.basis ) == FAILURE ) {
     free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -174,13 +170,15 @@ conserved_local_double( FILE *prop1 ,
   struct spinor *S2END = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // free everything if the read fails
-  if( read_prop( prop1 , S1 , proptype1 ) == FAILURE || 
-      read_prop( prop1 , S2 , proptype1 ) == FAILURE ) {
+  if( read_prop( prop1 , S1 ) == FAILURE || 
+      read_prop( prop2 , S2 ) == FAILURE ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ;
     free( S2 ) ; free( S2UP ) ; free( S2END ) ;
     free( GAMMAS ) ;
     return FAILURE ;
   }
+
+  // convert if needed?
 
   // copy for the final timeslice
   int x ;
@@ -207,14 +205,16 @@ conserved_local_double( FILE *prop1 ,
   for( t = 0 ; t < L0-1 ; t++ ) {
 
     // read the one above it apart from the last one
-    if( read_prop( prop1 , S1UP , proptype1 ) == FAILURE ||
-	read_prop( prop1 , S2UP , proptype1 ) == FAILURE ) {
+    if( read_prop( prop1 , S1UP ) == FAILURE ||
+	read_prop( prop2 , S2UP ) == FAILURE ) {
       free( S1 ) ; free( S1UP ) ; free( S1END ) ;
       free( S2 ) ; free( S2UP ) ; free( S2END ) ;
       free( DATA_AA ) ; free( DATA_VV ) ;
       free( GAMMAS ) ;
       return FAILURE ;
     }
+
+    // convert to NREL if needed?
 
     // do the conserved-local contractions
     contract_conserved_local( DATA_AA , DATA_VV , 
@@ -268,10 +268,8 @@ conserved_local_double( FILE *prop1 ,
   free( DATA_VV ) ;
 
   // rewind file and read header again
-  rewind( prop1 ) ;
-  read_check_header( prop1 , GLU_FALSE ) ;
-  rewind( prop2 ) ;
-  read_check_header( prop2 , GLU_FALSE ) ;
+  rewind( prop1.file ) ; read_check_header( &prop1 , GLU_FALSE ) ;
+  rewind( prop2.file ) ; read_check_header( &prop2 , GLU_FALSE ) ;
 
   return SUCCESS ;
 }

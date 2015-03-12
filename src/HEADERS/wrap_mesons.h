@@ -7,11 +7,11 @@
 #define WRAP_MESONS_H
 
 /**
-   @fn int contract_mesons( FILE **fprops , const struct meson_info *mesons , const int nmesons )
+   @fn int contract_mesons( struct propagator *prop , const struct meson_info *mesons , const int nmesons )
    @return #SUCCESS or #FAILURE
  */
 int
-contract_mesons( FILE **fprops ,
+contract_mesons( struct propagator *prop ,
 		 const struct meson_info *mesons ,
 		 const int nmesons ) ;
 

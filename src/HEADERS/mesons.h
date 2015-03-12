@@ -7,27 +7,24 @@
 #define MESONS_H
 
 /**
-   @fn int single_mesons( FILE *fprop , const proptype proptype1 , const char *outfile )
+   @fn int single_mesons( struct propagator prop , const char *outfile )
    @brief compute mesons from a single propagator
 
    @return #SUCCESS or #FAILURE
  */
 int
-single_mesons( FILE *fprop ,
-	       const proptype proptype1 ,
+single_mesons( struct propagator prop ,
 	       const char *outfile ) ;
 
 /**
-   @fn int double_mesons( FILE *prop1 , const proptype proptype1 , FILE *prop2 , const proptype proptype2 , const char *outfile )
+   @fn int double_mesons( struct propagator prop1 , struct propagator prop2 , const char *outfile )
    @brief compute mesons from two propagators
 
    @return #SUCCESS or #FAILURE
  */
 int
-double_mesons( FILE *prop1 , 
-	       const proptype proptype1 ,
-	       FILE *prop2 ,
-	       const proptype proptype2 ,
+double_mesons( struct propagator prop1 ,
+	       struct propagator prop2 ,
 	       const char *outfile ) ;
 
 #endif
