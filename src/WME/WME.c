@@ -31,6 +31,7 @@ four_quark_trace( const struct spinor SWALL_0 ,
 		  const struct spinor DWALL_L_2 ,
 		  const struct gamma GSRC , 
 		  const struct gamma GSNK ,
+		  const struct gamma PROJ ,
 		  const struct gamma G5 )
 {
   // precompute the adjoints, always the "down" quark
@@ -42,14 +43,14 @@ four_quark_trace( const struct spinor SWALL_0 ,
   // trace( SWALL_0 * G5 * anti_DWALL_0 * GSRC * 
   //        SWALL_L_2 * G5 * anti_DWALL_L_2 * GSNK );
 
-  // left and right multiply anti_DWALL_0 by G5 and GSRC
-  gamma_mul_lr( &anti_DWALL_0 , G5 , GSRC ) ;
+  // left and right multiply anti_DWALL_0 by PROJ and GSRC
+  gamma_mul_lr( &anti_DWALL_0 , PROJ , GSRC ) ;
 
   // multiply on the left by SWALL_0
-  spinmul_atomic_right( &anti_DWALL_0 , SWALL_0 ) ;
+  spinmul_atomic_left( &anti_DWALL_0 , SWALL_0 ) ;
 
-  // left and right multiply anti_DWALL_L_2 by G5 and GSNK
-  gamma_mul_lr( &anti_DWALL_L_2 , G5 , GSNK ) ;
+  // left and right multiply anti_DWALL_L_2 by PROJ and GSNK
+  gamma_mul_lr( &anti_DWALL_L_2 , PROJ , GSNK ) ;
 
   // multiply on the left by SWALL_0
   spinmul_atomic_left( &anti_DWALL_L_2 , SWALL_L_2 ) ;
@@ -91,7 +92,7 @@ WME( FILE *S0 , const proptype s0proptype ,
   }
 
   // data structure for holding the contractions
-  struct correlator **corr = malloc( NSNS * sizeof( struct correlator* ) ) ;
+  struct correlator **corr = (struct correlator**)malloc( NS * NS * sizeof( struct correlator* ) ) ;
 
   allocate_corrs( corr ) ;
 
@@ -123,6 +124,8 @@ WME( FILE *S0 , const proptype s0proptype ,
       if( d1proptype == CHIRAL ) rotate_to_NREL( DWALL_L_2 ) ;
     }
 
+    const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ GAMMA_5 + 1 ] for projection onto A0 state
+
     int GSRC ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSRC)
@@ -136,19 +139,20 @@ WME( FILE *S0 , const proptype s0proptype ,
 
 	int site ;
 	for( site = 0 ; site < LCU ; site++ ) {
-	  // trace-trace component is simple this is projected onto external "P" state
-	  trtr += ( meson_trace( GAMMAS[ GAMMA_5 ] , DWALL_0[ site ] ,
-				 GAMMAS[ GSRC ] , SWALL_0[ site ] ) *
-		    meson_trace( GAMMAS[ GAMMA_5 ] , DWALL_L_2[ site ] ,
-				 GAMMAS[ GSRC ] , SWALL_L_2[ site ] ) ) ;
+	  // trace-trace component is simple this is projected onto external "PROJ" state
+	  trtr += ( meson_trace( PROJ , DWALL_0[ site ] ,
+				 GAMMAS[ GSRC ] , SWALL_0[ site ] , 
+				 GAMMAS[ GAMMA_5 ] ) *
+		    meson_trace( PROJ , DWALL_L_2[ site ] ,
+				 GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
+				 GAMMAS[ GAMMA_5 ] ) ) ;
 	  // four quark trace is unpleasant
-	  tr += four_quark_traceP( SWALL_0[ site ] , DWALL_0[ site ] ,
-				   SWALL_L_2[ site ] , DWALL_L_2[ site ] ,
-				   GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
-				   GAMMAS[ GAMMA_5 ] ) ;
+	  tr += four_quark_trace( SWALL_0[ site ] , DWALL_0[ site ] ,
+				  SWALL_L_2[ site ] , DWALL_L_2[ site ] ,
+				  GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
+				  PROJ , GAMMAS[ GAMMA_5 ] ) ;
 	}
-	// are there factors of 1/9 in this?
-	corr[ GSRC ][ GSNK ].C[ t ] = tr + trtr ;
+	corr[ GSRC ][ GSNK ].C[ t ] = tr - trtr ;
       }
     }
     printf("\r[WME] done %.f %%",(t+1)/((L0)/100.));fflush(stdout) ;

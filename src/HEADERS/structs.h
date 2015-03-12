@@ -230,7 +230,7 @@ struct input_info {
   int nmesons ;
   struct VPF_info *VPF ;
   int nVPF ;
-  struct WME_info *WME ;
+  struct WME_info *wme ;
   int nWME ;
   struct cut_info CUTINFO ;
   int dims[ ND ] ;

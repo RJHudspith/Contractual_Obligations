@@ -8,12 +8,14 @@
 #include "GLU_timer.h"       // sys/time.h wrapper
 #include "io.h"              // file IO stuff
 #include "input_reader.h"    // input file readers
-#include "readers.h"         // gauge config reader
+//#include "readers.h"         // gauge config reader
 #include "read_config.h"     // read a gauge configuration file
-#include "read_headers.h"    // read the header file in gauge config
+//#include "read_headers.h"    // read the header file in gauge config
 #include "read_propheader.h" // read the propagator file header
+
 #include "wrap_mesons.h"     // meson contraction wrappers
 #include "wrap_VPF.h"        // VPF contraction wrappers
+#include "wrap_WME.h"        // VPF contraction wrappers
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -91,6 +93,12 @@ main( const int argc,
 		       inputs.nmesons ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }
+
+  // WME contraction, props have to be wall source
+  if( contract_WME( fprops , inputs.wme , inputs.nWME ) == FAILURE ) {
+    goto FREES ;
+  }
+
 
  FREES :
   // free our contraction tables
