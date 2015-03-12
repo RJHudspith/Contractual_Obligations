@@ -3,14 +3,10 @@ DIMS0 = 16
 DIMS1 = 16
 DIMS2 = 16
 DIMS3 = 16
-PROP0 = propagator_16x16x16x16b6.000000k0.12500c1.000000id1.1n1
-## this contracts prop 0 with prop 0, point source props in the
-## chiral basis and outputs to ll.bin
-MESON0 = 0,0,POINT,CHIRAL,CHIRAL,ll00.bin
-## this computes the conserved-local wilson currents, contracting
-## the 0 prop with the 0 they are in the chiral basis outputting 
-## to test
-VPF0 = 0,0,CONSERVED_LOCAL,CHIRAL,CHIRAL,CL00
+## propagator in the chiral basis is point source
+PROP0 = propagator_16x16x16x16b6.000000k0.12500c1.000000id1.1n1,CHIRAL,POINT
+MESON0 = 0,0,mesons
+VPF0 = 0,0,CONSERVED_LOCAL,cl
 ## momentum information
 MOM_CUT = CYLINDER_CUT
 MAXMOM = 30
