@@ -25,4 +25,11 @@
 void
 chiral_to_nrel( struct spinor *S ) ;
 
+/**
+   @fn void nrel_rotate_slice( struct spinor *S )
+   @brief rotate a time-slice worth of spinor S to NREL basis
+ */
+void
+nrel_rotate_slice( struct spinor *S ) ;
+
 #endif

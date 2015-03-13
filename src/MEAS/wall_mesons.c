@@ -192,17 +192,9 @@ wall_double_mesons( struct propagator prop1 ,
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
-      int site ;
-      #pragma omp parallel for private(site) 
-      for( site = 0 ; site < LCU ; site++ ) {
-	chiral_to_nrel( &S1[ site ] ) ;
-      }
+      nrel_rotate_slice( S1 ) ;
     } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
-      int site ;
-      #pragma omp parallel for private(site) 
-      for( site = 0 ; site < LCU ; site++ ) {
-	chiral_to_nrel( &S2[ site ] ) ;
-      }
+      nrel_rotate_slice( S2 ) ;
     }
 
     // prop sums

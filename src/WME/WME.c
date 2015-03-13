@@ -11,19 +11,7 @@
 #include "gammas.h"            // gamma matrices
 #include "read_propheader.h"   // (re)read the header
 
-// a little simplification
-static void
-rotate_to_NREL( struct spinor *S ) 
-{
-  int site ;
-#pragma omp parallel for private(site) 
-  for( site = 0 ; site < LCU ; site++ ) {
-    chiral_to_nrel( &S[ site ] ) ;
-  }
-  return ;
-}
-
-// ok brute force this calculation
+// ok, brute force this calculation
 static double complex
 four_quark_trace( const struct spinor SWALL_0 ,
 		  const struct spinor DWALL_0 ,
@@ -117,10 +105,10 @@ WME( struct propagator s0 ,
 
     // if any of these are a mix of chiral && nrel we rotate all to NREL
     if( NREL_FLAG == GLU_TRUE ) {
-      if( s0.basis == CHIRAL ) rotate_to_NREL( SWALL_0 ) ;
-      if( d0.basis == CHIRAL ) rotate_to_NREL( DWALL_0 ) ;
-      if( s1.basis == CHIRAL ) rotate_to_NREL( SWALL_L_2 ) ;
-      if( d1.basis == CHIRAL ) rotate_to_NREL( DWALL_L_2 ) ;
+      if( s0.basis == CHIRAL ) nrel_rotate_slice( SWALL_0 ) ;
+      if( d0.basis == CHIRAL ) nrel_rotate_slice( DWALL_0 ) ;
+      if( s1.basis == CHIRAL ) nrel_rotate_slice( SWALL_L_2 ) ;
+      if( d1.basis == CHIRAL ) nrel_rotate_slice( DWALL_L_2 ) ;
     }
 
     const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ GAMMA_5 + 1 ] for projection onto A0 state

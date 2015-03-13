@@ -36,3 +36,15 @@ chiral_to_nrel( struct spinor *S )
   }
   return ;
 }
+
+// rotate a timeslice
+void
+nrel_rotate_slice( struct spinor *S )
+{
+  int site ;
+#pragma omp parallel for private(site) 
+  for( site = 0 ; site < LCU ; site++ ) {
+    chiral_to_nrel( &S[ site ] ) ;
+  }
+  return ;
+}

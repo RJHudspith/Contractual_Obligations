@@ -135,17 +135,9 @@ double_mesons( struct propagator prop1 ,
     
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
-      int site ;
-      #pragma omp parallel for private(site) 
-      for( site = 0 ; site < LCU ; site++ ) {
-	chiral_to_nrel( &S1[ site ] ) ;
-      }
+      nrel_rotate_slice( S1 ) ;
     } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
-      int site ;
-      #pragma omp parallel for private(site) 
-      for( site = 0 ; site < LCU ; site++ ) {
-	chiral_to_nrel( &S2[ site ] ) ;
-      }
+      nrel_rotate_slice( S2 ) ;
     }
 
     int GSRC ;
@@ -160,13 +152,13 @@ double_mesons( struct propagator prop1 ,
 
 	//
 	int site ;
-	for( site = 0 ; site < VOL3 ; site++ ) {
+	for( site = 0 ; site < LCU ; site++ ) {
 	  sum += meson_contract( GAMMAS[ GSNK ] , S2[ site ] , 
 				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
 	//
-	corr[ GAMMA_1 ][ GAMMA_2 ].C[ t ] = (double complex)sum ;
+	corr[ GSRC ][ GSNK ].C[ t ] = (double complex)sum ;
       }
     }
     printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; fflush( stdout ) ;

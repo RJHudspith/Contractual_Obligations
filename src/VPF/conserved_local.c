@@ -1,6 +1,9 @@
 /**
    @file conserved_local.c
    @brief conserved-local Wilson currents
+
+   At the moment I treat the NREL like the chiral which is
+   probably wrong, but we cross that bridge when we get to it
  */
 
 #include "common.h"
@@ -178,7 +181,12 @@ conserved_local_double( struct propagator prop1 ,
     return FAILURE ;
   }
 
-  // convert if needed?
+  // if we are doing nonrel-chiral mesons we switch chiral to nrel
+  if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
+    nrel_rotate_slice( S1 ) ;
+  } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
+    nrel_rotate_slice( S2 ) ;
+  }
 
   // copy for the final timeslice
   int x ;
@@ -215,6 +223,11 @@ conserved_local_double( struct propagator prop1 ,
     }
 
     // convert to NREL if needed?
+    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
+      nrel_rotate_slice( S1UP ) ;
+    } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
+      nrel_rotate_slice( S2UP ) ;
+    }
 
     // do the conserved-local contractions
     contract_conserved_local( DATA_AA , DATA_VV , 
@@ -239,7 +252,7 @@ conserved_local_double( struct propagator prop1 ,
 			    lat , S1 , S1END , S2 , S2END ,
 			    GAMMAS , AGMAP , VGMAP , t ) ;
 
-  printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
+  printf("\r[VPF] cl-flavour off diagonal done 100%% \n" ) ; 
 
   // derivatives delta_\mu V_\mu(x)
   WI_configspace( DATA_VV , lat ) ;

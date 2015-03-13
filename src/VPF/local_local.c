@@ -5,10 +5,11 @@
 
 #include "common.h"
 
-#include "gammas.h"          // gamma matrices
-#include "io.h"              // read_prop
-#include "matrix_ops.h"      // constant_mul_gauge
-#include "momspace_PImunu.h" // momentum space VPF
+#include "basis_conversions.h" // rotate slice
+#include "gammas.h"            // gamma matrices
+#include "io.h"                // read_prop
+#include "matrix_ops.h"        // constant_mul_gauge
+#include "momspace_PImunu.h"   // momentum space VPF
 
 // compute the conserved local for a correlator
 int
@@ -108,7 +109,7 @@ local_local_double( struct propagator prop1 ,
 #endif
 
   // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NS * NS * sizeof( struct gamma ) ) ;
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
   if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
@@ -138,6 +139,11 @@ local_local_double( struct propagator prop1 ,
     }
 
     // rotate if necessary?
+    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
+      nrel_rotate_slice( S1 ) ;
+    } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
+      nrel_rotate_slice( S2 ) ;
+    }
 
     // do the conserved-local contractions
     contract_local_local( DATA_AA , DATA_VV , S1 , S2 , 
