@@ -94,6 +94,7 @@ local_local( struct propagator prop ,
 int
 local_local_double( struct propagator prop1 ,
 		    struct propagator prop2 ,
+		    struct site *lat ,
 		    const struct cut_info CUTINFO ,
 		    const char *outfile )
 {
@@ -168,7 +169,7 @@ local_local_double( struct propagator prop1 ,
 
   // do all the momspace stuff away from the contractions
   momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-		   LOCAL_LOCAL ) ;
+  		   LOCAL_LOCAL ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;
