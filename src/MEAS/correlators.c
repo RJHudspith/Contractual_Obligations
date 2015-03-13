@@ -21,28 +21,32 @@ print_convenience( const struct correlator **corr ,
 }
 
 // allocate the correlator matrix
-void
-allocate_corrs( struct correlator **corr )
+struct correlator **
+allocate_corrs( const int NSRC , 
+		const int NSNK )
 {
-  int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
-    corr[ s ] = ( struct correlator* )calloc( NS * NS , sizeof( struct correlator ) ) ;
-    int t ;
-    for( t = 0 ; t < NS * NS ; t++ ) {
-      corr[s][t].C = calloc( L0 , sizeof( double complex ) ) ;
+  struct correlator **corr = (struct correlator**)malloc( NSRC * sizeof( struct correlator* ) ) ; 
+  int GSRC ;
+  for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
+    corr[ GSRC ] = ( struct correlator* )malloc( NSNK * sizeof( struct correlator ) ) ;
+    int GSNK ;
+    for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
+      corr[ GSRC ][ GSNK ].C = calloc( L0 , sizeof( double complex ) ) ;
     }
   }
-  return ;
+  return corr ;
 }
 
 // free the correlator matrix
 void
-free_corrs( struct correlator **corr )
+free_corrs( struct correlator **corr , 
+	    const int NSRC ,
+	    const int NSNK )
 {
   int s ;
-  for( s = 0 ; s < NS * NS ; s++ ) {
+  for( s = 0 ; s < NSRC ; s++ ) {
     int t ;
-    for( t = 0 ; t < NS * NS ; t++ ) {
+    for( t = 0 ; t < NSNK ; t++ ) {
       free( corr[ s ][ t ].C ) ;
     }
     free( corr[ s ] ) ;
@@ -79,7 +83,9 @@ debug_mesons( const char *message ,
 // write the full correlator matrix
 void
 write_correlators( const char *outfile ,
-		   const struct correlator **corr )
+		   const struct correlator **corr ,
+		   const int NSRC ,
+		   const int NSNK )
 {
   printf( "[IO] writing correlation matrix to %s \n" , outfile ) ;
 
@@ -89,20 +95,20 @@ write_correlators( const char *outfile ,
 
   fwrite( magic , sizeof( uint32_t ) , 1 , output_file ) ;
 
-  uint32_t NGSRC[ 1 ] = { NSNS } ;
-  uint32_t NGSNK[ 1 ] = { NSNS } ;
+  uint32_t NGSRC[ 1 ] = { NSRC } ;
+  uint32_t NGSNK[ 1 ] = { NSNK } ;
 
   fwrite( NGSRC , sizeof( uint32_t ) , 1 , output_file ) ;
   fwrite( NGSNK , sizeof( uint32_t ) , 1 , output_file ) ;
 
   uint32_t LT[ 1 ] = { L0 } , cksuma = 0 , cksumb = 0 ;
   int GSRC , GSNK ;
-  for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
-    for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
+  for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
+    for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
       fwrite( LT , sizeof( uint32_t ) , 1 , output_file ) ;
       fwrite( corr[GSRC][GSNK].C , sizeof( double complex ) , L0 , output_file ) ; 
       // accumulate a checksum
-      DML_checksum_accum( &cksuma , &cksumb , GSNK + NS*NS * GSRC , 
+      DML_checksum_accum( &cksuma , &cksumb , GSNK + NSNK * GSRC , 
 			  (char*)corr[GSRC][GSNK].C , 
 			  sizeof( double complex ) * L0 ) ;
     }

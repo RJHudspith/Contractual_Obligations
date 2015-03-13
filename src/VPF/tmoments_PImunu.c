@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+#include "correlators.h"        // write out the correlator file
 #include "PImunu_projections.h" // for the momentum space projections
 
 // DFT in time direction
@@ -14,8 +15,8 @@
 static struct veclist*
 DFT( struct PIdata *cpAA ,
      struct PIdata *cpVV ,
-     const double **ctAA ,
-     const double **ctVV )
+     const struct correlator **ctAA ,
+     const struct correlator **ctVV )
 {
   struct veclist *list = malloc( L0 * sizeof( struct veclist ) ) ;
 
@@ -48,8 +49,8 @@ DFT( struct PIdata *cpAA ,
 	register double complex sumAA = 0.0 ;
 	register double complex sumVV = 0.0 ;
 	for( t = 0 ; t < L0 ; t++ ) {
-	  sumAA += twiddles[ t ] * ctAA[ nu + mu * ND ][ t ] ;
-	  sumVV += twiddles[ t ] * ctVV[ nu + mu * ND ][ t ] ;
+	  sumAA += twiddles[ t ] * ctAA[ mu ][ nu ].C[ t ] ;
+	  sumVV += twiddles[ t ] * ctVV[ mu ][ nu ].C[ t ] ;
 	}
 	cpAA[ pt ].PI[ mu ][ nu ] = sumAA ;
 	cpVV[ pt ].PI[ mu ][ nu ] = sumVV ;
@@ -63,7 +64,7 @@ DFT( struct PIdata *cpAA ,
 
 // sum over every timeslice
 static void
-spatialzero_DFT( double **ct ,
+spatialzero_DFT( struct correlator **corr ,
 		 const struct PIdata *data )
 {
   // do the 0 spatial momentum sum first
@@ -78,7 +79,7 @@ spatialzero_DFT( double **ct ,
 	for( i = 0 ; i < LCU ; i++ ) {
 	  sum += data[ i + LCU * t ].PI[ mu ][ nu ] ; ;
 	}
-	ct[ nu + ND * mu ][ t ] = creal( sum ) ;
+	corr[ mu ][ nu ].C[ t ] = sum ;
       }
     }
   }
@@ -93,21 +94,28 @@ tmoments( const struct PIdata *AA ,
 	  const current_type current ) 
 {
   // storage for the temporal data
-  double **ctAA = malloc( ND*ND * sizeof( double* ) ) ;
-  double **ctVV = malloc( ND*ND * sizeof( double* ) ) ;
-  int munu ;
-  for( munu = 0 ; munu < ND*ND ; munu++ ) {
-    ctAA[ munu ] = (double*)malloc( L0 * sizeof( double ) ) ;
-    ctVV[ munu ] = (double*)malloc( L0 * sizeof( double ) ) ;
-  }
+  struct correlator **ctAA = allocate_corrs( ND , ND ) ;
+  struct correlator **ctVV = allocate_corrs( ND , ND ) ;
 
   // sum over every timeslice
   spatialzero_DFT( ctAA , AA ) ;
   spatialzero_DFT( ctVV , VV ) ;
 
-  // write them out
-  write_tmoments( (const double**)ctAA , outfile , current , AXIAL ) ;
-  write_tmoments( (const double**)ctVV , outfile , current , VECTOR ) ;
+  // change our output files
+  char strAA[ 256 ] , strVV[ 256 ] ;
+  switch( current ) {
+  case CONSERVED_LOCAL :
+    sprintf( strAA , "%s.CALA.tcorr.bin" , outfile ) ;
+    sprintf( strVV , "%s.CVLV.tcorr.bin" , outfile ) ;
+    break ;
+  case LOCAL_LOCAL :
+    sprintf( strAA , "%s.LALA.tcorr.bin" , outfile ) ;
+    sprintf( strVV , "%s.LVLV.tcorr.bin" , outfile ) ;
+    break ;
+  }
+
+  write_correlators( strAA , (const struct correlator**)ctAA , ND , ND ) ;
+  write_correlators( strVV , (const struct correlator**)ctVV , ND , ND ) ;
 
   // storage for the momentum-space data
   struct PIdata *cpAA = malloc( L0 * sizeof( struct PIdata ) ) ;
@@ -116,18 +124,14 @@ tmoments( const struct PIdata *AA ,
   // we now have a correlator C(t) which we Fourier transform
   // in the t-direction
   const struct veclist *list = DFT( cpAA , cpVV , 
-				    (const double **)ctAA , 
-				    (const double **)ctVV ) ;
+				    (const struct correlator**)ctAA , 
+				    (const struct correlator**)ctVV ) ;
 
   const int NMOM[ 1 ] = { L0 } ;
 
   // free the temporal correlators now
-  for( munu = 0 ; munu < ND*ND ; munu++ ) {
-    free( ctAA[ munu ] ) ;
-    free( ctVV[ munu ] ) ;
-  }
-  free( ctAA ) ;
-  free( ctVV ) ;
+  free_corrs( ctAA , ND , ND ) ;
+  free_corrs( ctVV , ND , ND ) ;
 
   // allocate momenta
   double *psq = malloc( NMOM[0] * sizeof( double ) ) ;

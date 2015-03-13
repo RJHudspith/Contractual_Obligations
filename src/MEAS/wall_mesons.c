@@ -62,11 +62,8 @@ wall_mesons( struct propagator prop ,
   }
 
   // data structure for holding the contractions
-  struct correlator **wlcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
-  struct correlator **wwcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
-
-  allocate_corrs( wlcorr ) ;
-  allocate_corrs( wwcorr ) ;
+  struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **wwcorr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
@@ -77,7 +74,8 @@ wall_mesons( struct propagator prop ,
 
     // read in the file
     if( read_prop( prop , S1 ) == FAILURE ) {
-      free_corrs( wlcorr ) ; free_corrs( wwcorr ) ;
+      free_corrs( wlcorr , NSNS , NSNS ) ; 
+      free_corrs( wwcorr , NSNS , NSNS ) ;
       free( GAMMAS ) ; free( S1 ) ;
       return FAILURE ;
     }
@@ -129,16 +127,16 @@ wall_mesons( struct propagator prop ,
   // and write the output files
   char outstr[ 256 ] ;
   sprintf( outstr , "%s.wl" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wlcorr ) ;
+  write_correlators( outstr , (const struct correlator**)wlcorr ,
+		     NSNS , NSNS ) ;
 
   sprintf( outstr , "%s.ww" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wwcorr ) ;
+  write_correlators( outstr , (const struct correlator**)wwcorr ,
+		     NSNS , NSNS ) ;
 
   // free our correlator measurement
-  free_corrs( wlcorr ) ;
-
-  // free our correlator measurement
-  free_corrs( wwcorr ) ;
+  free_corrs( wlcorr , NSNS , NSNS ) ;
+  free_corrs( wwcorr , NSNS , NSNS ) ;
 
   // free our GAMMAS
   free( GAMMAS ) ;
@@ -172,10 +170,8 @@ wall_double_mesons( struct propagator prop1 ,
   }
 
   // data structure for holding the contractions
-  struct correlator **wlcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
-  struct correlator **wwcorr = malloc( NSNS * sizeof( struct correlator* ) ) ;
-  allocate_corrs( wlcorr ) ;
-  allocate_corrs( wwcorr ) ;
+  struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **wwcorr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinors
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
@@ -188,7 +184,8 @@ wall_double_mesons( struct propagator prop1 ,
     // read in the file
     if( read_prop( prop1 , S1 ) == FAILURE ||
 	read_prop( prop2 , S2 ) == FAILURE ) {
-      free_corrs( wlcorr ) ; free_corrs( wwcorr ) ;
+      free_corrs( wlcorr , NSNS , NSNS ) ; 
+      free_corrs( wwcorr , NSNS , NSNS ) ;
       free( GAMMAS ) ; free( S1 ) ; free( S2 ) ;
       return FAILURE ;
     }
@@ -256,16 +253,16 @@ wall_double_mesons( struct propagator prop1 ,
   // outputs
   char outstr[ 256 ] ;
   sprintf( outstr , "%s.wl" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wlcorr ) ;
+  write_correlators( outstr , (const struct correlator**)wlcorr ,
+		     NSNS , NSNS ) ;
 
   sprintf( outstr , "%s.ww" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wwcorr ) ;
+  write_correlators( outstr , (const struct correlator**)wwcorr ,
+		     NSNS , NSNS ) ;
 
-  // free our correlator measurement
-  free_corrs( wlcorr ) ;
-
-  // free our correlator measurement
-  free_corrs( wwcorr ) ;
+  // free our correlator measurements
+  free_corrs( wlcorr , NSNS , NSNS ) ;
+  free_corrs( wwcorr , NSNS , NSNS ) ;
 
   // free our GAMMAS
   free( GAMMAS ) ;

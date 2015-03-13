@@ -92,9 +92,7 @@ WME( struct propagator s0 ,
   }
 
   // data structure for holding the contractions
-  struct correlator **corr = (struct correlator**)malloc( NSNS * sizeof( struct correlator* ) ) ;
-
-  allocate_corrs( corr ) ;
+  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
 
   // allocate our four spinors expecting them to be at 0 and L/2
   struct spinor *SWALL_0 = calloc( VOL3 , sizeof( struct spinor ) ) ;
@@ -112,7 +110,8 @@ WME( struct propagator s0 ,
 	read_prop( s1 , SWALL_L_2 ) == FAILURE ||
 	read_prop( d1 , DWALL_L_2 ) == FAILURE ) {
       free( SWALL_0 ) ; free( SWALL_L_2 ) ; free( DWALL_0 ) ; 
-      free( DWALL_L_2 ) ; free( GAMMAS ) ; free_corrs( corr ) ;
+      free( DWALL_L_2 ) ; free( GAMMAS ) ; 
+      free_corrs( corr , NSNS , NSNS ) ;
       return FAILURE ;
     }
 
@@ -164,10 +163,11 @@ WME( struct propagator s0 ,
 #endif
 
   // and write out a file
-  write_correlators( outfile , (const struct correlator**)corr ) ;
+  write_correlators( outfile , (const struct correlator**)corr ,
+		     NSNS , NSNS ) ;
 
   // free our correlator measurement
-  free_corrs( corr ) ;
+  free_corrs( corr , NSNS , NSNS ) ;
 
   // free our gamma matrices
   free( GAMMAS ) ;

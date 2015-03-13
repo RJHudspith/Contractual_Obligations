@@ -44,7 +44,7 @@ main( const int argc,
   struct input_info inputs ;
   if( get_input_data( &prop , &inputs ,
 		      argv[INFILE] ) == FAILURE ) {
-    free_props( prop ) ;
+    free_props( prop , inputs.nprops ) ;
     free_inputs( inputs ) ; 
     return FAILURE ;
   }
@@ -65,7 +65,7 @@ main( const int argc,
   if( MODE == GAUGE_AND_PROPS ) {
     if( ( lat = read_gauge_file( &HEAD_DATA , argv[GAUGE_FILE] ,
 				 inputs.dims ) ) == NULL ) {
-      free_props( prop ) ;
+      free_props( prop , inputs.nprops ) ;
       free_inputs( inputs ) ; 
       return FAILURE ;
     }
@@ -74,7 +74,7 @@ main( const int argc,
   // open up some propagator files and parse the header checking the geometry
   if( read_propheaders( prop , inputs ) == FAILURE ) {
     if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
-    free_props( prop ) ;
+    free_props( prop , inputs.nprops ) ;
     free_inputs( inputs ) ;
     return FAILURE ;
   }
@@ -101,16 +101,16 @@ main( const int argc,
   }
 
  FREES :
-  // free our contraction tables
-  free_inputs( inputs ) ; 
-
   // we will have to move this around only place where this is freed
   if( MODE == GAUGE_AND_PROPS ) {
     free( lat ) ;
   }
 
   // free the propagators
-  free_props( prop ) ;
+  free_props( prop , inputs.nprops ) ;
+
+  // free our contraction tables
+  free_inputs( inputs ) ; 
 
   return SUCCESS ;
 }

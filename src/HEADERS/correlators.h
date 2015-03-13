@@ -7,18 +7,21 @@
 #define CORRELATORS_H
 
 /**
-   @fn void allocate_corrs( struct correlator **corr )
-   @brief allocate \f$ NS*NS \f$ correlator matrix
+   @fn struct correlator ** allocate_corrs( const int NSRC , const int NSNK )
+   @brief allocate NSRC * NSNK correlator matrix C(t)
  */
-void
-allocate_corrs( struct correlator **corr ) ;
+struct correlator **
+allocate_corrs( const int NSRC , 
+		const int NSNK ) ;
 
 /**
    @fn void free_corrs( struct correlator **corr )
    @brief free correlator matrix
  */
 void
-free_corrs( struct correlator **corr ) ;
+free_corrs( struct correlator **corr ,
+	    const int NSRC ,
+	    const int NSNK ) ;
 
 /**
    @fn void debug_mesons( const char *message , const struct correlator **corr )
@@ -34,6 +37,8 @@ debug_mesons( const char *message ,
  */
 void
 write_correlators( const char *outfile ,
-		   const struct correlator **corr ) ;
+		   const struct correlator **corr ,
+		   const int NSRC ,
+		   const int NSNK ) ;
 
 #endif

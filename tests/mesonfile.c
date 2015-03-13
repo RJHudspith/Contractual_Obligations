@@ -88,8 +88,7 @@ main( const int argc ,
 
   init_geom( ) ;
 
-  struct correlator **corr  = malloc( NS * NS * sizeof( struct correlator* ) ) ;
-  allocate_corrs( corr ) ;
+  struct correlator **corr = allocate_corrs( NGSRC[0] , NGSNK[0] ) ;
 
   // read the correlator
   uint32_t cksuma = 0 , cksumb = 0 ; 
@@ -102,17 +101,23 @@ main( const int argc ,
 	uint32_t LT[1] ;
 	if( fread( LT , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
 	  printf( "LT :: %d \n" , LT[0] ) ;
+	  free_corrs( corr , NGSRC[0] , NGSNK[0] ) ;
+	  fclose( infile ) ;
 	  return FAILURE ;
 	}
 	if( must_swap ) bswap_32( 1 , LT ) ;
 	if( (int)LT[0] != L0 ) { 
 	  printf( "LT Read failure %d %d \n" , (int)LT[0] , L0 ) ; 
+	  free_corrs( corr , NGSRC[0] , NGSNK[0] ) ;
+	  fclose( infile ) ;
 	  return FAILURE ; 
 	}
       }
       if( read_corr( corr[ GSRC ][ GSNK ].C , &cksuma , &cksumb , infile ,
-		     GSNK + NSNS * GSRC ) == FAILURE ) {
+		     GSNK + NGSNK[0] * GSRC ) == FAILURE ) {
 	printf( "Read failure \n" ) ;
+	free_corrs( corr , NGSRC[0] , NGSNK[0] ) ;
+	fclose( infile ) ;
 	return FAILURE ;
       }
       //
@@ -137,14 +142,14 @@ main( const int argc ,
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
     if( tok1 == NULL ) break ;
     const int idx1 = atoi( tok1 ) ;
-    if( idx1 > NGSRC[0] || idx1 < 0 ) { 
+    if( idx1 >= NGSRC[0] || idx1 < 0 ) { 
       printf( "Non-sensical source index %d \n" , idx1 ) ;
       break ;
     } 
     char *tok2 = strtok( NULL , "," ) ;
     if( tok2 == NULL ) break ;
     const int idx2 = atoi( tok2 ) ;
-    if( idx2 > NGSRC[0] || idx2 < 0 ) { 
+    if( idx2 >= NGSNK[0] || idx2 < 0 ) { 
       printf( "Non-sensical sink index %d \n" , idx2 ) ;
       break ;
     } 
@@ -159,7 +164,8 @@ main( const int argc ,
     //
   }
  
-  free_corrs( corr ) ;
+  // free the memory
+  free_corrs( corr , NGSRC[0] , NGSNK[0] ) ;
 
   fclose( infile ) ;
 

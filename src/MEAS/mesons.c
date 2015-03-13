@@ -30,9 +30,7 @@ single_mesons( struct propagator prop ,
   }
 
   // data structure for holding the contractions
-  struct correlator **corr = malloc( NS * NS * sizeof( struct correlator* ) ) ;
-
-  allocate_corrs( corr ) ;
+  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
@@ -43,9 +41,8 @@ single_mesons( struct propagator prop ,
 
     // read in the file
     if( read_prop( prop , S1 ) == FAILURE ) {
-      free_corrs( corr ) ;
-      free( GAMMAS ) ;
-      free( S1 ) ;
+      free_corrs( corr , NSNS , NSNS ) ;
+      free( GAMMAS ) ; free( S1 ) ;
       return FAILURE ;
     }
 
@@ -80,10 +77,11 @@ single_mesons( struct propagator prop ,
 #endif
 
   // and write out a file
-  write_correlators( outfile , (const struct correlator**)corr ) ;
+  write_correlators( outfile , (const struct correlator**)corr ,
+		     NSNS , NSNS ) ;
 
   // free our correlator measurement
-  free_corrs( corr ) ;
+  free_corrs( corr , NSNS , NSNS ) ;
 
   // free our GAMMAS
   free( GAMMAS ) ;
@@ -117,9 +115,7 @@ double_mesons( struct propagator prop1 ,
   }
   
   // data structure for holding the contractions
-  struct correlator **corr = malloc( NSNS * sizeof( struct correlator* ) ) ;
- 
-  allocate_corrs( corr ) ;
+  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
@@ -132,7 +128,7 @@ double_mesons( struct propagator prop1 ,
     // read in the file
     if( read_prop( prop1 , S1 ) == FAILURE ||
 	read_prop( prop2 , S2 ) == FAILURE ) {
-      free_corrs( corr ) ; free( GAMMAS ) ;
+      free_corrs( corr , NSNS , NSNS ) ; free( GAMMAS ) ;
       free( S1 ) ; free( S2 ) ;
       return FAILURE ;
     }
@@ -182,10 +178,11 @@ double_mesons( struct propagator prop1 ,
 #endif
 
   // and write out a file
-  write_correlators( outfile , (const struct correlator**)corr ) ;
+  write_correlators( outfile , (const struct correlator**)corr ,
+		     NSNS , NSNS ) ;
 
   // free our correlator measurement
-  free_corrs( corr ) ;
+  free_corrs( corr , NSNS , NSNS ) ;
 
   // free our gamma matrices
   free( GAMMAS ) ;

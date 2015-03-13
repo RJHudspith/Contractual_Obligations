@@ -29,9 +29,7 @@ single_mesons_bruteforce( struct propagator prop ,
 			  const char *outfile )
 {
   // data structure for holding the contractions
-  struct correlator **corr = calloc( NSNS , sizeof( struct correlator* ) ) ;
-
-  allocate_corrs( corr ) ;
+  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinor
   struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
@@ -85,7 +83,7 @@ single_mesons_bruteforce( struct propagator prop ,
 #endif
 
   // free our correlator measurement
-  free_corrs( corr ) ;
+  free_corrs( corr , NSNS , NSNS ) ;
 
   // free our GAMMAS
   free( GAMMAS ) ;

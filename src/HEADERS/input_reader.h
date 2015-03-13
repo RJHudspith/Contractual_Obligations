@@ -18,11 +18,12 @@ void
 free_inputs( struct input_info inputs ) ;
 
 /**
-   @fn void free_inputs( struct propagator *prop )
+   @fn void free_inputs( struct propagator *prop , const int nprops )
    @brief free the propagator storage
  */
 void
-free_props( struct propagator *prop ) ;
+free_props( struct propagator *prop , 
+	    const int nprops ) ;
 
 /**
    @fn int get_input_data( struct input_info *inputs , const char *file_name )
