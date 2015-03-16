@@ -46,7 +46,9 @@ mesons_diagonal( struct propagator prop ,
     // read in the file
     if( read_prop( prop , S1 ) == FAILURE ) {
       free_corrs( wlcorr , NSNS , NSNS ) ; 
-      free_corrs( wwcorr , NSNS , NSNS ) ;
+      if( prop.source == WALL ) {
+	free_corrs( wwcorr , NSNS , NSNS ) ;
+      }
       free( GAMMAS ) ; free( S1 ) ;
       return FAILURE ;
     }
@@ -90,7 +92,7 @@ mesons_diagonal( struct propagator prop ,
     }
 
     // status of the computation
-    printf("\r[MESONS] Wall done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;
@@ -170,7 +172,9 @@ mesons_offdiagonal( struct propagator prop1 ,
     if( read_prop( prop1 , S1 ) == FAILURE ||
 	read_prop( prop2 , S2 ) == FAILURE ) {
       free_corrs( wlcorr , NSNS , NSNS ) ; 
-      free_corrs( wwcorr , NSNS , NSNS ) ;
+      if( prop1.source == WALL || prop2.source == WALL ) {
+	free_corrs( wwcorr , NSNS , NSNS ) ;
+      }
       free( GAMMAS ) ; free( S1 ) ; free( S2 ) ;
       return FAILURE ;
     }
@@ -222,7 +226,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf("\r[MESONS] Wall done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

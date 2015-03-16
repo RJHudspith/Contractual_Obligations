@@ -6,7 +6,7 @@
 #include "common.h"
 
 #include "brutal_mesons.h"   // brutal mesons
-#include "wall_mesons.h"     // wall mesons is now the bona-fide mesons
+#include "mesons.h"     // meson contractions
 
 // meson contraction driver
 int

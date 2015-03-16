@@ -44,7 +44,7 @@ include_HEADERS = \
 	./HEADERS/gramschmidt.h ./HEADERS/input_reader.h ./HEADERS/io.h \
 	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
-	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
+	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
 	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
 	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
