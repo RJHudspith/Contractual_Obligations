@@ -136,9 +136,9 @@ am__objects_3 = ./IO/chklat_stuff.$(OBJEXT) ./IO/io.$(OBJEXT) \
 	./IO/readers.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT) \
 	./IO/read_propheader.$(OBJEXT) ./IO/cut_output.$(OBJEXT)
-am__objects_4 = ./MEAS/wall_mesons.$(OBJEXT) \
-	./MEAS/correlators.$(OBJEXT) ./MEAS/plaqs_links.$(OBJEXT) \
-	./MEAS/brutal_mesons.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT)
+am__objects_4 = ./MEAS/correlators.$(OBJEXT) \
+	./MEAS/plaqs_links.$(OBJEXT) ./MEAS/brutal_mesons.$(OBJEXT) \
+	./MEAS/wrap_mesons.$(OBJEXT) ./MEAS/mesons.$(OBJEXT)
 am__objects_5 = ./UTILS/GLU_timer.$(OBJEXT) \
 	./UTILS/gramschmidt.$(OBJEXT) ./UTILS/matrix_ops.$(OBJEXT) \
 	./UTILS/spinor_ops.$(OBJEXT) \
@@ -329,8 +329,8 @@ IOFILES = ./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c ./IO/cut_output.c
 
-MEASFILES = ./MEAS/wall_mesons.c ./MEAS/correlators.c \
-	./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c ./MEAS/wrap_mesons.c 
+MEASFILES = ./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c \
+	./MEAS/wrap_mesons.c ./MEAS/mesons.c
 
 VPFFILES = ./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
 	./VPF/WardIdentity.c ./VPF/local_local.c ./VPF/conserved_local.c \
@@ -344,7 +344,7 @@ WMEFILES = ./WME/WME.c ./WME/wrap_WME.c
 include_HEADERS = \
 	../config.h ./HEADERS/chklat_stuff.h ./HEADERS/common.h ./HEADERS/correlators.h \
 	./HEADERS/conserved_local.h ./HEADERS/crc32.h ./HEADERS/definitions.h \
-	./HEADERS/enum.h ./HEADERS/gammas.h \
+	./HEADERS/enum.h ./HEADERS/gammas.h ./HEADERS/mesons.h \
 	./HEADERS/geometry.h ./HEADERS/GLU_bswap.h ./HEADERS/GLU_timer.h \
 	./HEADERS/gramschmidt.h ./HEADERS/input_reader.h ./HEADERS/io.h \
 	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h \
@@ -485,8 +485,6 @@ MEAS/$(am__dirstamp):
 MEAS/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./MEAS/$(DEPDIR)
 	@: > MEAS/$(DEPDIR)/$(am__dirstamp)
-./MEAS/wall_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
-	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/correlators.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/plaqs_links.$(OBJEXT): MEAS/$(am__dirstamp) \
@@ -494,6 +492,8 @@ MEAS/$(DEPDIR)/$(am__dirstamp):
 ./MEAS/brutal_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wrap_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
+	MEAS/$(DEPDIR)/$(am__dirstamp)
+./MEAS/mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 UTILS/$(am__dirstamp):
 	@$(MKDIR_P) ./UTILS
@@ -632,8 +632,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/readers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/brutal_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/correlators.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/plaqs_links.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wall_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_bswap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_timer.Po@am__quote@

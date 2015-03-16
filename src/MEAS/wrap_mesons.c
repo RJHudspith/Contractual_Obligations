@@ -23,19 +23,29 @@ contract_mesons( struct propagator *prop ,
     const int p2 = mesons[ measurements ].map[1] ;
 
     if( p1 == p2 ) {
-      if( wall_mesons( prop[ p1 ] ,
-		       mesons[ measurements ].outfile ) == FAILURE ) {
+      if( mesons_diagonal( prop[ p1 ] , mesons[ measurements ].outfile ) 
+	  == FAILURE ) {
 	return FAILURE ;
       }
     } else {
       // I can't think of a time when this would be legitimate
       if( prop[ p1 ].source != prop[ p2 ].source ) {
-	printf( "[MESONS] attempt to contract two different source type propagators thwarted \n" ) ;
+	printf( "[MESONS] attempt to contract two different source type"
+		"propagators thwarted \n" ) ;
 	return FAILURE ;
       }
       // check that the two props have the same origin?
-
-      if( wall_double_mesons( prop[ p1 ] , prop[ p2 ] ,
+      int mu ;
+      for( mu = 0 ; mu < ND ; mu++ ) {
+	if( prop[ p1 ].origin[ mu ] != prop[ p2 ].origin[ mu ] ) {
+	  printf( "[MESONS] contraction of mesons with unequal origins"
+		  "%d vs %d ( index %d ) " , prop[ p1 ].origin[ mu ] ,
+		  prop[ p2 ].origin[ mu ] , mu ) ;
+	  return FAILURE ;
+	}
+      }
+      // otherwise we plough on
+      if( mesons_offdiagonal( prop[ p1 ] , prop[ p2 ] ,
 			      mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }

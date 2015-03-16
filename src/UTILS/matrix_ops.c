@@ -5,10 +5,45 @@
 
 #include "common.h"
 
+// add two color matrices
+inline void
+add_mat( double complex *__restrict a ,
+	 const double complex *__restrict b )
+{
+#if NC == 3
+  a[ 0 ] += b[ 0 ] ; a[ 1 ] += b[ 1 ] ; a[ 2 ] += b[ 2 ] ; 
+  a[ 3 ] += b[ 3 ] ; a[ 4 ] += b[ 4 ] ; a[ 5 ] += b[ 5 ] ; 
+  a[ 6 ] += b[ 6 ] ; a[ 7 ] += b[ 7 ] ; a[ 8 ] += b[ 8 ] ; 
+#else
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[ i ] += b[ i ] ;
+  }
+#endif
+}
+
+// equate two color matrices
+inline void
+colormatrix_equiv( double complex *__restrict a ,
+		   const double complex *__restrict b )
+{
+#if NC == 3
+  a[0] = b[0] ; a[1] = b[1] ; a[2] = b[2] ; 
+  a[3] = b[3] ; a[4] = b[4] ; a[5] = b[5] ; 
+  a[6] = b[6] ; a[7] = b[7] ; a[8] = b[8] ; 
+#else
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[ i ] = b[i] ;
+  }
+#endif
+  return ;
+}
+
 // is just Tr( a * b )
 inline double complex
-colortrace_prod( double complex *a , 
-		 double complex *b )
+colortrace_prod( double complex *__restrict a , 
+		 double complex *__restrict b )
 {
 #if NC == 3
   return a[0] * b[0] + a[1] * b[3] + a[2] * b[6] +	\
@@ -31,9 +66,9 @@ colortrace_prod( double complex *a ,
 
 // does res = constant * U
 inline void
-constant_mul_gauge( double complex *res , 
+constant_mul_gauge( double complex *__restrict res , 
 		    const double complex constant ,
-		    const double complex *U ) 
+		    const double complex *__restrict U ) 
 {
 #if NC == 3
   res[0] = constant * U[0] ; res[1] = constant * U[1] ; res[2] = constant * U[2] ;
@@ -50,8 +85,8 @@ constant_mul_gauge( double complex *res ,
 
 // daggers the matrix U into res
 inline void
-dagger_gauge( double complex *res ,
-	      const double complex *U )
+dagger_gauge( double complex *__restrict res ,
+	      const double complex *__restrict U )
 {
 #if NC == 3
   res[0] = conj( U[0] ) ; res[1] = conj( U[3] ) ; res[2] = conj( U[6] ) ;

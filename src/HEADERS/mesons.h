@@ -7,19 +7,19 @@
 #define WALL_MESONS_H
 
 /**
-   @fn int wall_mesons( struct propagator prop , const char *outfile )
-   @brief wall meson code
+   @fn int mesons_diagonal( struct propagator prop , const char *outfile )
+   @brief (flavour diagonal) meson contractions
  */
 int
-wall_mesons( struct propagator prop ,
-	     const char *outfile ) ;
+mesons_diagonal( struct propagator prop ,
+		 const char *outfile ) ;
 
 /**
    @fn int wall_double_mesons( struct propagator prop1 , struct propagator prop2 const char *outfile )
-   @brief wall meson code for two wall props
+   @brief (flavour off diagonal) meson contractions
  */
 int
-wall_double_mesons( struct propagator prop1 ,
+mesons_offdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,
 		    const char *outfile ) ;
 

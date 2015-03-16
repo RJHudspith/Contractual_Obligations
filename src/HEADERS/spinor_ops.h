@@ -6,6 +6,14 @@
 #define SPINOR_OPS_H
 
 /**
+   @fn void add_spinors( double complex *__restrict SUM , const double complex *__restrict S )
+   @brief atomically add two spinors SUM += S
+ */
+void
+add_spinors( double complex *__restrict SUM ,
+	     const double complex *__restrict S ) ;
+
+/**
    @fn void gauge_spinor( struct spinor *__restrict res , const double complex link[ NCNC ] , const struct spinor S )
    @brief multiplies a spinor with a link matrix res = link * S
  */
@@ -58,5 +66,20 @@ void
 spinor_gaugedag( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] ) ;
+
+/**
+   @fn void sumprop( struct spinor *__restrict SUM , struct spinor *__restrict S )
+   @brief sum a propagator over a timeslice
+ */
+void
+sumprop( struct spinor *__restrict SUM ,
+	 struct spinor *__restrict S ) ;
+
+/**
+   @fn void zero_spinor( double complex *__restrict S )
+   @brief set all elements of S to 0
+ */
+void
+zero_spinor( double complex *__restrict S ) ;
 
 #endif

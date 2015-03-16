@@ -11,46 +11,13 @@
 #include "gammas.h"            // gamma matrices
 #include "GLU_timer.h"         // print_time() 
 #include "io.h"                // read_prop
+#include "spinor_ops.h"        // spinor operations
 #include "read_propheader.h"   // (re)read the propagator header
-
-// sums a timeslice worth of S into SUM, is threaded but not how you would expect
-static void
-sumprop( struct spinor *__restrict SUM ,
-	 struct spinor *__restrict S )
-{
-  int d1d2 ;
-#pragma omp parallel for private(d1d2)
-  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
-
-    const int d1 = d1d2 / NS ;
-    const int d2 = d1d2 % NS ;
-
-    int c1 , c2 ;
-    // initialise sum
-    for( c1 = 0 ; c1 < NC ; c1++ ) {
-      for( c2 = 0 ; c2 < NC ; c2++ ) {
-	SUM -> D[d1][d2].C[c1][c2] = 0.0 ;
-      }
-    }
-    // memory access pattern is pretty strange
-    int i ;
-    for( i = 0 ; i < VOL3 ; i++ ) {
-      // pull this into cache would do something like this ..
-      // double complex *C = (double complex*)S[i].D[d1][d2].C ;
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  SUM -> D[d1][d2].C[c1][c2] += S[i].D[d1][d2].C[c1][c2] ;
-	}
-      }
-    }
-  }
-  return ;
-}
 
 // computes meson correlators
 int
-wall_mesons( struct propagator prop ,
-	     const char *outfile )
+mesons_diagonal( struct propagator prop ,
+		 const char *outfile )
 {
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
@@ -63,7 +30,11 @@ wall_mesons( struct propagator prop ,
 
   // data structure for holding the contractions
   struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
-  struct correlator **wwcorr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **wwcorr = NULL ;
+
+  if( prop.source == WALL ) {
+    wwcorr = allocate_corrs( NSNS , NSNS ) ;
+  }
 
   // and our spinor
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
@@ -82,7 +53,9 @@ wall_mesons( struct propagator prop ,
     
     // single sum
     struct spinor SUM1 ;
-    sumprop( &SUM1 , S1 ) ;
+    if( prop.source == WALL ) {
+      sumprop( &SUM1 , S1 ) ;
+    }
 
     int GSRC = 0 ;
     // parallelise the furthest out loop
@@ -105,11 +78,14 @@ wall_mesons( struct propagator prop ,
 	// normal wall-local meson correlator
 	wlcorr[ GSRC ][ GSNK ].C[ t ] = sum ;
 
-	// correlator computed just out of the summed walls
-	wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
-	  meson_contract( GAMMAS[ GSNK ] , SUM1 , 
-			  GAMMAS[ GSRC ] , SUM1 ,
-			  GAMMAS[ GAMMA_5 ] ) ;
+	if( prop.source == WALL ) {
+	  // correlator computed just out of the summed walls
+	  wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
+	    meson_contract( GAMMAS[ GSNK ] , SUM1 , 
+			    GAMMAS[ GSRC ] , SUM1 ,
+			    GAMMAS[ GAMMA_5 ] ) ;
+	}
+	//
       }
     }
 
@@ -121,22 +97,27 @@ wall_mesons( struct propagator prop ,
 
 #ifdef DEBUG
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
-  debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
+  if( prop.source == WALL ) {
+    debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
+  }
 #endif
 
   // and write the output files
   char outstr[ 256 ] ;
-  sprintf( outstr , "%s.wl" , outfile ) ;
+  sprintf( outstr , "%s" , outfile ) ;
   write_correlators( outstr , (const struct correlator**)wlcorr ,
-		     NSNS , NSNS ) ;
-
-  sprintf( outstr , "%s.ww" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wwcorr ,
 		     NSNS , NSNS ) ;
 
   // free our correlator measurement
   free_corrs( wlcorr , NSNS , NSNS ) ;
-  free_corrs( wwcorr , NSNS , NSNS ) ;
+
+  // if we have computed the wall-wall we output it
+  if( prop.source == WALL ) {
+    sprintf( outstr , "%s.ww" , outfile ) ;
+    write_correlators( outstr , (const struct correlator**)wwcorr ,
+		       NSNS , NSNS ) ;
+    free_corrs( wwcorr , NSNS , NSNS ) ;
+  }
 
   // free our GAMMAS
   free( GAMMAS ) ;
@@ -155,7 +136,7 @@ wall_mesons( struct propagator prop ,
 
 // computes meson correlators
 int
-wall_double_mesons( struct propagator prop1 ,
+mesons_offdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,
 		    const char *outfile )
 {
@@ -171,7 +152,11 @@ wall_double_mesons( struct propagator prop1 ,
 
   // data structure for holding the contractions
   struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
-  struct correlator **wwcorr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **wwcorr = NULL ;
+  
+  if( prop1.source == WALL || prop2.source == WALL ) {
+    allocate_corrs( NSNS , NSNS ) ;
+  }
 
   // and our spinors
   struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
@@ -199,8 +184,10 @@ wall_double_mesons( struct propagator prop1 ,
 
     // prop sums
     struct spinor SUM1 , SUM2 ;
-    sumprop( &SUM1 , S1 ) ;
-    sumprop( &SUM2 , S2 ) ;
+    if( prop1.source == WALL || prop2.source == WALL ) {
+      sumprop( &SUM1 , S1 ) ;
+      sumprop( &SUM2 , S2 ) ;
+    }
 
     int GSRC = 0 ;
     // parallelise the furthest out loop
@@ -223,11 +210,14 @@ wall_double_mesons( struct propagator prop1 ,
 	// normal wall-local meson correlator
 	wlcorr[ GSRC ][ GSNK ].C[ t ] = sum ;
 
-	// correlator computed just out of the summed walls
-	wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
-	  meson_contract( GAMMAS[ GSNK ] , SUM2 , 
-			  GAMMAS[ GSRC ] , SUM1 ,
-			  GAMMAS[ GAMMA_5 ] ) ;
+	if( prop1.source == WALL || prop2.source == WALL ) {
+	  // correlator computed just out of the summed walls
+	  wwcorr[ GSRC ][ GSNK ].C[ t ] =		\
+	    meson_contract( GAMMAS[ GSNK ] , SUM2 , 
+			    GAMMAS[ GSRC ] , SUM1 ,
+			    GAMMAS[ GAMMA_5 ] ) ;
+	}
+	//
       }
     }
 
@@ -239,7 +229,9 @@ wall_double_mesons( struct propagator prop1 ,
 
 #ifdef DEBUG
   debug_mesons( "WL-mesons" , (const struct correlator**)wlcorr ) ;
-  debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
+  if( prop1.source == WALL || prop2.source == WALL ) {
+    debug_mesons( "WW-mesons" , (const struct correlator**)wwcorr ) ;
+  }
 #endif
 
   // outputs
@@ -248,13 +240,14 @@ wall_double_mesons( struct propagator prop1 ,
   write_correlators( outstr , (const struct correlator**)wlcorr ,
 		     NSNS , NSNS ) ;
 
-  sprintf( outstr , "%s.ww" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)wwcorr ,
-		     NSNS , NSNS ) ;
-
-  // free our correlator measurements
   free_corrs( wlcorr , NSNS , NSNS ) ;
-  free_corrs( wwcorr , NSNS , NSNS ) ;
+
+  if( prop1.source == WALL || prop2.source == WALL ) {
+    sprintf( outstr , "%s.ww" , outfile ) ;
+    write_correlators( outstr , (const struct correlator**)wwcorr ,
+		       NSNS , NSNS ) ;
+    free_corrs( wwcorr , NSNS , NSNS ) ;
+  }
 
   // free our GAMMAS
   free( GAMMAS ) ;

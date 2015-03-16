@@ -5,8 +5,9 @@
 
 #include "common.h"
 
-#include "crc32.h"
-#include "GLU_bswap.h"
+#include "crc32.h"        // checksum calc
+#include "GLU_bswap.h"    // byteswaps
+#include "matrix_ops.h"   // matrix equiv
 
 // the question is ... Who checks the checksum?
 int
@@ -65,24 +66,6 @@ float_to_dcomplex( double complex a[ NCNC ] ,
   int i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     a[ i ] = (double complex)b[i] ;
-  }
-#endif
-  return ;
-}
-
-// and double->double
-static inline void
-colormatrix_equiv( double complex a[ NCNC ] ,
-		   const double complex b[ NCNC ] )
-{
-#if NC == 3
-  a[0] = b[0] ; a[1] = b[1] ; a[2] = b[2] ; 
-  a[3] = b[3] ; a[4] = b[4] ; a[5] = b[5] ; 
-  a[6] = b[6] ; a[7] = b[7] ; a[8] = b[8] ; 
-#else
-  int i ;
-  for( i = 0 ; i < NCNC ; i++ ) {
-    a[ i ] = b[i] ;
   }
 #endif
   return ;

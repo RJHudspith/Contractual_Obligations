@@ -6,6 +6,22 @@
 #define MATRIX_OPS_H
 
 /**
+   @fn inline void add_mat( double complex *a , const double complex *b )
+   @brief atomically add color matrix b to a
+ */
+inline void
+add_mat( double complex *a ,
+	 const double complex *b ) ;
+
+/**
+   @fn inline void colormatrix_equiv( double complex a[ NCNC ] , const double complex b[ NCNC ] )
+   @brief equate two colormatrices
+ */
+inline void
+colormatrix_equiv( double complex a[ NCNC ] ,
+		   const double complex b[ NCNC ] ) ;
+
+/**
    @fn inline double complex colortrace_prod( double complex *a , double complex *b )
    @brief trace of the product of two color matrices
  */
