@@ -96,8 +96,8 @@ read_nrprop( FILE *fprop,
 
     int d1 , d2 , k = 0 ;
     // Now fill the non-zero components from the buffer
-    for( d1 = 0 ; d1 < NR_NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NR_NS ; d2++ ) {
+    for( d1 = NR_NS ; d1 < NS ; d1++ ) {
+      for( d2 = NR_NS ; d2 < NS ; d2++ ) {
 	#if NC == 3
 	S[i].D[d1][d2].C[0][0] = tmp[k] + I * tmp[k+1] ; k+=2 ;
 	S[i].D[d1][d2].C[0][1] = tmp[k] + I * tmp[k+1] ; k+=2 ;
