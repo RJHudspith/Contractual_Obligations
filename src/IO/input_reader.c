@@ -25,6 +25,8 @@
 
 #include "common.h"
 
+#include <errno.h>
+
 // break for the while loops can be made really large
 // I just don't like infinite while loops
 #define MAX_CONTRACTIONS 20
@@ -86,7 +88,16 @@ tag_search( const char *tag )
 static int
 confno( void )
 {
-  return atoi( INPUT[tag_search( "CONFNO" )].VALUE ) ;
+  errno = 0 ;
+  char *endptr ;
+  const int conf_idx = tag_search( "CONFNO" ) ;
+  const int num = (int)strtol( INPUT[conf_idx].VALUE , 
+			       &endptr , 10 ) ; 
+  if( endptr == INPUT[conf_idx].VALUE || errno == ERANGE ) {
+    return FAILURE ;
+  }
+  // should also check that it is a sensible int as we do a cast ...
+  return num ;
 }
 
 // get the header type
@@ -143,6 +154,7 @@ header_type( void )
 static int
 read_cuts_struct( struct cut_info *CUTINFO )
 {
+  char *endptr ; // end pointer collection for strto*
   // momentum space cut def
   const int momcut_idx = tag_search( "MOM_CUT" ) ;
   if( momcut_idx == FAILURE ) { return tag_failure( "MOM_CUT" ) ; }
@@ -160,10 +172,22 @@ read_cuts_struct( struct cut_info *CUTINFO )
   // minmom, maxmom angle and cylinder width
   const int maxmom_idx = tag_search( "MAXMOM" ) ;
   if( maxmom_idx == FAILURE ) { return tag_failure( "MAXMOM" ) ; }
-  CUTINFO -> max_mom = atoi( INPUT[maxmom_idx].VALUE ) ;
+  errno = 0 ;
+  CUTINFO -> max_mom = (int)strtol( INPUT[maxmom_idx].VALUE , &endptr , 10 ) ;
+  if( endptr == INPUT[maxmom_idx].VALUE || errno == ERANGE || 
+      CUTINFO -> max_mom < 1 ) {
+    printf( "[IO] non-sensical maximum momentum %d \n" , CUTINFO -> max_mom ) ;
+    return FAILURE ;
+  }  
   const int cyl_idx = tag_search( "CYL_WIDTH" ) ;
   if( cyl_idx == FAILURE ) { return tag_failure( "CYL_WIDTH" ) ; }
-  CUTINFO -> cyl_width = atof( INPUT[cyl_idx].VALUE ) ;
+  errno = 0 ;
+  CUTINFO -> cyl_width = (double)strtod( INPUT[cyl_idx].VALUE , &endptr ) ;
+  if( endptr == INPUT[cyl_idx].VALUE || errno == ERANGE ||
+      CUTINFO -> cyl_width < 0.0 ) {
+    printf( "[IO] non-sensical cylinder width %f \n" , CUTINFO -> cyl_width ) ;
+    return FAILURE ;
+  }
   return SUCCESS ;
 }
 
@@ -173,8 +197,14 @@ get_contraction_map( int *map ,
 		     const char *token ,
 		     const int nprops ) 
 {
-  *map = (int)atoi( token ) ;
-  if( *map < 0 || *map >= nprops ) {
+  errno = 0 ;
+  char *endptr ;
+  *map = (int)strtol( token , &endptr , 10 ) ;
+  if( token == endptr ) {
+    printf( "[IO] contraction mapping expects an integer \n" ) ;
+    return FAILURE ;
+  }
+  if( *map < 0 || *map >= nprops || errno == ERANGE ) {
     printf( "[IO] non-sensical contraction index %d \n" , *map ) ;
     return FAILURE ;
   }
@@ -430,7 +460,8 @@ matrix_element_contractions( struct WME_info *wme ,
 static int
 get_dims( int *dims )
 {
-  char str[ 32 ] ;
+  errno = 0 ;
+  char *endptr , str[ 32 ] ;
   int mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     sprintf( str , "DIMS%d" , mu ) ;
@@ -438,7 +469,12 @@ get_dims( int *dims )
     if( dims_idx == FAILURE ) { 
       return tag_failure( str ) ; 
     }
-    dims[ mu ] = (int)atoi( INPUT[ dims_idx ].VALUE ) ;
+    dims[ mu ] = (int)strtol( INPUT[ dims_idx ].VALUE , &endptr , 10 ) ;
+    if( dims[ mu ] < 0 || INPUT[ dims_idx ].VALUE == endptr ||
+	errno == ERANGE ) {
+      printf( "[IO] non-sensical dimension value %d \n" , dims[ mu ] ) ;
+      return FAILURE ;
+    }
   }
   return SUCCESS ;
 }

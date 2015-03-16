@@ -129,7 +129,7 @@ conserved_local( struct propagator prop ,
   free( DATA_VV ) ;
 
   // rewind file and read header again
-  rewind( prop.file ) ; read_check_header( &prop , GLU_FALSE ) ;
+  rewind( prop.file ) ; read_propheader( &prop ) ;
 
   return SUCCESS ;
 }
@@ -281,8 +281,8 @@ conserved_local_double( struct propagator prop1 ,
   free( DATA_VV ) ;
 
   // rewind file and read header again
-  rewind( prop1.file ) ; read_check_header( &prop1 , GLU_FALSE ) ;
-  rewind( prop2.file ) ; read_check_header( &prop2 , GLU_FALSE ) ;
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
 
   return SUCCESS ;
 }

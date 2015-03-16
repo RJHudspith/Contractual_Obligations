@@ -35,28 +35,12 @@ typedef enum {
 #endif
 
 /**
-   @enum sourcetype
-   @brief propagator source type
- */
-typedef enum {
-  WALL , 
-  POINT } sourcetype ;
-
-/**
    @enum current_type
    @brief fermionic current type
  */
 typedef enum {
   LOCAL_LOCAL , 
   CONSERVED_LOCAL } current_type ;
-
-/**
-   @enum proptype
-   @brief propagator type definition
- */
-typedef enum {
-  CHIRAL ,
-  NREL } proptype ;
 
 /**
    @enum GLU_endian
@@ -145,5 +129,37 @@ typedef enum
 typedef enum
   { VECTOR , 
     AXIAL } vector_axial ;
+
+/**
+   @enum fp_precision
+   @brief specify the floating point precision
+ */
+typedef enum
+  { SINGLE ,
+    DOUBLE } fp_precision ;
+
+/**
+   @enum endianness
+   @brief specify which end is up
+ */
+typedef enum
+  { LILENDIAN , 
+    BIGENDIAN } endianness ;
+
+/**
+   @enum proptype
+   @brief propagator type definition
+ */
+typedef enum {
+  CHIRAL ,
+  NREL } proptype ;
+
+/**
+   @enum sourcetype
+   @brief propagator source types recognised by us
+ */
+typedef enum
+  { POINT ,
+    WALL } sourcetype ;
 
 #endif

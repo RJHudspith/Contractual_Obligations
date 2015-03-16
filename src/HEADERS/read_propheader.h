@@ -7,13 +7,12 @@
 #define READ_PROPHEADER_H
 
 /**
-   @fn int read_check_header( struct propagator *prop , const GLU_bool first_read )
+   @fn int read_propheader( struct propagator *prop )
    @brief read and check a propagator file header
    @return #SUCCESS or #FAILURE
  */
 int
-read_check_header( struct propagator *prop ,
-		   const GLU_bool first_read ) ;
+read_propheader( struct propagator *prop ) ;
 
 /**
    @file int read_propheaders( FILE **fprops , const struct input_info inputs )

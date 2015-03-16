@@ -239,6 +239,8 @@ struct propagator {
   proptype basis ;
   sourcetype source ;
   int origin[ ND ] ;
+  fp_precision precision ;
+  endianness endian ;
 } ;
 
 #endif

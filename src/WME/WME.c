@@ -165,10 +165,10 @@ WME( struct propagator s0 ,
   free( SWALL_0 ) ; free( SWALL_L_2 ) ;
 
   // reread headers 
-  rewind( s0.file ) ; read_check_header( &s0 , GLU_FALSE ) ;
-  rewind( d0.file ) ; read_check_header( &d0 , GLU_FALSE ) ;
-  rewind( s1.file ) ; read_check_header( &s1 , GLU_FALSE ) ;
-  rewind( d1.file ) ; read_check_header( &d1 , GLU_FALSE ) ;
+  rewind( s0.file ) ; read_propheader( &s0 ) ;
+  rewind( d0.file ) ; read_propheader( &d0 ) ;
+  rewind( s1.file ) ; read_propheader( &s1 ) ;
+  rewind( d1.file ) ; read_propheader( &d1 ) ;
 
   // tell us how long it all took, my guess is a long time
   print_time( ) ;

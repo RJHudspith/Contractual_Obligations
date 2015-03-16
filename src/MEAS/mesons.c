@@ -90,7 +90,7 @@ single_mesons( struct propagator prop ,
   free( S1 ) ;
 
   // rewind file and read header again
-  rewind( prop.file ) ; read_check_header( &prop , GLU_FALSE ) ;
+  rewind( prop.file ) ; read_propheader( &prop ) ;
 
   // tell us how long it all took
   print_time( ) ;
@@ -184,8 +184,8 @@ double_mesons( struct propagator prop1 ,
   free( S2 ) ;
 
   // rewind file and read header again
-  rewind( prop1.file ) ; read_check_header( &prop1 , GLU_FALSE ) ;
-  rewind( prop2.file ) ; read_check_header( &prop2 , GLU_FALSE ) ;
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
 
   // tell us how long it all took
   print_time( ) ;
