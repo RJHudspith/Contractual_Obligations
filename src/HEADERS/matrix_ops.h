@@ -22,6 +22,14 @@ colormatrix_equiv( double complex a[ NCNC ] ,
 		   const double complex b[ NCNC ] ) ;
 
 /**
+   @fn inline void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
+   @brief cast from single to working (double) precision a color matrix
+ */
+inline void
+colormatrix_equiv_f2d( double complex a[ NCNC ] ,
+		       const float complex b[ NCNC ] ) ;
+
+/**
    @fn inline double complex colortrace_prod( double complex *a , double complex *b )
    @brief trace of the product of two color matrices
  */

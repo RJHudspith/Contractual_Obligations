@@ -7,7 +7,7 @@
 
 #include "crc32.h"        // checksum calc
 #include "GLU_bswap.h"    // byteswaps
-#include "matrix_ops.h"   // matrix equiv
+#include "matrix_ops.h"   // matrix equivs
 
 // the question is ... Who checks the checksum?
 int
@@ -53,24 +53,6 @@ check_checksum( FILE *fprop )
   return SUCCESS ;
 }
 
-// fast color matrix equivalent
-static inline void
-float_to_dcomplex( double complex a[ NCNC ] ,
-		   const float complex b[ NCNC ] )
-{
-#if NC == 3
-  a[0] = (double complex)b[0] ; a[1] = (double complex)b[1] ; a[2] = (double complex)b[2] ; 
-  a[3] = (double complex)b[3] ; a[4] = (double complex)b[4] ; a[5] = (double complex)b[5] ; 
-  a[6] = (double complex)b[6] ; a[7] = (double complex)b[7] ; a[8] = (double complex)b[8] ; 
-#else
-  int i ;
-  for( i = 0 ; i < NCNC ; i++ ) {
-    a[ i ] = (double complex)b[i] ;
-  }
-#endif
-  return ;
-}
-
 // fill our spinor
 static void
 fill_spinor( struct spinor *__restrict S ,
@@ -87,8 +69,8 @@ fill_spinor( struct spinor *__restrict S ,
       const int d1 = d1d2 / ND1 + d1shift ;
       const int d2 = d1d2 % ND1 + d1shift ;
       // unroll the matching
-      float_to_dcomplex( (double complex*)S -> D[ d1 ][ d2 ].C ,
-			 ftmp + d1d2 * NCNC ) ;
+      colormatrix_equiv_f2d( (double complex*)S -> D[ d1 ][ d2 ].C ,
+			     ftmp + d1d2 * NCNC ) ;
     }
   } else {
     const double complex *ftmp = (const double complex*)tmp ;

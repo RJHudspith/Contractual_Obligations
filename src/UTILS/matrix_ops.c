@@ -40,6 +40,24 @@ colormatrix_equiv( double complex *__restrict a ,
   return ;
 }
 
+// float matrix to double
+inline void
+colormatrix_equiv_f2d( double complex a[ NCNC ] ,
+		       const float complex b[ NCNC ] )
+{
+#if NC == 3
+  a[0] = (double complex)b[0] ; a[1] = (double complex)b[1] ; a[2] = (double complex)b[2] ; 
+  a[3] = (double complex)b[3] ; a[4] = (double complex)b[4] ; a[5] = (double complex)b[5] ; 
+  a[6] = (double complex)b[6] ; a[7] = (double complex)b[7] ; a[8] = (double complex)b[8] ; 
+#else
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[ i ] = (double complex)b[i] ;
+  }
+#endif
+  return ;
+}
+
 // is just Tr( a * b )
 inline double complex
 colortrace_prod( double complex *__restrict a , 
