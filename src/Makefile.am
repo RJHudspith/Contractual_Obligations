@@ -18,7 +18,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/read_propheader.c ./IO/cut_output.c
 
 ## c files in ./MEAS/
-MEASFILES=./MEAS/mesons.c ./MEAS/wall_mesons.c ./MEAS/correlators.c \
+MEASFILES=./MEAS/wall_mesons.c ./MEAS/correlators.c \
 	./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c ./MEAS/wrap_mesons.c 
 
 ## c files in ./VPF
@@ -38,11 +38,11 @@ WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 
 include_HEADERS = \
 	../config.h ./HEADERS/chklat_stuff.h ./HEADERS/common.h ./HEADERS/correlators.h \
-	./HEADERS/conserved_local.h \
-	./HEADERS/crc32.h ./HEADERS/definitions.h ./HEADERS/enum.h ./HEADERS/gammas.h \
+	./HEADERS/conserved_local.h ./HEADERS/crc32.h ./HEADERS/definitions.h \
+	./HEADERS/enum.h ./HEADERS/gammas.h \
 	./HEADERS/geometry.h ./HEADERS/GLU_bswap.h ./HEADERS/GLU_timer.h \
 	./HEADERS/gramschmidt.h ./HEADERS/input_reader.h ./HEADERS/io.h \
-	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h ./HEADERS/mesons.h \
+	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h \
 	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
 	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h ./HEADERS/wall_mesons.h \
 	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \

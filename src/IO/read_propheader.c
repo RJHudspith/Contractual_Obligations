@@ -24,8 +24,6 @@
 
 #include <errno.h>    // for the error codes to strto*
 
-//#define NEWHEADER
-
 // dirty string equivalence
 static int
 are_equal( const char *pch , const char *tag )
@@ -92,11 +90,11 @@ get_propendian( endianness *endian )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Big" ) ) {
+    if( are_equal( token , "Big\n" ) ) {
       *endian = BIGENDIAN ;
       return SUCCESS ;
     }
-    if( are_equal( token , "Little" ) ) {
+    if( are_equal( token , "Little\n" ) ) {
       *endian = LILENDIAN ;
       return SUCCESS ;
     }
@@ -112,11 +110,11 @@ get_propprec( fp_precision *precision )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Single" ) ) {
+    if( are_equal( token , "Single\n" ) ) {
       *precision = SINGLE ;
       return SUCCESS ;
     }
-    if( are_equal( token , "Double" ) ) {
+    if( are_equal( token , "Double\n" ) ) {
       *precision = DOUBLE ;
       return SUCCESS ;
     }
@@ -132,14 +130,18 @@ get_propsource( sourcetype *source )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Point" ) ) {
+    if( are_equal( token , "Point\n" ) || 
+	are_equal( token , "Pt\n" ) || 
+	are_equal( token , "pt\n" ) ) {
       *source = POINT ;
       return SUCCESS ;
     }
     // wall can be a bunch of things I think
-    if( are_equal( token , "GFWall" ) ||
-	are_equal( token , "Z2Wall" ) ||
-	are_equal( token , "Wall" ) ) {
+    if( are_equal( token , "GFWall\n" ) ||
+	are_equal( token , "Z2Wall\n" ) ||
+	are_equal( token , "Wall\n" ) ||
+	are_equal( token , "wall\n" ) || 
+	are_equal( token , "CGwall\n" ) ) {
       *source = WALL ;
       return SUCCESS ;
     }
@@ -156,12 +158,14 @@ get_proptype( proptype *basis )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // nonrelativistic basis, this may need to become
     // Nrel_fwd and Nrel_bwd 
-    if( are_equal( token , "Nrel" ) ) {
+    if( are_equal( token , "Nrel\n" ) || 
+	are_equal( token , "Nrel_fwd\n" ) ||
+	are_equal( token , "Nrel_bwd\n" ) ) {
       *basis = NREL ;
       return SUCCESS ;
     }
     // relativistic chiral basis
-    if( are_equal( token , "Chiral" ) ) {
+    if( are_equal( token , "Chiral\n" ) ) {
       *basis = CHIRAL ;
       return SUCCESS ;
     }
@@ -197,10 +201,8 @@ read_propheader( struct propagator *prop )
   const int MAX_HEADER_LINES = 32 ;
   char line[ MAX_LINE_LENGTH ] , *endptr ;
   int n = 0 , dimsflag = 0 , originflag = 0 ;
-#ifdef NEWHEADER
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
   int basisflag = 0 ;
-#endif
 
   // loop up to some large number of possible tags
   while( n < MAX_HEADER_LINES ) {
@@ -226,7 +228,6 @@ read_propheader( struct propagator *prop )
       }
       originflag ++ ; 
     }
-#ifdef NEWHEADER
     // incorporate these when the header catches up
     if( are_equal( tag , "Endian:" ) ) {
       if( get_propendian( &( prop -> endian ) ) == FAILURE ) {
@@ -255,8 +256,7 @@ read_propheader( struct propagator *prop )
       }
       basisflag ++ ;
     }
-#endif
-
+    // break when we hit the desired end_header
     if( are_equal( line , "<end_header>\n" ) ) {
       break ;
     }
@@ -266,13 +266,20 @@ read_propheader( struct propagator *prop )
   // check the flags have been hit
   if( dimsflag == 0 ) return nonexistent_record( "Lattice:" ) ; 
   if( originflag == 0 ) return nonexistent_record( "SrcPos:" ) ; 
-#ifdef NEWHEADER
   if( endflag == 0 ) return nonexistent_record( "Endian:" ) ; 
   if( precflag == 0 ) return nonexistent_record( "Precision:" ) ;
   if( srcflag == 0 ) return nonexistent_record( "Source:" ) ;
   if( basisflag == 0 ) return nonexistent_record( "Basis:" ) ;
-#endif
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
+
+  // the NRQCD code counts from 1 instead of zero, shift to c-counting
+  // instead of Fortran counting
+  if( prop -> basis == NREL ) {
+    int mu ;
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      prop -> origin[ mu ] -= 1 ;
+    }
+  }
 
   // if everything is kosher we leave successfully
   return SUCCESS ;

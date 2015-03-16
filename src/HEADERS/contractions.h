@@ -77,6 +77,20 @@ meson_contract( const struct gamma GSNK ,
 		const struct gamma G5 ) ;
 
 /**
+   @fn double complex simple_meson_contract( const struct gamma GSNK , const struct spinor bwd , const struct gamma GSRC , const struct spinor fwd )
+   @brief does a simple meson contraction
+   
+   @return \f[
+   \textrm{Tr} \left[ \gamma_{\textrm{GSNK}} \textrm{bwd} \gamma_{\textrm{GSRC}} ( \textrm{fwd} ) \right]
+   \f]
+ */
+double complex
+simple_meson_contract( const struct gamma GSNK ,		
+		       const struct spinor bwd , 
+		       const struct gamma GSRC ,
+		       const struct spinor fwd ) ;
+
+/**
    @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
    @brief atomically left multiply spinor A by spinor B ( A = B * A )
  */

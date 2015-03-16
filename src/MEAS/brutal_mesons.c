@@ -14,6 +14,7 @@ meson_trace( const struct gamma GSNK ,
 	     const struct gamma GSRC ,
 	     const struct spinor S1 )
 {
+  /*
   struct spinor tmp1 = S2 ;
   gamma_mul_l( &tmp1 , GSNK ) ;
 
@@ -21,6 +22,8 @@ meson_trace( const struct gamma GSNK ,
   gamma_mul_l( &tmp2 , GSRC ) ;
   
   return bilinear_trace( tmp1 , tmp2 ) ;
+  */
+  return simple_meson_contract( GSNK , S2 , GSRC , S1 ) ;
 }
 
 // computes meson correlators
@@ -78,9 +81,9 @@ single_mesons_bruteforce( struct propagator prop ,
   printf("\n");	
 
   // & do something with the computed correlators
-#ifdef DEBUG
+  //#ifdef DEBUG
   debug_mesons( "LL-mesons" , (const struct correlator**)corr ) ;
-#endif
+  //#endif
 
   // free our correlator measurement
   free_corrs( corr , NSNS , NSNS ) ;
@@ -91,6 +94,9 @@ single_mesons_bruteforce( struct propagator prop ,
   // free our spinor
   free( S1 ) ;
   free( S1adj ) ;
+
+  // tell us how long it took, again, probably a long time
+  print_time( ) ;
 
   return SUCCESS ;
 }

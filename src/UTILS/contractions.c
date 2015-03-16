@@ -140,7 +140,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
   return ;
 }
 
-// meson contraction code
+// meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
 double complex
 meson_contract( const struct gamma GSNK ,		
 		const struct spinor bwd , 
@@ -179,6 +179,47 @@ meson_contract( const struct gamma GSNK ,
       case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
       }
       // and we are done
+    }
+  }
+  return gsumr + I * gsumi ;
+}
+
+// meson contraction code computes Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
+double complex
+simple_meson_contract( const struct gamma GSNK ,		
+		       const struct spinor bwd , 
+		       const struct gamma GSRC ,
+		       const struct spinor fwd )
+{
+  register double gsumr = 0.0 , gsumi = 0.0 ;
+
+  int i , j , c1 , c2 , col2 , col1 ;
+  for( i = 0 ; i < NS ; i++ ) {
+
+    const int col1 = GSNK.ig[ i ] ;
+
+    // loop columns
+    for( j = 0 ; j < NS ; j++ ) {
+
+      const int col2 = GSRC.ig[ j ] ;
+
+      register double sumr = 0.0 , sumi = 0.0 ;
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  sumr += creal( bwd.D[col1][col2].C[c1][c2] ) * creal( fwd.D[j][i].C[c2][c1] ) 
+	    - cimag( bwd.D[col1][col2].C[c1][c2] ) * cimag( fwd.D[j][i].C[c2][c1] ) ;
+	  sumi += creal( bwd.D[col1][col2].C[c1][c2] ) * cimag( fwd.D[j][i].C[c2][c1] ) 
+	    + cimag( bwd.D[col1][col2].C[c1][c2] ) * creal( fwd.D[j][i].C[c2][c1] ) ;
+	}
+      }
+      // switch for the phases
+      switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
+      case 0 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
+      case 1 : gsumr += -sumi ; gsumi +=  sumr ; break ;
+      case 2 : gsumr += -sumr ; gsumi += -sumi ; break ;
+      case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      }
+      //
     }
   }
   return gsumr + I * gsumi ;
