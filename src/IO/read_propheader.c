@@ -1,6 +1,24 @@
 /**
    @file read_propheader.c
    @brief propagator header reader
+
+   The way this works is the code reads a line associated with a "tag"
+
+   e.g.
+   Lattice: {stuff}
+
+   If the tag is something we want it calls a get_* function
+   these then increment whitespace until the end of the line looking for
+   what we wish in the case of the lattice it will look for data of the form
+
+   DIM_X DIM_Y DIM_Z DIM_T and compare to the global geometry
+
+   In the case of places where a single value is expected it returns
+   as soon as it has found the value
+
+   e.g.
+   Endian: Big Little Medium
+   Would return Big
  */
 #include "common.h"
 
@@ -40,7 +58,9 @@ get_propdims( int *dims )
       printf( "[IO] propheader and global lattice dims mismatch!\n"
 	      "[IO] %d vs %d ( index %d ) \n" , dims[ N ] ,
 	      Latt.dims[ N ] , N ) ;
+      return FAILURE ;
     }
+    // we have successfully read in all the dimension info we need
     if( ++N == ND ) return SUCCESS ;
   }
   return FAILURE ;
