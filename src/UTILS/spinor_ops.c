@@ -127,7 +127,7 @@ spinor_gaugedag( struct spinor *__restrict res ,
 // sums a propagator over a timeslice
 void
 sumprop( struct spinor *__restrict SUM ,
-	 struct spinor *__restrict S )
+	 const struct spinor *__restrict S )
 {
   zero_spinor( (double complex*)SUM -> D ) ;
   int d1d2 ;
@@ -139,9 +139,27 @@ sumprop( struct spinor *__restrict SUM ,
     double complex sum[ NCNC ] = {} ;
     int i ;
     for( i = 0 ; i < VOL3 ; i++ ) {
-      add_mat( sum , (double complex*)S[i].D[ d1 ][ d2 ].C ) ;
+      add_mat( sum , (const double complex*)S[i].D[ d1 ][ d2 ].C ) ;
     }
     colormatrix_equiv( (double complex*)SUM -> D[ d1 ][ d2 ].C , sum ) ;
+  }
+  return ;
+}
+
+// multiplies two spinors A = B * A
+void
+spinmul_atomic_left( struct spinor *A ,
+		     const struct spinor B )
+{
+  struct spinor tmp = *A ;
+  int d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      // color matrix multiply
+      multab( (double complex*)A -> D[d1][d2].C ,
+	      (const double complex*)B.D[d2][d1].C ,
+	      (const double complex*)tmp.D[d1][d2].C ) ;
+    }
   }
   return ;
 }

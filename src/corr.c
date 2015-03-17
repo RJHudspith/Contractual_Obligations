@@ -4,9 +4,8 @@
  */
 #include "common.h"          // one header to rule them all
 
-//#include "geometry.h"        // init_geom and init_navig
+#include "geometry.h"        // init_geom and init_navig
 #include "GLU_timer.h"       // sys/time.h wrapper
-///#include "io.h"              // file IO stuff
 #include "input_reader.h"    // input file readers
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header

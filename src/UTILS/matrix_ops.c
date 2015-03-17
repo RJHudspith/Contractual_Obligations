@@ -60,8 +60,8 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 
 // is just Tr( a * b )
 inline double complex
-colortrace_prod( double complex *__restrict a , 
-		 double complex *__restrict b )
+colortrace_prod( const double complex *__restrict a , 
+		 const double complex *__restrict b )
 {
 #if NC == 3
   return a[0] * b[0] + a[1] * b[3] + a[2] * b[6] +	\

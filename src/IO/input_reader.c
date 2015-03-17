@@ -228,40 +228,6 @@ get_current_type( current_type *current ,
   return SUCCESS ;
 }
 
-// get the propagator types
-static int
-get_proptype( proptype *prop ,
-	      const char *token ) 
-{
-  if( are_equal( token , "CHIRAL" ) ) {
-    *prop = CHIRAL ;
-  } else if( are_equal( token , "NREL" ) ) {
-    *prop = NREL ;
-  } else {
-    printf( "[IO] I don't understand gamma basis %s\n" , 
-	    token ) ;
-    return FAILURE ;
-  }
-  return SUCCESS ;
-}
-
-///
-static int
-get_sourcetype( sourcetype *source ,
-		const char *token ) 
-{
-  if( are_equal( token , "WALL" ) ) {
-    *source = WALL ;
-  } else if( are_equal( token , "POINT" ) ) {
-    *source = POINT ;
-  } else {
-    printf( "[IO] I don't understand source type %s\n" , token ) ;
-    return FAILURE ;
-  }
-  printf( "[IO] Propagators are %s sources \n" , token ) ;
-  return SUCCESS ;
-}
-
 //
 static int
 unexpected_NULL( void ) 

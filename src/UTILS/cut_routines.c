@@ -409,7 +409,6 @@ compute_veclist( int *__restrict list_size ,
       in[0] = get_veclist( kept , CUTINFO , LOOP , DIMS ) ;
     } else {
       in[0] = get_mom_veclist( kept , CUTINFO , LOOP , DIMS ) ;
-      // get_list( kept , CUTINFO , DIMS ) ;
     }
 
     // write out the length of the array first
@@ -432,6 +431,13 @@ compute_veclist( int *__restrict list_size ,
   config = fopen( str , "rb" ) ;
   // malloc list if not already done so
   int check = fread( in , sizeof(int) , 1 , config ) ;
+  if( check != 1 ) {
+    printf( "[IO] list read error \n" ) ;
+    fclose( config ) ;
+    *list_size = 0 ;
+    return NULL ;
+  }
+
   if( flag != NO_MOMENTUM_CONFIG ) {
     list = ( struct veclist* )malloc( in[0] * sizeof( struct veclist ) ) ;
   }
@@ -440,7 +446,7 @@ compute_veclist( int *__restrict list_size ,
     printf( "[CUTS] Empty Momentum list .. Nothing to do ... Leaving\n" ) ;
     fclose( config ) ;
     *list_size = 0 ;
-    return 0 ;
+    return NULL ;
   }
   fclose( config ) ;
 

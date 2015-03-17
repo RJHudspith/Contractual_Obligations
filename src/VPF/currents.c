@@ -34,7 +34,7 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
    \text{Tr}\left[ \gamma_\nu ( \gamma_5  S2^{\dagger}(x) \gamma_5 ) \gamma_\mu U_\mu\left( x+ a\frac{\hat\mu}{2} \right)S1(x+\mu) \right] + \text{Tr}\left[ \gamma_\nu ( \gamma_5  S2^{\dagger}(x+\mu) \gamma_5 ) \gamma_\mu U_\mu\left( x+ a\frac{\hat\mu}{2} \right)^{\dagger} S1(x) \right]    \f]
 */
 // non-conserved non-local vector current 
-static double complex
+double complex
 NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	     const struct spinor S2 ,       // S_2
@@ -84,8 +84,6 @@ contract_conserved_local( struct PIdata *DATA_AA ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
-
-    struct gamma G1 , G2 ;
 
     struct spinor US1xpmu , UdS1x , S2xpmu ; // temporary storage for the gauge-multiplied
     const int i = x + LCU * t ;

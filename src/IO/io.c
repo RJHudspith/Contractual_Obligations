@@ -9,6 +9,40 @@
 #include "GLU_bswap.h"    // byteswaps
 #include "matrix_ops.h"   // matrix equivs
 
+// fill our spinor
+static void
+fill_spinor( struct spinor *__restrict S ,
+	     void *tmp ,
+	     const int ND1 , 
+	     const int d1shift ,
+	     const int tmpsize )
+{
+  if( tmpsize == sizeof( float complex ) ) {
+    const float complex *ftmp = (const float complex*)tmp ;
+    int d1d2 ;
+    #pragma omp parallel for private(d1d2)
+    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
+      const int d1 = d1d2 / ND1 + d1shift ;
+      const int d2 = d1d2 % ND1 + d1shift ;
+      // unroll the matching
+      colormatrix_equiv_f2d( (double complex*)S -> D[ d1 ][ d2 ].C ,
+			     ftmp + d1d2 * NCNC ) ;
+    }
+  } else {
+    const double complex *ftmp = (const double complex*)tmp ;
+    int d1d2 ;
+    #pragma omp parallel for private(d1d2)
+    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
+      const int d1 = d1d2 / ND1 + d1shift ;
+      const int d2 = d1d2 % ND1 + d1shift ;
+      // unroll the matching
+      colormatrix_equiv( (double complex*)S -> D[ d1 ][ d2 ].C ,
+			 ftmp + d1d2 * NCNC ) ;
+    }
+  }
+  return ;
+}
+
 // the question is ... Who checks the checksum?
 int
 check_checksum( FILE *fprop )
@@ -51,40 +85,6 @@ check_checksum( FILE *fprop )
   }
 
   return SUCCESS ;
-}
-
-// fill our spinor
-static void
-fill_spinor( struct spinor *__restrict S ,
-	     void *tmp ,
-	     const int ND1 , 
-	     const int d1shift ,
-	     const int tmpsize )
-{
-  if( tmpsize == sizeof( float complex ) ) {
-    const float complex *ftmp = (const float complex*)tmp ;
-    int d1d2 ;
-    #pragma omp parallel for private(d1d2)
-    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
-      const int d1 = d1d2 / ND1 + d1shift ;
-      const int d2 = d1d2 % ND1 + d1shift ;
-      // unroll the matching
-      colormatrix_equiv_f2d( (double complex*)S -> D[ d1 ][ d2 ].C ,
-			     ftmp + d1d2 * NCNC ) ;
-    }
-  } else {
-    const double complex *ftmp = (const double complex*)tmp ;
-    int d1d2 ;
-    #pragma omp parallel for private(d1d2)
-    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
-      const int d1 = d1d2 / ND1 + d1shift ;
-      const int d2 = d1d2 % ND1 + d1shift ;
-      // unroll the matching
-      colormatrix_equiv( (double complex*)S -> D[ d1 ][ d2 ].C ,
-			 ftmp + d1d2 * NCNC ) ;
-    }
-  }
-  return ;
 }
 
 // Read light propagator on a time slice 

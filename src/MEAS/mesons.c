@@ -1,6 +1,6 @@
 /**
-   @file wall_mesons.c
-   @brief wall-wall meson coputation
+   @file mesons.c
+   @brief meson coputation
  */
 
 #include "common.h"

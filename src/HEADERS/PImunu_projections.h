@@ -7,12 +7,18 @@
 #define PIMUNU_PROJECTIONS_H
 
 /**
-   @fn void subtract_zeromom( struct PIdata *__restrict data , const int NMOM[1] )
-   @brief subtracts the sum of the correlator from the data
+   @fn void momspace_data( struct PIdata *data , const double **p , const double *psq , const struct veclist *__restrict list , const int *__restrict NMOM , const char *outfile , const current_type current , const vector_axial VA ) 
+   @brief wrapper for momentum-space routines
  */
 void
-subtract_zeromom( struct PIdata *__restrict data ,
-		  const int NMOM[1] ) ;
+momspace_data( struct PIdata *data ,
+	       const double **p ,
+	       const double *psq ,
+	       const struct veclist *__restrict list ,
+	       const int *__restrict NMOM ,
+	       const char *outfile ,
+	       const current_type current ,
+	       const vector_axial VA ) ;
 
 /**
    @fn void projection_fullmom( const struct PIdata *data , const double **p , const double *psq , const struct veclist *list , const int *__restrict NMOM , const char *outfile )
@@ -40,5 +46,13 @@ projection_tonly( const struct PIdata *data ,
 		  const struct veclist *list ,
 		  const int *__restrict NMOM ,
 		  const char *outfile ) ;
+
+/**
+   @fn void subtract_zeromom( struct PIdata *__restrict data , const int NMOM[1] )
+   @brief subtracts the sum of the correlator from the data
+ */
+void
+subtract_zeromom( struct PIdata *__restrict data ,
+		  const int NMOM[1] ) ;
 
 #endif

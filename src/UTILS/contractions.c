@@ -13,7 +13,7 @@ void
 adjoint_spinor( struct spinor *__restrict adj ,
 		const struct spinor S )
 {
-  int d1 , d2 , c1 , c2 ;
+  int d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       dagger_gauge( (double complex*)adj -> D[d2][d1].C ,
@@ -32,8 +32,8 @@ bilinear_trace( const struct spinor A ,
   register double complex sum = 0.0 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
-      sum += colortrace_prod( (double complex*)A.D[d1][d2].C ,
-			      (double complex*)B.D[d2][d1].C ) ;
+      sum += colortrace_prod( (const double complex*)A.D[d1][d2].C ,
+			      (const double complex*)B.D[d2][d1].C ) ;
     }
   }
   return sum ;
@@ -57,7 +57,7 @@ gamma_mul_l( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
-  int i , j , c1 , c2 ;
+  int i , j ;
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
     const int col = GAMMA.ig[i] ;
@@ -87,7 +87,7 @@ gamma_mul_r( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
-  int i , j , c1 , c2 ;
+  int i , j ;
   // loop columns of src
   for( j = 0 ; j < NS ; j++ ) {
     const int col = GAMMA.ig[j] ;
@@ -193,7 +193,7 @@ simple_meson_contract( const struct gamma GSNK ,
 {
   register double gsumr = 0.0 , gsumi = 0.0 ;
 
-  int i , j , c1 , c2 , col2 , col1 ;
+  int i , j , c1 , c2 ;
   for( i = 0 ; i < NS ; i++ ) {
 
     const int col1 = GSNK.ig[ i ] ;
@@ -223,22 +223,4 @@ simple_meson_contract( const struct gamma GSNK ,
     }
   }
   return gsumr + I * gsumi ;
-}
-
-// multiplies two spinors A = B * A
-void
-spinmul_atomic_left( struct spinor *A ,
-		     const struct spinor B )
-{
-  struct spinor tmp = *A ;
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      // color matrix multiply
-      multab( (double complex*)A -> D[d1][d2].C ,
-	      (const double complex*)B.D[d2][d1].C ,
-	      (const double complex*)tmp.D[d1][d2].C ) ;
-    }
-  }
-  return ;
 }

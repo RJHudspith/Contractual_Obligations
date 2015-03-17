@@ -73,7 +73,15 @@ spinor_gaugedag( struct spinor *__restrict res ,
  */
 void
 sumprop( struct spinor *__restrict SUM ,
-	 struct spinor *__restrict S ) ;
+	 const struct spinor *__restrict S ) ;
+
+/**
+   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
+   @brief atomically left multiply spinor A by spinor B ( A = B * A )
+ */
+void
+spinmul_atomic_left( struct spinor *A ,
+		     const struct spinor B ) ;
 
 /**
    @fn void zero_spinor( double complex *__restrict S )

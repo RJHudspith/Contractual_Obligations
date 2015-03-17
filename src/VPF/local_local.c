@@ -6,10 +6,13 @@
 #include "common.h"
 
 #include "basis_conversions.h" // rotate slice
+#include "currents.h"          // contractions
 #include "gammas.h"            // gamma matrices
 #include "io.h"                // read_prop
 #include "matrix_ops.h"        // constant_mul_gauge
 #include "momspace_PImunu.h"   // momentum space VPF
+#include "tmoments_PImunu.h"   // time moments calculations
+#include "read_propheader.h"   // read_propheader()
 
 // compute the conserved local for a correlator
 int

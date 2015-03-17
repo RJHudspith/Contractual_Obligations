@@ -9,7 +9,10 @@
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "contractions.h"      // for the 4 prop contraction
 #include "gammas.h"            // gamma matrices
+#include "GLU_timer.h"         // print_time() function
+#include "io.h"                // read prop
 #include "read_propheader.h"   // (re)read the header
+#include "spinor_ops.h"        // spinor multiply
 
 // ok, brute force this calculation
 static double complex
@@ -127,12 +130,12 @@ WME( struct propagator s0 ,
 	int site ;
 	for( site = 0 ; site < LCU ; site++ ) {
 	  // trace-trace component is simple this is projected onto external "PROJ" state
-	  trtr += ( meson_trace( PROJ , DWALL_0[ site ] ,
-				 GAMMAS[ GSRC ] , SWALL_0[ site ] , 
-				 GAMMAS[ GAMMA_5 ] ) *
-		    meson_trace( PROJ , DWALL_L_2[ site ] ,
-				 GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
-				 GAMMAS[ GAMMA_5 ] ) ) ;
+	  trtr += ( meson_contract( PROJ , DWALL_0[ site ] ,
+				    GAMMAS[ GSRC ] , SWALL_0[ site ] , 
+				    GAMMAS[ GAMMA_5 ] ) *
+		    meson_contract( PROJ , DWALL_L_2[ site ] ,
+				    GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
+				    GAMMAS[ GAMMA_5 ] ) ) ;
 	  // four quark trace is unpleasant
 	  tr += four_quark_trace( SWALL_0[ site ] , DWALL_0[ site ] ,
 				  SWALL_L_2[ site ] , DWALL_L_2[ site ] ,

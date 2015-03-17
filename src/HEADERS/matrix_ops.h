@@ -30,12 +30,12 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
 /**
-   @fn inline double complex colortrace_prod( double complex *a , double complex *b )
+   @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
    @brief trace of the product of two color matrices
  */
 inline double complex
-colortrace_prod( double complex *a , 
-		 double complex *b ) ;
+colortrace_prod( const double complex *a , 
+		 const double complex *b ) ;
 
 /**
    @fn constant_mul_gauge( double complex *res , const double complex constant , const double complex *U )

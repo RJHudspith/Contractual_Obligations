@@ -6,10 +6,9 @@
 #include "common.h"
 
 #include "cut_routines.h"       // cuts
-#include "geometry.h"           // mapping between 0->2Pi BZ that FFTW uses
 #include "plan_ffts.h"          // for FFTW planning
 #include "PImunu_projections.h" // projection codes
-#include "WardIdentity.h"       // compute the ward identity
+#include "WardIdentity.h"       // compute_psq
 
 // FFT our mu,nu data
 #ifdef HAVE_FFTW3_H
@@ -86,11 +85,11 @@ momspace_PImunu( struct PIdata *AA ,
   // precompute momenta
   compute_p_psq( p , psq , list , NMOM[0] ) ;
 
-  momspace_data( AA , p , psq , list , NMOM ,
-		 outfile , current , AXIAL ) ;
+  momspace_data( AA , (const double **)p , psq , list , 
+		 NMOM , outfile , current , AXIAL ) ;
 
-  momspace_data( VV , p , psq , list , NMOM ,
-		 outfile , current , VECTOR ) ;
+  momspace_data( VV , (const double **)p , psq , list , 
+		 NMOM , outfile , current , VECTOR ) ;
   
 
   // free the momentum list

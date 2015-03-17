@@ -8,6 +8,7 @@
 #include "common.h"
 
 #include "correlators.h"        // write out the correlator file
+#include "WardIdentity.h"       // psq calculation
 #include "PImunu_projections.h" // for the momentum space projections
 
 // DFT in time direction
@@ -149,11 +150,11 @@ tmoments( const struct PIdata *AA ,
   char str[ 256 ] ;
   sprintf( str , "%s.ptonly" , outfile ) ;
 
-  momspace_data( cpAA , p , psq , list , NMOM ,
-		 str , current , AXIAL ) ;
+  momspace_data( cpAA , (const double **)p , psq , list , 
+		 NMOM , str , current , AXIAL ) ;
 
-  momspace_data( cpVV , p , psq , list , NMOM ,
-		 str , current , VECTOR ) ;
+  momspace_data( cpVV , (const double **)p , psq , list , 
+		 NMOM , str , current , VECTOR ) ;
 
   free( (void*)list ) ;
 

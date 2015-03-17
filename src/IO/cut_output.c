@@ -60,6 +60,7 @@ write_momspace_data( const char *filename ,
 
   // write a magic number
   uint32_t magic[ 1 ] = { VPF_MAGIC } ;
+  fwrite( magic , sizeof( uint32_t ) , 1 , outfile ) ;
 
   // writes the momentum list
   // in terms of Fourier modes px py pz pt

@@ -5,7 +5,8 @@
 
 #include "common.h"
 
-#include "cut_output.h" // for the IO 
+#include "cut_output.h"    // for the IO 
+#include "WardIdentity.h"  // we compute the WI in momspace_data()
 
 // we have the zero at index [0] as the FT is in the 0->2Pi BZ
 void

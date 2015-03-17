@@ -90,12 +90,4 @@ simple_meson_contract( const struct gamma GSNK ,
 		       const struct gamma GSRC ,
 		       const struct spinor fwd ) ;
 
-/**
-   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
-   @brief atomically left multiply spinor A by spinor B ( A = B * A )
- */
-void
-spinmul_atomic_left( struct spinor *A ,
-		     const struct spinor B ) ;
-
 #endif

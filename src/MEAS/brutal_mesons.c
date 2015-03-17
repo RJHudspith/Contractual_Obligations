@@ -1,11 +1,16 @@
 /**
    @file brutal_mesons.c
    @brief brute-force meson contractions
- */
+ 
+   TODO :: make this equivalent to the mesons code
+*/
 #include "common.h"
 
 #include "contractions.h" // bilinear trace and gamma multiplies
 #include "correlators.h"  // for the allocate and free correlator functions
+#include "gammas.h"       // make gammas
+#include "GLU_timer.h"    // print_time() function
+#include "io.h"           // read_prop
 
 // meson trace
 double complex

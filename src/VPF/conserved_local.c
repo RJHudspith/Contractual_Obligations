@@ -8,11 +8,15 @@
 
 #include "common.h"
 
-#include "gammas.h"          // gamma matrices
-#include "io.h"              // read_prop
-#include "matrix_ops.h"      // constant_mul_gauge
-#include "momspace_PImunu.h" // momentum space VPF
-#include "tmoments_PImunu.h" // time moments too
+#include "basis_conversions.h" // chiral->nrel
+#include "currents.h"          // conserved-local
+#include "gammas.h"            // gamma matrices
+#include "io.h"                // read_prop
+#include "matrix_ops.h"        // constant_mul_gauge
+#include "momspace_PImunu.h"   // momentum space VPF
+#include "read_propheader.h"   // reread the header
+#include "tmoments_PImunu.h"   // time moments too
+#include "WardIdentity.h"      // Config space WI
 
 // compute the conserved local for a correlator
 int
