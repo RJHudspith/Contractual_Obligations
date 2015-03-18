@@ -63,7 +63,7 @@ projection( const struct PIdata *data ,
   }
 
   sprintf( str , "%s.transPlong.bin" , outfile ) ;
-  write_momspace_data( str , NMOM , longitudinal , list , ND ) ;
+  write_momspace_data( str , NMOM , trans , list , ND ) ;
 
   // free the projected data
   free( trans ) ;
