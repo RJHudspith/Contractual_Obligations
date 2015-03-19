@@ -34,24 +34,6 @@ UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 ## c files in ./WME/
 WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 
-## now I think I can probably pattern substitute all the c files into headers TODO
-
-include_HEADERS = \
-	../config.h ./HEADERS/chklat_stuff.h ./HEADERS/common.h ./HEADERS/correlators.h \
-	./HEADERS/conserved_local.h ./HEADERS/crc32.h ./HEADERS/definitions.h \
-	./HEADERS/enum.h ./HEADERS/gammas.h ./HEADERS/mesons.h \
-	./HEADERS/geometry.h ./HEADERS/GLU_bswap.h ./HEADERS/GLU_timer.h \
-	./HEADERS/gramschmidt.h ./HEADERS/input_reader.h ./HEADERS/io.h \
-	./HEADERS/matrix_ops.h	./HEADERS/momspace_PImunu.h \
-	./HEADERS/plaqs_links.h ./HEADERS/read_config.h ./HEADERS/readers.h \
-	./HEADERS/read_headers.h ./HEADERS/Scidac.h ./HEADERS/structs.h \
-	./HEADERS/XML_info.h ./HEADERS/read_propheader.h ./HEADERS/brutal_mesons.h \
-	./HEADERS/currents.h ./HEADERS/spinor_ops.h ./HEADERS/wrap_mesons.h \
-	./HEADERS/basis_conversions.h ./HEADERS/contractions.h ./HEADERS/WardIdentity.h \
-	./HEADERS/tmoments_PImunu.h ./HEADERS/cut_routines.h ./HEADERS/cut_output.h \
-	./HEADERS/wrap_VPF.h ./HEADERS/local_local.h ./HEADERS/PImunu_projections.h \
-	./HEADERS/WME.h ./HEADERS/wrap_WME.h ./HEADERS/wrap_baryons.h 
-
 libCORR_a_SOURCES = \
 	${BARYONFILES} \
 	${GEOMFILES} \
@@ -60,6 +42,18 @@ libCORR_a_SOURCES = \
 	${UTILSFILES} \
 	${VPFFILES} \
 	${WMEFILES}
+
+## patter substitute in the headers
+include_HEADERS = \
+	$(BARYONFILES:./BARYONS/%.c=./HEADERS/%.h) \
+	$(GEOMFILES:./GEOMETRY/%.c=./HEADERS/%.h) \
+	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
+	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
+	$(UTILSSFILES:./UTILS/%.c=./HEADERS/%.h) \
+	$(VPFFILES:./VPF/%.c=./HEADERS/%.h) \
+	$(WMEFILES:./WME/%.c=./HEADERS/%.h) \
+	./HEADERS/common.h \
+	../config.h 
 
 if !PREF
 
