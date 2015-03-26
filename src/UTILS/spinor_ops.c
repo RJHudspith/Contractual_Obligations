@@ -19,6 +19,42 @@ add_spinors( double complex *__restrict SUM ,
   return ;
 }
 
+// equate spinors
+void
+equate_spinor( double complex *__restrict S1 ,
+	       const double complex *__restrict S2 )
+{
+  // probably be better calling out to memcpy ....
+  int i ;
+  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
+    S1[ i ] = S2[ i ] ;
+  }
+  return ;
+}
+
+// equate one spinor to the minus of another
+void
+equate_spinor_minus( double complex *__restrict mS ,
+		     const double complex *__restrict S )
+{
+  int i ;
+  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
+    mS[ i ] = -S[ i ] ;
+  }
+  return ;
+}
+
+// flip a spinor, call with flipsign_spinor( (double complex*)S.D )
+void
+flipsign_spinor( double complex *__restrict S ) 
+{
+  int i ;
+  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
+    S[ i ] = -S[ i ] ;
+  }
+  return ;
+}
+
 // multiply by a link :: res = link * S
 void
 gauge_spinor( struct spinor *__restrict res ,  

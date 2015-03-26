@@ -81,4 +81,20 @@ multab_dag( double complex a[ NCNC ] ,
 	    const double complex b[ NCNC ] , 
 	    const double complex c[ NCNC ] ) ;
 
+/**
+   @fn void multab_dagdag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
+   @brief performs the matrix multiplication \f$ a = b^{\dagger} * c ^{\dagger} \f$
+ */
+void 
+multab_dagdag( double complex a[ NCNC ] , 
+	       const double complex b[ NCNC ] , 
+	       const double complex c[ NCNC ] ) ;
+
+/**
+   @fn void print_colormatrix( const double complex a[ NCNC ] )
+   @brief print to stdout the color matrix a
+ */
+void
+print_colormatrix( const double complex a[ NCNC ] ) ;
+
 #endif

@@ -104,9 +104,9 @@ correct_WI( struct PIdata *data ,
   return ;
 }
 
-// computes \delta_\mu V_\mu V_\nu 
+// computes V( x ) - V( x - \mu )
 void
-WI_configspace( const struct PIdata *data ,
+WI_configspace_bwd( const struct PIdata *data ,
 		const struct site *lat )
 {
   double sum = 0.0 ;
@@ -115,13 +115,62 @@ WI_configspace( const struct PIdata *data ,
   for( i = 0 ; i < LVOLUME ; i++ ) {
     register double complex der = 0.0 ;
     int mu , nu ;
-    for( mu = 0 ; mu < ND ; mu++ ) {
-      for( nu = 0 ; nu < ND ; nu++ ) {
+    for( nu = 0 ; nu < ND ; nu++ ) {
+      for( mu = 0 ; mu < ND ; mu++ ) {
 	der += data[ i ].PI[mu][nu] - data[ lat[i].back[mu] ].PI[mu][nu] ;
       }
+      sum = sum + cabs( der ) ;
     }
-    sum = sum + cabs( der ) ;
   }
-  printf( "\n[VPF] config-space violation %e \n\n" , sum / ( double)LVOLUME ) ;
+  printf( "\n[VPF] backward config-space violation %e \n\n" , 
+	  sum / ( double)LVOLUME ) ;
+  return ;
+}
+
+// computes V( x + \mu ) - V( x )
+void
+WI_configspace_fwd( const struct PIdata *data ,
+		    const struct site *lat )
+{
+  double sum = 0.0 ;
+  int i ;
+#pragma omp parallel for private(i) reduction(+:sum) 
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    register double complex der = 0.0 ;
+    int mu , nu ;
+    for( nu = 0 ; nu < ND ; nu++ ) {
+      for( mu = 0 ; mu < ND ; mu++ ) {
+	der += data[ lat[ i ].neighbor[ mu ] ].PI[mu][nu] - data[ i ].PI[mu][nu] ;
+      }
+      sum = sum + cabs( der ) ;
+    }
+  }
+  printf( "\n[VPF] forward config-space violation %e \n\n" , 
+	  sum / ( double)LVOLUME ) ;
+  return ;
+}
+
+// computes V( x + \mu ) - V( x - \mu )
+void
+WI_configspace_sym( const struct PIdata *data ,
+		    const struct site *lat )
+{
+  double sum = 0.0 ;
+  int i ;
+#pragma omp parallel for private(i) reduction(+:sum) 
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    int mu , nu ;
+    for( nu = 0 ; nu < ND ; nu++ ) {
+      register double complex der = 0.0 ;
+      for( mu = 0 ; mu < ND ; mu++ ) {
+	const int xmmu = lat[i].back[mu] ;
+	const int xpmu = lat[i].neighbor[mu] ;
+	der += ( data[ xpmu ].PI[mu][nu] - data[ xmmu ].PI[mu][nu] ) ;
+      }
+      sum = sum + cabs( der ) ;
+    }
+  }
+  printf( "\n[VPF] symmetric config-space violation %e \n\n" , 
+	  sum / ( double)LVOLUME ) ;
   return ;
 }

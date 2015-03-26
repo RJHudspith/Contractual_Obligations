@@ -242,3 +242,64 @@ multab_dag( double complex a[ NCNC ] ,
   return ;
 }
 
+
+// a = b^{\dagger} * c^{\dagger}
+void 
+multab_dagdag( double complex a[ NCNC ] , 
+	       const double complex b[ NCNC ] , 
+	       const double complex c[ NCNC ] )
+{
+#if NC==3
+  a[0] = conj( b[0] ) * conj( c[0] ) + conj( b[3] ) * conj( c[1] ) + conj( b[6] ) * conj( c[2] ) ; \
+  a[1] = conj( b[0] ) * conj( c[3] ) + conj( b[3] ) * conj( c[4] ) + conj( b[6] ) * conj( c[5] ) ; \
+  a[2] = conj( b[0] ) * conj( c[6] ) + conj( b[3] ) * conj( c[7] ) + conj( b[6] ) * conj( c[8] ) ; \
+  a[3] = conj( b[1] ) * conj( c[0] ) + conj( b[4] ) * conj( c[1] ) + conj( b[7] ) * conj( c[2] ) ; \
+  a[4] = conj( b[1] ) * conj( c[3] ) + conj( b[4] ) * conj( c[4] ) + conj( b[7] ) * conj( c[5] ) ; \
+  a[5] = conj( b[1] ) * conj( c[6] ) + conj( b[4] ) * conj( c[7] ) + conj( b[7] ) * conj( c[8] ) ; \
+  a[6] = conj( b[2] ) * conj( c[0] ) + conj( b[5] ) * conj( c[1] ) + conj( b[8] ) * conj( c[2] ) ; \
+  a[7] = conj( b[2] ) * conj( c[3] ) + conj( b[5] ) * conj( c[4] ) + conj( b[8] ) * conj( c[5] ) ; \
+  a[8] = conj( b[2] ) * conj( c[6] ) + conj( b[5] ) * conj( c[7] ) + conj( b[8] ) * conj( c[8] ) ; 
+#elif NC==2
+  a[0] = conj( b[0] ) * conj( c[0] ) + conj( b[2] ) * conj( c[1] )  ;	\
+  a[1] = conj( b[0] ) * conj( c[2] ) + conj( b[2] ) * conj( c[3] )  ;	\
+  a[2] = conj( b[1] ) * conj( c[0] ) + conj( b[3] ) * conj( c[1] )  ;	\
+  a[3] = conj( b[1] ) * conj( c[2] ) + conj( b[3] ) * conj( c[3] )  ; 
+#else
+  int i , j , m ;
+  register double sumr = 0.0 , sumi = 0.0 ;
+  register double REB , IMB , REC , IMC ;
+  const double complex *pC , *pB ;
+  for( i = 0 ; i < NC ; i++ ) {
+    pC = c ;
+    for( j = 0 ; j < NC ; j++ ) {
+      pB = b ;
+      sumr = sumi = 0.0 ;
+      for( m = 0 ; m < NC ; m++ ) {
+	REB = creal( pB[i] ) ; IMB = cimag( pB[i] ) ;
+	REC = creal( pC[m] ) ; IMC = cimag( pC[m] ) ;
+	sumr += REB * REC - IMB * IMC ;
+	sumi += REB * IMC + IMB * REC ;
+	pB += NC ;
+      }
+      a[ j + NC*i ] = sumr + I * sumi ;
+      pC += NC ;
+    }
+  }
+#endif
+  return ;
+}
+
+// print a to stdout
+void
+print_colormatrix( const double complex a[ NCNC ] )
+{
+  int i , j ;
+  printf( "\n" ) ;
+  for( i = 0 ; i < NC ; i++ ) {
+    for( j = 0 ; j < NC ; j++ ) {
+      printf( "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
+    }
+    printf( "\n" ) ;
+  }
+  return ;
+}

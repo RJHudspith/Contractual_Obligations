@@ -16,6 +16,7 @@
 #include "momspace_PImunu.h"   // momentum space VPF
 #include "read_propheader.h"   // reread the header
 #include "tmoments_PImunu.h"   // time moments too
+#include "spinor_ops.h"        // spinor_minus
 #include "WardIdentity.h"      // Config space WI
 
 // compute the conserved local for a correlator
@@ -65,14 +66,8 @@ conserved_local( struct propagator prop ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
-    int d1 , d2 ;
-    // crossing a boundary flips the sign only for antiperiodic BC
-    for( d1 = 0 ; d1 < NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NS ; d2++ ) {
-	constant_mul_gauge( (double complex*)S1END[x].D[d1][d2].C , 
-			    -1 , (double complex*)S1[x].D[d1][d2].C ) ;
-      }
-    }
+    equate_spinor_minus( (double complex*)S1END[x].D , 
+			 (const double complex*)S1[x].D ) ;
   }
 
   // loop the timeslices
@@ -112,7 +107,7 @@ conserved_local( struct propagator prop ,
   printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 
   // derivatives delta_\mu V_\mu(x)
-  WI_configspace( DATA_VV , lat ) ;
+  WI_configspace_bwd( DATA_VV , lat ) ;
 
   // free our spinors
   free( S1 ) ;
@@ -125,8 +120,10 @@ conserved_local( struct propagator prop ,
   tmoments( DATA_AA , DATA_VV , outfile , CONSERVED_LOCAL ) ;
 
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-		   CONSERVED_LOCAL ) ;
+  if( prop.source == POINT ) { 
+    momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		     CONSERVED_LOCAL ) ;
+  }
 
   // free the AA & VV data
   free( DATA_AA ) ;
@@ -196,16 +193,10 @@ conserved_local_double( struct propagator prop1 ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
-    int d1 , d2 ;
-    // crossing a boundary flips the sign only for antiperiodic BC
-    for( d1 = 0 ; d1 < NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NS ; d2++ ) {
-	constant_mul_gauge( (double complex*)S1END[x].D[d1][d2].C , 
-			    -1 , (double complex*)S1[x].D[d1][d2].C ) ;
-	constant_mul_gauge( (double complex*)S2END[x].D[d1][d2].C , 
-			    -1 , (double complex*)S2[x].D[d1][d2].C ) ;
-      }
-    }
+    equate_spinor_minus( (double complex*)S1END[x].D , 
+			 (const double complex*)S1[x].D ) ;
+    equate_spinor_minus( (double complex*)S2END[x].D , 
+			 (const double complex*)S2[x].D ) ;
   }
 
   // over the whole volume is not as expensive as you may think
@@ -259,7 +250,7 @@ conserved_local_double( struct propagator prop1 ,
   printf("\r[VPF] cl-flavour off diagonal done 100%% \n" ) ; 
 
   // derivatives delta_\mu V_\mu(x)
-  WI_configspace( DATA_VV , lat ) ;
+  WI_configspace_bwd( DATA_VV , lat ) ;
 
   // free our spinors
   free( S1 ) ;
@@ -277,8 +268,10 @@ conserved_local_double( struct propagator prop1 ,
   tmoments( DATA_AA , DATA_VV , outfile , CONSERVED_LOCAL ) ;
 
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-		   CONSERVED_LOCAL ) ;
+  if( prop1.source == POINT ) { 
+    momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		     CONSERVED_LOCAL ) ;
+  }
 
   // free the AA & VV data
   free( DATA_AA ) ;

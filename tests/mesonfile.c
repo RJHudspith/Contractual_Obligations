@@ -157,7 +157,7 @@ main( const int argc ,
     printf( "Correlator [ %d %d ] \n" , idx1 , idx2 ) ;
     int t ;
     for( t = 0 ; t < L0 ; t++ ) {
-      printf( "%d %1.12e %1.12e\n" , t ,
+      printf( "C[%d] %1.12e %1.12e\n" , t ,
 	      creal( corr[ idx1 ][ idx2 ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].C[ t ] ) ) ;
     }

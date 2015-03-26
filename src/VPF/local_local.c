@@ -80,8 +80,10 @@ local_local( struct propagator prop ,
   tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
 
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-		   LOCAL_LOCAL ) ;
+  if( prop.source == POINT ) {
+    momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		     LOCAL_LOCAL ) ;
+  }
 
   // free the AA & VV data
   free( DATA_AA ) ;
@@ -171,8 +173,10 @@ local_local_double( struct propagator prop1 ,
   tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
 
   // do all the momspace stuff away from the contractions
-  momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-  		   LOCAL_LOCAL ) ;
+  if( prop1.source == POINT ) { 
+    momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		     LOCAL_LOCAL ) ;
+  }
 
   // free the AA & VV data
   free( DATA_AA ) ;

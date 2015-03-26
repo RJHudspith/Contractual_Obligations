@@ -14,6 +14,29 @@ add_spinors( double complex *__restrict SUM ,
 	     const double complex *__restrict S ) ;
 
 /**
+   @fn void equate_spinor( double complex *__restrict S1 , const double complex *__restrict S2 )
+   @brief equate two spinors
+ */
+void
+equate_spinor( double complex *__restrict S1 ,
+	       const double complex *__restrict S2 ) ;
+
+/**
+   @fn void equate_spinor_minus( double complex *__restrict S1 , const double complex *__restrict S2 )
+   @brief equate one spinor to the minus of another
+ */
+void
+equate_spinor_minus( double complex *__restrict S1 ,
+		     const double complex *__restrict S2 ) ;
+
+/**
+   @fn void flipsign_spinor( double complex *__restrict S ) 
+   @brief flips the sign of the spinor s
+ */
+void
+flipsign_spinor( double complex *__restrict S ) ;
+
+/**
    @fn void gauge_spinor( struct spinor *__restrict res , const double complex link[ NCNC ] , const struct spinor S )
    @brief multiplies a spinor with a link matrix res = link * S
  */

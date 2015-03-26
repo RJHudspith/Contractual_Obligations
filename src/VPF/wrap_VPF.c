@@ -5,8 +5,8 @@
 
 #include "common.h"
 
-#include "conserved_local.h"  // conserved-local Wilson currents
-#include "local_local.h"      // local-local currents
+#include "conserved_local.h"     // conserved-local Wilson currents
+#include "local_local.h"         // local-local currents
 
 static int 
 ( *single_callback ) ( struct propagator prop ,

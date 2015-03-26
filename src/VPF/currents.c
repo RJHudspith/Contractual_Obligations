@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "contractions.h" // meson_contract
+#include "matrix_ops.h"   // link multiplies
 #include "spinor_ops.h"   // spinor - color matrix multiply
 
 /**
@@ -52,8 +53,8 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 static double complex
 CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
-	    const struct spinor S2 ,       // S_2
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
+	    const struct spinor S2 ,       // S_2
 	    const struct gamma *GAMMAS ,
 	    const int mu ,
 	    const int nu )
@@ -106,13 +107,13 @@ contract_conserved_local( struct PIdata *DATA_AA ,
 
 	// I need to think about the axial
 	DATA_AA[i].PI[mu][nu] = CL_munu_AA( US1xpmu , UdS1x , 
-					    S1[x] , S2xpmu ,
+					    S2xpmu , S2[x] , 
 					    GAMMAS , 
 					    AGMAP[ mu ] , AGMAP[ nu ] ) ;
 	
 	// vectors 
 	DATA_VV[i].PI[mu][nu] = CL_munu_VV( US1xpmu , UdS1x , 
-					    S1[x] , S2xpmu ,
+					    S2xpmu , S2[x] ,
 					    GAMMAS ,
 					    VGMAP[mu] , VGMAP[ nu ] ) ;
       }

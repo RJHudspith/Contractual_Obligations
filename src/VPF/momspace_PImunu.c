@@ -56,13 +56,9 @@ momspace_PImunu( struct PIdata *AA ,
   fftw_plan forward , backward ;
   small_create_plans_DFT( &forward , &backward , in , out , ND ) ;
 
-  printf( "plans did\n" ) ;
-
   // might be (but I doubt it) slow, most memory efficient way I could think of
   FFT_PImunu( AA , in , out , forward , backward ) ;
   FFT_PImunu( VV , in , out , forward , backward ) ;
-
-  printf( "FFTS did\n" ) ;
 
   // free fft memory
   free( in ) ;
@@ -76,8 +72,6 @@ momspace_PImunu( struct PIdata *AA ,
   int *NMOM = malloc( sizeof( int ) ) ;
   const struct veclist *list = compute_veclist( NMOM , CUTINFO ,
 						ND , GLU_FALSE ) ;
-
-  printf( "Veclist did \n" ) ;
 
   // allocate momenta
   double *psq = malloc( NMOM[0] * sizeof( double ) ) ;

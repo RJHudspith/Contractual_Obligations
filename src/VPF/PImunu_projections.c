@@ -59,7 +59,7 @@ projection( const struct PIdata *data ,
 
 #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM[0] ; i++ ) {
-    trans[ i ] += longitudinal[ i ] ; // put the 0+1 contribution in too
+    trans[ i ] = trans[ i ] + longitudinal[ i ] ;
   }
 
   sprintf( str , "%s.transPlong.bin" , outfile ) ;
