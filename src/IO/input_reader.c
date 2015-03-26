@@ -459,7 +459,6 @@ get_props( struct propagator *props ,
     if( prop_idx == FAILURE ) break ;
     if( first_pass == GLU_FALSE ) {
       char *token ;
-      //strcpy( propfiles[ *nprops ].filename , INPUT[ prop_idx ].VALUE ) ;
       if( ( token = (char*)strtok( INPUT[ prop_idx ].VALUE  , "," ) ) == NULL ) {
 	return unexpected_NULL( ) ;
       }
@@ -469,14 +468,6 @@ get_props( struct propagator *props ,
 	printf( "[IO] propfile %s not found \n" , token ) ;
 	return FAILURE ;
       }
-#if 0
-      // get the basis
-      if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-      if( get_proptype( &( props[ *nprops ].basis ) , token ) == FAILURE ) return FAILURE ;
-      // check for sourcetype
-      if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-      if( get_sourcetype( &( props[ *nprops ].source ) , token ) == FAILURE ) return FAILURE ;
-#endif
     }
     *nprops = *nprops + 1 ;
   }

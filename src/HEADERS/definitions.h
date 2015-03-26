@@ -33,7 +33,7 @@
    @def GLU_STR_LENGTH
    @brief max length of a token in the input file
  */
-#define GLU_STR_LENGTH 128
+#define GLU_STR_LENGTH 256
 
 /**
    @def L0
