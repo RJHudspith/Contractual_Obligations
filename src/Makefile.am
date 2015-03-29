@@ -29,7 +29,8 @@ VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
 ## c files in ./UTILS/
 UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c
+	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
+	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c 
 
 ## c files in ./WME/
 WMEFILES=./WME/WME.c ./WME/wrap_WME.c

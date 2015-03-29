@@ -47,9 +47,24 @@ conserved_local( struct propagator prop ,
   }
 
   // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S1UP = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S1END = calloc( VOL3 , sizeof( struct spinor ) ) ;
+  struct spinor *S1 ;
+  if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S1UP ;
+  if( posix_memalign( (void**)&S1UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S1END ;
+  if( posix_memalign( (void**)&S1END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( S1END ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
 
   // I think this is for the vector  
   if( read_prop( prop , S1 ) == FAILURE ) {
@@ -66,8 +81,7 @@ conserved_local( struct propagator prop ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
-    equate_spinor_minus( (double complex*)S1END[x].D , 
-			 (const double complex*)S1[x].D ) ;
+    equate_spinor_minus( &S1END[x] , &S1[x] ) ;
   }
 
   // loop the timeslices
@@ -164,14 +178,46 @@ conserved_local_double( struct propagator prop1 ,
     return FAILURE ;
   }
 
-  // and our spinor(s)
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S1UP = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S1END = calloc( VOL3 , sizeof( struct spinor ) ) ;
-
-  struct spinor *S2 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S2UP = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S2END = calloc( VOL3 , sizeof( struct spinor ) ) ;
+  // and our spinor(s) -> TODO :: I don't like this, perhaps an array? - J
+  struct spinor *S1 ;
+  if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S1UP ;
+  if( posix_memalign( (void**)&S1UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S1END ;
+  if( posix_memalign( (void**)&S1END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( S1END ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S2 ;
+  if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
+    free( S2 ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S2UP ;
+  if( posix_memalign( (void**)&S2UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
+    free( S2 ) ; free( S2UP ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S2END ;
+  if( posix_memalign( (void**)&S2END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
+    free( S2 ) ; free( S2UP ) ; free( S2END ) ; free( GAMMAS ) ;
+    printf( "[VPF] memalign failure \n" ) ;
+    return FAILURE ;
+  }
 
   // free everything if the read fails
   if( read_prop( prop1 , S1 ) == FAILURE || 
@@ -193,10 +239,8 @@ conserved_local_double( struct propagator prop1 ,
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
-    equate_spinor_minus( (double complex*)S1END[x].D , 
-			 (const double complex*)S1[x].D ) ;
-    equate_spinor_minus( (double complex*)S2END[x].D , 
-			 (const double complex*)S2[x].D ) ;
+    equate_spinor_minus( &S1END[x] , &S1[x] ) ;
+    equate_spinor_minus( &S2END[x] , &S2[x] ) ;
   }
 
   // over the whole volume is not as expensive as you may think

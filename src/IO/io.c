@@ -8,6 +8,7 @@
 #include "crc32.h"        // checksum calc
 #include "GLU_bswap.h"    // byteswaps
 #include "matrix_ops.h"   // matrix equivs
+#include "spinor_ops.h"   // zero the spinor
 
 // fill our spinor
 static void
@@ -158,8 +159,12 @@ read_nrprop( struct propagator prop ,
     tmp = malloc( spinsize * sizeof( double complex ) ) ;
   }
 
+  // zeros our spinor
+  spinor_zero( S ) ;
+
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
+    // have to zero our spinor ..
     if( prop.precision == SINGLE ) {
       // Read in tslice 
       if( fread( ftmp , sizeof(float complex), spinsize , prop.file ) != 

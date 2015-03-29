@@ -3,14 +3,11 @@
    @brief traces, brute force gamma multiplies and adjoints
  */
 
-#ifndef CONTRACTIONS_H
-#define CONTRACTIONS_H
+#ifndef CONTRACTIONS_SSE_H
+#define CONTRACTIONS_SSE_H
 
 #ifdef HAVE_EMMINTRIN_H
 
-#include "contractions_SSE.h"
-
-#else
 /**
    @fn void adjoint_spinor( struct spinor *__restrict adj , const struct spinor S ) 
    @brief conjugate transpose a spinor

@@ -14,11 +14,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+// SSE2 instructions
+#ifdef HAVE_EMMINTRIN_H
+#include <emmintrin.h>
+#endif
+
+// fftw instructions
 #ifdef HAVE_FFTW3_H
 #include <fftw3.h>
 #endif
 
-#define WORDS_BIGENDIAN 0
+// 
+#ifndef WORDS_BIGENDIAN
+  #define WORDS_BIGENDIAN 0
+#endif
 
 #include "definitions.h"
 

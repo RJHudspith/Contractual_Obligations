@@ -28,6 +28,15 @@ mesons_diagonal( struct propagator prop ,
     return FAILURE ;
   }
 
+  // and our spinor
+  struct spinor *S1 ;
+  if( posix_memalign( (void**)&S1 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
   struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
   struct correlator **wwcorr = NULL ;
@@ -35,9 +44,6 @@ mesons_diagonal( struct propagator prop ,
   if( prop.source == WALL ) {
     wwcorr = allocate_corrs( NSNS , NSNS ) ;
   }
-
-  // and our spinor
-  struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   int t ;
   // Time slice loop 
@@ -62,10 +68,10 @@ mesons_diagonal( struct propagator prop ,
     int GSRC = 0 ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
+    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) { // NSNS
 
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {// NSNS
 
 	register double complex sum = 0.0 ;
 
@@ -152,6 +158,22 @@ mesons_offdiagonal( struct propagator prop1 ,
     return FAILURE ;
   }
 
+  // and our spinors
+  struct spinor *S1 ;
+  if(  posix_memalign( (void**)&S1 , 16 , 
+		       VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S2 ;
+  if( posix_memalign( (void**)&S2 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S2 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+
   // data structure for holding the contractions
   struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
   struct correlator **wwcorr = NULL ;
@@ -159,10 +181,6 @@ mesons_offdiagonal( struct propagator prop1 ,
   if( prop1.source == WALL || prop2.source == WALL ) {
     allocate_corrs( NSNS , NSNS ) ;
   }
-
-  // and our spinors
-  struct spinor *S1 = malloc( VOL3 * sizeof( struct spinor ) ) ;
-  struct spinor *S2 = malloc( VOL3 * sizeof( struct spinor ) ) ;
 
   int t ;
   // Time slice loop 

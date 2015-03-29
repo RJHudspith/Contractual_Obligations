@@ -1,9 +1,11 @@
 /**
-   @file contractions.c
-   @brief contraction codes and brute force gamma multiplies
+   @file contractions_SSE.c
+   @brief contraction codes and brute force gamma multiplies (SSE2 version)
  */
 
 #include "common.h"
+
+#ifdef HAVE_EMMINTRIN_H
 
 #include "contractions.h" // so we can alphabetise
 #include "matrix_ops.h"   // colortrace_prod
@@ -140,6 +142,13 @@ gamma_mul_lr( struct spinor *__restrict S ,
   return ;
 }
 
+static inline __m128d
+SSE2_MULCONJ( const __m128d a , const __m128d b )
+{
+  return _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) ,                               // re(a)*re(b) , re(a)*im(b)
+		     _mm_mul_pd( _mm_unpackhi_pd( a , -a ) , _mm_shuffle_pd( b , b , 1 ) ) ) ;  // im(a)*im(b) , -re(b)*im(a)
+}
+
 // meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
 double complex
 meson_contract( const struct gamma GSNK ,		
@@ -148,11 +157,10 @@ meson_contract( const struct gamma GSNK ,
 		const struct spinor fwd ,
 		const struct gamma G5 )
 {
-  register double gsumr = 0.0 , gsumi = 0.0 ;
+  register __m128d gsum = _mm_setzero_pd( ) ;
+  const __m128d *d2 = (const __m128d*)fwd.D ;
 
-  const double *d2 = (const double*)fwd.D ;
-
-  int i , j , c1 , c2 , col2 , col1 ;
+  int i , j , col2 , col1 ;
   for( j = 0 ; j < NS ; j++ ) {
     
     col2 = GSRC.ig[ G5.ig[ j ] ] ; 
@@ -163,29 +171,42 @@ meson_contract( const struct gamma GSNK ,
       col1 = G5.ig[ GSNK.ig[ i ] ] ;
       
       // sums in double to avoid complex multiply
-      register double sumr = 0.0 , sumi = 0.0 ;
-      const double *d1 = (const double*)bwd.D[col2][col1].C ;
+      const __m128d *d1 = (const __m128d*)bwd.D[col2][col1].C ;
 
-      for( c2 = 0 ; c2 < NC ; c2++ ) {
-	for( c1 = 0 ; c1 < NC ; c1++ ) {
-	  sumr += *( d1 + 0 ) * *( d2 + 0 ) + *( d1 + 1 ) * *( d2 + 1 ) ;
-	  sumi += *( d1 + 0 ) * *( d2 + 1 ) - *( d1 + 1 ) * *( d2 + 0 ) ;
-	  d1 += 2 ; d2 += 2 ;
-	}
+      #if NC == 3
+      register __m128d sum = SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      #else 
+      register __m128d sum = _mm_setzero_pd( ) ;
+      int c1c2 ;
+      for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
+	sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
       }
-
+      #endif
 
       // switch for the phases
       switch( ( GSNK.g[ i ] + G5.g[ col1 ] + G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
-      case 1 : gsumr += -sumi ; gsumi +=  sumr ; break ;
-      case 2 : gsumr += -sumr ; gsumi += -sumi ; break ;
-      case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 0 : gsum += sum ; break ;
+      case 1 : gsum += _mm_shuffle_pd( -sum , sum , 1 ) ; break ;
+      case 2 : gsum += -sum ; break ;
+      case 3 : gsum += _mm_shuffle_pd( sum , -sum , 1 ) ; break ;
       }
+
       // and we are done
     }
   }
-  return gsumr + I * gsumi ;
+
+  // I know the compiler complains about this, TODO - J
+  double complex s ;
+  _mm_store_pd( &s , gsum ) ;
+  return s ;
 }
 
 // meson contraction code computes Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
@@ -195,9 +216,10 @@ simple_meson_contract( const struct gamma GSNK ,
 		       const struct gamma GSRC ,
 		       const struct spinor fwd )
 {
-  register double gsumr = 0.0 , gsumi = 0.0 ;
+  register __m128d gsum = _mm_setzero_pd( ) ;
+  const __m128d *d2 = (const __m128d*)fwd.D ;
 
-  int i , j , c1 , c2 ;
+  int i , j ;
   for( i = 0 ; i < NS ; i++ ) {
 
     const int col1 = GSNK.ig[ i ] ;
@@ -207,24 +229,40 @@ simple_meson_contract( const struct gamma GSNK ,
 
       const int col2 = GSRC.ig[ j ] ;
 
-      register double sumr = 0.0 , sumi = 0.0 ;
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  sumr += creal( bwd.D[col1][col2].C[c1][c2] ) * creal( fwd.D[j][i].C[c2][c1] ) 
-	    - cimag( bwd.D[col1][col2].C[c1][c2] ) * cimag( fwd.D[j][i].C[c2][c1] ) ;
-	  sumi += creal( bwd.D[col1][col2].C[c1][c2] ) * cimag( fwd.D[j][i].C[c2][c1] ) 
-	    + cimag( bwd.D[col1][col2].C[c1][c2] ) * creal( fwd.D[j][i].C[c2][c1] ) ;
-	}
+      // sums in double to avoid complex multiply
+      const __m128d *d1 = (const __m128d*)bwd.D[col2][col1].C ;
+
+      #if NC == 3
+      register __m128d sum = SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
+      #else 
+      register __m128d sum = _mm_setzero_pd( ) ;
+      int c1c2 ;
+      for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
+	sum += SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
       }
+      #endif
+
       // switch for the phases
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
-      case 1 : gsumr += -sumi ; gsumi +=  sumr ; break ;
-      case 2 : gsumr += -sumr ; gsumi += -sumi ; break ;
-      case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 0 : gsum += sum ; break ;
+      case 1 : gsum += _mm_shuffle_pd( -sum , sum , 1 ) ; break ;
+      case 2 : gsum += -sum ; break ;
+      case 3 : gsum += _mm_shuffle_pd( sum , -sum , 1 ) ; break ;
       }
       //
     }
   }
-  return gsumr + I * gsumi ;
+  double complex s ;
+  _mm_store_pd( &s , gsum ) ;
+  return s ;
 }
+
+#endif

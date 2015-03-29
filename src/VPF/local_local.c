@@ -41,12 +41,18 @@ local_local( struct propagator prop ,
     return FAILURE ;
   }
 
+  // and our spinor
+  struct spinor *S1 ;
+  if( posix_memalign( (void**)&S1 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+
   // over the whole volume is not as expensive as you may think
   struct PIdata *DATA_AA = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
   struct PIdata *DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
-
-  // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // loop the timeslices
   int t ;
@@ -124,13 +130,25 @@ local_local_double( struct propagator prop1 ,
     return FAILURE ;
   }
 
+  // and our spinors
+  struct spinor *S1 ;
+  if( posix_memalign( (void**)&S1 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  struct spinor *S2 ;
+  if( posix_memalign( (void**)&S2 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S2 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+
   // over the whole volume is not as expensive as you may think
   struct PIdata *DATA_AA = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
   struct PIdata *DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
-
-  // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S2 = calloc( VOL3 , sizeof( struct spinor ) ) ;
 
   // loop the timeslices
   int t ;

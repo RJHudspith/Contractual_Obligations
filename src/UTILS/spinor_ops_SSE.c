@@ -1,44 +1,93 @@
 /**
    @file spinor_ops.c
    @brief gauge*spinor, spinor*gauge and daggered variants
+
+   SSE2 variants
  */
 #include "common.h"
 
 #include "matrix_ops.h" // NC*NC multiplies, daggers, sums and traces
 #include "spinor_ops.h" // so that I can alphabetise
 
-#ifndef HAVE_EMMINTRIN_H
+#ifdef HAVE_EMMINTRIN_H
 
 // atomically add two spinors
 static void
-add_spinors( double complex *SUM ,
-	     const double complex *S ) 
+add_spinors( __m128d *SUM ,
+	     const __m128d *S )
 {
   int i ;
-  for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
-    *SUM += *S ; SUM++ ; S++ ;
+#if NC == 3 
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
   }
+#else
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+  }
+#endif
   return ;
 }
 
-// inline zero a spinor
+// zero a spinor
 static void
-zero_spinor( double complex *S ) 
+zero_spinor( __m128d *S )
 {
+  register const __m128d zero = _mm_setzero_pd( ) ;
   int i ;
-  for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
-    *S = 0.0 ; S++ ;
+#if NC == 3 
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
   }
-  return ;
+#else
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *S = zero ; S++ ;
+  }
+#endif
 }
 
 // equate spinors
 void
-equate_spinor( void *S1 ,
+equate_spinor( void *S ,
 	       const void *S2 )
 {
+  __m128d *s = (__m128d*)S ;
+  const __m128d *s2 = (const __m128d*)S2 ;
   // probably be better calling out to memcpy ....
-  memcpy( S1 , S2 , sizeof( struct spinor ) ) ;
+  int i ;
+#if NC == 3 
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+  }
+#else
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s = *s2 ; s++ ; s2++ ;
+  }
+#endif
   return ;
 }
 
@@ -47,12 +96,26 @@ void
 equate_spinor_minus( void *mS ,
 		     const void *S )
 {
-  double complex *m = (double complex*)mS ;
-  const double complex *s = (double complex*)S ;
+  __m128d *s = (__m128d*)mS ;
+  const __m128d *s2 = (const __m128d*)S ;
   int i ;
-  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
-    *m = -*s ; m++ ; s++ ;
+#if NC == 3 
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
+    *s = -*s2 ; s++ ; s2++ ;
   }
+#else
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s = -*s2 ; s++ ; s2++ ;
+  }
+#endif
   return ;
 }
 
@@ -60,17 +123,31 @@ equate_spinor_minus( void *mS ,
 void
 flipsign_spinor( void *S ) 
 {
-  double complex *s = (double complex*)S ;
   int i ;
-  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
+  __m128d *s = (__m128d*)S ;
+#if NC == 3
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
+    *s = -*s ; s++ ;
     *s = -*s ; s++ ;
   }
+#else
+  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
+     *s = -*s ; s++ ;
+  }
+#endif
   return ;
 }
 
 // multiply by a link :: res = link * S
 void
-gauge_spinor( struct spinor *__restrict res ,  
+gauge_spinor( struct spinor *__restrict res ,
 	      const double complex link[ NCNC ] ,
 	      const struct spinor S )
 {
@@ -173,17 +250,17 @@ spinor_gaugedag( struct spinor *__restrict res ,
   return ;
 }
 
-// sums a propagator over some volume into spinor "SUM"
+// sums a propagator over a timeslice
 void
 sumprop( void *SUM ,
 	 const void *S )
 {
-  double complex *sum = (double complex*)SUM ;
-  zero_spinor( sum ) ;
-  const double complex *s = (const double complex*)S ;
+  __m128d *tSUM = (__m128d*)SUM ;
+  zero_spinor( tSUM ) ;
+  const __m128d *tS = (const __m128d*)S ;
   int i ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    add_spinors( sum , s ) ; s += NSNS*NCNC ;
+  for( i = 0 ; i < VOL3 ; i++ ) {
+    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
   }
   return ;
 }
@@ -206,15 +283,15 @@ spinmul_atomic_left( struct spinor *A ,
   return ;
 }
 
-// zero a spinor
+// multithreaded zero a spinor over a timeslice
 void
 spinor_zero( void *S )
 {
-  struct spinor *s = (struct spinor*)S ;
+  __m128d *s = (__m128d*)S ;
   int i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    zero_spinor( (double complex*)s[i].D ) ;
+    zero_spinor( s + i * ( NSNS * NCNC ) ) ;
   }
   return ;
 }

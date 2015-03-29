@@ -1,25 +1,19 @@
 /**
-   @file spinor_ops.h
-   @brief prototype functions for various spinor operations
+   @file spinor_ops_SSE.h
+   @brief intrinsics spinor operations
  */
-#ifndef SPINOR_OPS_H
-#define SPINOR_OPS_H
 
-#include "../config.h"
+#ifndef SPINOR_OPS_SSE_H
+#define SPINOR_OPS_SSE_H
 
 #ifdef HAVE_EMMINTRIN_H
-
-// we include the SSE instructions where possible
-#include "spinor_ops_SSE.h"
-
-#else
 
 /**
    @fn void equate_spinor( void *S1 , const void *S2 )
    @brief equate two spinors
  */
 void
-equate_spinor( void *S1 ,
+equate_spinor( void *S ,
 	       const void *S2 ) ;
 
 /**
@@ -27,8 +21,8 @@ equate_spinor( void *S1 ,
    @brief equate one spinor to the minus of another
  */
 void
-equate_spinor_minus( void *S1 ,
-		     const void *S2 ) ;
+equate_spinor_minus( void *mS ,
+		     const void *S ) ;
 
 /**
    @fn void flipsign_spinor( void *S ) 
@@ -42,7 +36,7 @@ flipsign_spinor( void *S ) ;
    @brief multiplies a spinor with a link matrix res = link * S
  */
 void
-gauge_spinor( struct spinor *__restrict res ,  
+gauge_spinor( struct spinor *__restrict res ,
 	      const double complex link[ NCNC ] ,
 	      const struct spinor S ) ;
 
@@ -69,7 +63,7 @@ gauge_spinordag( struct spinor *__restrict res ,
    @brief multiplies a spinor with a link matrix \f$ res = S * link \f$
  */
 void
-spinor_gauge( struct spinor *__restrict res ,
+spinor_gauge( struct spinor *__restrict res ,  
 	      const struct spinor S ,
 	      const double complex link[ NCNC ] ) ;
 
