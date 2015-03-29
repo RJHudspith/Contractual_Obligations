@@ -7,7 +7,7 @@ lib_LIBRARIES = libCORR.a
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
 ## c files in ./BARYONS/
-BARYONFILES=./BARYONS/wrap_baryons.c
+BARYONFILES=./BARYONS/wrap_baryons.c ./BARYONS/baryons.c
 
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c

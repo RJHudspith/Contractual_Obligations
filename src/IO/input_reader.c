@@ -270,6 +270,31 @@ twopoint_tokens( struct meson_info *mesons ,
   return SUCCESS ;
 }
 
+// baryon contractions of the form prop_idx1,prop_idx2,proptype,outfile
+static int
+baryon_contractions( struct meson_info *baryons , 
+		     int *nbaryons ,
+		     const int nprops ,
+		     const GLU_bool first_pass ) 
+{
+  *nbaryons = 0 ;
+  char str[ 32 ] ;
+  while( *nbaryons < MAX_CONTRACTIONS ) {
+    sprintf( str , "BARYON%d" , *nbaryons ) ;
+    const int baryon_idx = tag_search( str ) ;
+    if( baryon_idx == FAILURE ) return SUCCESS ;
+    if( first_pass == GLU_FALSE ) {
+      if( twopoint_tokens( &baryons[ *nbaryons ] , 
+			   INPUT[ baryon_idx ].VALUE , 
+			   nprops , *nbaryons ) 
+	  == FAILURE ) return FAILURE ;
+    }
+    *nbaryons = *nbaryons + 1 ;
+  }
+  return SUCCESS ;
+}
+
+
 // meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
 static int
 meson_contractions( struct meson_info *mesons , 
@@ -527,6 +552,14 @@ get_input_data( struct propagator **prop ,
     printf( "[IO] No propagator files specified \n" ) ;
   }
   get_props( *prop , &( inputs -> nprops ) , GLU_FALSE ) ;
+
+  // baryon stuff
+  baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> baryons = (struct meson_info*)malloc( ( inputs -> nbaryons ) * sizeof( struct meson_info ) ) ;
+  if( baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , 
+			   inputs -> nprops , GLU_FALSE ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
 
   // meson contractions
   meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , inputs -> nprops , GLU_TRUE ) ;

@@ -129,7 +129,8 @@ am__v_AR_1 =
 libCORR_a_AR = $(AR) $(ARFLAGS)
 libCORR_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = ./BARYONS/wrap_baryons.$(OBJEXT)
+am__objects_1 = ./BARYONS/wrap_baryons.$(OBJEXT) \
+	./BARYONS/baryons.$(OBJEXT)
 am__objects_2 = ./GEOM/gammas.$(OBJEXT) ./GEOM/geometry.$(OBJEXT) \
 	./GEOM/plan_ffts.$(OBJEXT)
 am__objects_3 = ./IO/chklat_stuff.$(OBJEXT) ./IO/io.$(OBJEXT) \
@@ -145,7 +146,9 @@ am__objects_5 = ./UTILS/GLU_timer.$(OBJEXT) \
 	./UTILS/spinor_ops.$(OBJEXT) \
 	./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT) \
-	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT)
+	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
+	./UTILS/spinor_ops_SSE.$(OBJEXT) \
+	./UTILS/contractions_SSE.$(OBJEXT)
 am__objects_6 = ./VPF/wrap_VPF.$(OBJEXT) \
 	./VPF/PImunu_projections.$(OBJEXT) ./VPF/currents.$(OBJEXT) \
 	./VPF/WardIdentity.$(OBJEXT) ./VPF/local_local.$(OBJEXT) \
@@ -322,7 +325,7 @@ TOPDIR = @top_srcdir@
 BUILDDIR = @top_builddir@
 lib_LIBRARIES = libCORR.a
 AM_CFLAGS = -I${TOPDIR}/src/HEADERS/
-BARYONFILES = ./BARYONS/wrap_baryons.c
+BARYONFILES = ./BARYONS/wrap_baryons.c ./BARYONS/baryons.c
 GEOMFILES = ./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 IOFILES = ./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
@@ -337,7 +340,8 @@ VPFFILES = ./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
 
 UTILSFILES = ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c
+	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
+	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c 
 
 WMEFILES = ./WME/WME.c ./WME/wrap_WME.c
 libCORR_a_SOURCES = \
@@ -437,6 +441,8 @@ BARYONS/$(DEPDIR)/$(am__dirstamp):
 	@: > BARYONS/$(DEPDIR)/$(am__dirstamp)
 ./BARYONS/wrap_baryons.$(OBJEXT): BARYONS/$(am__dirstamp) \
 	BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/baryons.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
 GEOM/$(am__dirstamp):
 	@$(MKDIR_P) ./GEOM
 	@: > GEOM/$(am__dirstamp)
@@ -512,6 +518,10 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 ./UTILS/crc32.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/GLU_bswap.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/spinor_ops_SSE.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/contractions_SSE.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 VPF/$(am__dirstamp):
 	@$(MKDIR_P) ./VPF
@@ -610,6 +620,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CORR-corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/baryons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/wrap_baryons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/gammas.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/geometry.Po@am__quote@
@@ -633,11 +644,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/GLU_timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/basis_conversions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/contractions.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/contractions_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/crc32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/cut_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/PImunu_projections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/WardIdentity.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/conserved_local.Po@am__quote@

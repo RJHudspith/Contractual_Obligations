@@ -80,6 +80,18 @@ main( const int argc,
 
   start_timer( ) ;
 
+  // baryon contraction, props have to be wall source
+  if( contract_baryons( prop , inputs.baryons , inputs.nbaryons ) 
+      == FAILURE ) {
+    goto FREES ;
+  }
+
+  // want to switch on these or call a wrapper
+  if( contract_mesons( prop , inputs.mesons , 
+		       inputs.nmesons ) == FAILURE ) {
+    goto FREES ; // do not pass GO, do not collect £200
+  }
+
   // if we don't have a gauge field we can't do conserved-local
   if( lat != NULL ) {
     if( contract_VPF( prop , lat , inputs.VPF ,
@@ -87,12 +99,6 @@ main( const int argc,
       goto FREES ; // do not pass GO, do not collect £200
     }
   } 
-
-  // want to switch on these or call a wrapper
-  if( contract_mesons( prop , inputs.mesons , 
-		       inputs.nmesons ) == FAILURE ) {
-    goto FREES ; // do not pass GO, do not collect £200
-  }
 
   // WME contraction, props have to be wall source
   if( contract_WME( prop , inputs.wme , inputs.nWME ) == FAILURE ) {

@@ -217,6 +217,8 @@ struct veclist {
  */
 struct input_info {
   int nprops ;
+  struct meson_info *baryons ;
+  int nbaryons ;
   struct meson_info *mesons ;
   int nmesons ;
   struct VPF_info *VPF ;
