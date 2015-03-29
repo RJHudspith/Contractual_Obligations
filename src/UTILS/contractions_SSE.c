@@ -203,9 +203,9 @@ meson_contract( const struct gamma GSNK ,
     }
   }
 
-  // I know the compiler complains about this, TODO - J
+  // cast through the void
   double complex s ;
-  _mm_store_pd( &s , gsum ) ;
+  _mm_store_pd( (void*)&s , gsum ) ;
   return s ;
 }
 
@@ -260,8 +260,10 @@ simple_meson_contract( const struct gamma GSNK ,
       //
     }
   }
+
+  // cast through the void
   double complex s ;
-  _mm_store_pd( &s , gsum ) ;
+  _mm_store_pd( (void*)&s , gsum ) ;
   return s ;
 }
 

@@ -14,9 +14,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-// SSE2 instructions
-#ifdef HAVE_EMMINTRIN_H
-#include <emmintrin.h>
+// SSE2 header
+#if (defined HAVE_EMMINTRIN_H)
+  #include <emmintrin.h>
+#endif
+
+// SSE3 header
+#if (defined HAVE_PMMINTRIN_H)
+  #include <pmmintrin.h>
 #endif
 
 // fftw instructions

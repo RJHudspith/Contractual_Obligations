@@ -226,8 +226,14 @@ AC_CHECK_HEADERS([sys/time.h],
 AC_CHECK_HEADERS([time.h],
 	[AC_MSG_NOTICE([We are providing an accurate date.])],[])
 
-## SSE2 headers
+## SSE headers
+AC_CHECK_HEADERS([immintrin.h],[],[])
+
+## SSE2
 AC_CHECK_HEADERS([emmintrin.h],[],[])
+
+## SSE3
+AC_CHECK_HEADERS([pmmintrin.h],[],[])
 
 ## Some compiler checks
 ## My code is littered with consts
