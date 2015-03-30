@@ -20,11 +20,11 @@ meson_trace( const struct gamma GSNK ,
 	     const struct spinor S1 )
 {
   /*
-  struct spinor tmp1 = S2 ;
-  gamma_mul_l( &tmp1 , GSNK ) ;
-
   struct spinor tmp2 = S1 ;
   gamma_mul_l( &tmp2 , GSRC ) ;
+
+  struct spinor tmp1 = S2 ;
+  gamma_mul_r( &tmp1 , GSNK ) ;
   
   return bilinear_trace( tmp1 , tmp2 ) ;
   */
@@ -36,18 +36,29 @@ int
 single_mesons_bruteforce( struct propagator prop ,
 			  const char *outfile )
 {
-  // data structure for holding the contractions
-  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
-
-  // and our spinor
-  struct spinor *S1 = calloc( VOL3 , sizeof( struct spinor ) ) ;
-  struct spinor *S1adj = calloc( VOL3 , sizeof( struct spinor ) ) ;
-
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
   make_gammas( GAMMAS , prop.basis ) ;
+
+  // and our spinors
+  struct spinor *S1 , *S1adj ;
+  if( posix_memalign( (void**)&S1 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+  if( posix_memalign( (void**)&S1adj , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free( S1 ) ; free( S1adj ) ; free( GAMMAS ) ;
+    printf( "[MESONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
+
+  // data structure for holding the contractions
+  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
 
   int t ;
   // Time slice loop 
@@ -66,10 +77,10 @@ single_mesons_bruteforce( struct propagator prop ,
     // loop over all source and sink indices
     int GSRC = 0 ;
     #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NS*NS ; GSRC++ ) {
+    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
       
       int GSNK ;
-      for( GSNK = 0 ; GSNK < NS*NS ; GSNK++ ) {
+      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
 	
 	register double complex sum = 0.0 ;
 	int site ;

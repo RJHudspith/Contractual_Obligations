@@ -8,6 +8,8 @@
 #include "contractions.h" // so we can alphabetise
 #include "matrix_ops.h"   // colortrace_prod
 
+#ifndef HAVE_EMMINTRIN_H
+
 // conjugate transpose of dirac indices
 void
 adjoint_spinor( struct spinor *__restrict adj ,
@@ -198,15 +200,15 @@ simple_meson_contract( const struct gamma GSNK ,
   register double gsumr = 0.0 , gsumi = 0.0 ;
 
   int i , j , c1 , c2 ;
-  for( i = 0 ; i < NS ; i++ ) {
-
-    const int col1 = GSNK.ig[ i ] ;
-
-    // loop columns
-    for( j = 0 ; j < NS ; j++ ) {
-
-      const int col2 = GSRC.ig[ j ] ;
-
+  // loop columns
+  for( j = 0 ; j < NS ; j++ ) {
+    
+    const int col2 = GSRC.ig[ j ] ;
+    
+    for( i = 0 ; i < NS ; i++ ) {
+      
+      const int col1 = GSNK.ig[ i ] ;
+      
       register double sumr = 0.0 , sumi = 0.0 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
@@ -228,3 +230,5 @@ simple_meson_contract( const struct gamma GSNK ,
   }
   return gsumr + I * gsumi ;
 }
+
+#endif

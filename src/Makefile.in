@@ -148,7 +148,8 @@ am__objects_5 = ./UTILS/GLU_timer.$(OBJEXT) \
 	./UTILS/contractions.$(OBJEXT) ./UTILS/cut_routines.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
 	./UTILS/spinor_ops_SSE.$(OBJEXT) \
-	./UTILS/contractions_SSE.$(OBJEXT)
+	./UTILS/contractions_SSE.$(OBJEXT) \
+	./UTILS/matrix_ops_SSE.$(OBJEXT)
 am__objects_6 = ./VPF/wrap_VPF.$(OBJEXT) \
 	./VPF/PImunu_projections.$(OBJEXT) ./VPF/currents.$(OBJEXT) \
 	./VPF/WardIdentity.$(OBJEXT) ./VPF/local_local.$(OBJEXT) \
@@ -341,7 +342,8 @@ VPFFILES = ./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
 UTILSFILES = ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
 	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
-	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c 
+	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c \
+	./UTILS/matrix_ops_SSE.c
 
 WMEFILES = ./WME/WME.c ./WME/wrap_WME.c
 libCORR_a_SOURCES = \
@@ -523,6 +525,8 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/contractions_SSE.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/matrix_ops_SSE.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
 VPF/$(am__dirstamp):
 	@$(MKDIR_P) ./VPF
 	@: > VPF/$(am__dirstamp)
@@ -649,6 +653,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/cut_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/matrix_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/spinor_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/PImunu_projections.Po@am__quote@

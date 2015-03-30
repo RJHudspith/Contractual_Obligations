@@ -2,14 +2,10 @@
    @file matrix_ops.h
    @brief prototype functions for general matrix operations
  */
-#ifndef MATRIX_OPS_H
-#define MATRIX_OPS_H
+#ifndef MATRIX_OPS_SSE_H
+#define MATRIX_OPS_SSE_H
 
 #ifdef HAVE_EMMINTRIN_H
-
-#include "matrix_ops_SSE.h"
-
-#else
 
 /**
    @fn inline void add_mat( double complex *a , const double complex *b )
@@ -39,9 +35,9 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
    @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
    @brief trace of the product of two color matrices
  */
-inline double complex
-colortrace_prod( const double complex *a , 
-		 const double complex *b ) ;
+inline __m128d
+colortrace_prod( const __m128d *a , 
+		 const __m128d *b ) ;
 
 /**
    @fn constant_mul_gauge( double complex *res , const double complex constant , const double complex *U )

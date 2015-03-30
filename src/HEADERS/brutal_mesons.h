@@ -17,12 +17,10 @@ meson_trace( const struct gamma GSNK ,
 	     const struct spinor S1 ) ;
 
 /**
-   @fn int single_mesons_bruteforce( FILE *prop1 , const proptype proptype1 , const char *outfile )
    @brief same as meson contraction code, only more brutal
  */
 int
-single_mesons_bruteforce( FILE *prop1 , 
-			  const proptype proptype1 ,
+single_mesons_bruteforce( const struct propagator prop ,
 			  const char *outfile ) ;
 
 #endif

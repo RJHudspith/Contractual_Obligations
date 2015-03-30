@@ -10,6 +10,7 @@
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header
 
+#include "wrap_baryons.h"    // Baryon wrappers
 #include "wrap_mesons.h"     // meson contraction wrappers
 #include "wrap_VPF.h"        // VPF contraction wrappers
 #include "wrap_WME.h"        // VPF contraction wrappers

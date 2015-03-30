@@ -1,12 +1,26 @@
 /**
    @file matrix_ops.c
-   @brief simple matrix multiplies
+   @brief simple matrix multiplies (SSE2 version)
  */
 
 #include "common.h"
 #include "matrix_ops.h"
 
-#ifndef HAVE_EMMINTRIN_H
+#ifdef HAVE_EMMINTRIN_H
+
+static inline __m128d
+SSE2_MULCONJ( const __m128d a , const __m128d b )
+{
+  return _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) ,                               // re(a)*re(b) , re(a)*im(b)
+		     _mm_mul_pd( _mm_unpackhi_pd( a , -a ) , _mm_shuffle_pd( b , b , 1 ) ) ) ;  // im(a)*im(b) , -re(b)*im(a)
+}
+
+static inline __m128d
+SSE2_MUL( const __m128d a , const __m128d b )
+{
+  return _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) ,                               // re(a)*re(b) , re(a)*im(b)
+		     _mm_mul_pd( _mm_unpackhi_pd( -a , a ) , _mm_shuffle_pd( b , b , 1 ) ) ) ;  // im(a)*im(b) , -re(b)*im(a)
+}
 
 // add two color matrices
 inline void
@@ -62,27 +76,21 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 }
 
 // is just Tr( a * b )
+/*
 inline double complex
 colortrace_prod( const double complex *__restrict a , 
 		 const double complex *__restrict b )
+*/
+inline __m128d
+colortrace_prod( const __m128d *a ,
+		 const __m128d *b )
 {
-#if NC == 3
-  return a[0] * b[0] + a[1] * b[3] + a[2] * b[6] +	\
-    a[3] * b[1] + a[4] * b[4] + a[5] * b[7] +		\
-    a[6] * b[2] + a[7] * b[5] + a[8] * b[8] ;
-#else
-  register GLU_real sumr = 0.0 , sumi = 0.0 ;
-  int i, j ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      sumr += creal( a[ j + NC * i ] ) * creal( b[ i + NC * j ] ) -
-	cimag( a[ j + NC * i ] ) * cimag( b[ i + NC * j ] ) ;
-      sumi += creal( a[ j + NC * i ] ) * cimag( b[ i + NC * j ] ) +
-	cimag( a[ j + NC * i ] ) * creal( b[ i + NC * j ] ) ;
-    }
-  }
-  return sumr + I * sumi ;
-#endif
+  return 
+    _mm_add_pd( SSE2_MUL( a[0] , b[0] ) , SSE2_MUL( a[1] , b[3] ) ) +
+    _mm_add_pd( SSE2_MUL( a[2] , b[6] ) , SSE2_MUL( a[3] , b[1] ) ) +
+    _mm_add_pd( SSE2_MUL( a[4] , b[4] ) , SSE2_MUL( a[5] , b[7] ) ) +
+    _mm_add_pd( SSE2_MUL( a[6] , b[2] ) , SSE2_MUL( a[7] , b[5] ) ) +
+    SSE2_MUL( a[8] , b[8] ) ;
 }
 
 // does res = constant * U
