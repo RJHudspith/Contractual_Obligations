@@ -13,53 +13,131 @@
 #include "io.h"                // for read_prop()
 #include "read_propheader.h"   // for read_propheader()
 
+
 // This acts C*gamma_mu on a spinor, atm: Cg5
 struct spinor
-Cgamma_mu( const struct spinor S )
+Cgamma_mu( const struct spinor S, const int mu )
 {
 	int c1, c2, i, j;
 	struct spinor TSNK, TSRC;
-
-
-#ifdef DEBUG
-//	printf("Input to Cg_mu: %le %le\n",creal(S.D[0][0].C[0][0]),cimag(S.D[0][0].C[0][0]));
-#endif
 
 	for( c1 = 0 ; c1 < NC ; c1++ ) {
 		for( c2 = 0 ; c2 < NC ; c2++ ) {
 
 			// Sink indices first
-			for( i = 0 ; i < NS ; i++){
-				TSNK.D[i][0].C[c1][c2] = (-1 + 0 * I ) * S.D[i][1].C[c1][c2];
-				TSNK.D[i][1].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][0].C[c1][c2];
-				TSNK.D[i][2].C[c1][c2] = (-1 + 0 * I ) * S.D[i][3].C[c1][c2];
-				TSNK.D[i][3].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][2].C[c1][c2];
+			switch( mu ){
+			case 0:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = (-1 + 0 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][2].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][1].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = (-1 + 0 * I ) * S.D[i][0].C[c1][c2];
+				}
+				break;
+			case 1:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][2].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = ( 0 + 1 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][0].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = ( 0 + 1 * I ) * S.D[i][1].C[c1][c2];
+				}
+				break;
+			case 2:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = (-1 + 0 * I ) * S.D[i][2].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = (-1 + 0 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = (-1 + 0 * I ) * S.D[i][0].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = (-1 + 0 * I ) * S.D[i][1].C[c1][c2];
+				}
+				break;
+			case 3:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][2].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][1].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][0].C[c1][c2];
+				}
+				break;
+			case 4:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][1].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = ( 0 - 1 * I ) * S.D[i][0].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = ( 0 + 1 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = ( 0 + 1 * I ) * S.D[i][2].C[c1][c2];
+				}
+				break;
+			case 5:
+				for( i = 0 ; i < NS ; i++){
+					TSNK.D[i][0].C[c1][c2] = (-1 + 0 * I ) * S.D[i][1].C[c1][c2];
+					TSNK.D[i][1].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][0].C[c1][c2];
+					TSNK.D[i][2].C[c1][c2] = (-1 + 0 * I ) * S.D[i][3].C[c1][c2];
+					TSNK.D[i][3].C[c1][c2] = ( 1 + 0 * I ) * S.D[i][2].C[c1][c2];
+				}
+				break;
 			}
 
-#ifdef DEBUG
-//	if ( c1 == 0 && c2 == 0 ){ 
-//		printf("Sink done: %le %le\n",creal(TSNK.D[0][0].C[0][0]),cimag(TSNK.D[0][0].C[0][0]));
-//	}
-#endif
+
 			// Source indices last
-			for( j = 0 ; j < NS ; j++ ) {
-				TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
-				TSRC.D[1][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
-				TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
-				TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
+			switch( mu ){
+            case 0:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
+				}
+				break;
+            case 1:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
+				}
+				break;
+            case 2:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
+				}
+				break;
+            case 3:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[0][j].C[c1][c2];
+				}
+				break;
+            case 4:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[2][j].C[c1][c2];
+				}
+				break;
+            case 5:
+				for( j = 0 ; j < NS ; j++ ) {
+					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
+				}
+				break;
 			}
+
 		}
 	}
-
-#ifdef DEBUG
-//	printf("Source done: %le %le\n",creal(TSRC.D[0][0].C[0][0]),cimag(TSRC.D[0][0].C[0][0]));
-#endif
 
 	return TSRC;
 }
 
 
-// This acts C*gamma_mu on a spinor, atm: Cg5
+// This carries out the color cross product and traces one set of Dirac indices.
+// The results forms a diquark-type object
 struct spinor
 cross_color_trace( const struct spinor S ,
 		   		   const struct spinor CgS )
@@ -67,6 +145,19 @@ cross_color_trace( const struct spinor S ,
 	int c1, c2, c3, i, j, d;
 	struct spinor TSRC;
 	struct threespinor T3SNK;
+
+	// Initialize the threespinor object
+	for( i = 0 ; i < NS ; i++ ) {
+		for( j = 0 ; j < NS ; j++ ) {
+			for( c1 = 0 ; c1 < NC ; c1++ ) {
+				for( c2 = 0 ; c2 < NC ; c2++ ) {
+					for( d = 0 ; d < NC ; d++ ) {
+						T3SNK.D[i][j].C[c1][c2][d] = 0.0;
+					}
+				}
+			}
+		}
+	}
 
 	// Sink cross color and trace, this leaves only one set of dirac indices
 	for( i = 0 ; i < NS ; i++ ) {
@@ -84,10 +175,6 @@ cross_color_trace( const struct spinor S ,
 		}
 	}
 
-#ifdef DEBUG
-//     printf("Sink cross color trace 0: %d %d %d %d %le %le\n",3,3,2,2,creal(T3SNK.D[3][3].C[2][2][0]),cimag(T3SNK.D[3][3].C[2][2][0]));
-#endif
-
     // Source cross color
 	for( i = 0 ; i < NS ; i++ ) {
         for( j = 0 ; j < NS ; j++ ) {
@@ -99,23 +186,18 @@ cross_color_trace( const struct spinor S ,
 		}
 	}
 	
-	
-#ifdef DEBUG
-     printf("Sink cross color trace: %d %d %d %d %le %le\n",3,3,2,2,creal(TSRC.D[3][3].C[2][2]),cimag(TSRC.D[3][3].C[2][2]));
-#endif
-
 	return TSRC;
 }
 
 
 // This contracts the diquark with the remaining propagator
 complex double
-baryon_contract( const struct spinor DiQ ,
-		   		 const struct spinor S ,
-				 const int d0,
-				 const int d1,
-				 const int d2,
-				 const int d3 )
+baryon_contract( struct spinor DiQ ,
+		   		 struct spinor S ,
+				 int d0,
+				 int d1,
+				 int d2,
+				 int d3 )
 {
 	int c1, c2, i, j;
 	double corrr = 0.0 , corri = 0.0 ;
@@ -130,14 +212,33 @@ baryon_contract( const struct spinor DiQ ,
 			   + cimag( DiQ.D[d0][d1].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] );
 	
 		}
-#ifdef DEBUG
-//	printf("%le %le\n",corrr,corri);
-#endif
 	}
-
 
 	return corrr + I * corri;
 }
+
+// Reset a spinor, replace with zero_spinor from spinor_ops at some stage?
+struct spinor
+reset_spinor(){
+
+	int i,j,c1,c2;
+	struct spinor TSP;
+
+	for( i = 0 ; i < NS ; i++ ){
+		for( j = 0 ; j < NS ; j++ ){
+			for( c1 = 0 ; c1 < NC ; c1++ ){
+				for( c2 = 0 ; c2 < NC ; c2++ ){
+		
+					TSP.D[i][j].C[c1][c2] = 0.0 ;
+
+				}
+			}
+		}
+	}
+
+	return TSP;
+}
+
 
 
 /* The Baryon interpolating operator is of the form: B = eps_123  q1 *( q2 Cg_23 q3 )
@@ -152,8 +253,8 @@ This gives us access to the particles:
 			Sigma   =  u  ( u Cg5 s )
  			Cascade =  s  ( s Cg5 u )
 
-			Omega   =  s  ( s Cgi s )
-			Delta   =  u  ( u Cgi u )
+			Omega   =  s  ( s Cg5 s )
+			Delta   =  u  ( u Cgi u ) -> decuplett
 
 The contraction terms are:
 
@@ -167,44 +268,46 @@ The contraction terms are:
 			Cascade =  (0,1,2) - (1,0,2)
 
 			Omega   =  (0,1,2) - (1,0,2) + (1,2,0) - (0,2,1) + (2,0,1) - (2,1,0)
-			Delta   =  (0,1,2) - (1,0,2) + (1,2,0) - (0,2,1) + (2,0,1) - (2,1,0)
+
+			Delta =  2 * (0,1,2) - 4 * (1,0,2)
+
 */
 
 int
 baryons_diagonal( struct propagator prop ,
 		  const char *outfile )
 {
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
-  // precompute the gamma basis
-  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    free( GAMMAS ) ;
-    return FAILURE ;
-  }
+  // Define output correlators and some intermediate spinors
+  complex double term1, term2;
+  struct spinor CgS;	
+  struct spinor DiQ;	
+  struct correlator **Buds_corr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **Buud_corr = allocate_corrs( NSNS , NSNS ) ;
+  struct correlator **Buuu_corr = allocate_corrs( NSNS , NSNS ) ;
 
   // and our spinors
   struct spinor *S1 ;
   if( posix_memalign( (void**)&S1 , 16 , 
 		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( GAMMAS ) ;
-    printf( "[BARYONS] memalign failure \n" ) ;
-    return FAILURE ;
+      free_corrs( Buds_corr , NSNS , NSNS ) ; 
+      free_corrs( Buud_corr , NSNS , NSNS ) ; 
+      free_corrs( Buuu_corr , NSNS , NSNS ) ; 
+	  free( S1 ) ;
+      printf( "[BARYONS] memalign failure \n" ) ;
+      return FAILURE ;
   }
-
-  struct spinor CgS;	
-  struct spinor DiQ;	
-
-  struct correlator **bcorr = allocate_corrs( NSNS , NSNS ) ;
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < 1 ; t++ ) {
+  for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
     if( read_prop( prop , S1 ) == FAILURE ) {
-      free_corrs( bcorr , NSNS , NSNS ) ; 
-      free( GAMMAS ) ; free( S1 ) ;
+      free_corrs( Buds_corr , NSNS , NSNS ) ; 
+      free_corrs( Buud_corr , NSNS , NSNS ) ; 
+      free_corrs( Buuu_corr , NSNS , NSNS ) ; 
+      free( S1 ) ;
       return FAILURE ;
     }
 
@@ -214,63 +317,62 @@ baryons_diagonal( struct propagator prop ,
     } 
 
     //
-    // Contractions go here
+    // Begin contractions
     // 
 
     int GSRC = 0 ;
     // parallelise the furthest out loop
-    //#pragma omp parallel for private(GSRC)
+    #pragma omp parallel for private(GSRC)
     for( GSRC = 5 ; GSRC < 6 ; GSRC++ ) {
+	int GSNK = GSRC;
 
-      int GSNK ;
-      //for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
-	  GSNK = GSRC;
-
-		register double complex corr0 = 0.0 ;
-		register double complex corr1 = 0.0 ;
+		register double complex Buds = 0.0 ;
+		register double complex Buud = 0.0 ;
+		register double complex Buuu = 0.0 ;
 
 		// loop spatial hypercube
 		int site ;
-		for( site = 0 ; site < 1 ; site++ ) {
+		for( site = 0 ; site < VOL3 ; site++ ) {
 	
-			// Act C*gamma_mu on source and sink of spinor S1
-			CgS = Cgamma_mu( S1[ site ] );
+			term1 = 0.0 ;
+			term2 = 0.0 ;
 
-#ifdef DEBUG
-	if( site == 0 ){
-		printf("Got Cg_mu: %le %le\n",creal(CgS.D[0][0].C[0][0]),cimag(CgS.D[0][0].C[0][0]));
-	}
-#endif
+			CgS = reset_spinor();
+			DiQ = reset_spinor();
+
+			// Act C*gamma_mu on source and sink of spinor S1
+			CgS = Cgamma_mu( S1[ site ] , GSRC );
+
 			// Cross color product and sink Dirac trace
 			DiQ = cross_color_trace( S1[ site ], CgS );
 
-#ifdef DEBUG
-	if( site == 0 ){
-		printf("Got sink trace and cross color: %le %le\n",creal(DiQ.D[3][3].C[2][2]),cimag(DiQ.D[3][3].C[2][2]));
-	}
-#endif
 			// Contract with the final propagator and trace out the source Dirac indices
+			// A polarization must still be picked for the two open Dirac indices offline
 			int dirac;
 			for( dirac = 0 ; dirac < NS ; dirac++ ){
-		 		corr0 += baryon_contract( DiQ, S1[ site ], dirac , dirac , 0 , 0 );
-		 		corr1 += baryon_contract( DiQ, S1[ site ], 0 , dirac , dirac , 0 );
+		 		term1 += baryon_contract( DiQ, S1[ site ], dirac , dirac , 0 , 0 );
+		 		term2 += baryon_contract( DiQ, S1[ site ], 0 , dirac , dirac , 0 );
 			}
 
-#ifdef DEBUG
-	if( site <= 10 ){
-		printf("First term: %le %le\n",  creal(corr0), cimag(corr0) );
-		printf("Second term: %le %le\n", creal(corr1), cimag(corr1) );
-	}
-#endif
+//#ifdef DEBUG
+//	if( site < 2 ){
+//		printf("First term (x=%d):  %le %le\n", site, creal(term1), cimag(term1) );
+//		printf("Second term (x=%d): %le %le\n", site, creal(term2), cimag(term2) );
+//	}
+//#endif
 
+			// Form the uds-, uud- and uuu-type baryons
+			Buds += term1 ;
+			Buud += term1 + term2 ;
+			Buuu += 2 * term1 + 4 * term2 ;
 
 		}
 
-		// uds-type baryon correlator
-		bcorr[ GSRC ][ GSNK ].C[ t ] = corr0 ;
+		// Fill baryon correlator array
+		Buds_corr[ GSRC ][ GSNK ].C[ t ] = Buds ;
+		Buud_corr[ GSRC ][ GSNK ].C[ t ] = Buud ;
+		Buuu_corr[ GSRC ][ GSNK ].C[ t ] = Buuu ;
 
-
-      // GSNK}
     }
 
     // status of the computation
@@ -280,17 +382,20 @@ baryons_diagonal( struct propagator prop ,
   printf( "\n" ) ;
 
 #ifdef DEBUG
-//  debug_mesons( "Baryons" , (const struct correlator**)bcorr ) ;
+  debug_baryons( "Baryon: uds-type" , (const struct correlator**)Buds_corr ) ;
+  debug_baryons( "Baryon: uud-type" , (const struct correlator**)Buud_corr ) ;
+  debug_baryons( "Baryon: uuu-type" , (const struct correlator**)Buuu_corr ) ;
 #endif
 
 
   // write out the correlator
   char outstr[ 256 ] ;
   sprintf( outstr , "%s" , outfile ) ;
-  write_correlators( outstr , (const struct correlator**)bcorr ,
-		     NSNS , NSNS ) ;
+  //write_correlators( outstr , (const struct correlator**)Buds_corr ,NSNS , NSNS ) ;
 
-  free_corrs( bcorr , NSNS , NSNS ) ;
+  free_corrs( Buds_corr , NSNS , NSNS ) ;
+  free_corrs( Buud_corr , NSNS , NSNS ) ;
+  free_corrs( Buuu_corr , NSNS , NSNS ) ;
 
   free( S1 ) ;
 
@@ -302,4 +407,8 @@ baryons_diagonal( struct propagator prop ,
 
   return SUCCESS ;
 }
+
+
+
+
 

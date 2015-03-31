@@ -63,20 +63,45 @@ debug_mesons( const char *message ,
   printf( "%s PION\n" , message ) ;
   print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
 
-  printf( "%s 00\n" , message ) ;
+//  printf( "%s 00\n" , message ) ;
+//  print_convenience( corr , GAMMA_0 , GAMMA_0 ) ;
+
+//  printf( "%s 11\n" , message ) ;
+//  print_convenience( corr , GAMMA_1 , GAMMA_1 ) ;
+
+//  printf( "%s 22\n" , message ) ;
+//  print_convenience( corr , GAMMA_2 , GAMMA_2 ) ;
+
+//  printf( "%s 33\n" , message ) ;
+//  print_convenience( corr , GAMMA_3 , GAMMA_3 ) ;
+
+//  printf( "%s 1010\n" , message ) ;
+//  print_convenience( corr , 10 , 10 ) ;
+  return ;
+}
+
+// debug printing for baryons
+void
+debug_baryons( const char *message , 
+	      const struct correlator **corr )
+{
+  printf( "%s OCTETT\n" , message ) ;
+  print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
+
+/*  printf( "%s DECUPLETT G0\n" , message ) ;
   print_convenience( corr , GAMMA_0 , GAMMA_0 ) ;
 
-  printf( "%s 11\n" , message ) ;
+  printf( "%s DECUPLETT G1\n" , message ) ;
   print_convenience( corr , GAMMA_1 , GAMMA_1 ) ;
 
-  printf( "%s 22\n" , message ) ;
+  printf( "%s DECUPLETT G2\n" , message ) ;
   print_convenience( corr , GAMMA_2 , GAMMA_2 ) ;
 
-  printf( "%s 33\n" , message ) ;
+  printf( "%s DECUPLETT G3\n" , message ) ;
   print_convenience( corr , GAMMA_3 , GAMMA_3 ) ;
+*/
 
-  printf( "%s 1010\n" , message ) ;
-  print_convenience( corr , 10 , 10 ) ;
+
   return ;
 }
 
