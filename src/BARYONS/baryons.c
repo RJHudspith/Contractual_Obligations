@@ -14,13 +14,13 @@
 #include "read_propheader.h"   // for read_propheader()
 
 
-// This acts C*gamma_mu on a spinor
+// This acts C*gamma_mu on the sink indices of a spinor
 // Note: You need C*gamma_mu->source and (C*gamma_mu)^T->sink
 struct spinor
-Cgamma_mu( const struct spinor S, const int mu )
+Cgamma_snk( const struct spinor S, const int mu )
 {
 	int c1, c2, i, j;
-	struct spinor TSNK, TSRC;
+	struct spinor TSNK;
 
 	for( c1 = 0 ; c1 < NC ; c1++ ) {
 		for( c2 = 0 ; c2 < NC ; c2++ ) {
@@ -77,55 +77,72 @@ Cgamma_mu( const struct spinor S, const int mu )
 				break;
 			}
 
+		}
+	}
+	
+	return TSNK;
+}
+
+
+// This acts C*gamma_mu on the source indices of a spinor
+// Note: You need C*gamma_mu->source and (C*gamma_mu)^T->sink
+struct spinor
+Cgamma_src( const struct spinor S, const int mu )
+{
+	int c1, c2, i, j;
+	struct spinor TSRC;
+
+	for( c1 = 0 ; c1 < NC ; c1++ ) {
+		for( c2 = 0 ; c2 < NC ; c2++ ) {
 
 			// Source indices last
 			switch( mu ){
             case 0:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = ( 1 + 0 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * S.D[2][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * S.D[1][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * S.D[0][j].C[c1][c2];
 				}
 				break;
             case 1:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[2][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[0][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = ( 0 + 1 * I ) * S.D[2][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * S.D[0][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[1][j].C[c1][c2];
 				}
 				break;
             case 2:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * S.D[2][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = (-1 + 0 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * S.D[0][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = (-1 + 0 * I ) * S.D[1][j].C[c1][c2];
 				}
 				break;
             case 3:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[2][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[0][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[2][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[1][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[0][j].C[c1][c2];
 				}
 				break;
             case 4:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[1][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * TSNK.D[0][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = ( 0 + 1 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[1][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 0 - 1 * I ) * S.D[0][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = ( 0 + 1 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 0 + 1 * I ) * S.D[2][j].C[c1][c2];
 				}
 				break;
             case 5:
 				for( j = 0 ; j < NS ; j++ ) {
-					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[1][j].C[c1][c2];
-					TSRC.D[1][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[0][j].C[c1][c2];
-					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * TSNK.D[3][j].C[c1][c2];
-					TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * TSNK.D[2][j].C[c1][c2];
+					TSRC.D[0][j].C[c1][c2] = (-1 + 0 * I ) * S.D[1][j].C[c1][c2];
+					TSRC.D[1][j].C[c1][c2] = ( 1 + 0 * I ) * S.D[0][j].C[c1][c2];
+					TSRC.D[2][j].C[c1][c2] = (-1 + 0 * I ) * S.D[3][j].C[c1][c2];
+					TSRC.D[3][j].C[c1][c2] = ( 1 + 0 * I ) * S.D[2][j].C[c1][c2];
 				}
 				break;
 			}
@@ -206,11 +223,11 @@ baryon_contract( struct spinor DiQ ,
 	for( c1 = 0 ; c1 < NC ; c1++ ) {
 		for( c2 = 0 ; c2 < NC ; c2++ ) {
 
-		corrr += creal( DiQ.D[d0][d1].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] ) 
-			   - cimag( DiQ.D[d0][d1].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] );
+		corrr += creal( DiQ.D[d1][d0].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] ) 
+			   - cimag( DiQ.D[d1][d0].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] );
 
-		corri += creal( DiQ.D[d0][d1].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] ) 
-			   + cimag( DiQ.D[d0][d1].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] );
+		corri += creal( DiQ.D[d1][d0].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] ) 
+			   + cimag( DiQ.D[d1][d0].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] );
 	
 		}
 	}
@@ -298,7 +315,7 @@ baryons_diagonal( struct propagator prop ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < 12 ; t++ ) {
 
     // read in the file
     if( read_prop( prop , S1 ) == FAILURE ) {
@@ -324,9 +341,9 @@ baryons_diagonal( struct propagator prop ,
     for( GSRC = 0 ; GSRC < 6 ; GSRC++ ) {
 
 		 // Define some intermediate spinors
- 	 	complex double term1, term2;
-  		struct spinor CgS;	
-  		struct spinor DiQ;	
+ 	 	complex double term1, term2, term3, term4, term5, term6;
+  		struct spinor CgS, CgS51, CgS52;	
+  		struct spinor DiQ, DiQ51, DiQ52;	
   		register double complex Buds ;
   		register double complex Buud ;
   		register double complex Buuu ;
@@ -348,22 +365,47 @@ baryons_diagonal( struct propagator prop ,
 		
 				term1 = 0.0 ;
 				term2 = 0.0 ;
+				term3 = 0.0 ;
+				term4 = 0.0 ;
+				term5 = 0.0 ;
+				term6 = 0.0 ;
 
 				CgS = reset_spinor();
 				DiQ = reset_spinor();
 
-				// Act C*gamma_mu on source and sink of spinor S1
-				CgS = Cgamma_mu( S1[ site ] , GSRC );
+				// Act C*gamma_mu on sink and source of spinor S1
+				CgS = Cgamma_snk( S1[ site ] , GSRC );
+				CgS = Cgamma_src( CgS , GSRC );
+	
+				// In case of the Omega ( s ( s Cg5 s )) we need the source and sink separately
+				//if( GSRC == 5 ){
+					CgS51 = Cgamma_snk( S1[ site ] , GSRC );
+					CgS52 = Cgamma_src( S1[ site ] , GSRC );
+                //}
 
 				// Cross color product and sink Dirac trace
 				DiQ = cross_color_trace( S1[ site ], CgS );
+
+				// In case of the Omega we need two additional diquarks
+				//if( GSRC == 5 ){
+					DiQ51 = cross_color_trace( CgS52, CgS51 );
+					DiQ52 = cross_color_trace( S1[ site ], CgS51 );
+				//} 
 
 				// Contract with the final propagator and trace out the source Dirac indices
 				// A polarization must still be picked for the two open Dirac indices offline
 				int dirac;
 				for( dirac = 0 ; dirac < NS ; dirac++ ){
 		 			term1 += baryon_contract( DiQ, S1[ site ], dirac , dirac , OD1 , OD2 );
-		 			term2 += baryon_contract( DiQ, S1[ site ], OD1 , dirac , dirac , OD2 );
+		 			term2 += baryon_contract( DiQ, S1[ site ], dirac , OD1 , dirac , OD2 );
+					// There are four more terms for the Omega					
+					//if( GSRC == 5 ){
+		 				term3 += baryon_contract( DiQ51, S1[ site ], dirac , dirac , OD1 , OD2 );
+		 				term4 += baryon_contract( DiQ52, CgS52, dirac , OD1 , dirac , OD2 );
+
+		 				term5 += baryon_contract( DiQ52, CgS52, OD1 , dirac , dirac , OD2 );
+		 				term6 += baryon_contract( DiQ51, S1[ site ], OD1 , dirac , dirac , OD2 );
+					//}
 				}
 
 //#ifdef DEBUG
@@ -373,16 +415,30 @@ baryons_diagonal( struct propagator prop ,
 //	}
 //#endif
 
-				// Form the uds-, uud- and uuu-type baryons
+				// Form the uds-, uud-type baryons
 				Buds += term1 ;
 				Buud += term1 + term2 ;
-				Buuu += 2 * term1 + 4 * term2 ;
 
-//#ifdef DEBUG
-//	if( site == 0 ){
-//		printf("{Printing OD1=%d OD2=%d into index %d of corr files\n", OD1,OD2,odc);
-//	}
-//#endif
+				// For the uuu-type distinguish from the Omega
+				//if( GSRC == 5 ){
+					Buuu += term1 + term2 + term3 + term4 + term5 + term6;
+				//}else{
+					//Buuu += term1 + term2 + term3 + term4 + term5 + term6;
+		
+#ifdef DEBUG
+	if( site == 0 && t == 0){
+		printf("First term  (G=%d):  %le %le\n", GSRC, creal(term1), cimag(term1) );
+		printf("Second term (G=%d):  %le %le\n", GSRC, creal(term2), cimag(term2) );
+		printf("Third term  (G=%d):  %le %le\n", GSRC, creal(term3), cimag(term3) );
+		printf("Fourth term (G=%d):  %le %le\n", GSRC, creal(term4), cimag(term4) );
+		printf("Fifth term  (G=%d):  %le %le\n", GSRC, creal(term5), cimag(term5) );
+		printf("Sixth term  (G=%d):  %le %le\n", GSRC, creal(term6), cimag(term6) );
+	}
+#endif
+
+					//Buuu += 2 * term1 + 4 * term2 ;
+				//}
+
 				}
 
 				// Fill baryon correlator array
