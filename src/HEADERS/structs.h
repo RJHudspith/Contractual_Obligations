@@ -11,7 +11,7 @@
    @brief color matrix
 */
 struct colormatrix {
-  double complex C[ NC ][ NC ] ;
+  double complex C[ NC ][ NC ] __attribute__((aligned(16))) ;
 } ;
 
 /**
@@ -19,7 +19,7 @@ struct colormatrix {
    @brief dirac components
 */
 struct spinmatrix {
-  double complex D[ NS ][ NS ] ;
+  double complex D[ NS ][ NS ] __attribute__((aligned(16))) ;
 } ;
 
 /**
@@ -27,7 +27,7 @@ struct spinmatrix {
    @brief spinor is a spinmatrix of colormatrices
 */
 struct spinor{
-  struct colormatrix D[ NS ][ NS ] ;
+  struct colormatrix D[ NS ][ NS ] __attribute__((aligned(16))) ;
 } ;
 
 /**
@@ -62,7 +62,7 @@ struct PIdata {
  */
 struct site
 {
-  double complex O[ ND ][ NCNC ] ;
+  double complex O[ ND ][ NCNC ] __attribute__((aligned(16))) ;
   int neighbor[ ND ] ;
   int back[ ND ] ;
 } ;
@@ -153,16 +153,21 @@ struct latt_info{
    @struct meson_info
    @brief meson contraction information
    @param map :: maps contractions indices
-   @param source :: of type #sourcetype
-   @param proptype1 :: type of prop1
-   @param proptype2 :: type of prop2
    @param outfile :: output file name
  */
 struct meson_info {
   int map[2] ;
-  sourcetype source ;
-  proptype proptype1 ;
-  proptype proptype2 ;
+  char outfile[ 256 ] ;
+} ;
+
+/**
+   @struct baryon_info
+   @brief baryon contraction info
+   @param map :: contraction map indices
+   @param outfile :: output file name
+ */
+struct baryon_info {
+  int map[3] ;
   char outfile[ 256 ] ;
 } ;
 
@@ -171,15 +176,11 @@ struct meson_info {
    @brief VPF contractions information
    @param map :: maps contractions indices
    @param current :: of type #current_type
-   @param proptype1 :: type of prop1
-   @param proptype2 :: type of prop2
    @param outfile :: output file name
  */
 struct VPF_info {
   int map[2] ;
   current_type current ;
-  proptype proptype1 ;
-  proptype proptype2 ;
   char outfile[ 256 ] ;
 } ;
 
@@ -217,7 +218,7 @@ struct veclist {
  */
 struct input_info {
   int nprops ;
-  struct meson_info *baryons ;
+  struct baryon_info *baryons ;
   int nbaryons ;
   struct meson_info *mesons ;
   int nmesons ;

@@ -6,6 +6,14 @@
 #define DEFINITIONS_H
 
 /**
+   @def CONDOR_MODE
+   @brief if we are distributing this over multiple architectures
+ */
+#ifndef NOT_CONDOR_MODE
+  #define CONDOR_MODE
+#endif
+
+/**
    @def FAILURE
    @brief our flag for when shit hits the fan
  */
@@ -125,5 +133,11 @@
    @brief precision tolerance 
  */
 #define PREC_TOL (NC * 1.0E-14)
+
+/**
+   @def B_CHANNELS
+   @brief number of baryon channels we look at
+ */
+#define B_CHANNELS 6
 
 #endif

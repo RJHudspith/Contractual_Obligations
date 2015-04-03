@@ -185,33 +185,33 @@ conserved_local_double( struct propagator prop1 ,
     printf( "[VPF] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *S1UP ;
+  struct spinor *S1UP = NULL ;
   if( posix_memalign( (void**)&S1UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( S1 ) ; free( S1UP ) ; free( GAMMAS ) ;
     printf( "[VPF] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *S1END ;
+  struct spinor *S1END = NULL ;
   if( posix_memalign( (void**)&S1END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ; free( GAMMAS ) ;
     printf( "[VPF] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *S2 ;
+  struct spinor *S2 = NULL ;
   if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
     free( S2 ) ; free( GAMMAS ) ;
     printf( "[VPF] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *S2UP ;
+  struct spinor *S2UP = NULL ;
   if( posix_memalign( (void**)&S2UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
     free( S2 ) ; free( S2UP ) ; free( GAMMAS ) ;
     printf( "[VPF] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *S2END ;
+  struct spinor *S2END = NULL ;
   if( posix_memalign( (void**)&S2END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( S1 ) ; free( S1UP ) ; free( S1END ) ; 
     free( S2 ) ; free( S2UP ) ; free( S2END ) ; free( GAMMAS ) ;

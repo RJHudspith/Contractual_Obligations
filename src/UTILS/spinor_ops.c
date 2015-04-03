@@ -219,4 +219,12 @@ spinor_zero( void *S )
   return ;
 }
 
+// zero a spinor
+void
+spinor_zero_site( void *S )
+{
+  struct spinor *s = (struct spinor*)S ;
+  zero_spinor( (double complex*)s -> D ) ;
+}
+
 #endif

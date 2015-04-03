@@ -82,6 +82,7 @@ contract_conserved_local( struct PIdata *DATA_AA ,
 			  const int VGMAP[ ND ] ,
 			  const int t ) 
 {
+  // test our multiplies
   int x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
@@ -119,6 +120,7 @@ contract_conserved_local( struct PIdata *DATA_AA ,
       }
     }
   }
+
   return ;
 }
 

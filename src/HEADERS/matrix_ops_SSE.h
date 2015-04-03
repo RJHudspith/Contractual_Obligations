@@ -8,26 +8,26 @@
 #ifdef HAVE_EMMINTRIN_H
 
 /**
-   @fn inline void add_mat( double complex *a , const double complex *b )
+   @fn inline void add_mat( __m128d *a , const __m128d *b )
    @brief atomically add color matrix b to a
  */
-inline void
-add_mat( double complex *a ,
-	 const double complex *b ) ;
+void
+add_mat( __m128d *a ,
+	 const __m128d *b ) ;
 
 /**
-   @fn inline void colormatrix_equiv( double complex a[ NCNC ] , const double complex b[ NCNC ] )
+   @fn inline void colormatrix_equiv( __m128d *a , const __m128d *b )
    @brief equate two colormatrices
  */
-inline void
-colormatrix_equiv( double complex a[ NCNC ] ,
-		   const double complex b[ NCNC ] ) ;
+void
+colormatrix_equiv( double complex *a ,
+		   const double complex *b ) ;
 
 /**
    @fn inline void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
    @brief cast from single to working (double) precision a color matrix
  */
-inline void
+void
 colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
@@ -35,7 +35,7 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
    @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
    @brief trace of the product of two color matrices
  */
-inline __m128d
+__m128d
 colortrace_prod( const __m128d *a , 
 		 const __m128d *b ) ;
 
@@ -43,7 +43,7 @@ colortrace_prod( const __m128d *a ,
    @fn constant_mul_gauge( double complex *res , const double complex constant , const double complex *U )
    @brief computes \f$ res = constant * U \f$
  */
-inline void
+void
 constant_mul_gauge( double complex *res , 
 		    const double complex constant ,
 		    const double complex *U ) ;
@@ -52,45 +52,45 @@ constant_mul_gauge( double complex *res ,
    @fn inline void dagger_gauge( double complex *res , const double complex *U )
    @brief computes \f$ res = U^{\dagger} \f$
  */
-inline void
-dagger_gauge( double complex *res ,
-	      const double complex *U ) ;
+void
+dagger_gauge( __m128d *res ,
+	      const __m128d *U ) ;
 
 /**
-   @fn void multab( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
+   @fn void multab( __m128d *__restrict a , const __m128d *__restrict b , const __m128d *__restrict c )
    @brief performs the matrix multiplication \f$ a = b * c \f$
  */
 void 
-multab( double complex a[ NCNC ] , 
-	const double complex b[ NCNC ] , 
-	const double complex c[ NCNC ] ) ;
+multab( __m128d *__restrict a , 
+	const __m128d *__restrict b , 
+	const __m128d *__restrict c ) ;
 
 /**
-   @fn void multabdag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
+   @fn void multabdag( __m128d *__restrict a , const __m128d *__restrict b , const __m128d *__restrict c )
    @brief performs the matrix multiplication \f$ a = b^{\dagger} * c \f$
  */
 void 
-multabdag( double complex a[ NCNC ] , 
-	   const double complex b[ NCNC ] , 
-	   const double complex c[ NCNC ] ) ;
+multabdag( __m128d *__restrict a , 
+	   const __m128d *__restrict b , 
+	   const __m128d *__restrict c ) ;
 
 /**
-   @fn void multab_dag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
+   @fn void multab_dag( __m128d *__restrict a , const __m128d *__restrict b , const __m128d *__restrict c )
    @brief performs the matrix multiplication \f$ a = b * c ^{\dagger} \f$
  */
 void 
-multab_dag( double complex a[ NCNC ] , 
-	    const double complex b[ NCNC ] , 
-	    const double complex c[ NCNC ] ) ;
+multab_dag( __m128d *__restrict a , 
+	    const __m128d *__restrict b , 
+	    const __m128d *__restrict c ) ;
 
 /**
-   @fn void multab_dagdag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
+   @fn void multab_dagdag( __m128d *__restrict a , const __m128d *__restrict b , __m128d *__restrict c )
    @brief performs the matrix multiplication \f$ a = b^{\dagger} * c ^{\dagger} \f$
  */
 void 
-multab_dagdag( double complex a[ NCNC ] , 
-	       const double complex b[ NCNC ] , 
-	       const double complex c[ NCNC ] ) ;
+multab_dagdag( __m128d *__restrict a , 
+	       const __m128d *__restrict b , 
+	       const __m128d *__restrict c ) ;
 
 /**
    @fn void print_colormatrix( const double complex a[ NCNC ] )

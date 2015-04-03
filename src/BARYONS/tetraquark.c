@@ -1,9 +1,6 @@
 /**
-   @file baryons.c
-   @brief baryon contraction code
-
-
-   This needs some splainin
+   @file tetraquark.c
+   @brief tetraquark contraction code
 */
 
 #include "common.h"
@@ -19,8 +16,8 @@
 
 // flavour diagonal baryon contraction
 int
-baryons_diagonal( struct propagator prop ,
-		  const char *outfile )
+tetraquark_diagonal( struct propagator prop ,
+		     const char *outfile )
 {
   // Define our output correlators, with 6 channels and 16 components
   struct correlator **Buds_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
@@ -150,6 +147,7 @@ baryons_diagonal( struct propagator prop ,
   free_corrs( Buud_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ;
 
+  // free the prop and the gammas
   free( S1 ) ;
   free( GAMMAS ) ;
 
@@ -161,32 +159,3 @@ baryons_diagonal( struct propagator prop ,
 
   return SUCCESS ;
 }
-
-#if 0
-/*
-  struct spinor CgS, CgS51, CgS52 ;	
-  struct spinor DiQ, DiQ51, DiQ52 ;	
-
-  term3 = 0.0 ;
-  term4 = 0.0 ;
-  term5 = 0.0 ;
-  term6 = 0.0 ;
-
-  Omega stuff
-  // In case of the Omega ( s ( s Cg5 s )) we need the source and sink separately
-  CgS51 = Cgamma_snk( S1[ site ] , GSRC ); -> gamma_mul_l( S1[ site ] , CgmuT ) 
-  CgS52 = Cgamma_src( S1[ site ] , GSRC ); -> gamma_mul_r( S1[ site ] , Cgmu ) 
-
-  // There are four more terms for the Omega					
-  term3 += baryon_contract( DiQ51, S1[ site ], dirac , dirac , OD1 , OD2 );
-  term4 += baryon_contract( DiQ52, CgS52, dirac , OD1 , dirac , OD2 );
-  term5 += baryon_contract( DiQ52, CgS52, OD1 , dirac , dirac , OD2 );
-  term6 += baryon_contract( DiQ51, S1[ site ], OD1 , dirac , dirac , OD2 );
-
-  Buuu += term1 + term2 + term3 + term4 + term5 + term6;
-
-  // In case of the Omega we need two additional diquarks
-  DiQ51 = cross_color_trace( CgS52, CgS51 );
-  DiQ52 = cross_color_trace( S1[ site ], CgS51 );
- */
-#endif

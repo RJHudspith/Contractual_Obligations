@@ -214,7 +214,8 @@ get_contraction_map( int *map ,
 // get the various contraction types
 static int
 get_current_type( current_type *current ,
-		  const char *token ) 
+		  const char *token ,
+		  const int meas ) 
 {
   if( are_equal( token , "LOCAL_LOCAL" ) ) {
     *current = LOCAL_LOCAL ;
@@ -224,7 +225,7 @@ get_current_type( current_type *current ,
     printf( "[IO] I don't understand VPF type %s\n" , token ) ;
     return FAILURE ;
   }
-  printf( "[IO] We are performing %s contractions \n" , token ) ;
+  printf( "[IO] VPF_%d :: We are performing %s contractions \n" , meas , token ) ;
   return SUCCESS ;
 }
 
@@ -241,7 +242,8 @@ static int
 twopoint_tokens( struct meson_info *mesons ,
 		 const char *meson_str ,
 		 const int nprops ,
-		 const int meas_idx ) 
+		 const int meas_idx ,
+		 const char *message ) 
 {
   printf( "\n" ) ;
 
@@ -254,25 +256,66 @@ twopoint_tokens( struct meson_info *mesons ,
   if( get_contraction_map( &( mesons -> map[1] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] Meson_%d :: Contracting prop %d with prop %d \n" , 
-	  meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
+  printf( "[IO] %s_%d :: Contracting prop %d with prop %d \n" , 
+	  message , meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( mesons -> outfile , "%s" , token ) ;
-  printf( "[IO] Meson_%d :: Contraction file in %s \n" , meas_idx , token ) ;
+  printf( "[IO] %s_%d :: Contraction file in %s \n" , 
+	  message , meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] Meson_%d :: Unexpected extra contraction info %s \n" ,
-	    meas_idx , token ) ;
+    printf( "[IO] %s_%d :: Unexpected extra contraction info %s \n" ,
+	    message , meas_idx , token ) ;
+  }
+  return SUCCESS ;
+}
+
+// tokenize each meson
+static int
+threepoint_tokens( struct baryon_info *baryons ,
+		   const char *baryon_str ,
+		   const int nprops ,
+		   const int meas_idx ,
+		   const char *message ) 
+{
+  printf( "\n" ) ;
+
+  // starts with the contraction indices
+  char *token = (char*)strtok( (char*)baryon_str , "," ) ;
+  if( get_contraction_map( &( baryons -> map[0] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( baryons -> map[1] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( baryons -> map[2] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  printf( "[IO] %s_%d :: Contracting prop %d with prop %d with prop %d \n" , 
+	  message , meas_idx , baryons -> map[0] , baryons -> map[1] , baryons -> map[2] ) ;
+
+  // output file
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  sprintf( baryons -> outfile , "%s" , token ) ;
+  printf( "[IO] %s_%d :: Contraction file in %s \n" , 
+	  message , meas_idx , token ) ;
+
+  // tell us if we get more than we expect
+  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
+    printf( "[IO] %s_%d :: Unexpected extra contraction info %s \n" ,
+	    message , meas_idx , token ) ;
   }
   return SUCCESS ;
 }
 
 // baryon contractions of the form prop_idx1,prop_idx2,proptype,outfile
 static int
-baryon_contractions( struct meson_info *baryons , 
+baryon_contractions( struct baryon_info *baryons , 
 		     int *nbaryons ,
 		     const int nprops ,
 		     const GLU_bool first_pass ) 
@@ -284,9 +327,9 @@ baryon_contractions( struct meson_info *baryons ,
     const int baryon_idx = tag_search( str ) ;
     if( baryon_idx == FAILURE ) return SUCCESS ;
     if( first_pass == GLU_FALSE ) {
-      if( twopoint_tokens( &baryons[ *nbaryons ] , 
-			   INPUT[ baryon_idx ].VALUE , 
-			   nprops , *nbaryons ) 
+      if( threepoint_tokens( &baryons[ *nbaryons ] , 
+			     INPUT[ baryon_idx ].VALUE , 
+			     nprops , *nbaryons , "Baryon" ) 
 	  == FAILURE ) return FAILURE ;
     }
     *nbaryons = *nbaryons + 1 ;
@@ -311,7 +354,7 @@ meson_contractions( struct meson_info *mesons ,
     if( first_pass == GLU_FALSE ) {
       if( twopoint_tokens( &mesons[ *nmesons ] , 
 			   INPUT[ meson_idx ].VALUE , 
-			   nprops , *nmesons ) 
+			   nprops , *nmesons , "Meson" ) 
 	  == FAILURE ) return FAILURE ;
     }
     *nmesons = *nmesons + 1 ;
@@ -342,7 +385,7 @@ VPF_tokens( struct VPF_info *VPF ,
 
   // check for current
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_current_type( &( VPF -> current ) , token ) == FAILURE ) return FAILURE ;
+  if( get_current_type( &( VPF -> current ) , token , meas_idx ) == FAILURE ) return FAILURE ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
@@ -555,7 +598,7 @@ get_input_data( struct propagator **prop ,
 
   // baryon stuff
   baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , inputs -> nprops , GLU_TRUE ) ;
-  inputs -> baryons = (struct meson_info*)malloc( ( inputs -> nbaryons ) * sizeof( struct meson_info ) ) ;
+  inputs -> baryons = (struct baryon_info*)malloc( ( inputs -> nbaryons ) * sizeof( struct baryon_info ) ) ;
   if( baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , 
 			   inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;

@@ -10,17 +10,18 @@
 
 #include "bar_contractions.h"  // cross_color trace and baryon contract
 #include "basis_conversions.h" // nrel_rotate_slice()
-#include "contractions.h"      // allocate_corrs() && free_corrs()
+#include "contractions.h"      // gamma_mul_lr()
 #include "correlators.h"       // allocate_corrs() && free_corrs()
 #include "gammas.h"            // make_gammas() && gamma_mmul
 #include "GLU_timer.h"         // print_time()
 #include "io.h"                // for read_prop()
 #include "read_propheader.h"   // for read_propheader()
 
-// flavour diagonal baryon contraction
+// contracts S2 ( S1 C S1 C ) , odd one out is outside
 int
-baryons_diagonal( struct propagator prop ,
-		  const char *outfile )
+baryons_2diagonal( struct propagator prop1 ,
+		   struct propagator prop2 ,
+		   const char *outfile )
 {
   // Define our output correlators, with 6 channels and 16 components
   struct correlator **Buds_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
@@ -38,14 +39,31 @@ baryons_diagonal( struct propagator prop ,
     printf( "[BARYONS] memalign failure \n" ) ;
     return FAILURE ;
   }
+  struct spinor *S2 = NULL ;
+  if( posix_memalign( (void**)&S2 , 16 , 
+		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    free_corrs( Buds_corr , B_CHANNELS , NSNS ) ; 
+    free_corrs( Buud_corr , B_CHANNELS , NSNS ) ; 
+    free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ; 
+    free( S1 ) ; free( S2 ) ;
+    printf( "[BARYONS] memalign failure \n" ) ;
+    return FAILURE ;
+  }
 
   // allocate the basis, maybe extern this as it is important ...
   struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
   // precompute the gamma basis
-  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    free( GAMMAS ) ;
-    return FAILURE ;
+  if( prop1.basis == NREL || prop2.basis == NREL ) { 
+    if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
+      free( GAMMAS ) ;
+      return FAILURE ;
+    }
+  } else {
+    if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
+      free( GAMMAS ) ;
+      return FAILURE ;
+    }
   }
 
   int t ;
@@ -53,17 +71,26 @@ baryons_diagonal( struct propagator prop ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // read in the file
-    if( read_prop( prop , S1 ) == FAILURE ) {
+    if( read_prop( prop1 , S1 ) == FAILURE ) {
       free_corrs( Buds_corr , B_CHANNELS , NSNS ) ; 
       free_corrs( Buud_corr , B_CHANNELS , NSNS ) ; 
       free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ; 
-      free( S1 ) ;
+      free( S1 ) ; free( S2 ) ;
+      return FAILURE ;
+    }
+    if( read_prop( prop2 , S2 ) == FAILURE ) {
+      free_corrs( Buds_corr , B_CHANNELS , NSNS ) ; 
+      free_corrs( Buud_corr , B_CHANNELS , NSNS ) ; 
+      free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ; 
+      free( S1 ) ; free( S2 ) ;
       return FAILURE ;
     }
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    if( prop.basis == CHIRAL && prop.basis == NREL ) {
+    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
       nrel_rotate_slice( S1 ) ;
+    } else if( prop2.basis == CHIRAL && prop1.basis == NREL ) {
+      nrel_rotate_slice( S2 ) ;
     } 
 
     int GSRC = 0 ;
@@ -91,7 +118,7 @@ baryons_diagonal( struct propagator prop ,
 	DiQ = S1[ site ] ;
 	gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
 
-	// Cross color product and sink Dirac trace
+	// Cross color product and sink Dirac trace back into DiQ
 	cross_color_trace( &DiQ , S1[ site ] ) ;
 
 	// loop over open dirac indices
@@ -107,8 +134,8 @@ baryons_diagonal( struct propagator prop ,
 	  // A polarization must still be picked for the two open Dirac indices offline
 	  int dirac ;
 	  for( dirac = 0 ; dirac < NS ; dirac++ ){
-	    term1 += baryon_contract( DiQ, S1[ site ] , dirac , dirac , OD1 , OD2 ) ;
-	    term2 += baryon_contract( DiQ, S1[ site ] , dirac , OD1 , dirac , OD2 ) ;
+	    term1 += baryon_contract( DiQ , S2[ site ] , dirac , dirac , OD1 , OD2 ) ;
+	    term2 += baryon_contract( DiQ , S2[ site ] , dirac , OD1 , dirac , OD2 ) ;
 	  }
 	  // Form the uds-, uud-type baryons and uuu-type distinguish from the Omega
 	  Buds[ odc ] += term1 ;
@@ -150,43 +177,18 @@ baryons_diagonal( struct propagator prop ,
   free_corrs( Buud_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ;
 
+  // free the props
   free( S1 ) ;
+  free( S2 ) ;
+
   free( GAMMAS ) ;
 
   // rewind file and read header again
-  rewind( prop.file ) ; read_propheader( &prop ) ;
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
 
   // tell us how long it all took
   print_time( ) ;
 
   return SUCCESS ;
 }
-
-#if 0
-/*
-  struct spinor CgS, CgS51, CgS52 ;	
-  struct spinor DiQ, DiQ51, DiQ52 ;	
-
-  term3 = 0.0 ;
-  term4 = 0.0 ;
-  term5 = 0.0 ;
-  term6 = 0.0 ;
-
-  Omega stuff
-  // In case of the Omega ( s ( s Cg5 s )) we need the source and sink separately
-  CgS51 = Cgamma_snk( S1[ site ] , GSRC ); -> gamma_mul_l( S1[ site ] , CgmuT ) 
-  CgS52 = Cgamma_src( S1[ site ] , GSRC ); -> gamma_mul_r( S1[ site ] , Cgmu ) 
-
-  // There are four more terms for the Omega					
-  term3 += baryon_contract( DiQ51, S1[ site ], dirac , dirac , OD1 , OD2 );
-  term4 += baryon_contract( DiQ52, CgS52, dirac , OD1 , dirac , OD2 );
-  term5 += baryon_contract( DiQ52, CgS52, OD1 , dirac , dirac , OD2 );
-  term6 += baryon_contract( DiQ51, S1[ site ], OD1 , dirac , dirac , OD2 );
-
-  Buuu += term1 + term2 + term3 + term4 + term5 + term6;
-
-  // In case of the Omega we need two additional diquarks
-  DiQ51 = cross_color_trace( CgS52, CgS51 );
-  DiQ52 = cross_color_trace( S1[ site ], CgS51 );
- */
-#endif

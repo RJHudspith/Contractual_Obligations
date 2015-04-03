@@ -14,14 +14,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-// SSE2 header
-#if (defined HAVE_EMMINTRIN_H)
-  #include <emmintrin.h>
-#endif
+// I need to think about the logic here
+#if (defined HAVE_IMMINTRIN_H)
+#include <immintrin.h>
+  #ifdef __SSE2__
+    #define HAVE_EMMINTRIN_H
+    #include "SSE2_OPS.h"
+  #endif
+  #ifdef __AVX__
 
-// SSE3 header
-#if (defined HAVE_PMMINTRIN_H)
-  #include <pmmintrin.h>
+  #endif
 #endif
 
 // fftw instructions

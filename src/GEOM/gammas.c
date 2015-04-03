@@ -110,6 +110,29 @@ check_gammas( const struct gamma *GAMMA )
   return SUCCESS ;
 }
 
+// computes GAMMA_T . GAMMA_Y . GAMMA_\mu
+const struct gamma
+CGmu( const struct gamma GAMMA_MU , 
+      const struct gamma *GAMMAS )
+{
+  struct gamma res , tmp ;
+  /////////// res  =       gamma_t     .  gamma_y 
+  gamma_mmul( &tmp , GAMMAS[ GAMMA_3 ] , GAMMAS[ GAMMA_1 ] ) ;
+  gamma_mmul( &res , tmp , GAMMA_MU ) ;
+  return res ;
+}
+
+// computes ( GAMMA_T . C Gamma_\mu . GAMMA_T )
+const struct gamma
+CGmuT( const struct gamma Cgmu , 
+       const struct gamma *GAMMAS )
+{
+  struct gamma res , tmp ;
+  gamma_mmul( &tmp , Cgmu , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+  return res ;
+}
+
 #ifdef CHROMA_DIRAC_CONVENTION
 
 // degrand-rossi

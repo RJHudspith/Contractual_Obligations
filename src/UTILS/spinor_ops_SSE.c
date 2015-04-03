@@ -145,20 +145,19 @@ flipsign_spinor( void *S )
   return ;
 }
 
-// multiply by a link :: res = link * S
+// multiply by a link :: res = ( link * S )
 void
 gauge_spinor( struct spinor *__restrict res ,
-	      const double complex link[ NCNC ] ,
+	      const double complex *__restrict link ,
 	      const struct spinor S )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      // computes S1 = link * S1
-      multab( (double complex*)res -> D[d1][d2].C , 
-	      link ,
-	      (const double complex*)S.D[d1][d2].C ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multab( r , l , s ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -169,14 +168,13 @@ gaugedag_spinor( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      // computes S1 = link^{\dagger} * S1
-      multabdag( (double complex*)res -> D[d1][d2].C , 
-		 link ,
-		 (const double complex*)S.D[d1][d2].C ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multabdag( r , l , s ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -187,14 +185,13 @@ gauge_spinordag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      // computes S1 = link^{\dagger} * S1
-      multab_dag( (double complex*)res -> D[d1][d2].C , 
-		  link ,
-		  (const double complex*)S.D[d1][d2].C ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multab_dag( r , l , s ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -205,13 +202,13 @@ spinor_gauge( struct spinor *__restrict res ,
 	      const struct spinor S ,
 	      const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      multab( (double complex*)res -> D[d1][d2].C , 
-	      (const double complex*)S.D[d1][d2].C , 
-	      link ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multab( r , s , l ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -222,13 +219,13 @@ spinordag_gauge( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      multabdag( (double complex*)res -> D[d1][d2].C , 
-		 (const double complex*)S.D[d1][d2].C ,
-		 link ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multabdag( r , s , l ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -239,13 +236,13 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      multab_dag( (double complex*)res -> D[d1][d2].C , 
-		  (const double complex*)S.D[d1][d2].C ,
-		  link ) ;
-    }
+  __m128d *r = (__m128d*)res -> D ;
+  const __m128d *l = (const __m128d*)link ;
+  const __m128d *s = (const __m128d*)S.D ;
+  int d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    multab_dag( r , s , l ) ;
+    r += NCNC ; s += NCNC ;
   }
   return ;
 }
@@ -270,14 +267,14 @@ void
 spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B )
 {
-  struct spinor tmp = *A ;
+  __m128d *a = (__m128d*)A -> D ;
   int d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
+      const __m128d *ta = (const __m128d*)A -> D[ d1 ][ d2 ].C ;
+      const __m128d *tb = (const __m128d*)B.D[ d2 ][ d1 ].C ;
       // color matrix multiply
-      multab( (double complex*)A -> D[d1][d2].C ,
-	      (const double complex*)B.D[d2][d1].C ,
-	      (const double complex*)tmp.D[d1][d2].C ) ;
+      multab( a , tb , ta ) ;
     }
   }
   return ;
@@ -294,6 +291,13 @@ spinor_zero( void *S )
     zero_spinor( s + i * ( NSNS * NCNC ) ) ;
   }
   return ;
+}
+
+// zero a spinor at a site
+void
+spinor_zero_site( void *S )
+{
+  zero_spinor( (__m128d*)S ) ;
 }
 
 #endif

@@ -115,6 +115,14 @@ spinmul_atomic_left( struct spinor *A ,
 void
 spinor_zero( void *S ) ;
 
+
+/**
+   @fn void spinor_zero_site( void *S )
+   @brief zero a spinor on a site
+ */
+void
+spinor_zero_site( void *S ) ;
+
 #endif
 
 #endif

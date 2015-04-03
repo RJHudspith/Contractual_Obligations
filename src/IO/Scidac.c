@@ -58,8 +58,10 @@ static inline uint32_t
 magic_number( void ) { return header.int32[0] ; }
 static inline uint16_t
 header_version( void ) { return header.int16[2] ; }
+#ifdef DEBUG_ILDG
 static inline unsigned char
 header_mbme( void ) { return header.uchr[6] ; }
+#endif
 
 static unsigned char *lime_hdr_rec_type = &header.uchr[16] ;
 

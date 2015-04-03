@@ -9,7 +9,7 @@
 #ifndef HAVE_EMMINTRIN_H
 
 // add two color matrices
-inline void
+void
 add_mat( double complex *__restrict a ,
 	 const double complex *__restrict b )
 {
@@ -26,7 +26,7 @@ add_mat( double complex *__restrict a ,
 }
 
 // equate two color matrices
-inline void
+void
 colormatrix_equiv( double complex *__restrict a ,
 		   const double complex *__restrict b )
 {
@@ -44,7 +44,7 @@ colormatrix_equiv( double complex *__restrict a ,
 }
 
 // float matrix to double
-inline void
+void
 colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] )
 {
@@ -62,7 +62,7 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 }
 
 // is just Tr( a * b )
-inline double complex
+double complex
 colortrace_prod( const double complex *__restrict a , 
 		 const double complex *__restrict b )
 {
@@ -86,7 +86,7 @@ colortrace_prod( const double complex *__restrict a ,
 }
 
 // does res = constant * U
-inline void
+void
 constant_mul_gauge( double complex *__restrict res , 
 		    const double complex constant ,
 		    const double complex *__restrict U ) 
@@ -105,7 +105,7 @@ constant_mul_gauge( double complex *__restrict res ,
 }
 
 // daggers the matrix U into res
-inline void
+void
 dagger_gauge( double complex *__restrict res ,
 	      const double complex *__restrict U )
 {

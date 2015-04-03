@@ -87,7 +87,7 @@ typedef enum
    @brief enums for the available headers my code can read
  */
 typedef enum 
-  { UNSUPPORTED ,  
+  { UNSUPPORTED = FAILURE ,  
     NERSC_HEADER ,
     HIREP_HEADER ,
     MILC_HEADER ,

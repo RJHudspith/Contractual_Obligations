@@ -15,7 +15,7 @@
    @fn inline void add_mat( double complex *a , const double complex *b )
    @brief atomically add color matrix b to a
  */
-inline void
+void
 add_mat( double complex *a ,
 	 const double complex *b ) ;
 
@@ -23,7 +23,7 @@ add_mat( double complex *a ,
    @fn inline void colormatrix_equiv( double complex a[ NCNC ] , const double complex b[ NCNC ] )
    @brief equate two colormatrices
  */
-inline void
+void
 colormatrix_equiv( double complex a[ NCNC ] ,
 		   const double complex b[ NCNC ] ) ;
 
@@ -31,7 +31,7 @@ colormatrix_equiv( double complex a[ NCNC ] ,
    @fn inline void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
    @brief cast from single to working (double) precision a color matrix
  */
-inline void
+void
 colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
@@ -39,7 +39,7 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
    @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
    @brief trace of the product of two color matrices
  */
-inline double complex
+double complex
 colortrace_prod( const double complex *a , 
 		 const double complex *b ) ;
 
@@ -47,7 +47,7 @@ colortrace_prod( const double complex *a ,
    @fn constant_mul_gauge( double complex *res , const double complex constant , const double complex *U )
    @brief computes \f$ res = constant * U \f$
  */
-inline void
+void
 constant_mul_gauge( double complex *res , 
 		    const double complex constant ,
 		    const double complex *U ) ;
@@ -56,7 +56,7 @@ constant_mul_gauge( double complex *res ,
    @fn inline void dagger_gauge( double complex *res , const double complex *U )
    @brief computes \f$ res = U^{\dagger} \f$
  */
-inline void
+void
 dagger_gauge( double complex *res ,
 	      const double complex *U ) ;
 

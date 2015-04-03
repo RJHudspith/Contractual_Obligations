@@ -83,28 +83,28 @@ WME( struct propagator s0 ,
   }
 
   // allocate our four spinors expecting them to be at 0 and L/2
-  struct spinor *SWALL_0 ;
+  struct spinor *SWALL_0 = NULL ;
   if( posix_memalign( (void**)&SWALL_0 , 16 , 
 		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( SWALL_0 ) ; free( GAMMAS ) ;
     printf( "[MESONS] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *DWALL_0 ;
+  struct spinor *DWALL_0 = NULL ;
   if( posix_memalign( (void**)&DWALL_0 , 16 , 
 		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( SWALL_0 ) ; free( DWALL_0 ) ; free( GAMMAS ) ;
     printf( "[MESONS] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *SWALL_L_2 ;
+  struct spinor *SWALL_L_2 = NULL ;
   if( posix_memalign( (void**)&SWALL_L_2 , 16 , 
 		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( SWALL_0 ) ; free( DWALL_0 ) ; free( SWALL_L_2 ) ; free( GAMMAS ) ;
     printf( "[MESONS] memalign failure \n" ) ;
     return FAILURE ;
   }
-  struct spinor *DWALL_L_2 ; 
+  struct spinor *DWALL_L_2 = NULL ; 
   if( posix_memalign( (void**)&SWALL_L_2 , 16 , 
 		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
     free( SWALL_0 ) ; free( DWALL_0 ) ; free( SWALL_L_2 ) ; free( DWALL_L_2 ) ; free( GAMMAS ) ;

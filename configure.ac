@@ -9,7 +9,8 @@ AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_LANG([C]) 
-m4_pattern_allow([AM_PROG_AR])
+##m4_pattern_allow([AM_PROG_AR])
+AM_PROG_AR
 AC_PROG_RANLIB ## include a check for libtool if not use ranlib?
 AC_C_BIGENDIAN 
 
@@ -228,12 +229,6 @@ AC_CHECK_HEADERS([time.h],
 
 ## SSE headers
 AC_CHECK_HEADERS([immintrin.h],[],[])
-
-## SSE2
-AC_CHECK_HEADERS([emmintrin.h],[],[])
-
-## SSE3
-AC_CHECK_HEADERS([pmmintrin.h],[],[])
 
 ## Some compiler checks
 ## My code is littered with consts

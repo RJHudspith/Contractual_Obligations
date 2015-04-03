@@ -6,6 +6,22 @@
 #define GAMMAS_H
 
 /**
+   @fn const struct gamma CGmu( const struct gamma GAMMA_MU , const struct gamma *GAMMAS )
+   @brief computes \f$ \gamma_t \gamma_y
+ */
+const struct gamma
+CGmu( const struct gamma GAMMA_MU , 
+      const struct gamma *GAMMAS ) ;
+
+/**
+   @fn const struct gamma CGmuT( const struct gamma Cgmu , const struct gamma *GAMMAS )
+   @brief adjoint of CGmu \f$ \gamma_t C \gamma_\mu \gamma_t
+ */
+const struct gamma
+CGmuT( const struct gamma Cgmu , 
+       const struct gamma *GAMMAS ) ;
+
+/**
    @fn void gamma_mmul( struct gamma *__restrict a , const struct gamma b , const struct gamma c )
    @brief gamma multiplication
  */

@@ -10,43 +10,6 @@
 #include "contractions.h" // so we can alphabetise
 #include "matrix_ops.h"   // colortrace_prod
 
-// conj( a ) * b 
-static inline __m128d
-SSE2_MULCONJ( const __m128d a , const __m128d b )
-{
-  return _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) ,                               // re(a)*re(b) , re(a)*im(b)
-		     _mm_mul_pd( _mm_unpackhi_pd( a , -a ) , _mm_shuffle_pd( b , b , 1 ) ) ) ;  // im(a)*im(b) , -re(b)*im(a)
-}
-
-// complex multiply
-static inline __m128d
-SSE2_MUL( const __m128d a , const __m128d b )
-{
-  return _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) ,
-		     _mm_mul_pd( _mm_unpackhi_pd( -a , a ) , _mm_shuffle_pd( b , b , 1 ) ) ) ;
-}
-
-// multiply by i
-static inline __m128d
-SSE2_iMUL( const __m128d a ) 
-{
-  return _mm_shuffle_pd( -a , a , 1 ) ;
-}
-
-// multiply by -i
-static inline __m128d
-SSE2_miMUL( const __m128d a ) 
-{
-  return _mm_shuffle_pd( a , -a , 1 ) ;
-}
-
-// conjugate
-static __always_inline __m128d
-SSE2_CONJ( const __m128d a )
-{
-  return _mm_move_sd ( -a, a ) ;
-}
-
 // conjugate transpose of dirac indices
 void
 adjoint_spinor( struct spinor *__restrict adj ,
@@ -412,7 +375,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
 }
 
 // meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
-double complex
+double complex 
 meson_contract( const struct gamma GSNK ,		
 		const struct spinor bwd , 
 		const struct gamma GSRC ,
@@ -422,19 +385,18 @@ meson_contract( const struct gamma GSNK ,
   // global sum gets cast to double complex
   register __m128d gsum = _mm_setzero_pd( ) ;
 
-  // pointer caches
   const __m128d *d1 ;
   const __m128d *d2 = (const __m128d*)fwd.D ;
 
   // local sum
   register __m128d sum ;
 
-  int i , j , col2 , col1 ;
+  int i , j ;
+  register int col2 , col1 ;
   for( j = 0 ; j < NS ; j++ ) {
-    
+
     col2 = GSRC.ig[ G5.ig[ j ] ] ; 
 
-    // loop columns
     for( i = 0 ; i < NS ; i++ ) {
 
       col1 = G5.ig[ GSNK.ig[ i ] ] ;
@@ -444,31 +406,31 @@ meson_contract( const struct gamma GSNK ,
 
       // unrolled for SU(3)
       #if NC == 3
-      sum = SSE2_MULCONJ( *d2 , *d1 ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ); d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
+      sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ); d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       #else 
       sum = _mm_setzero_pd( ) ;
       int c1c2 ;
       for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
-	sum = _mm_add_pd( sum , SSE2_MULCONJ( *d2 , *d1 ) ) ; d1 ++ ; d2 ++ ;
+	sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       }
       #endif
 
-      // switch for the phases
-      switch( ( GSNK.g[ i ] + G5.g[ col1 ] + G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsum += sum ; break ;
-      case 1 : gsum += _mm_shuffle_pd( -sum , sum , 1 ) ; break ;
-      case 2 : gsum += -sum ; break ;
-      case 3 : gsum += _mm_shuffle_pd( sum , -sum , 1 ) ; break ;
-      }
 
+      // switch for the phases
+      switch( ( GSNK.g[ i ] + G5.g[ col1 ] +  G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
+      case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
+      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( -sum , sum , 1 ) ) ; break ;
+      case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
+      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , -sum , 1 ) ) ; break ;
+      }
       // and we are done
     }
   }
@@ -508,6 +470,7 @@ simple_meson_contract( const struct gamma GSNK ,
       sum = _mm_setzero_pd( ) ;
       
       // unroll
+      #if NC == 3
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[0] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[3] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[6] ) ) ; bcache++ ;
@@ -517,6 +480,9 @@ simple_meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[2] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[5] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[8] ) ) ; bcache++ ;
+      #else 
+      // todo :: put something here
+      #endif
 
       // switch for the phases
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
