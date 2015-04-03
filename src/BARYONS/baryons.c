@@ -17,12 +17,12 @@
 #include "io.h"                // for read_prop()
 #include "read_propheader.h"   // for read_propheader()
 
-// flavour diagonal baryon contraction
+// flavour degenerate baryon contraction
 int
 baryons_diagonal( struct propagator prop ,
 		  const char *outfile )
 {
-  // Define our output correlators, with 6 channels and 16 components
+  // Define our output correlators, with B_CHANNELS channels and NSNS components
   struct correlator **Buds_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
   struct correlator **Buud_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
   struct correlator **Buuu_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
@@ -44,7 +44,10 @@ baryons_diagonal( struct propagator prop ,
 
   // precompute the gamma basis
   if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    free( GAMMAS ) ;
+    free_corrs( Buds_corr , 6 , NSNS ) ; 
+    free_corrs( Buud_corr , 6 , NSNS ) ; 
+    free_corrs( Buuu_corr , 6 , NSNS ) ; 
+    free( S1 ) ; free( GAMMAS ) ;
     return FAILURE ;
   }
 

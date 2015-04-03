@@ -86,20 +86,22 @@ debug_baryons( const char *message ,
 	      const struct correlator **corr )
 {
   printf( "%s OCTETT\n" , message ) ;
-  print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
+  print_convenience( corr , 5 , 0 ) ;
 
-/*  printf( "%s DECUPLETT G0\n" , message ) ;
-  print_convenience( corr , GAMMA_0 , GAMMA_0 ) ;
+  printf( "%s DECUPLETT G0\n" , message ) ;
+  print_convenience( corr , 0 , 0 ) ;
 
   printf( "%s DECUPLETT G1\n" , message ) ;
-  print_convenience( corr , GAMMA_1 , GAMMA_1 ) ;
+  print_convenience( corr , 1 , 0 ) ;
 
   printf( "%s DECUPLETT G2\n" , message ) ;
-  print_convenience( corr , GAMMA_2 , GAMMA_2 ) ;
+  print_convenience( corr , 2 , 0 ) ;
 
   printf( "%s DECUPLETT G3\n" , message ) ;
-  print_convenience( corr , GAMMA_3 , GAMMA_3 ) ;
-*/
+  print_convenience( corr , 3 , 0 ) ;
+
+  printf( "%s DECUPLETT G4\n" , message ) ;
+  print_convenience( corr , 4 , 0 ) ;
 
 
   return ;
