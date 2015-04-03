@@ -76,17 +76,14 @@ mesons_diagonal( struct propagator prop ,
 
     // above should be non-blocking allowing us to play here
     int GSGK = 0 ;
+    int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       #pragma omp master
       {
 	if( t < ( L0 - 1 ) ) {
 	  if( read_prop( prop , S1f ) == FAILURE ) {
-	    free_corrs( wlcorr , NSNS , NSNS ) ; 
-	    if( prop.source == WALL ) {
-	      free_corrs( wwcorr , NSNS , NSNS ) ;
-	    }
-	    free( GAMMAS ) ; free( S1f ) ; free( S1 ) ;
+	    error_flag = FAILURE ;
 	  }
 	  //
 	}
@@ -121,6 +118,16 @@ mesons_diagonal( struct propagator prop ,
 	}
 	//
       }
+    }
+
+    // to err is human
+    if( error_flag == FAILURE ) {
+      free( S1 ) ; free( S1f ) ; free( GAMMAS ) ; 
+      free_corrs( wlcorr , NSNS , NSNS ) ;
+      if( prop.source == WALL ) {
+	free_corrs( wwcorr , NSNS , NSNS ) ;
+      }
+      return FAILURE ;
     }
 
     // copy S1f into S1
@@ -259,6 +266,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       sumprop( &SUM2 , S2 ) ;
     }
 
+    int error_flag = SUCCESS ;
     int GSGK = 0 ;
     #pragma omp parallel
     {
@@ -267,11 +275,13 @@ mesons_offdiagonal( struct propagator prop1 ,
         #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
+	    error_flag = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
 	  if( read_prop( prop2 , S2f ) == FAILURE ) {
+	    error_flag = FAILURE ;
 	  }
 	}
       }
@@ -308,6 +318,16 @@ mesons_offdiagonal( struct propagator prop1 ,
       }
     }
 
+    // to err is humuan
+    if( error_flag == FAILURE ) {
+      free( S1 ) ; free( S1f ) ; free( S2 ) ; free( S2f ) ;
+      free( GAMMAS ) ; free_corrs( wlcorr , NSNS , NSNS  ) ;
+      if( wwcorr != NULL ) {
+	free_corrs( wwcorr , NSNS , NSNS ) ;
+      }
+      return FAILURE ;
+    }
+
     // and swap back
     int i ;
     #pragma omp parallel for private(i)
@@ -317,7 +337,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", 100. * (t+1)/(double)(L0) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

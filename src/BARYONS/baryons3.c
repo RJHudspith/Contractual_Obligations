@@ -122,6 +122,8 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
       // precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
       const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
+      // precompute \gamma_t ( Cg_\mu )^{*} \gamma_t -> \Gamma^{T} in note
+      const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
 
       // accumulate the sums with open dirac indices
       double complex Buds[ NSNS ] = {} ;
@@ -134,7 +136,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
 	// multiply the di-quark by CgmuT from the left and Cgmu from the right
 	DiQ = S1[ site ] ;
-	gamma_mul_lr( &DiQ , Cgmu , Cgmu ) ;
+	gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
 
 	// Cross color product and sink Dirac trace back into DiQ
 	cross_color_trace( &DiQ , S2[ site ] ) ;

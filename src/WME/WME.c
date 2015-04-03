@@ -140,37 +140,38 @@ WME( struct propagator s0 ,
       if( d1.basis == CHIRAL ) nrel_rotate_slice( DWALL_L_2 ) ;
     }
 
-    int GSRC ;
+    int GSGK ;
     // parallelise the furthest out loop
-    #pragma omp parallel for private(GSRC)
-    for( GSRC = 0 ; GSRC < NSNS ; GSRC++ ) {
+    #pragma omp parallel for private(GSGK)
+    for( GSGK = 0 ; GSGK < ( NSNS * NSNS ); GSGK++ ) {
 
-      int GSNK ;
-      for( GSNK = 0 ; GSNK < NSNS ; GSNK++ ) {
-
-	register double complex trtr = 0.0 ;
-	register double complex tr = 0.0 ;
-
-	int site ;
-	for( site = 0 ; site < LCU ; site++ ) {
-	  // trace-trace component is simple this is projected onto external "PROJ" state
-	  trtr += ( meson_contract( PROJ , DWALL_0[ site ] ,
-				    GAMMAS[ GSRC ] , SWALL_0[ site ] , 
-				    GAMMAS[ GAMMA_5 ] ) *
-		    meson_contract( PROJ , DWALL_L_2[ site ] ,
-				    GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
-				    GAMMAS[ GAMMA_5 ] ) ) ;
-	  // four quark trace is unpleasant
-	  tr += four_quark_trace( SWALL_0[ site ] , DWALL_0[ site ] ,
-				  SWALL_L_2[ site ] , DWALL_L_2[ site ] ,
-				  GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
-				  PROJ , GAMMAS[ GAMMA_5 ] ) ;
-	}
-	corr[ GSRC ][ GSNK ].C[ t ] = tr - trtr ;
+      const int GSRC = GSGK / ( NSNS ) ;
+      const int GSNK = GSGK % ( NSNS ) ;
+      register double complex trtr = 0.0 ;
+      register double complex tr = 0.0 ;
+      
+      int site ;
+      for( site = 0 ; site < LCU ; site++ ) {
+	// trace-trace component is simple this is projected onto external "PROJ" state
+	trtr += ( meson_contract( PROJ , DWALL_0[ site ] ,
+				  GAMMAS[ GSRC ] , SWALL_0[ site ] , 
+				  GAMMAS[ GAMMA_5 ] ) *
+		  meson_contract( PROJ , DWALL_L_2[ site ] ,
+				  GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
+				  GAMMAS[ GAMMA_5 ] ) ) ;
+	// four quark trace is unpleasant
+	tr += four_quark_trace( SWALL_0[ site ] , DWALL_0[ site ] ,
+				SWALL_L_2[ site ] , DWALL_L_2[ site ] ,
+				GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
+				PROJ , GAMMAS[ GAMMA_5 ] ) ;
       }
+      // there is probably a factor in this ...
+      corr[ GSRC ][ GSNK ].C[ t ] = tr - trtr ;
     }
-    printf("\r[WME] done %.f %%",(t+1)/((L0)/100.));fflush(stdout) ;
-    //
+    
+    // tell us how far along we are
+    printf("\r[WME] done %.f %%",100.0*(t+1)/(double)(L0) ) ;
+    fflush( stdout ) ;
   }
   printf("\n") ;
 #ifdef DEBUG

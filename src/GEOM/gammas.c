@@ -110,6 +110,33 @@ check_gammas( const struct gamma *GAMMA )
   return SUCCESS ;
 }
 
+// conjugate a gamma
+static inline uint8_t
+gconj( const uint8_t g ) 
+{
+  return ( ( g & 1 ) ? ( g + 2 ) : g ) & 3 ;
+}
+
+// takes a conjugate (and not a dagger)
+static const struct gamma
+gamma_conj( const struct gamma G )
+{
+  struct gamma res ;
+#if NS == 4 
+  res.g[ 0 ] = gconj( G.g[ 0 ] ) ; res.ig[ 0 ] = G.ig[ 0 ] ;
+  res.g[ 1 ] = gconj( G.g[ 1 ] ) ; res.ig[ 1 ] = G.ig[ 1 ] ;
+  res.g[ 2 ] = gconj( G.g[ 2 ] ) ; res.ig[ 2 ] = G.ig[ 2 ] ; 
+  res.g[ 3 ] = gconj( G.g[ 3 ] ) ; res.ig[ 3 ] = G.ig[ 3 ] ;
+#else
+  int i ;
+  for( i = 0 ; i < NS ; i++ ) {
+    res.ig[ i ] = G.ig[ i ] ;
+    res.g[ i ] = gconj( G.g[ i ] ) ;
+  }
+#endif
+  return res ;
+}
+
 // computes GAMMA_T . GAMMA_Y . GAMMA_\mu
 const struct gamma
 CGmu( const struct gamma GAMMA_MU , 
@@ -122,14 +149,14 @@ CGmu( const struct gamma GAMMA_MU ,
   return res ;
 }
 
-// computes ( GAMMA_T . C Gamma_\mu . GAMMA_T )
+// computes ( GAMMA_T . ( C Gamma_\mu )^* . GAMMA_T )
 const struct gamma
 CGmuT( const struct gamma Cgmu , 
        const struct gamma *GAMMAS )
 {
   struct gamma res , tmp ;
   gamma_mmul( &tmp , Cgmu , GAMMAS[ GAMMA_3 ] ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+  gamma_mmul( &res , gamma_conj( GAMMAS[ GAMMA_3 ] ) , tmp ) ;
   return res ;
 }
 
