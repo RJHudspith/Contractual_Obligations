@@ -17,23 +17,23 @@ baryon_contract( const struct spinor DiQ ,
 		 const int d2 ,
 		 const int d3 )
 {
-/*#if (defined HAVE_IMMINTRIN_H) && (NC == 3)
+#if (defined HAVE_IMMINTRIN_H) && (NC == 3)
   const __m128d *d = (const __m128d*)DiQ.D[d1][d0].C ;
   const __m128d *s = (const __m128d*)S.D[d2][d3].C ;
   register __m128d sum = _mm_setzero_pd() ;
-  sum = SSE2_MUL( *d , s[ 0 ] ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 3 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 6 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 1 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 4 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 7 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 2 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 5 ] ) ) ; d++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , s[ 8 ] ) ) ; d++ ;
+  sum = SSE2_MUL( *d , *s) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
   double complex res ;
   _mm_store_pd( (void*)&res , sum ) ;
   return res ;
-#else*/
+#else
   int c1, c2 ;
   register double corrr = 0.0 , corri = 0.0 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
@@ -45,7 +45,7 @@ baryon_contract( const struct spinor DiQ ,
     }
   }
   return corrr + I * corri;
-//#endif
+#endif
 }
 
 // This carries out the color cross product and traces one set of Dirac indices.

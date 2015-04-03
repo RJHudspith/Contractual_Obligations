@@ -70,7 +70,7 @@ baryons_diagonal( struct propagator prop ,
     } 
 
     int GSRC = 0 ;
-    // parallelise the furthest out loop, this is only a loop on 6 though?
+    // parallelise the furthest out loop
 #pragma omp parallel for private(GSRC)
     for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
 
@@ -79,7 +79,6 @@ baryons_diagonal( struct propagator prop ,
 
       // precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
       const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
-      const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
 
       // accumulate the sums with open dirac indices
       double complex Buds[ NSNS ] = {} ;
@@ -92,8 +91,7 @@ baryons_diagonal( struct propagator prop ,
 
 	// multiply the di-quark by CgmuT from the left and Cgmu from the right
 	DiQ = S1[ site ] ;
-	gamma_mul_r( &DiQ , Cgmu ) ;
-	gamma_mul_l( &DiQ , Cgmu ) ;
+	gamma_mul_lr( &DiQ , Cgmu , Cgmu ) ;
 
 	// Cross color product and sink Dirac trace
 	cross_color_trace( &DiQ , S1[ site ] ) ;
@@ -130,6 +128,69 @@ baryons_diagonal( struct propagator prop ,
 	Buuu_corr[ GSRC ][ i ].C[ t ] = Buuu[ i ] ;
       }
     }
+
+#if 0
+    int GSRC = 0 ;
+    // parallelise the furthest out loop
+#pragma omp parallel for private(GSRC)
+    for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
+
+      // Define some intermediate spinors
+      struct spinor DiQ ;
+
+      // precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
+      const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
+      const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
+
+      // accumulate the sums with open dirac indices
+      double complex Buds[ NSNS ] = {} ;
+      double complex Buud[ NSNS ] = {} ;
+      double complex Buuu[ NSNS ] = {} ;
+
+      // loop spatial hypercube
+      int site ;
+      for( site = 0 ; site < VOL3 ; site++ ) {
+
+	// multiply the di-quark by CgmuT from the left and Cgmu from the right
+	DiQ = S1[ site ] ;
+	gamma_mul_lr( &DiQ , Cgmu , Cgmu ) ;
+
+	// Cross color product and sink Dirac trace
+	cross_color_trace( &DiQ , S1[ site ] ) ;
+
+	// loop over open dirac indices
+	int odc ;
+	for( odc = 0 ; odc < NSNS ; odc++ ) {
+	  // open dirac index for source and sink
+	  const int OD1 = odc / NS ;
+	  const int OD2 = odc % NS ;
+	  // local accumulators
+	  register double complex term1 = 0.0 ;
+	  register double complex term2 = 0.0 ;
+	  // Contract with the final propagator and trace out the source Dirac indices
+	  // A polarization must still be picked for the two open Dirac indices offline
+	  int dirac ;
+	  for( dirac = 0 ; dirac < NS ; dirac++ ){
+	    term1 += baryon_contract( DiQ, S1[ site ] , dirac , dirac , OD1 , OD2 ) ;
+	    term2 += baryon_contract( DiQ, S1[ site ] , dirac , OD1 , dirac , OD2 ) ;
+	  }
+
+	  // Form the uds-, uud-type baryons and uuu-type distinguish from the Omega
+	  Buds[ odc ] += term1 ;
+	  Buud[ odc ] += term1 + term2 ;
+	  Buuu[ odc ] += 2 * term1 + 4 * term2 ;
+	}
+      } // VOL3 loop
+
+      // Fill baryon correlator array
+      int i ;
+      for( i = 0 ; i < NSNS ; i++ ) {
+	Buds_corr[ GSRC ][ i ].C[ t ] = Buds[ i ] ;
+	Buud_corr[ GSRC ][ i ].C[ t ] = Buud[ i ] ;
+	Buuu_corr[ GSRC ][ i ].C[ t ] = Buuu[ i ] ;
+      }
+    }
+#endif
     // status of the computation
     printf("\r[BARYONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
