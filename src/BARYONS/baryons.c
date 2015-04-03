@@ -44,9 +44,9 @@ baryons_diagonal( struct propagator prop ,
 
   // precompute the gamma basis
   if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    free_corrs( Buds_corr , 6 , NSNS ) ; 
-    free_corrs( Buud_corr , 6 , NSNS ) ; 
-    free_corrs( Buuu_corr , 6 , NSNS ) ; 
+    free_corrs( Buds_corr , B_CHANNELS , NSNS ) ; 
+    free_corrs( Buud_corr , B_CHANNELS , NSNS ) ; 
+    free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ; 
     free( S1 ) ; free( GAMMAS ) ;
     return FAILURE ;
   }
@@ -70,7 +70,7 @@ baryons_diagonal( struct propagator prop ,
     } 
 
     int GSRC = 0 ;
-    // parallelise the furthest out loop
+    // parallelise the furthest out loop, this is only a loop on 6 though?
 #pragma omp parallel for private(GSRC)
     for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
 
