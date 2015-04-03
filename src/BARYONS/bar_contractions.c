@@ -5,11 +5,12 @@
 
 #include "common.h"
 
+#include "contractions.h" // gamma_mul_lr()
 #include "spinor_ops.h"   // spinor_zero_site()
 
 // This contracts the diquark with the remaining propagator
 // This does the color trace Tr[ A . B ] 
-const double complex
+static const double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
 		 const int d0 ,
@@ -50,7 +51,7 @@ baryon_contract( const struct spinor DiQ ,
 
 // This carries out the color cross product and traces one set of Dirac indices.
 // The results forms a diquark-type object
-void
+static void
 cross_color_trace( struct spinor *__restrict DiQ ,
 		   const struct spinor S )
 {
@@ -80,16 +81,90 @@ cross_color_trace( struct spinor *__restrict DiQ ,
     }
   }
 
-  int c3 ;
-  // Source cross color
-  for( c3 = 0 ; c3 < 3 ; c3++ ) {
-    for( i = 0 ; i < NS ; i++ ) {
-      for( j = 0 ; j < NS ; j++ ) {
-	DiQ -> D[i][j].C[0][c3] = T3SNK[c3].D[i][j].C[1][2] - T3SNK[c3].D[i][j].C[2][1] ; 
-	DiQ -> D[i][j].C[1][c3] = T3SNK[c3].D[i][j].C[2][0] - T3SNK[c3].D[i][j].C[0][2] ; 
-	DiQ -> D[i][j].C[2][c3] = T3SNK[c3].D[i][j].C[0][1] - T3SNK[c3].D[i][j].C[1][0] ; 
-      }            
+  // SSE2 version of the below
+#ifdef HAVE_IMMINTRIN_H
+  __m128d *D1 = (__m128d*)DiQ -> D ;
+  const __m128d *t0 = (const __m128d*)T3SNK[0].D ;
+  const __m128d *t1 = (const __m128d*)T3SNK[1].D ;
+  const __m128d *t2 = (const __m128d*)T3SNK[2].D ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *D1 = _mm_sub_pd( *( t0 + NC + 2 ) , *( t0 + 1 + 2 * NC ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t1 + NC + 2 ) , *( t1 + 1 + 2 * NC ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t2 + NC + 2 ) , *( t2 + 1 + 2 * NC ) ) ; D1++ ;
+
+    *D1 = _mm_sub_pd( *( t0 + 2 * NC ) , *( t0 + 2 ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t1 + 2 * NC ) , *( t1 + 2 ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t2 + 2 * NC ) , *( t2 + 2 ) ) ; D1++ ;
+
+    *D1 = _mm_sub_pd( *( t0 + 1 ) , *( t0 + NC ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t1 + 1 ) , *( t1 + NC ) ) ; D1++ ;
+    *D1 = _mm_sub_pd( *( t2 + 1 ) , *( t2 + NC ) ) ; D1++ ;
+
+    t0 += NCNC ; t1 += NCNC ; t2 += NCNC ;
+  }
+#else
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      DiQ -> D[i][j].C[0][0] = T3SNK[0].D[i][j].C[1][2] - T3SNK[0].D[i][j].C[2][1] ; 
+      DiQ -> D[i][j].C[0][1] = T3SNK[1].D[i][j].C[1][2] - T3SNK[1].D[i][j].C[2][1] ; 
+      DiQ -> D[i][j].C[0][2] = T3SNK[2].D[i][j].C[1][2] - T3SNK[2].D[i][j].C[2][1] ; 
+
+      DiQ -> D[i][j].C[1][0] = T3SNK[0].D[i][j].C[2][0] - T3SNK[0].D[i][j].C[0][2] ; 
+      DiQ -> D[i][j].C[1][1] = T3SNK[1].D[i][j].C[2][0] - T3SNK[1].D[i][j].C[0][2] ; 
+      DiQ -> D[i][j].C[1][2] = T3SNK[2].D[i][j].C[2][0] - T3SNK[2].D[i][j].C[0][2] ; 
+
+      DiQ -> D[i][j].C[2][0] = T3SNK[0].D[i][j].C[0][1] - T3SNK[0].D[i][j].C[1][0] ; 
+      DiQ -> D[i][j].C[2][1] = T3SNK[1].D[i][j].C[0][1] - T3SNK[1].D[i][j].C[1][0] ;
+      DiQ -> D[i][j].C[2][2] = T3SNK[2].D[i][j].C[0][1] - T3SNK[2].D[i][j].C[1][0] ;  
     }
+  }
+#endif
+  return ;
+}
+
+// baryon contraction
+void
+baryon_contract_site( double complex term1[ NSNS ] ,
+		      double complex term2[ NSNS ] ,
+		      const struct spinor S1 , 
+		      const struct spinor S2 , 
+		      const struct spinor S3 , 
+		      const struct gamma Cgmu ,
+		      const struct gamma CgmuT )
+{
+  // get diquark
+  struct spinor DiQ = S1 ;
+  gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
+
+  // Cross color product and sink Dirac trace back into DiQ
+  cross_color_trace( &DiQ , S2 ) ;
+
+  // loop over open dirac indices
+  int odc , OD1 , OD2 ;
+  for( odc = 0 ; odc < NSNS ; odc++ ) {
+    // open dirac index for source and sink
+    OD1 = odc / NS ;
+    OD2 = odc % NS ;
+    // Contract with the final propagator and trace out the source Dirac indices
+    // A polarization must still be picked for the two open Dirac indices offline
+#if NS == 4
+    term1[ odc ] += baryon_contract( DiQ, S3 , 0 , 0 , OD1 , OD2 ) ;
+    term1[ odc ] += baryon_contract( DiQ, S3 , 1 , 1 , OD1 , OD2 ) ;
+    term1[ odc ] += baryon_contract( DiQ, S3 , 2 , 2 , OD1 , OD2 ) ;
+    term1[ odc ] += baryon_contract( DiQ, S3 , 3 , 3 , OD1 , OD2 ) ;
+
+    term2[ odc ] += baryon_contract( DiQ, S3 , 0 , OD1 , 0 , OD2 ) ;
+    term2[ odc ] += baryon_contract( DiQ, S3 , 1 , OD1 , 1 , OD2 ) ;
+    term2[ odc ] += baryon_contract( DiQ, S3 , 2 , OD1 , 2 , OD2 ) ;
+    term2[ odc ] += baryon_contract( DiQ, S3 , 3 , OD1 , 3 , OD2 ) ; 
+#else
+    int dirac ;
+    for( dirac = 0 ; dirac < NS ; dirac++ ){
+      term1[ odc ] += baryon_contract( DiQ, S1 , dirac , dirac , OD1 , OD2 ) ;
+      term2[ odc ] += baryon_contract( DiQ, S1 , dirac , OD1 , dirac , OD2 ) ;
+    }
+#endif
   }
   return ;
 }
+

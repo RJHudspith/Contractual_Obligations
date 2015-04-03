@@ -7,23 +7,17 @@
 #define BAR_CONTRACTIONS_H
 
 /**
-   @fn const double complex baryon_contract( const struct spinor DiQ , const struct spinor S , const int d0 , const int d1 , const int d2 , const int d3 )
-   @brief baryon contractions between Diquark and propagator S
- */
-const double complex
-baryon_contract( const struct spinor DiQ ,
-		 const struct spinor S ,
-		 const int d0 ,
-		 const int d1 ,
-		 const int d2 ,
-		 const int d3 ) ;
+   @fn void baryon_contract_site( double complex accum1[ NSNS ] , double complex accum2[ NSNS ] , const struct spinor S1 , const struct spinor S2 , const struct spinor S3 , const struct gamma Cgmu , const struct gamma CgmuT )
+   @brief performs the baryon contraction at a site and has the 
 
-/**
-   @fn void cross_color_trace( struct spinor *__restrict DiQ , const struct spinor S )
-   @brief cross-color trace of two propagators
-   @warning overwrites DiQ with the cross-color trace expects DiQ to be \f$ Cg_\mu^{T} S Cg_\mu
  */
 void
-cross_color_trace( struct spinor *__restrict DiQ ,
-		   const struct spinor S ) ;
+baryon_contract_site( double complex term1[ NSNS ] ,
+		      double complex term2[ NSNS ] ,
+		      const struct spinor S1 , 
+		      const struct spinor S2 , 
+		      const struct spinor S3 , 
+		      const struct gamma Cgmu ,
+		      const struct gamma CgmuT ) ;
+
 #endif

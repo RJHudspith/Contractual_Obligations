@@ -33,13 +33,21 @@ contract_baryons( struct propagator *prop ,
       }
       // two props are the same S3 ( S1 Cgmu S1 Cgmu )
     } else if( ( p1 == p2 && p2 != p3 ) ) {
-     if( baryons_2diagonal( prop[ p1 ] , prop[ p3 ] , 
+      if( prop[ p1 ].source != prop[ p3 ].source ) {
+	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
+      if( baryons_2diagonal( prop[ p1 ] , prop[ p3 ] , 
 			     baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
 	return FAILURE ;
       }
       // two props are the same S2 ( S1 Cgmu S1 Cgmu )
     } else if( p1 == p3 && p3 != p2 ) {
+      if( prop[ p1 ].source != prop[ p2 ].source ) {
+	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
       if( baryons_2diagonal( prop[ p1 ] , prop[ p2 ] , 
 			     baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -47,6 +55,10 @@ contract_baryons( struct propagator *prop ,
       }
       // two props are the same S1 ( S2 Cgmu S2 Cgmu )
     } else if( p2 == p3 && p1 != p2 ) {
+      if( prop[ p2 ].source != prop[ p1 ].source ) {
+	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
       if( baryons_2diagonal( prop[ p2 ] , prop[ p1 ] , 
 			     baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -54,6 +66,12 @@ contract_baryons( struct propagator *prop ,
       }
       // otherwise we resort to the 3-component baryon
     } else {
+      if( prop[ p1 ].source != prop[ p2 ].source ||
+	  prop[ p1 ].source != prop[ p3 ].source ||
+	  prop[ p2 ].source != prop[ p3 ].source ) {
+	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
       if( baryons_3fdiagonal( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ,
 			     baryons[ measurements ].outfile ) 
 	  == FAILURE ) {

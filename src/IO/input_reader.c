@@ -546,6 +546,7 @@ get_props( struct propagator *props ,
 void
 free_inputs( struct input_info inputs ) 
 {
+  free( inputs.baryons ) ;
   free( inputs.mesons ) ;
   free( inputs.VPF ) ;
   free( inputs.wme ) ;
