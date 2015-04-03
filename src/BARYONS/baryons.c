@@ -92,7 +92,8 @@ baryons_diagonal( struct propagator prop ,
 
 	// multiply the di-quark by CgmuT from the left and Cgmu from the right
 	DiQ = S1[ site ] ;
-	gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
+	gamma_mul_r( &DiQ , Cgmu ) ;
+	gamma_mul_l( &DiQ , Cgmu ) ;
 
 	// Cross color product and sink Dirac trace
 	cross_color_trace( &DiQ , S1[ site ] ) ;
@@ -113,6 +114,7 @@ baryons_diagonal( struct propagator prop ,
 	    term1 += baryon_contract( DiQ, S1[ site ] , dirac , dirac , OD1 , OD2 ) ;
 	    term2 += baryon_contract( DiQ, S1[ site ] , dirac , OD1 , dirac , OD2 ) ;
 	  }
+
 	  // Form the uds-, uud-type baryons and uuu-type distinguish from the Omega
 	  Buds[ odc ] += term1 ;
 	  Buud[ odc ] += term1 + term2 ;
