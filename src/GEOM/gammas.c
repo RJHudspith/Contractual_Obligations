@@ -155,8 +155,8 @@ CGmuT( const struct gamma Cgmu ,
        const struct gamma *GAMMAS )
 {
   struct gamma res , tmp ;
-  gamma_mmul( &tmp , Cgmu , GAMMAS[ GAMMA_3 ] ) ;
-  gamma_mmul( &res , gamma_conj( GAMMAS[ GAMMA_3 ] ) , tmp ) ;
+  gamma_mmul( &tmp , gamma_conj( Cgmu ) , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
   return res ;
 }
 
