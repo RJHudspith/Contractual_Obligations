@@ -32,6 +32,14 @@ debug_mesons( const char *message ,
 	      const struct correlator **corr ) ;
 
 /**
+   @fn void debug_baryons( const char *message , const struct correlator **corr )
+   @brief print to stdout some (baryon) correlator information
+ */
+void
+debug_baryons( const char *message , 
+	       const struct correlator **corr ) ;
+
+/**
    @fn void write_correlators( const char *outfile , const struct correlator **corr )
    @brief write the full correlation matrix out in binary to outfile
  */
