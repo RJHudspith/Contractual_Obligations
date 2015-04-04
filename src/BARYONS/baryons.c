@@ -96,13 +96,16 @@ baryons_diagonal( struct propagator prop ,
 	const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
 
 	// accumulate the sums with open dirac indices
-	double complex term1[ NSNS ] = {} ;
-	double complex term2[ NSNS ] = {} ;
-	
+	//double complex term1[ NSNS ] = {} ;
+	//double complex term2[ NSNS ] = {} ;
+	double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
+	term[0] = calloc( NSNS , sizeof( double complex ) ) ;
+	term[1] = calloc( NSNS , sizeof( double complex ) ) ;
+
 	// Wall-Local
 	int site ;
 	for( site = 0 ; site < LCU ; site++ ) {
-	  baryon_contract_site( term1 , term2 , 
+	  baryon_contract_site( term , 
 				S1[ site ] , S1[ site ] , S1[ site ] ,
 				Cgmu , CgmuT ) ;
 	}
@@ -110,22 +113,23 @@ baryons_diagonal( struct propagator prop ,
 	// Fill baryon correlator array
 	int i ;
 	for( i = 0 ; i < NSNS ; i++ ) {
-	  Buud_corr[ GSRC ][ i ].C[ t ] = term1[ i ] + term2[i] ;
-	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term1[ i ] + 4 * term2[ i ] ;
-	  term1[ i ] = term2[ i ] = 0.0 ; // set to zero
+	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
+	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
+	  term[0][ i ] = term[1][ i ] = 0.0 ; // set to zero
 	}
 
 	// contract the wall if we desire
 	if( prop.source == WALL ) {
-	  baryon_contract_site( term1 , term2 , 
+	  baryon_contract_site( term ,
 				SUM1 , SUM1 , SUM1 ,
 				Cgmu , CgmuT ) ;
 	  for( i = 0 ; i < NSNS ; i++ ) {
-	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term1[ i ] + term2[i] ;
-	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term1[ i ] + 4 * term2[ i ] ;
+	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
+	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
 	  }
 	}
 	// and that is it
+	free( term[0] ) ; free( term[1] ) ; free( term ) ;
       }
     }
 
