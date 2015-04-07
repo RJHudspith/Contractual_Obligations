@@ -89,13 +89,9 @@ tetraquark_diagonal( struct propagator prop ,
 	// precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
 	const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	// precompute \gamma_t ( Cg_\mu )^{*} \gamma_t -> \Gamma^{T} in note
-	const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
+	const struct gamma CgmuT = CGmuT( Cgmu , GAMMAS ) ;
 
 	// accumulate the sums with open dirac indices
-	/*
-	double complex term1[ NSNS ] = {} ;
-	double complex term2[ NSNS ] = {} ;
-	*/
 	double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
 	term[0] = calloc( NSNS , sizeof( double complex ) ) ;
 	term[1] = calloc( NSNS , sizeof( double complex ) ) ;
@@ -140,7 +136,7 @@ tetraquark_diagonal( struct propagator prop ,
     int i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &S1[i] , &S1f[i] , sizeof( struct site ) ) ;
+      memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation

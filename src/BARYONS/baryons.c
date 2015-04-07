@@ -93,11 +93,9 @@ baryons_diagonal( struct propagator prop ,
 	// precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
 	const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	// precompute \gamma_t ( Cg_\mu )^{*} \gamma_t -> \Gamma^{T} in note
-	const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
+	const struct gamma CgmuT = CGmuT( Cgmu , GAMMAS ) ;
 
 	// accumulate the sums with open dirac indices
-	//double complex term1[ NSNS ] = {} ;
-	//double complex term2[ NSNS ] = {} ;
 	double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
 	term[0] = calloc( NSNS , sizeof( double complex ) ) ;
 	term[1] = calloc( NSNS , sizeof( double complex ) ) ;
@@ -113,9 +111,9 @@ baryons_diagonal( struct propagator prop ,
 	// Fill baryon correlator array
 	int i ;
 	for( i = 0 ; i < NSNS ; i++ ) {
-	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
-	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
-	  term[0][ i ] = term[1][ i ] = 0.0 ; // set to zero
+	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
+	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
+	  term[0][i] = term[1][i] = 0.0 ; // set to zero
 	}
 
 	// contract the wall if we desire
@@ -124,8 +122,8 @@ baryons_diagonal( struct propagator prop ,
 				SUM1 , SUM1 , SUM1 ,
 				Cgmu , CgmuT ) ;
 	  for( i = 0 ; i < NSNS ; i++ ) {
-	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
-	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
+	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
+	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
 	  }
 	}
 	// and that is it
@@ -142,7 +140,7 @@ baryons_diagonal( struct propagator prop ,
     int i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &S1[i] , &S1f[i] , sizeof( struct site ) ) ;
+      memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation
@@ -151,10 +149,10 @@ baryons_diagonal( struct propagator prop ,
   }
   printf( "\n" ) ;
 
-#ifdef DEBUG
+  //#ifdef DEBUG
   debug_baryons( "Baryon: uud-type" , (const struct correlator**)Buud_corr ) ;
   debug_baryons( "Baryon: uuu-type" , (const struct correlator**)Buuu_corr ) ;
-#endif
+  //#endif
 
   // write out the correlator
   char outstr[ 256 ] ;

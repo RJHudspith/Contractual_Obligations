@@ -124,7 +124,7 @@ baryons_2diagonal( struct propagator prop1 ,
 	// precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
 	const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	// precompute \gamma_t ( Cg_\mu )^{*} \gamma_t -> \Gamma^{T} in note
-	const struct gamma CgmuT = CGmuT( GAMMAS[ GSRC ] , GAMMAS ) ;
+	const struct gamma CgmuT = CGmuT( Cgmu , GAMMAS ) ;
 
 	// accumulate the sums with open dirac indices
 	double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
@@ -142,8 +142,8 @@ baryons_2diagonal( struct propagator prop1 ,
 	// Fill baryon correlator array
 	int i ;
 	for( i = 0 ; i < NSNS ; i++ ) {
-	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
-	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
+	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
+	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
 	  term[0][ i ] = term[1][ i ] = 0.0 ; // set to zero
 	}
 
@@ -153,8 +153,8 @@ baryons_2diagonal( struct propagator prop1 ,
 				SUM1 , SUM1 , SUM2 ,
 				Cgmu , CgmuT ) ;
 	  for( i = 0 ; i < NSNS ; i++ ) {
-	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][ i ] + term[1][i] ;
-	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][ i ] + 4 * term[1][ i ] ;
+	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
+	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
 	  }
 	}
 	// and that is it
@@ -171,8 +171,8 @@ baryons_2diagonal( struct propagator prop1 ,
     int i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &S1[i] , &S1f[i] , sizeof( struct site ) ) ;
-      memcpy( &S2[i] , &S2f[i] , sizeof( struct site ) ) ;
+      memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
+      memcpy( &S2[i] , &S2f[i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation
