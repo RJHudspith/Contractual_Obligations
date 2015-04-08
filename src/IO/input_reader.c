@@ -38,7 +38,7 @@ struct inputs {
 } ;
 
 // is this what valgrind dislikes?
-static struct inputs *INPUT ;
+static struct inputs *INPUT = NULL ;
 
 // counter for the number of tags
 static int NTAGS = 0 ;
@@ -51,7 +51,7 @@ are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str
 static void 
 pack_inputs( FILE *setup )
 {
-  INPUT = ( struct inputs* )malloc( MAX_TOKENS * sizeof( struct inputs ) ) ;
+  INPUT = ( struct inputs* )calloc( MAX_TOKENS , sizeof( struct inputs ) ) ;
   // and put into the buffer
   while( NTAGS++ , fscanf( setup , "%s = %s" , INPUT[ NTAGS ].TOKEN , INPUT[ NTAGS ].VALUE )  != EOF ) { }
   return ;
@@ -588,6 +588,12 @@ get_input_data( struct propagator **prop ,
   // get the header
   Latt.head = header_type( ) ;
   if( Latt.head == FAILURE ) STATUS = FAILURE ;
+
+  // initialise
+  inputs -> baryons = NULL ;
+  inputs -> mesons = NULL ;
+  inputs -> VPF = NULL ;
+  inputs -> wme = NULL ;
 
   // read some props, although strange I wouldn't consider no props being an error
   get_props( *prop , &( inputs -> nprops ) , GLU_TRUE ) ;

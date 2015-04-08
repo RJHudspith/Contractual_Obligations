@@ -18,10 +18,10 @@ contract_WME( struct propagator *prop ,
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nWME ; measurements++ ) {
 
-    const int p0 = wme[ measurements ].map[0] ;
-    const int p1 = wme[ measurements ].map[1] ;
-    const int p2 = wme[ measurements ].map[2] ;
-    const int p3 = wme[ measurements ].map[3] ;
+    const int p0 = wme[ measurements ].map[0] ; // swall_0
+    const int p1 = wme[ measurements ].map[1] ; // dwall_0
+    const int p2 = wme[ measurements ].map[2] ; // swall_L/2
+    const int p3 = wme[ measurements ].map[3] ; // dwall_L/2
 
     if( prop[p0].source != WALL || prop[p1].source != WALL ||
 	prop[p2].source != WALL || prop[p3].source != WALL ) {

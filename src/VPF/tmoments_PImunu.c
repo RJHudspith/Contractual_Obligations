@@ -156,7 +156,15 @@ tmoments( const struct PIdata *AA ,
   momspace_data( cpVV , (const double **)p , psq , list , 
 		 NMOM , str , current , VECTOR ) ;
 
+  // free the momentum list
   free( (void*)list ) ;
+
+  // free psq and p
+  free( psq ) ;
+  for( i = 0 ; i < NMOM[0] ; i++ ) {
+    free( p[i] ) ;
+  }
+  free( p ) ;
 
   // free the DFTd data
   free( cpAA ) ;
