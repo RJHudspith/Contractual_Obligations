@@ -30,8 +30,8 @@ baryons_3fdiagonal( struct propagator prop1 ,
   struct spinor *S3 = NULL , *S3f = NULL ;
 
   // correlators
-  struct correlator **Buud_corr = NULL , **Buuu_corr = NULL ;
-  struct correlator **Buud_corrWW = NULL , **Buuu_corrWW = NULL ;
+  struct correlator **Buud_corr = NULL , **Buuu_corr = NULL , **Buds_corr = NULL ;
+  struct correlator **Buud_corrWW = NULL , **Buuu_corrWW = NULL , **Buds_corrWW = NULL ;
 
   // allocs
   if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
@@ -68,11 +68,13 @@ baryons_3fdiagonal( struct propagator prop1 ,
   }
 
   // Define our output correlators, with B_CHANNELS channels and NSNS components
-  Buuu_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
+  Buds_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
+  Buud_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
   Buuu_corr = allocate_corrs( B_CHANNELS , NSNS ) ;
 
-  // allocate the walls if we have wall correlators
+  // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL ) {
+    Buds_corrWW = allocate_corrs( B_CHANNELS , NSNS ) ;
     Buud_corrWW = allocate_corrs( B_CHANNELS , NSNS ) ;
     Buuu_corrWW = allocate_corrs( B_CHANNELS , NSNS ) ;
   }
@@ -158,6 +160,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 	// Fill baryon correlator array
 	int i ;
 	for( i = 0 ; i < NSNS ; i++ ) {
+	  Buds_corr[ GSRC ][ i ].C[ t ] = term[0][i] ;
 	  Buud_corr[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
 	  Buuu_corr[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
 	  term[0][ i ] = term[1][ i ] = 0.0 ; // set to zero
@@ -169,6 +172,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 				SUM1 , SUM2 , SUM3 ,
 				Cgmu , CgmuT ) ;
 	  for( i = 0 ; i < NSNS ; i++ ) {
+	    Buds_corrWW[ GSRC ][ i ].C[ t ] = term[0][i] ;
 	    Buud_corrWW[ GSRC ][ i ].C[ t ] = term[0][i] + term[1][i] ;
 	    Buuu_corrWW[ GSRC ][ i ].C[ t ] = 2 * term[0][i] + 4 * term[1][i] ;
 	  }
@@ -199,26 +203,35 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   printf( "\n" ) ;
 
+
 #ifdef DEBUG
+  debug_baryons( "Baryon: uds-type" , (const struct correlator**)Buds_corr ) ;
   debug_baryons( "Baryon: uud-type" , (const struct correlator**)Buud_corr ) ;
   debug_baryons( "Baryon: uuu-type" , (const struct correlator**)Buuu_corr ) ;
 #endif
 
   // write out the correlator
   char outstr[ 256 ] ;
+  sprintf( outstr , "%s.uds" , outfile ) ;
+  write_correlators( outstr , (const struct correlator**)Buds_corr , B_CHANNELS , NSNS ) ;
   sprintf( outstr , "%s.uud" , outfile ) ;
   write_correlators( outstr , (const struct correlator**)Buud_corr , B_CHANNELS , NSNS ) ;
   sprintf( outstr , "%s.uuu" , outfile ) ;
   write_correlators( outstr , (const struct correlator**)Buuu_corr , B_CHANNELS , NSNS ) ;
+  free_corrs( Buds_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buud_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ;
 
+
   // IO for the wall
   if( prop1.source == WALL ) {
+    sprintf( outstr , "%s.uds.WW" , outfile ) ;
+    write_correlators( outstr , (const struct correlator**)Buds_corrWW , B_CHANNELS , NSNS ) ;
     sprintf( outstr , "%s.uud.WW" , outfile ) ;
     write_correlators( outstr , (const struct correlator**)Buud_corrWW , B_CHANNELS , NSNS ) ;
     sprintf( outstr , "%s.uuu.WW" , outfile ) ;
     write_correlators( outstr , (const struct correlator**)Buuu_corrWW , B_CHANNELS , NSNS ) ;
+    free_corrs( Buds_corrWW , B_CHANNELS , NSNS ) ;
     free_corrs( Buud_corrWW , B_CHANNELS , NSNS ) ;
     free_corrs( Buuu_corrWW , B_CHANNELS , NSNS ) ;
   }
@@ -247,8 +260,10 @@ baryons_3fdiagonal( struct propagator prop1 ,
  FREE_FAIL :
 
   // free our correlators
+  free_corrs( Buds_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buud_corr , B_CHANNELS , NSNS ) ;
   free_corrs( Buuu_corr , B_CHANNELS , NSNS ) ;
+  free_corrs( Buds_corrWW , B_CHANNELS , NSNS ) ;
   free_corrs( Buud_corrWW , B_CHANNELS , NSNS ) ;
   free_corrs( Buuu_corrWW , B_CHANNELS , NSNS ) ;
 
