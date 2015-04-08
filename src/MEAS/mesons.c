@@ -19,51 +19,40 @@ int
 mesons_diagonal( struct propagator prop ,
 		 const char *outfile )
 {
+  // spinors, S1f is the forward one
+  struct spinor *S1 = NULL , *S1f = NULL ;
+
   // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-
-  // precompute the gamma basis
-  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    free( GAMMAS ) ;
-    return FAILURE ;
-  }
-
-  // and our spinor
-  struct spinor *S1 ;
-  if( posix_memalign( (void**)&S1 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
+  struct gamma *GAMMAS = NULL ;
 
   // data structure for holding the contractions
-  struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
-  struct correlator **wwcorr = NULL ;
+  struct correlator **wlcorr = NULL , **wwcorr = NULL ;
 
+  // and our spinor
+  if( posix_memalign( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+
+  // precompute the gamma basis
+  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
+    goto free_failure ;
+  }
+
+  // allocate the correlators
+  wlcorr = allocate_corrs( NSNS , NSNS ) ;
   if( prop.source == WALL ) {
     wwcorr = allocate_corrs( NSNS , NSNS ) ;
   }
 
-  struct spinor *S1f ;
-  if( posix_memalign( (void**)&S1f , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( S1f ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-
   // initially read in a timeslice
   if( read_prop( prop , S1 ) == FAILURE ) {
-    free_corrs( wlcorr , NSNS , NSNS ) ; 
-    if( prop.source == WALL ) {
-      free_corrs( wwcorr , NSNS , NSNS ) ;
-    }
-    free( GAMMAS ) ; free( S1 ) ;
-    return FAILURE ;
+    goto free_failure ;
   }
 
-  
   int t ;
   // Time slice loop 
   for( t = 0 ; t < L0 ; t++ ) {
@@ -88,7 +77,6 @@ mesons_diagonal( struct propagator prop ,
 	  //
 	}
       }
-
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < ( NSNS*NSNS ) ; GSGK++ ) {
@@ -122,12 +110,7 @@ mesons_diagonal( struct propagator prop ,
 
     // to err is human
     if( error_flag == FAILURE ) {
-      free( S1 ) ; free( S1f ) ; free( GAMMAS ) ; 
-      free_corrs( wlcorr , NSNS , NSNS ) ;
-      if( prop.source == WALL ) {
-	free_corrs( wwcorr , NSNS , NSNS ) ;
-      }
-      return FAILURE ;
+      goto free_failure ;
     }
 
     // copy S1f into S1
@@ -181,6 +164,25 @@ mesons_diagonal( struct propagator prop ,
   print_time( ) ;
 
   return SUCCESS ;
+
+ free_failure :
+
+  // free the correlator
+  free_corrs( wlcorr , NSNS , NSNS ) ;
+
+  // free the wall-wall correlator
+  if( prop.source == WALL ) {
+    free_corrs( wwcorr , NSNS , NSNS ) ;
+  }
+
+  // free our GAMMAS
+  free( GAMMAS ) ;
+
+  // free our spinor
+  free( S1 ) ;
+  free( S1f ) ; // free the copy
+
+  return FAILURE ;
 }
 
 // computes meson correlators
@@ -189,50 +191,38 @@ mesons_offdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,
 		    const char *outfile )
 {
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  // spinor storage S*f is the forward one being read by the head
+  struct spinor *S1 = NULL , *S1f = NULL , *S2 = NULL , *S2f = NULL ;
 
-  // precompute the gamma basis
-  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
-		   NREL : prop1.basis ) == FAILURE ) {
-    free( GAMMAS ) ;
-    return FAILURE ;
-  }
-
-  // and our spinors
-  struct spinor *S1 = NULL ;
-  if(  posix_memalign( (void**)&S1 , 16 , 
-		       VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *S2 = NULL ;
-  if( posix_memalign( (void**)&S2 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( S2 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *S1f = NULL ;
-  if(  posix_memalign( (void**)&S1f , 16 , 
-		       VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *S2f = NULL ;
-  if( posix_memalign( (void**)&S2f , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( S1 ) ; free( S2 ) ; free( S1f ) ; free( S2f ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
+  // allocate the gamma basis
+  struct gamma *GAMMAS = NULL ;
 
   // data structure for holding the contractions
-  struct correlator **wlcorr = allocate_corrs( NSNS , NSNS ) ;
-  struct correlator **wwcorr = NULL ;
-  
+  struct correlator **wlcorr = NULL , **wwcorr = NULL ;
+
+  // and our spinors
+  if(  posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&S2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+
+  // precompute the gamma basis
+  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
+		   NREL : prop1.basis ) == FAILURE ) {
+    goto free_failure ;
+  }
+
+  // correlator allocations
+  wlcorr = allocate_corrs( NSNS , NSNS ) ;
   if( prop1.source == WALL || prop2.source == WALL ) {
     wwcorr = allocate_corrs( NSNS , NSNS ) ;
   }
@@ -240,12 +230,7 @@ mesons_offdiagonal( struct propagator prop1 ,
   // read in the files
   if( read_prop( prop1 , S1 ) == FAILURE ||
       read_prop( prop2 , S2 ) == FAILURE ) {
-    free_corrs( wlcorr , NSNS , NSNS ) ; 
-    if( prop1.source == WALL || prop2.source == WALL ) {
-      free_corrs( wwcorr , NSNS , NSNS ) ;
-    }
-    free( GAMMAS ) ; free( S1 ) ; free( S2 ) ;
-    return FAILURE ;
+    goto free_failure ;
   }
 
   int t ;
@@ -287,7 +272,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       }
 
       // parallelise the furthest out loop
-#pragma omp for private(GSGK) schedule(dynamic)
+      #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < ( NSNS * NSNS ) ; GSGK++ ) {
 	
 	const int GSRC = GSGK / NSNS ;
@@ -320,12 +305,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 
     // to err is humuan
     if( error_flag == FAILURE ) {
-      free( S1 ) ; free( S1f ) ; free( S2 ) ; free( S2f ) ;
-      free( GAMMAS ) ; free_corrs( wlcorr , NSNS , NSNS  ) ;
-      if( wwcorr != NULL ) {
-	free_corrs( wwcorr , NSNS , NSNS ) ;
-      }
-      return FAILURE ;
+      goto free_failure ;
     }
 
     // and swap back
@@ -354,7 +334,6 @@ mesons_offdiagonal( struct propagator prop1 ,
   sprintf( outstr , "%s" , outfile ) ;
   write_correlators( outstr , (const struct correlator**)wlcorr ,
 		     NSNS , NSNS ) ;
-
   free_corrs( wlcorr , NSNS , NSNS ) ;
 
   if( prop1.source == WALL || prop2.source == WALL ) {
@@ -381,4 +360,23 @@ mesons_offdiagonal( struct propagator prop1 ,
   print_time( ) ;
 
   return SUCCESS ;
+
+ free_failure :
+
+  // free the walls
+  free_corrs( wlcorr , NSNS , NSNS ) ;
+  if( prop1.source == WALL || prop2.source == WALL ) {
+    free_corrs( wwcorr , NSNS , NSNS ) ;
+  }
+  
+  // free our GAMMAS
+  free( GAMMAS ) ;
+
+  // free our spinors
+  free( S1 ) ;
+  free( S1f ) ;
+  free( S2 ) ;
+  free( S2f ) ;
+
+  return FAILURE ;
 }

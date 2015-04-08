@@ -63,58 +63,48 @@ WME( struct propagator s0 ,
      const char *outfile )
 {
   // usual cruft
+  struct spinor *SWALL_0 = NULL , *SWALL_L_2 = NULL ;
+  struct spinor *DWALL_0 = NULL , *DWALL_L_2 = NULL ;
+
   // allocate the basis
-  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  struct gamma *GAMMAS = NULL ;
+
+  // data structure for holding the contractions
+  struct correlator **corr = NULL ;
+
+  // allocate our four spinors expecting them to be at 0 and L/2
+  if( posix_memalign( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
+  if( posix_memalign( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    goto free_failure ;
+  }
 
   // precompute the gamma basis
+  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   GLU_bool NREL_FLAG = GLU_FALSE ;
   if( s0.basis == NREL || d0.basis == NREL ||
       s1.basis == NREL || d1.basis == NREL ) {
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      free( GAMMAS ) ;
-      return FAILURE ;
+      goto free_failure ;
     }
     NREL_FLAG = GLU_TRUE ;
   } else {
     if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      free( GAMMAS ) ;
-      return FAILURE ;
+      goto free_failure ;
     }
   }
 
-  // allocate our four spinors expecting them to be at 0 and L/2
-  struct spinor *SWALL_0 = NULL ;
-  if( posix_memalign( (void**)&SWALL_0 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( SWALL_0 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *DWALL_0 = NULL ;
-  if( posix_memalign( (void**)&DWALL_0 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( SWALL_0 ) ; free( DWALL_0 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *SWALL_L_2 = NULL ;
-  if( posix_memalign( (void**)&SWALL_L_2 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( SWALL_0 ) ; free( DWALL_0 ) ; free( SWALL_L_2 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
-  struct spinor *DWALL_L_2 = NULL ; 
-  if( posix_memalign( (void**)&SWALL_L_2 , 16 , 
-		      VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    free( SWALL_0 ) ; free( DWALL_0 ) ; free( SWALL_L_2 ) ; free( DWALL_L_2 ) ; free( GAMMAS ) ;
-    printf( "[MESONS] memalign failure \n" ) ;
-    return FAILURE ;
-  }
+  // allocate our corrs
+  corr = allocate_corrs( NSNS , NSNS ) ;
 
-  // data structure for holding the contractions
-  struct correlator **corr = allocate_corrs( NSNS , NSNS ) ;
-
+  // pseudoscalar projection state
   const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
 
   int t ;
@@ -126,10 +116,7 @@ WME( struct propagator s0 ,
 	read_prop( d0 , DWALL_0 ) == FAILURE ||
 	read_prop( s1 , SWALL_L_2 ) == FAILURE ||
 	read_prop( d1 , DWALL_L_2 ) == FAILURE ) {
-      free( SWALL_0 ) ; free( SWALL_L_2 ) ; free( DWALL_0 ) ; 
-      free( DWALL_L_2 ) ; free( GAMMAS ) ; 
-      free_corrs( corr , NSNS , NSNS ) ;
-      return FAILURE ;
+      goto free_failure ;
     }
 
     // if any of these are a mix of chiral && nrel we rotate all to NREL
@@ -165,7 +152,7 @@ WME( struct propagator s0 ,
 				GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
 				PROJ , GAMMAS[ GAMMA_5 ] ) ;
       }
-      // there is probably a factor in this ...
+      // there is probably a factor in this is it 1/2?
       corr[ GSRC ][ GSNK ].C[ t ] = tr - trtr ;
     }
     
@@ -202,5 +189,19 @@ WME( struct propagator s0 ,
   print_time( ) ;
 
   return SUCCESS ;
+
+ free_failure :
+
+  // free our correlator measurement
+  free_corrs( corr , NSNS , NSNS ) ;
+
+  // free our gamma matrices
+  free( GAMMAS ) ;
+
+  // free the space
+  free( DWALL_0 ) ; free( DWALL_L_2 ) ;
+  free( SWALL_0 ) ; free( SWALL_L_2 ) ;
+
+  return FAILURE ;
 }
      

@@ -22,7 +22,7 @@ fill_spinor( struct spinor *__restrict S ,
     const float complex *ftmp = (const float complex*)tmp ;
     int d1d2 ;
     #pragma omp parallel for private(d1d2)
-    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
+    for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const int d1 = d1d2 / ND1 + d1shift ;
       const int d2 = d1d2 % ND1 + d1shift ;
       // unroll the matching
@@ -33,7 +33,7 @@ fill_spinor( struct spinor *__restrict S ,
     const double complex *ftmp = (const double complex*)tmp ;
     int d1d2 ;
     #pragma omp parallel for private(d1d2)
-    for( d1d2 = 0 ; d1d2 < ND1 * ND1 ; d1d2++ ) {
+    for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const int d1 = d1d2 / ND1 + d1shift ;
       const int d2 = d1d2 % ND1 + d1shift ;
       // unroll the matching
@@ -159,15 +159,15 @@ read_nrprop( struct propagator prop ,
     tmp = malloc( spinsize * sizeof( double complex ) ) ;
   }
 
-  // zeros our spinor
+  // zeros our spinor over LCU
   spinor_zero( S ) ;
 
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
-    // have to zero our spinor ..
+    // single precision read 
     if( prop.precision == SINGLE ) {
       // Read in tslice 
-      if( fread( ftmp , sizeof(float complex), spinsize , prop.file ) != 
+      if( fread( ftmp , sizeof(float complex) , spinsize , prop.file ) != 
 	  spinsize ) {
 	printf( "[IO] nrel propagator read failure \n" ) ;
 	free( ftmp ) ;
@@ -175,11 +175,11 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_32( 2*spinsize , ftmp ) ;
 
+      // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
       fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , sizeof(float complex) ) ;
-
     } else {
       // Read in tslice 
-      if( fread( tmp , sizeof(double complex), spinsize , prop.file ) != 
+      if( fread( tmp , sizeof(double complex) , spinsize , prop.file ) != 
 	  spinsize ) {
 	printf( "[IO] nrel propagator read failure \n" ) ;
 	free( tmp ) ;
@@ -187,16 +187,14 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_64( 2*spinsize , tmp ) ;
 
+      // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
       fill_spinor( &S[i] , tmp , NR_NS , NR_NS , sizeof(double complex) ) ;
     }
   }
 
   // free the temp storage
-  if( prop.precision == SINGLE ) {
-    free( ftmp ) ;
-  } else {
-    free( tmp ) ;
-  }
+  free( tmp ) ;
+  free( ftmp ) ;
 
   return SUCCESS ;
 }
