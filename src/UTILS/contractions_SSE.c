@@ -375,7 +375,11 @@ gamma_mul_lr( struct spinor *__restrict S ,
 }
 
 // meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
+#ifdef __GNUC__
+inline double complex 
+#else
 double complex 
+#endif
 meson_contract( const struct gamma GSNK ,		
 		const struct spinor bwd , 
 		const struct gamma GSRC ,

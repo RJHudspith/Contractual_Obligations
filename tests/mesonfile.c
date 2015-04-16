@@ -125,7 +125,7 @@ main( const int argc ,
   }
 
   // check our checksums
-  uint32_t csum[ 2 ] = {} ; 
+  uint32_t csum[ 2 ] = { 0 , 0 } ; 
   if( fread( csum , sizeof( uint32_t ) , 2 , infile ) != 2 ) {
     return FAILURE ;
   }

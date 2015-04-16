@@ -197,7 +197,7 @@ int
 read_propheader( struct propagator *prop )
 {
   // dimensions in the file
-  int dims[ ND ] = { } ;
+  int dims[ ND ] ;
   const int MAX_HEADER_LINES = 32 ;
   char line[ MAX_LINE_LENGTH ] ;
 

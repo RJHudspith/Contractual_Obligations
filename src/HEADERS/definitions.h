@@ -77,7 +77,7 @@
    @def TWOPI
    @brief \f$ 2 \pi$ appears everywhere
  */
-#define TWOPI ( 2.0 * M_PI )
+#define TWOPI 6.283185307179586
 
 /**
    @def VPF_MAGIC

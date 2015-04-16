@@ -22,6 +22,8 @@
    @brief dirty parser for the xml information in Scidac and ILDG config files
  */
 
+#include <string.h>
+
 #include "common.h"
 
 // this prints to stdout all of the header information ...
@@ -187,9 +189,9 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	while ( ( pch = strtok( 0 , "<>" ) ) ) {
 	  // break up the dimensions ...
 	  char *tofree = pch ;
-	  char *token ;
+	  char *token = strtok( pch , " " ) ;
 	  int idx = 0 ;
-	  while( ( token = strsep( &pch , " " ) ) ) {
+	  while( ( token = strtok( NULL , " " ) ) != NULL ) {
 	    if(  ( are_equal( token , "/dims" ) ) ) break ;
 	    Latt.dims[ idx ] = atoi( token ) ;
 	    #ifdef DEBUG_ILDG
