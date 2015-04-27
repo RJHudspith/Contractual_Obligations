@@ -103,6 +103,14 @@ check_gammas( const struct gamma *GAMMA )
   gamma_mmul( &res , GAMMA[ GAMMA_5 ] , GAMMA[ GAMMA_5 ] ) ;
   flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma5 Gamma5" ) ;
 
+  // compute gamma_0.gamma_1.gamma_2.gamma_3 = gamma_5 and compare
+  struct gamma t1 , t2 ;
+  gamma_mmul( &t1 , GAMMA[ GAMMA_0 ] , GAMMA[ GAMMA_1 ] ) ;
+  gamma_mmul( &t2 , GAMMA[ GAMMA_2 ] , GAMMA[ GAMMA_3 ] ) ;
+  gamma_mmul( &res , t1 , t2 ) ;
+  flag += gamma_comparison( res , GAMMA[ GAMMA_5 ] , 
+			    "Gamma0.Gamma1.Gamma2.Gamma3 = Gamma5" ) ;
+
   // if any failure happens we leave in disgust
   if( flag != 0 ) {
     return FAILURE ;
@@ -262,10 +270,10 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[3].ig[2] = 2 ; GAMMA[3].g[2] = 2 ;
     GAMMA[3].ig[3] = 3 ; GAMMA[3].g[3] = 2 ;
     // gamma_5 
-    GAMMA[5].ig[0] = 2 ; GAMMA[5].g[0] = 0 ;
-    GAMMA[5].ig[1] = 3 ; GAMMA[5].g[1] = 0 ;
-    GAMMA[5].ig[2] = 0 ; GAMMA[5].g[2] = 0 ;
-    GAMMA[5].ig[3] = 1 ; GAMMA[5].g[3] = 0 ;
+    GAMMA[5].ig[0] = 2 ; GAMMA[5].g[0] = 2 ;
+    GAMMA[5].ig[1] = 3 ; GAMMA[5].g[1] = 2 ;
+    GAMMA[5].ig[2] = 0 ; GAMMA[5].g[2] = 2 ;
+    GAMMA[5].ig[3] = 1 ; GAMMA[5].g[3] = 2 ;
     break ;
   case CHIRAL :
     // gamma_0

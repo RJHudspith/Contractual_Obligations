@@ -56,10 +56,7 @@ main( const int argc,
   }
   init_geom( ) ;
 
-  // at the moment we read in the whole gauge field
-  // maybe that will change I am not sure, we could probably live with it
-  // like this, the gauge field is a big beast but not as big as a prop
-  // and we can probably free it if needs be
+  // my gauge field code requires us to read in the whole config
   struct site *lat = NULL ;
   struct head_data HEAD_DATA ;
   if( MODE == GAUGE_AND_PROPS ) {
@@ -71,7 +68,8 @@ main( const int argc,
     }
   } 
 
-  // open up some propagator files and parse the header checking the geometry
+  // open up some propagator files and parse the
+  // header checking the geometry
   if( read_propheaders( prop , inputs ) == FAILURE ) {
     if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
     free_props( prop , inputs.nprops ) ;
@@ -81,13 +79,13 @@ main( const int argc,
 
   start_timer( ) ;
 
-  // baryon contraction, props have to be wall source
+  // baryon contraction code
   if( contract_baryons( prop , inputs.baryons , inputs.nbaryons ) 
       == FAILURE ) {
     goto FREES ;
   }
 
-  // want to switch on these or call a wrapper
+  // calls a wrapper that has some logic tests
   if( contract_mesons( prop , inputs.mesons , 
 		       inputs.nmesons ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
@@ -102,7 +100,8 @@ main( const int argc,
   } 
 
   // WME contraction, props have to be wall source
-  if( contract_WME( prop , inputs.wme , inputs.nWME ) == FAILURE ) {
+  if( contract_WME( prop , inputs.wme , 
+		    inputs.nWME ) == FAILURE ) {
     goto FREES ;
   }
 
