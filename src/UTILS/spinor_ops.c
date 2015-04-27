@@ -199,8 +199,8 @@ spinmul_atomic_left( struct spinor *A ,
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       // color matrix multiply
       multab( (double complex*)A -> D[d1][d2].C ,
-	      (const double complex*)B.D[d2][d1].C ,
-	      (const double complex*)tmp.D[d1][d2].C ) ;
+	      (const double complex*)B.D[d1][d2].C ,
+	      (const double complex*)tmp.D[d2][d1].C ) ;
     }
   }
   return ;

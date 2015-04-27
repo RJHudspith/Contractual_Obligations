@@ -267,14 +267,14 @@ void
 spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B )
 {
-  __m128d *a = (__m128d*)A -> D ;
+  struct spinor tmp = *A ;
   int d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
-      const __m128d *ta = (const __m128d*)A -> D[ d1 ][ d2 ].C ;
-      const __m128d *tb = (const __m128d*)B.D[ d2 ][ d1 ].C ;
       // color matrix multiply
-      multab( a , tb , ta ) ;
+      multab( (__m128d*)A -> D[ d1 ][ d2 ].C , 
+	      (const __m128d*)B.D[ d1 ][ d2 ].C , 
+	      (const __m128d*)tmp.D[ d2 ][ d1 ].C ) ;
     }
   }
   return ;
