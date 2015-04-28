@@ -61,6 +61,23 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// compute the trace
+double complex
+colortrace( const double complex a[ NCNC ] )
+{
+#if NC == 3
+  return a[ 0 ] + a[ 4 ] + a[ 8 ] ;
+#else
+  register double re = 0. , im = 0. ;
+  int i ;
+  for( i = 0 ; i < NC ; i++ ) {
+    re += creal( a[ i*( NC + 1 ) ] ) ;
+    im += cimag( a[ i*( NC + 1 ) ] ) ;
+  }
+  return re + I * im ;
+#endif
+}
+
 // is just Tr( a * b )
 double complex
 colortrace_prod( const double complex *__restrict a , 

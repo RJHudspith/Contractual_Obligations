@@ -5,7 +5,6 @@
 #include "common.h"
 
 #include "gammas.h"
-#include "geometry.h"    // lattice geometry ( x , y , z , t )
 #include "minunit.h"     // minimal unit testing framework
 #include "spinor_ops.h"  // spinor operations
 
@@ -306,6 +305,9 @@ spinops_test( void )
 int
 spinor_test_driver( void )
 {
+  // init to zero again
+  tests_run = tests_fail = 0 ;
+  
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   

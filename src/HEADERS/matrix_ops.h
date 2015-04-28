@@ -36,6 +36,13 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
 /**
+   @fn double complex colortrace( const double complex a[ NCNC ] )
+   @brief compute the trace of a color matrix
+ */
+double complex
+colortrace( const double complex a[ NCNC ] ) ;
+
+/**
    @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
    @brief trace of the product of two color matrices
  */

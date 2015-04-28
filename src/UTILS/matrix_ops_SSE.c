@@ -68,17 +68,44 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// trace of a color matrix
+__m128d
+colortrace( const __m128d *a )
+{
+#if NC == 3
+  return _mm_add_pd( _mm_add_pd( a[ 0 ] , a[ 4 ] ) , a[8] ) ; 
+#else
+  register __m128d sum = setzero_pd( ) ;
+  int i ;
+  for( i = 0 ; i < NC ; i++ ) {
+    sum = _mm_add_pd( sum , a[ i*( NC + 1 ) ] ) ;
+  }
+  return sum ;
+#endif
+}
+
 // is just Tr( a * b )
 __m128d
 colortrace_prod( const __m128d *a ,
 		 const __m128d *b )
 {
+#if NC == 3
   return 
     _mm_add_pd( SSE2_MUL( a[0] , b[0] ) , SSE2_MUL( a[1] , b[3] ) ) +
     _mm_add_pd( SSE2_MUL( a[2] , b[6] ) , SSE2_MUL( a[3] , b[1] ) ) +
     _mm_add_pd( SSE2_MUL( a[4] , b[4] ) , SSE2_MUL( a[5] , b[7] ) ) +
     _mm_add_pd( SSE2_MUL( a[6] , b[2] ) , SSE2_MUL( a[7] , b[5] ) ) +
     SSE2_MUL( a[8] , b[8] ) ;
+#else
+  register __m128d sum = _mm_setzero_pd( ) ;
+  int i ;
+  for( i = 0 ; i < NC ; i++ ) {
+    for( j = 0 ; j < NC ; j++ ) {
+      sum = _mm_add_pd( sum , SSE2_MUL( a[j+i*NC] , b[i+j*NC] ) ) ;
+    }
+  }
+  return sum ;
+#endif
 }
 
 // does res = constant * U

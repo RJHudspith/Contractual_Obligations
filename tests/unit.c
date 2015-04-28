@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "geometry.h"      // init_geom()
+#include "matops_tests.h"  
 #include "spinor_tests.h"
 
 struct latt_info Latt ;
@@ -24,8 +25,21 @@ main( const int argc , const char *argv[] )
   init_geom( ) ; // geometry inherited from GLU and has been tested
 
   printf( "\n" ) ;
+
+  int total = 0 ;
+
+  // have a look at matrix operations
+  if( matops_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
   // have a look at spinor operations
-  spinor_test_driver( ) ;
+  if( spinor_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
+  printf( "[UNIT] %d tests run and passed\n" , total ) ;
 
   return SUCCESS ;
+
+ failure :
+  return FAILURE ;
 }

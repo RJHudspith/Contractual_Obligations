@@ -8,7 +8,7 @@
 #ifdef HAVE_EMMINTRIN_H
 
 /**
-   @fn inline void add_mat( __m128d *a , const __m128d *b )
+   @fn void add_mat( __m128d *a , const __m128d *b )
    @brief atomically add color matrix b to a
  */
 void
@@ -31,8 +31,16 @@ void
 colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
+
 /**
-   @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
+   @fn __m128d colortrace( const __m128d *a )
+   @brief take the color trace of a matrix
+ */
+__m128d
+colortrace( const __m128d *a ) ;
+
+/**
+   @fn __m128d colortrace_prod( const __m128d *a , const __m128d *b )
    @brief trace of the product of two color matrices
  */
 __m128d
@@ -49,7 +57,7 @@ constant_mul_gauge( double complex *res ,
 		    const double complex *U ) ;
 
 /**
-   @fn inline void dagger_gauge( double complex *res , const double complex *U )
+   @fn void dagger_gauge( __m128d *res , const __m128d *U )
    @brief computes \f$ res = U^{\dagger} \f$
  */
 void
