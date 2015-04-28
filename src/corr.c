@@ -10,8 +10,9 @@
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header
 
-#include "wrap_baryons.h"    // Baryon wrappers
-#include "wrap_mesons.h"     // meson contraction wrappers
+#include "wrap_baryons.h"    // Baryon contractionwrappers
+#include "wrap_mesons.h"     // Meson contraction wrappers
+#include "wrap_tetras.h"     // Tetraquark contraction wrappers
 #include "wrap_VPF.h"        // VPF contraction wrappers
 #include "wrap_WME.h"        // VPF contraction wrappers
 
@@ -89,6 +90,12 @@ main( const int argc,
   if( contract_mesons( prop , inputs.mesons , 
 		       inputs.nmesons ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
+  }
+
+  // tetraquark contraction code
+  if( contract_tetras( prop , inputs.tetras , inputs.ntetras ) 
+      == FAILURE ) {
+    goto FREES ;
   }
 
   // if we don't have a gauge field we can't do conserved-local

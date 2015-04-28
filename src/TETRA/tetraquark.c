@@ -13,6 +13,7 @@
 #include "GLU_timer.h"         // print_time()
 #include "io.h"                // for read_prop()
 #include "read_propheader.h"   // for read_propheader()
+#include "spinor_ops.h"        // sumprop
 
 // flavour diagonal tetraquark
 int
@@ -28,6 +29,13 @@ tetraquark_diagonal( struct propagator prop ,
   // correlators
   struct correlator **Buud_corr = NULL , **Buuu_corr = NULL ;
   struct correlator **Buud_corrWW = NULL , **Buuu_corrWW = NULL ;
+
+  // full config-space business
+  double complex **cspace_tetra = malloc( B_CHANNELS * sizeof( double complex* ) ) ;
+  int mu ;
+  for( mu = 0 ; mu < B_CHANNELS ; mu++ ) {
+    cspace_tetra[ mu ] = calloc( LVOLUME , sizeof( double complex ) ) ;
+  }
 
   // allocations
   if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
@@ -140,14 +148,14 @@ tetraquark_diagonal( struct propagator prop ,
     }
 
     // status of the computation
-    printf("\r[BARYONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[TETRA] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;
 
 #ifdef DEBUG
-  debug_baryons( "Baryon: uud-type" , (const struct correlator**)Buud_corr ) ;
-  debug_baryons( "Baryon: uuu-type" , (const struct correlator**)Buuu_corr ) ;
+  debug_baryons( "TETRA: uud-type" , (const struct correlator**)Buud_corr ) ;
+  debug_baryons( "TETRA: uuu-type" , (const struct correlator**)Buuu_corr ) ;
 #endif
 
   // write out the correlator
@@ -168,7 +176,15 @@ tetraquark_diagonal( struct propagator prop ,
     free_corrs( Buuu_corrWW , B_CHANNELS , NSNS ) ;
   }
 
-  // free stuff
+  // FFT the cspace tetra quark
+
+  // free our LVOLUME-wide tetra quark
+  for( mu = 0 ; mu < B_CHANNELS ; mu++ ) {
+    free( cspace_tetra[ mu ] ) ;
+  }
+  free( cspace_tetra ) ;
+
+  // free the spinors
   free( S1 ) ;
   free( S1f ) ;
 
@@ -184,6 +200,12 @@ tetraquark_diagonal( struct propagator prop ,
 
   // failure sink
  FREE_FAIL :
+
+  // free our LVOLUME-wide tetra quark
+  for( mu = 0 ; mu < B_CHANNELS ; mu++ ) {
+    free( cspace_tetra[ mu ] ) ;
+  }
+  free( cspace_tetra ) ;
 
   // free our correlators
   free_corrs( Buud_corr , B_CHANNELS , NSNS ) ;

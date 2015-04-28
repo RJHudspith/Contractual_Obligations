@@ -2,9 +2,19 @@
    @file structs.h
    @brief storage for all the structs
  */
-
 #ifndef STRUCTS_H
 #define STRUCTS_H
+
+/**
+   @struct baryon_info
+   @brief baryon contraction info
+   @param map :: contraction map indices
+   @param outfile :: output file name
+ */
+struct baryon_info {
+  int map[3] ;
+  char outfile[ 256 ] ;
+} ;
 
 /**
    @struct colormatrix
@@ -12,22 +22,6 @@
 */
 struct colormatrix {
   double complex C[ NC ][ NC ] __attribute__((aligned(16))) ;
-} ;
-
-/**
-   @struct spinmatrix
-   @brief dirac components
-*/
-struct spinmatrix {
-  double complex D[ NS ][ NS ] __attribute__((aligned(16))) ;
-} ;
-
-/**
-   @struct spinor
-   @brief spinor is a spinmatrix of colormatrices
-*/
-struct spinor{
-  struct colormatrix D[ NS ][ NS ] __attribute__((aligned(16))) ;
 } ;
 
 /**
@@ -39,6 +33,24 @@ struct correlator{
 } ;
 
 /**
+   @struct cut_info
+   @brief cutting information storage
+   @param dir :: either spatial or temporal cuts allowed for now
+   @param type :: psq,hypercubic,cylinder or conical
+   @param max_mom :: maximum allowed p^2 for the vector of ints definition
+   @param max_t :: maximum T allowed in static potential
+   @param where :: where is our file outputted to?
+   @param definition :: are our gauge fields logarithmic or AntiHermitian_projly defined?
+   @param angle :: conical angle from the p=0.
+   @param cyl_width :: width of the cylinder in lattice units
+ */
+struct cut_info{
+  momentum_cut_def type ; // enumerated cutting type
+  int max_mom ; // maximum momentum allowed for the cut
+  double cyl_width ; // cylinder with
+} ;
+
+/**
    @struct gamma
    @brief gamma matrix type
    uint8_t so it behaves better in cache
@@ -47,46 +59,6 @@ struct gamma{
   uint8_t g[ NS ] ;
   uint8_t ig[ NS ] ;
 } ;
-
-/**
-   @struct PIdata
-   @brief VPF storage
- */
-struct PIdata {
-  double complex PI[ ND ][ ND ] ;
-} ;
-
-/**
-   @struct site
-   @brief the gauge field format
- */
-struct site
-{
-  double complex O[ ND ][ NCNC ] __attribute__((aligned(16))) ;
-  int neighbor[ ND ] ;
-  int back[ ND ] ;
-} ;
-
-/**
-   @enum config_size
-   @brief for writing out files
-   loops number of spaces for this format uses NC and NCNC
- */
-enum config_size
-  { LOOP_SMALL = NCNC - 1 ,
-    LOOP_GAUGE = 2 * ( NC - 1 ) * NC ,
-    LOOP_NCxNC = 2 * NCNC } ;
-
-/**
-   @struct QCDheader
-   @brief contains the NERSC header information
-   This is only used in chklat_stuff.c and should probably be moved there
- */
-struct QCDheader{
-  int ntoken ; 
-  char **token ; 
-  char **value ; 
-};
 
 /**
    @struct head_data
@@ -109,21 +81,23 @@ struct head_data{
 } ;
 
 /**
-   @struct cut_info
-   @brief cutting information storage
-   @param dir :: either spatial or temporal cuts allowed for now
-   @param type :: psq,hypercubic,cylinder or conical
-   @param max_mom :: maximum allowed p^2 for the vector of ints definition
-   @param max_t :: maximum T allowed in static potential
-   @param where :: where is our file outputted to?
-   @param definition :: are our gauge fields logarithmic or AntiHermitian_projly defined?
-   @param angle :: conical angle from the p=0.
-   @param cyl_width :: width of the cylinder in lattice units
+   @struct input_info
+   @brief input data struct 
  */
-struct cut_info{
-  momentum_cut_def type ; // enumerated cutting type
-  int max_mom ; // maximum momentum allowed for the cut
-  double cyl_width ; // cylinder with
+struct input_info {
+  int nprops ;
+  struct baryon_info *baryons ;
+  int nbaryons ;
+  struct meson_info *mesons ;
+  int nmesons ;
+  struct tetra_info *tetras ;
+  int ntetras ;
+  struct VPF_info *VPF ;
+  int nVPF ;
+  struct WME_info *wme ;
+  int nWME ;
+  struct cut_info CUTINFO ;
+  int dims[ ND ] ;
 } ;
 
 /**
@@ -161,14 +135,85 @@ struct meson_info {
 } ;
 
 /**
-   @struct baryon_info
-   @brief baryon contraction info
+   @struct PIdata
+   @brief VPF storage
+ */
+struct PIdata {
+  double complex PI[ ND ][ ND ] ;
+} ;
+
+/**
+   @struct propagator
+   @brief container for the propagator
+   @param prop :: propagator file
+   @param basis :: is it chiral or nrel?
+   @param origin :: source position, not used yet
+ */
+struct propagator {
+  FILE *file ;
+  proptype basis ;
+  sourcetype source ;
+  int origin[ ND ] ;
+  fp_precision precision ;
+  endianness endian ;
+} ;
+
+/**
+   @struct QCDheader
+   @brief contains the NERSC header information
+   This is only used in chklat_stuff.c and should probably be moved there
+ */
+struct QCDheader {
+  int ntoken ; 
+  char **token ; 
+  char **value ; 
+} ;
+
+/**
+   @struct site
+   @brief the gauge field format
+ */
+struct site {
+  double complex O[ ND ][ NCNC ] __attribute__((aligned(16))) ;
+  int neighbor[ ND ] ;
+  int back[ ND ] ;
+} ;
+
+/**
+   @struct spinmatrix
+   @brief dirac components
+*/
+struct spinmatrix {
+  double complex D[ NS ][ NS ] __attribute__((aligned(16))) ;
+} ;
+
+/**
+   @struct spinor
+   @brief spinor is a spinmatrix of colormatrices
+*/
+struct spinor{
+  struct colormatrix D[ NS ][ NS ] __attribute__((aligned(16))) ;
+} ;
+
+
+/**
+   @struct tetra_info
+   @brief tetraquark contraction info
    @param map :: contraction map indices
    @param outfile :: output file name
  */
-struct baryon_info {
-  int map[3] ;
+struct tetra_info {
+  int map[4] ;
   char outfile[ 256 ] ;
+} ;
+
+/**
+   @struct veclist
+   @brief storage for the momenta
+ */
+struct veclist {
+  int idx ;
+  int MOM[ ND ] ;
 } ;
 
 /**
@@ -201,49 +246,6 @@ struct WME_info {
   proptype proptype3 ;
   proptype proptype4 ;
   char outfile[ 256 ] ;
-} ;
-
-/**
-   @struct veclist
-   @brief storage for the momenta
- */
-struct veclist {
-  int idx ;
-  int MOM[ ND ] ;
-} ;
-
-/**
-   @struct input_info
-   @brief input data struct 
- */
-struct input_info {
-  int nprops ;
-  struct baryon_info *baryons ;
-  int nbaryons ;
-  struct meson_info *mesons ;
-  int nmesons ;
-  struct VPF_info *VPF ;
-  int nVPF ;
-  struct WME_info *wme ;
-  int nWME ;
-  struct cut_info CUTINFO ;
-  int dims[ ND ] ;
-} ;
-
-/**
-   @struct propagator
-   @brief container for the propagator
-   @param prop :: propagator file
-   @param basis :: is it chiral or nrel?
-   @param origin :: source position, not used yet
- */
-struct propagator {
-  FILE *file ;
-  proptype basis ;
-  sourcetype source ;
-  int origin[ ND ] ;
-  fp_precision precision ;
-  endianness endian ;
 } ;
 
 #endif

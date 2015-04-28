@@ -273,7 +273,7 @@ twopoint_tokens( struct meson_info *mesons ,
   return SUCCESS ;
 }
 
-// tokenize each meson
+// tokenize the map of baryons
 static int
 threepoint_tokens( struct baryon_info *baryons ,
 		   const char *baryon_str ,
@@ -337,7 +337,6 @@ baryon_contractions( struct baryon_info *baryons ,
   return SUCCESS ;
 }
 
-
 // meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
 static int
 meson_contractions( struct meson_info *mesons , 
@@ -358,68 +357,6 @@ meson_contractions( struct meson_info *mesons ,
 	  == FAILURE ) return FAILURE ;
     }
     *nmesons = *nmesons + 1 ;
-  }
-  return SUCCESS ;
-}
-
-// tokenize each vpf contraction
-static int
-VPF_tokens( struct VPF_info *VPF ,
-	    const char *VPF_str ,
-	    const int nprops ,
-	    const int meas_idx ) 
-{
-  printf( "\n" ) ;
-
-  // starts with the propagator map
-  char *token = (char*)strtok( (char*)VPF_str , "," ) ;
-  if( get_contraction_map( &( VPF -> map[0] ) , token , nprops ) == FAILURE ) {
-    return FAILURE ;
-  }
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_contraction_map( &( VPF -> map[1] ) , token , nprops ) == FAILURE ) {
-    return FAILURE ;
-  }
-  printf( "[IO] VPF_%d :: Contracting prop %d with prop %d \n" , 
-	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
-
-  // check for current
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_current_type( &( VPF -> current ) , token , meas_idx ) == FAILURE ) return FAILURE ;
-
-  // output file
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  sprintf( VPF -> outfile , "%s" , token ) ;
-  printf( "[IO] VPF_%d :: Contraction file in %s \n" , meas_idx , token ) ;
-
-  // tell us if we get more than we expect
-  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] VPF_%d :: Unexpected extra contraction info %s \n" ,
-	    meas_idx , token ) ;
-  }
-  return SUCCESS ;
-}
-
-// meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
-static int
-VPF_contractions( struct VPF_info *VPF , 
-		  int *nVPF ,
-		  const int nprops ,
-		  const GLU_bool first_pass ) 
-{
-  *nVPF = 0 ;
-  char str[ 32 ] ;
-  while( *nVPF < MAX_CONTRACTIONS ) {
-    sprintf( str , "VPF%d" , *nVPF ) ;
-    const int VPF_idx = tag_search( str ) ;
-    if( VPF_idx == FAILURE ) return SUCCESS ;
-    if( first_pass == GLU_FALSE ) {
-      if( VPF_tokens( &VPF[ *nVPF ] , 
-		      INPUT[ VPF_idx ].VALUE , 
-		      nprops , *nVPF ) 
-	  == FAILURE ) return FAILURE ;
-    }
-    *nVPF = *nVPF + 1 ;
   }
   return SUCCESS ;
 }
@@ -490,6 +427,136 @@ matrix_element_contractions( struct WME_info *wme ,
   return SUCCESS ;
 }
 
+// tokenize the map of tetras
+static int
+tetra_tokens( struct tetra_info *tetras ,
+	      const char *tetra_str ,
+	      const int nprops ,
+	      const int meas_idx ,
+	      const char *message ) 
+{
+  printf( "\n" ) ;
+  // starts with the contraction indices
+  char *token = (char*)strtok( (char*)tetra_str , "," ) ;
+  if( get_contraction_map( &( tetras -> map[0] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( tetras -> map[1] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( tetras -> map[2] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( tetras -> map[3] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  printf( "[IO] %s_%d :: Contracting prop %d with prop %d with prop %d with prop %d\n" , 
+	  message , meas_idx , tetras -> map[0] , tetras -> map[1] , tetras -> map[2] ,
+	  tetras -> map[3] ) ;
+
+  // output file
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  sprintf( tetras -> outfile , "%s" , token ) ;
+  printf( "[IO] %s_%d :: Contraction file in %s \n" , 
+	  message , meas_idx , token ) ;
+
+  // tell us if we get more than we expect
+  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
+    printf( "[IO] %s_%d :: Unexpected extra contraction info %s \n" ,
+	    message , meas_idx , token ) ;
+  }
+  return SUCCESS ;
+}
+
+// tetra contractions of the form prop_idx1,prop_idx2,proptype,outfile
+static int
+tetra_contractions( struct tetra_info *tetras , 
+		     int *ntetras ,
+		     const int nprops ,
+		     const GLU_bool first_pass ) 
+{
+  *ntetras = 0 ;
+  char str[ 32 ] ;
+  while( *ntetras < MAX_CONTRACTIONS ) {
+    sprintf( str , "TETRA%d" , *ntetras ) ;
+    const int tetra_idx = tag_search( str ) ;
+    if( tetra_idx == FAILURE ) return SUCCESS ;
+    if( first_pass == GLU_FALSE ) {
+      if( tetra_tokens( &tetras[ *ntetras ] , 
+			INPUT[ tetra_idx ].VALUE , 
+			nprops , *ntetras , "Tetra" ) 
+	  == FAILURE ) return FAILURE ;
+    }
+    *ntetras = *ntetras + 1 ;
+  }
+  return SUCCESS ;
+}
+
+// tokenize each vpf contraction
+static int
+VPF_tokens( struct VPF_info *VPF ,
+	    const char *VPF_str ,
+	    const int nprops ,
+	    const int meas_idx ) 
+{
+  printf( "\n" ) ;
+
+  // starts with the propagator map
+  char *token = (char*)strtok( (char*)VPF_str , "," ) ;
+  if( get_contraction_map( &( VPF -> map[0] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( VPF -> map[1] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  printf( "[IO] VPF_%d :: Contracting prop %d with prop %d \n" , 
+	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
+
+  // check for current
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_current_type( &( VPF -> current ) , token , meas_idx ) == FAILURE ) return FAILURE ;
+
+  // output file
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  sprintf( VPF -> outfile , "%s" , token ) ;
+  printf( "[IO] VPF_%d :: Contraction file in %s \n" , meas_idx , token ) ;
+
+  // tell us if we get more than we expect
+  if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
+    printf( "[IO] VPF_%d :: Unexpected extra contraction info %s \n" ,
+	    meas_idx , token ) ;
+  }
+  return SUCCESS ;
+}
+
+// meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
+static int
+VPF_contractions( struct VPF_info *VPF , 
+		  int *nVPF ,
+		  const int nprops ,
+		  const GLU_bool first_pass ) 
+{
+  *nVPF = 0 ;
+  char str[ 32 ] ;
+  while( *nVPF < MAX_CONTRACTIONS ) {
+    sprintf( str , "VPF%d" , *nVPF ) ;
+    const int VPF_idx = tag_search( str ) ;
+    if( VPF_idx == FAILURE ) return SUCCESS ;
+    if( first_pass == GLU_FALSE ) {
+      if( VPF_tokens( &VPF[ *nVPF ] , 
+		      INPUT[ VPF_idx ].VALUE , 
+		      nprops , *nVPF ) 
+	  == FAILURE ) return FAILURE ;
+    }
+    *nVPF = *nVPF + 1 ;
+  }
+  return SUCCESS ;
+}
+
 // get the lattice dimensions from the input_file
 static int
 get_dims( int *dims )
@@ -548,6 +615,7 @@ free_inputs( struct input_info inputs )
 {
   free( inputs.baryons ) ;
   free( inputs.mesons ) ;
+  free( inputs.tetras ) ;
   free( inputs.VPF ) ;
   free( inputs.wme ) ;
   return ;
@@ -592,6 +660,7 @@ get_input_data( struct propagator **prop ,
   // initialise
   inputs -> baryons = NULL ;
   inputs -> mesons = NULL ;
+  inputs -> tetras = NULL ;
   inputs -> VPF = NULL ;
   inputs -> wme = NULL ;
 
@@ -615,6 +684,14 @@ get_input_data( struct propagator **prop ,
   meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , inputs -> nprops , GLU_TRUE ) ;
   inputs -> mesons = (struct meson_info*)malloc( ( inputs -> nmesons ) * sizeof( struct meson_info ) ) ;
   if( meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , 
+			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
+
+  // tetras
+  tetra_contractions( inputs -> tetras , &( inputs -> ntetras ) , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> tetras = (struct tetra_info*)malloc( ( inputs -> ntetras ) * sizeof( struct tetra_info ) ) ;
+  if( tetra_contractions( inputs -> tetras , &( inputs -> ntetras ) , 
 			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
