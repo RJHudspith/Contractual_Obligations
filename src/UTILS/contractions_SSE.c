@@ -54,11 +54,11 @@ bilinear_trace( const struct spinor A ,
   const __m128d *b ;
   register __m128d sum = _mm_setzero_pd() ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
-    b = (__m128d*)B.D ;
     for( d2 = 0 ; d2 < NS ; d2++ ) {
+      b = (__m128d*)B.D[ d2 ][ d1 ].C ;
       sum = _mm_add_pd( sum , colortrace_prod( a , b ) ) ;
-      a += NCNC ; // increment this color matrix
-      b += d1 + d2 * NCNC ;
+      a += NCNC ;
+      
     }
   }
   double complex s ;

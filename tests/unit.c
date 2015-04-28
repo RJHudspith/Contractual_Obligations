@@ -5,7 +5,8 @@
 
 #include "common.h"
 
-#include "geometry.h"      // init_geom()
+#include "contract_tests.h"  
+#include "geometry.h"        // init_geom()
 #include "matops_tests.h"  
 #include "spinor_tests.h"
 
@@ -27,6 +28,10 @@ main( const int argc , const char *argv[] )
   printf( "\n" ) ;
 
   int total = 0 ;
+
+  // have a look at spinor operations
+  if( contractions_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
 
   // have a look at matrix operations
   if( matops_test_driver( ) == FAILURE ) goto failure ;

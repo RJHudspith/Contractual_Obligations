@@ -258,12 +258,12 @@ matops_test_driver( void )
   char *matres = matops_test( ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[MATOPS UNIT] all %d tests passed \n" ,
+    printf( "[MATOPS UNIT] all %d tests passed\n\n" ,
 	    tests_run ) ;
     return SUCCESS ;
   } else {
     printf( "%s \n" , matres ) ;
-    printf( "[MATOPS UNIT] %d out of %d tests failed\n" , 
+    printf( "[MATOPS UNIT] %d out of %d tests failed\n\n" , 
 	    tests_fail , tests_run ) ;
     return FAILURE ;
   }

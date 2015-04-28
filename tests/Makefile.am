@@ -4,7 +4,7 @@ BUILDDIR=@top_builddir@
 
 bin_PROGRAMS = MESONS UNIT
 MESONS_SOURCES = mesonfile.c
-UNIT_SOURCES = unit.c spinor_tests.c matops_tests.c
+UNIT_SOURCES = unit.c contract_tests.c matops_tests.c spinor_tests.c
 
 ## compile against the lib installed somewhere
 MESONS_CFLAGS = -Wall ${CFLAGS} -I${TOPDIR}/src/HEADERS/

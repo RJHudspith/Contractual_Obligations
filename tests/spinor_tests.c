@@ -321,12 +321,12 @@ spinor_test_driver( void )
   free( GAMMAS ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[SPINORS UNIT] all %d tests passed \n" ,
+    printf( "[SPINORS UNIT] all %d tests passed\n\n" ,
 	    tests_run ) ;
     return SUCCESS ;
   } else {
     printf( "%s \n" , spinres ) ;
-    printf( "[SPINORS UNIT] %d out of %d tests failed\n" , 
+    printf( "[SPINORS UNIT] %d out of %d tests failed\n\n" , 
 	    tests_fail , tests_run ) ;
     return FAILURE ;
   }
