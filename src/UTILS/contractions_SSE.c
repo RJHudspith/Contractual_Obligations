@@ -427,7 +427,6 @@ meson_contract( const struct gamma GSNK ,
       }
       #endif
 
-
       // switch for the phases
       switch( ( GSNK.g[ i ] + G5.g[ col1 ] +  G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
       case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
@@ -485,7 +484,12 @@ simple_meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[5] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[8] ) ) ; bcache++ ;
       #else 
-      // todo :: put something here
+      int c1 , c2 ;
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[ c1 + c2*NC ] ) ) ; bcache++ ;
+	}
+      }
       #endif
 
       // switch for the phases

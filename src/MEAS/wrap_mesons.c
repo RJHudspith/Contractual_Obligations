@@ -5,7 +5,6 @@
 
 #include "common.h"
 
-#include "brutal_mesons.h"   // brutal mesons
 #include "mesons.h"     // meson contractions
 
 // meson contraction driver

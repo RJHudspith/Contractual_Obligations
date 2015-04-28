@@ -268,13 +268,23 @@ spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B )
 {
   struct spinor tmp = *A ;
-  int d1 , d2 ;
+  int d1 , d2 , d3 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
+      __m128d link[ NCNC ] , sum[ NCNC ] ;
+      // zero
+      for( d3 = 0 ; d3 < NCNC ; d3++ ) { 
+	sum[ d3 ] = _mm_setzero_pd( ) ;
+      }
       // color matrix multiply
-      multab( (__m128d*)A -> D[ d1 ][ d2 ].C , 
-	      (const __m128d*)B.D[ d1 ][ d2 ].C , 
-	      (const __m128d*)tmp.D[ d2 ][ d1 ].C ) ;
+      for( d3 = 0 ; d3 < NS ; d3++ ) { 
+	multab( link , 
+		(const __m128d*)B.D[ d1 ][ d3 ].C , 
+		(const __m128d*)tmp.D[ d3 ][ d2 ].C ) ;
+	add_mat( sum , link ) ;
+      }
+      colormatrix_equiv( (double complex*)A -> D[d1][d2].C ,
+			 (const double complex*)sum ) ;
     }
   }
   return ;

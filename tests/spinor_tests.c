@@ -227,19 +227,17 @@ static char
   return NULL ;
 }
 
-// compute Id = Id * A
+// compute Id = ( Id * A ) using full spinor multiply
 static char
 *spinmul_atomic_left_test( void )
 {
   struct spinor Id ;
   spinor_zero_site( &Id ) ; // this MUST get tested befor this function call
   // maybe we should have this as identity spinor?
-  int d1 , d2 , c1c2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      for( c1c2 = 0 ; c1c2 < NC ; c1c2++ ) {
-	Id.D[d1][d2].C[c1c2][c1c2] = 1.0 ;
-      }
+  int d1d2 , c1c2 ;
+  for( d1d2 = 0 ; d1d2 < NS ; d1d2++ ) {
+    for( c1c2 = 0 ; c1c2 < NC ; c1c2++ ) {
+      Id.D[d1d2][d1d2].C[c1c2][c1c2] = 1.0 ;
     }
   }
   spinmul_atomic_left( &Id , A ) ;

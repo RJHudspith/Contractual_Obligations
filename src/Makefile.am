@@ -19,8 +19,8 @@ IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/read_propheader.c ./IO/cut_output.c
 
 ## c files in ./MEAS/
-MEASFILES=./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/brutal_mesons.c \
-	./MEAS/wrap_mesons.c ./MEAS/mesons.c
+MEASFILES=./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c \
+	./MEAS/mesons.c
 
 ## c files in ./VPF
 VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
