@@ -10,11 +10,12 @@
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header
 
-#include "wrap_baryons.h"    // Baryon contractionwrappers
-#include "wrap_mesons.h"     // Meson contraction wrappers
-#include "wrap_tetras.h"     // Tetraquark contraction wrappers
-#include "wrap_VPF.h"        // VPF contraction wrappers
-#include "wrap_WME.h"        // VPF contraction wrappers
+#include "wrap_baryons.h"    // Baryon contraction wrapper
+#include "wrap_disprel.h"    // Dispersion relation wrapper
+#include "wrap_mesons.h"     // Meson contraction wrapper
+#include "wrap_tetras.h"     // Tetraquark contraction wrapper
+#include "wrap_VPF.h"        // VPF contraction wrapper
+#include "wrap_WME.h"        // VPF contraction wrapper
 
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
@@ -83,6 +84,12 @@ main( const int argc,
   // baryon contraction code
   if( contract_baryons( prop , inputs.baryons , inputs.nbaryons ) 
       == FAILURE ) {
+    goto FREES ;
+  }
+
+  // dispersion relation code
+  if( contract_disprels( prop , inputs.dispersions , inputs.CUTINFO ,
+			 inputs.ndispersions ) == FAILURE ) {
     goto FREES ;
   }
 

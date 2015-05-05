@@ -7,6 +7,15 @@
 #define CUT_OUTPUT_H
 
 /**
+   @fn void write_mom_veclist( FILE *__restrict Ap , const int *__restrict num_mom , const struct veclist *__restrict list , const int DIR )
+   @brief write out the momentum list stored in list
+ */
+void
+write_mom_veclist( FILE *__restrict Ap , 
+		   const int *__restrict num_mom , 
+		   const struct veclist *__restrict list ,
+		   const int DIR ) ;
+/**
    @fn void write_projected_data( const char *filename , const int *__restrict NMOM , const double *__restrict data , const struct veclist *__restrict list , const int DIR )
    @brief write out momentum-space data
  */

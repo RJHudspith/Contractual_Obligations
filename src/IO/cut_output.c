@@ -17,7 +17,7 @@ write_binary( FILE *__restrict Ap ,
 }
 
 // Support for writing our momentum list
-static void
+void
 write_mom_veclist( FILE *__restrict Ap , 
 		   const int *__restrict num_mom , 
 		   const struct veclist *__restrict list ,

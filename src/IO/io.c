@@ -103,27 +103,27 @@ read_chiralprop( struct propagator prop ,
   // single precision storage
   float complex *ftmp = NULL ;
   if( prop.precision == SINGLE ) {
-    ftmp = (float complex*)malloc( 2 * spinsize * sizeof( float complex ) ) ;
+    ftmp = ( float complex* )malloc( spinsize * sizeof( float complex ) ) ;
   }
 
   int i ;
   for( i = 0 ; i < LCU ; i++ ) {
-    // dependin on the precision, read in the data
+    // depending on the precision, read in the data
     if( prop.precision == SINGLE ) {
-      if( fread( ftmp , sizeof(float complex), spinsize , prop.file ) != 
+      if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure \n" ) ;
+	printf( "[IO] chiral propagator failure single prec (%d) \n" , i ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
       if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
       // cast our ftmp to double complex spinor
-      fill_spinor( &S[i] , ftmp , NS , 0 , sizeof(float complex) ) ;
+      fill_spinor( &S[i] , ftmp , NS , 0 , sizeof( float complex ) ) ;
     } else {
       // Read in propagator on a timeslice elements of our struct should be byte-compatible
-      if( fread( S[i].D , sizeof(double complex), spinsize , prop.file ) != 
+      if( fread( S[i].D , sizeof( double complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure \n" ) ;
+	printf( "[IO] chiral propagator failure double prec (%d) \n" , i ) ;
 	return FAILURE ;
       }
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
@@ -167,15 +167,15 @@ read_nrprop( struct propagator prop ,
     // single precision read 
     if( prop.precision == SINGLE ) {
       // Read in tslice 
-      if( fread( ftmp , sizeof(float complex) , spinsize , prop.file ) != 
+      if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
 	printf( "[IO] nrel propagator read failure \n" ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
-      if( must_swap ) bswap_32( 2*spinsize , ftmp ) ;
+      if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
 
-      // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
+      // fill the lower indices ( for example 4D :: 2,2 2,3 3,2 3,3 ) of propagator
       fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , sizeof(float complex) ) ;
     } else {
       // Read in tslice 
@@ -185,7 +185,7 @@ read_nrprop( struct propagator prop ,
 	free( tmp ) ;
 	return FAILURE ;
       }
-      if( must_swap ) bswap_64( 2*spinsize , tmp ) ;
+      if( must_swap ) bswap_64( 2 * spinsize , tmp ) ;
 
       // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
       fill_spinor( &S[i] , tmp , NR_NS , NR_NS , sizeof(double complex) ) ;

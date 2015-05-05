@@ -26,6 +26,15 @@ free_props( struct propagator *prop ,
 	    const int nprops ) ;
 
 /**
+   @fn int get_contraction_map( int *map , const char *token , const int nprops ) 
+   @brief contraction map for our propagators
+ */
+int
+get_contraction_map( int *map ,
+		     const char *token ,
+		     const int nprops ) ;
+
+/**
    @fn int get_input_data( struct input_info *inputs , const char *file_name )
    @brief set the gauge field header and pass a propagator name for now
    @warning several objects in inputs get malloc'd here
@@ -34,5 +43,26 @@ int
 get_input_data( struct propagator **prop ,  
 		struct input_info *inputs , 
 		const char *file_name ) ;
+
+/**
+   @fn int tag_failure( const char *tag )
+   @brief prints out a problem tag
+ */
+int
+tag_failure( const char *tag ) ;
+
+/**
+   @fn int tag_search( const char *tag )
+   @brief search for a tag
+ */
+int
+tag_search( const char *tag ) ;
+
+/**
+   @fn int unexpected_NULL( void )
+   @brief error message for an unexpected NULL
+ */
+int
+unexpected_NULL( void ) ;
 
 #endif

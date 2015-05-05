@@ -6,6 +6,12 @@
 #define DEFINITIONS_H
 
 /**
+   @def B_CHANNELS
+   @brief number of baryon channels we look at
+ */
+#define B_CHANNELS 6
+
+/**
    @def CONDOR_MODE
    @brief if we are distributing this over multiple architectures
  */
@@ -20,10 +26,28 @@
 #define FAILURE -1
 
 /**
-   @def SUCCESS
-   @brief anything that isn't a failure is a success in our eyes
+   @def GLU_STR_LENGTH
+   @brief max length of a token in the input file
  */
-#define SUCCESS !FAILURE
+#define GLU_STR_LENGTH 256
+
+/**
+   @def L0
+   @brief Length of the time direction
+ */
+#define L0 ( Latt.dims[ ND - 1 ] )
+
+/**
+   @def LCU
+   @brief spatial volume
+ */
+#define LCU VOL3
+
+/**
+   @def MAX_CONTRACTIONS
+   @brief break for the while loops in contraction logic
+*/
+#define MAX_CONTRACTIONS 20
 
 /**
    @def MAX_LINE_LENGTH
@@ -38,69 +62,24 @@
 #define MAX_TOKENS 32
 
 /**
-   @def GLU_STR_LENGTH
-   @brief max length of a token in the input file
- */
-#define GLU_STR_LENGTH 256
-
-/**
-   @def L0
-   @brief Length of the time direction
- */
-#define L0 ( Latt.dims[ ND - 1 ] )
-
-/**
-   @def VOL3 
-   @brief spatial hypercube size
- */
-#define VOL3 Latt.Lcu
-
-/**
-   @def VOL4
-   @brief full lattice volume
- */
-#define VOL4 Latt.Volume
-
-/**
-   @def LCU
-   @brief spatial volume
- */
-#define LCU VOL3
-
-/**
    @def LVOLUME
    @brief lattice volume
  */
 #define LVOLUME VOL4
 
 /**
-   @def TWOPI
-   @brief \f$ 2 \pi$ appears everywhere
- */
-#define TWOPI 6.283185307179586
-
-/**
-   @def VPF_MAGIC
-   @brief magic number for this library's data
-   spells VPF in ASCII
- */
-#define VPF_MAGIC 717685
-
-#ifndef NC
-/**
    @def NC
    @brief number of colors in our theory
  */
+#ifndef NC
   #define NC 3
 #endif
 
-#ifndef NS
 /**
-   @def NS
-   @brief number of spins in our theory
+   @def NCNC
+   @brief Jamie stores links in a flattened #NC*#NC array
  */
-  #define NS 4
-#endif
+#define NCNC ( NC*NC )
 
 /**
    @def ND
@@ -111,16 +90,18 @@
 #endif
 
 /**
+   @def NS
+   @brief number of spins in our theory
+ */
+#ifndef NS
+  #define NS 4
+#endif
+
+/**
    @def NSNS
    @brief sometimes we want to look at the whole NS*NS component of a spinor
  */
 #define NSNS ( NS*NS )
-
-/**
-   @def NCNC
-   @brief Jamie stores links in a flattened #NC*#NC array
- */
-#define NCNC ( NC*NC )
 
 /**
    @def PLAQ_AND_TRACE_TOL
@@ -135,9 +116,34 @@
 #define PREC_TOL (NC * 1.0E-14)
 
 /**
-   @def B_CHANNELS
-   @brief number of baryon channels we look at
+   @def SUCCESS
+   @brief anything that isn't a failure is a success in our eyes
  */
-#define B_CHANNELS 6
+#define SUCCESS !FAILURE
+
+/**
+   @def TWOPI
+   @brief \f$ 2 \pi$ appears everywhere
+ */
+#define TWOPI 6.283185307179586
+
+/**
+   @def VOL3 
+   @brief spatial hypercube size
+ */
+#define VOL3 Latt.Lcu
+
+/**
+   @def VOL4
+   @brief full lattice volume
+ */
+#define VOL4 Latt.Volume
+
+/**
+   @def VPF_MAGIC
+   @brief magic number for this library's data
+   spells VPF in ASCII
+ */
+#define VPF_MAGIC 717685
 
 #endif

@@ -12,7 +12,7 @@
    @param outfile :: output file name
  */
 struct baryon_info {
-  int map[3] ;
+  int map[ 3 ] ;
   char outfile[ 256 ] ;
 } ;
 
@@ -48,6 +48,17 @@ struct cut_info{
   momentum_cut_def type ; // enumerated cutting type
   int max_mom ; // maximum momentum allowed for the cut
   double cyl_width ; // cylinder with
+} ;
+
+/**
+   @struct dispersion_info
+   @brief dispersion relation contraction information
+   @param map :: maps contractions indices
+   @param outfile :: output file name
+ */
+struct dispersion_info {
+  int map[4] ;
+  char outfile[ 256 ] ;
 } ;
 
 /**
@@ -88,6 +99,8 @@ struct input_info {
   int nprops ;
   struct baryon_info *baryons ;
   int nbaryons ;
+  struct dispersion_info *dispersions ;
+  int ndispersions ;
   struct meson_info *mesons ;
   int nmesons ;
   struct tetra_info *tetras ;
@@ -98,6 +111,15 @@ struct input_info {
   int nWME ;
   struct cut_info CUTINFO ;
   int dims[ ND ] ;
+} ;
+
+/**
+   @struct inputs
+   @brief input file information is packed in this struct
+ */
+struct inputs {
+  char TOKEN[ GLU_STR_LENGTH ] ;
+  char VALUE[ GLU_STR_LENGTH ] ;
 } ;
 
 /**
@@ -132,6 +154,14 @@ struct latt_info{
 struct meson_info {
   int map[2] ;
   char outfile[ 256 ] ;
+} ;
+
+/**
+   @struct mcorr
+   @brief storage for ( p_{ND-1} , t ) correlation functions
+ */
+struct mcorr {
+  struct correlator *mom ;
 } ;
 
 /**

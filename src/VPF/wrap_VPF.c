@@ -64,6 +64,7 @@ contract_VPF( struct propagator *prop ,
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {
     const int p1 = VPF[ measurements ].map[0] ;
     const int p2 = VPF[ measurements ].map[1] ;
+
     if( p1 == p2 ) {
       select_callback_single( VPF[ measurements ].current ) ;
       // and we use the function pointer we have set

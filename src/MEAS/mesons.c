@@ -154,8 +154,7 @@ mesons_diagonal( struct propagator prop ,
   free( GAMMAS ) ;
 
   // free our spinor
-  free( S1 ) ;
-  free( S1f ) ; // free the copy
+  free( S1 ) ; free( S1f ) ; 
 
   // rewind file and read header again
   rewind( prop.file ) ; read_propheader( &prop ) ;
@@ -179,8 +178,7 @@ mesons_diagonal( struct propagator prop ,
   free( GAMMAS ) ;
 
   // free our spinor
-  free( S1 ) ;
-  free( S1f ) ; // free the copy
+  free( S1 ) ; free( S1f ) ;
 
   return FAILURE ;
 }
@@ -347,10 +345,8 @@ mesons_offdiagonal( struct propagator prop1 ,
   free( GAMMAS ) ;
 
   // free our spinors
-  free( S1 ) ;
-  free( S1f ) ;
-  free( S2 ) ;
-  free( S2f ) ;
+  free( S1 ) ; free( S1f ) ;
+  free( S2 ) ; free( S2f ) ;
 
   // rewind file and read header again
   rewind( prop1.file ) ; read_propheader( &prop1 ) ;
@@ -373,10 +369,8 @@ mesons_offdiagonal( struct propagator prop1 ,
   free( GAMMAS ) ;
 
   // free our spinors
-  free( S1 ) ;
-  free( S1f ) ;
-  free( S2 ) ;
-  free( S2f ) ;
+  free( S1 ) ; free( S1f ) ;
+  free( S2 ) ; free( S2f ) ;
 
   return FAILURE ;
 }
