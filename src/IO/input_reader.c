@@ -28,7 +28,6 @@
 #include <errno.h>
 
 #include "input_baryons.h"  // baryon contraction logic
-#include "input_disprel.h"  // dispersion relation contraction logic
 #include "input_general.h"  // general setup information get_dims() etc..
 #include "input_mesons.h"   // meson contraction logic
 #include "input_tetras.h"   // tetraquark contraction logic
@@ -115,7 +114,6 @@ void
 free_inputs( struct input_info inputs ) 
 {
   free( inputs.baryons ) ;
-  free( inputs.dispersions ) ;
   free( inputs.mesons ) ;
   free( inputs.tetras ) ;
   free( inputs.VPF ) ;
@@ -171,7 +169,6 @@ get_input_data( struct propagator **prop ,
 
   // initialise
   inputs -> baryons = NULL ;
-  inputs -> dispersions = NULL ;
   inputs -> mesons = NULL ;
   inputs -> tetras = NULL ;
   inputs -> VPF = NULL ;
@@ -190,14 +187,6 @@ get_input_data( struct propagator **prop ,
   inputs -> baryons = (struct baryon_info*)malloc( ( inputs -> nbaryons ) * sizeof( struct baryon_info ) ) ;
   if( baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , INPUT ,
 			   inputs -> nprops , GLU_FALSE ) == FAILURE ) {
-    STATUS = FAILURE ;
-  }
-
-  // dispersion contractions
-  dispersion_contractions( inputs -> dispersions , &( inputs -> ndispersions ) , INPUT , inputs -> nprops , GLU_TRUE ) ;
-  inputs -> dispersions = (struct dispersion_info*)malloc( ( inputs -> ndispersions ) * sizeof( struct dispersion_info ) ) ;
-  if( dispersion_contractions( inputs -> dispersions , &( inputs -> ndispersions ) , INPUT ,
-			       inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 

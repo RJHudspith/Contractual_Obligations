@@ -11,7 +11,6 @@
 #include "read_propheader.h" // read the propagator file header
 
 #include "wrap_baryons.h"    // Baryon contraction wrapper
-#include "wrap_disprel.h"    // Dispersion relation wrapper
 #include "wrap_mesons.h"     // Meson contraction wrapper
 #include "wrap_tetras.h"     // Tetraquark contraction wrapper
 #include "wrap_VPF.h"        // VPF contraction wrapper
@@ -87,14 +86,8 @@ main( const int argc,
     goto FREES ;
   }
 
-  // dispersion relation code
-  if( contract_disprels( prop , inputs.dispersions , inputs.CUTINFO ,
-			 inputs.ndispersions ) == FAILURE ) {
-    goto FREES ;
-  }
-
   // calls a wrapper that has some logic tests
-  if( contract_mesons( prop , inputs.mesons , 
+  if( contract_mesons( prop , inputs.mesons , inputs.CUTINFO ,
 		       inputs.nmesons ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }

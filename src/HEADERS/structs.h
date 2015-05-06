@@ -51,17 +51,6 @@ struct cut_info{
 } ;
 
 /**
-   @struct dispersion_info
-   @brief dispersion relation contraction information
-   @param map :: maps contractions indices
-   @param outfile :: output file name
- */
-struct dispersion_info {
-  int map[4] ;
-  char outfile[ 256 ] ;
-} ;
-
-/**
    @struct gamma
    @brief gamma matrix type
    uint8_t so it behaves better in cache
@@ -99,8 +88,6 @@ struct input_info {
   int nprops ;
   struct baryon_info *baryons ;
   int nbaryons ;
-  struct dispersion_info *dispersions ;
-  int ndispersions ;
   struct meson_info *mesons ;
   int nmesons ;
   struct tetra_info *tetras ;

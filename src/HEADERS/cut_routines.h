@@ -56,4 +56,13 @@ compute_veclist( int *__restrict list_size ,
 		 const int DIMS ,
 		 const GLU_bool CONFIGSPACE ) ;
 
+/**
+   @fn struct veclist* zero_veclist( int *__restrict list_size , const int DIMS , const GLU_bool CONFIGSPACE )
+   @brief returns a zeroed veclist structure
+ */
+struct veclist*
+zero_veclist( int *__restrict list_size ,
+	      const int DIMS ,
+	      const GLU_bool CONFIGSPACE ) ;
+
 #endif

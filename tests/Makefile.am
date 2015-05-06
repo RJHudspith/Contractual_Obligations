@@ -3,6 +3,7 @@ TOPDIR=@top_srcdir@
 BUILDDIR=@top_builddir@
 
 bin_PROGRAMS = MESONS UNIT
+
 MESONS_SOURCES = mesonfile.c
 UNIT_SOURCES = unit.c contract_tests.c matops_tests.c spinor_tests.c
 

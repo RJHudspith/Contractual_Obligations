@@ -472,3 +472,18 @@ compute_veclist( int *__restrict list_size ,
   return list ;
 }
 
+// passes a zero'd veclist 
+struct veclist*
+zero_veclist( int *__restrict list_size ,
+	      const int DIMS ,
+	      const GLU_bool CONFIGSPACE )
+{
+  struct veclist *list = calloc( 1 , sizeof( struct veclist ) ) ;
+  list[ 0 ].idx = 0 ;
+  int mu ; 
+  for( mu = 0 ; mu < DIMS ; mu++ ) {
+    list[ 0 ].MOM[ mu ] = 0 ;
+  }
+  list_size[ 0 ] = 1 ;
+  return list ;
+}

@@ -11,6 +11,7 @@
 int
 contract_mesons( struct propagator *prop ,
 		 const struct meson_info *mesons ,
+		 const struct cut_info CUTINFO ,
 		 const int nmesons )
 {
   printf( "\n[MESONS] performing %d contraction(s) \n" , nmesons ) ;
@@ -22,8 +23,8 @@ contract_mesons( struct propagator *prop ,
     const int p2 = mesons[ measurements ].map[1] ;
 
     if( p1 == p2 ) {
-      if( mesons_diagonal( prop[ p1 ] , mesons[ measurements ].outfile ) 
-	  == FAILURE ) {
+      if( mesons_diagonal( prop[ p1 ] , CUTINFO , 
+			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
     } else {
@@ -44,7 +45,7 @@ contract_mesons( struct propagator *prop ,
 	}
       }
       // otherwise we plough on
-      if( mesons_offdiagonal( prop[ p1 ] , prop[ p2 ] ,
+      if( mesons_offdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
 			      mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }

@@ -1,26 +1,27 @@
 /**
-   @file wall_mesons.h
-   @brief wall meson contractions
+   @file mesons.h
+   @brief prototype declerations for dispersion relation calculation
  */
-
-#ifndef WALL_MESONS_H
-#define WALL_MESONS_H
+#ifndef MESONS_H
+#define MESONS_H
 
 /**
-   @fn int mesons_diagonal( struct propagator prop , const char *outfile )
-   @brief (flavour diagonal) meson contractions
+   @fn int mesons_diagonal( struct propagator prop , const struct cut_info CUTINFO , const char *outfile )
+   @brief flavour diagonal meson dispersion relation
  */
 int
 mesons_diagonal( struct propagator prop ,
+		 const struct cut_info CUTINFO ,
 		 const char *outfile ) ;
 
 /**
-   @fn int wall_double_mesons( struct propagator prop1 , struct propagator prop2 const char *outfile )
-   @brief (flavour off diagonal) meson contractions
+   @fn int dispersions_offdiagonal( struct propagator prop1 , struct propagator prop2 , const struct cut_info CUTINFO , const char *outfile )
+   @brief flavour off-diagonal meson dispersion relation
  */
 int
 mesons_offdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,
+		    const struct cut_info CUTINFO ,
 		    const char *outfile ) ;
 
 #endif

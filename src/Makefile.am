@@ -10,9 +10,6 @@ AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 BARYONFILES=./BARYONS/wrap_baryons.c ./BARYONS/baryons.c \
 	./BARYONS/baryons2.c ./BARYONS/baryons3.c
 
-## c files in ./DISPREL/
-DISPRELFILES=./DISPREL/wrap_disprel.c ./DISPREL/dispersions.c
-
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 
@@ -20,8 +17,8 @@ GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
 	./IO/read_propheader.c ./IO/cut_output.c ./IO/input_baryons.c \
-	./IO/input_disprel.c ./IO/input_general.c ./IO/input_mesons.c \
-	./IO/input_tetras.c ./IO/input_VPF.c ./IO/input_WME.c
+	./IO/input_general.c ./IO/input_mesons.c ./IO/input_tetras.c \
+	./IO/input_VPF.c ./IO/input_WME.c
 
 ## c files in ./MEAS/
 MEASFILES=./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c \
@@ -47,7 +44,6 @@ WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 ## c file sources for the library 
 libCORR_a_SOURCES = \
 	${BARYONFILES} \
-	${DISPRELFILES} \
 	${GEOMFILES} \
 	${IOFILES} \
 	${MEASFILES} \
@@ -59,7 +55,6 @@ libCORR_a_SOURCES = \
 ## pattern substitute in the headers
 include_HEADERS = \
 	$(BARYONFILES:./BARYONS/%.c=./HEADERS/%.h) \
-	$(DISPRELFILES:./DISPREL/%.c=./HEADERS/%.h) \
 	$(GEOMFILES:./GEOMETRY/%.c=./HEADERS/%.h) \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
