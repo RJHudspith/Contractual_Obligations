@@ -2,7 +2,6 @@
    @file baryons2.h
    @brief baryon contraction code prototype functions
  */
-
 #ifndef BARYONS2_H
 #define BARYONS2_H
 

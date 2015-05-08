@@ -1,5 +1,5 @@
 /**
-   @file wrap_tetra.c
+   @file wrap_tetras.c
    @brief tetraquark contraction wrapper
  */
 

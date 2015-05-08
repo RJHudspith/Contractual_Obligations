@@ -58,7 +58,7 @@ debug_baryons( const char *message ,
 	       const struct correlator **corr ) ;
 
 /**
-   @fn void write_correlators( const char *outfile , const struct correlator **corr )
+   @fn void write_correlators( const char *outfile , const struct correlator **corr , const int NSRC , const int NSNK )
    @brief write the full correlation matrix out in binary to outfile
  */
 void
@@ -68,7 +68,7 @@ write_correlators( const char *outfile ,
 		   const int NSNK ) ;
 
 /**
-   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const int NSRC , const int NSNK , const int nmom )
+   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const int NSRC , const int NSNK , const int *nmom )
    @brief write out the #ND-1 momentum-injected correlator
  */
 void

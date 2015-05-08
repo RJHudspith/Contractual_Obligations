@@ -1,5 +1,5 @@
 /**
-   @file contractions.h
+   @file contractions_SSE.h
    @brief traces, brute force gamma multiplies and adjoints
  */
 

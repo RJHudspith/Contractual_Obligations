@@ -16,7 +16,7 @@ write_mom_veclist( FILE *__restrict Ap ,
 		   const struct veclist *__restrict list ,
 		   const int DIR ) ;
 /**
-   @fn void write_projected_data( const char *filename , const int *__restrict NMOM , const double *__restrict data , const struct veclist *__restrict list , const int DIR )
+   @fn void write_momspace_data( const char *filename , const int *__restrict NMOM , const double *__restrict data , const struct veclist *__restrict list , const int DIR )
    @brief write out momentum-space data
  */
 void

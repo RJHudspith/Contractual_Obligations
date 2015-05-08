@@ -15,8 +15,9 @@ int
 read_propheader( struct propagator *prop ) ;
 
 /**
-   @file int read_propheaders( FILE **fprops , const struct input_info inputs )
+   @fn int read_propheaders( struct propagator *prop , const struct input_info inputs )
    @brief open and check our propagator files
+   @param prop :: propagator file
    @return #SUCCESS or #FAILURE
  */
 int

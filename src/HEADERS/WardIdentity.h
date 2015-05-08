@@ -39,7 +39,7 @@ correct_WI( struct PIdata *data ,
 	    const int NMOM ) ;
 
 /**
-   @fn void WI_configspace( const struct PIdata *data , const struct site *lat )
+   @fn void WI_configspace_bwd( const struct PIdata *data , const struct site *lat )
    @brief configuration space WI test
    
    \f[ \frac{1}{V}\sum_{x,\mu,\nu} V_\mu(x) ||V_\nu(0) - V_\mu( x - \mu ) V_\nu( 0 )|| \f]
@@ -60,6 +60,7 @@ WI_configspace_fwd( const struct PIdata *data ,
 		    const struct site *lat ) ;
 
 /**
+   @fn void WI_configspace_sym( const struct PIdata *data , const struct site *lat )
    @brief symmetric difference
  */
 void

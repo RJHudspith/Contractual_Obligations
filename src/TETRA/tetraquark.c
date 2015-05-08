@@ -1,6 +1,6 @@
 /**
-   @file baryons.c
-   @brief baryon contraction code
+   @file tetraquark.c
+   @brief tetraquark contraction code
 
    This is just baryons.c for now - J ( 7 , 05 , 2015 )
 */

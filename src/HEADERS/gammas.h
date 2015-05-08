@@ -7,7 +7,7 @@
 
 /**
    @fn const struct gamma CGmu( const struct gamma GAMMA_MU , const struct gamma *GAMMAS )
-   @brief computes \f$ \gamma_t \gamma_y
+   @brief computes \f$ \gamma_t \gamma_y \f$
  */
 const struct gamma
 CGmu( const struct gamma GAMMA_MU , 
@@ -15,7 +15,7 @@ CGmu( const struct gamma GAMMA_MU ,
 
 /**
    @fn const struct gamma CGmuT( const struct gamma Cgmu , const struct gamma *GAMMAS )
-   @brief adjoint of CGmu \f$ \gamma_t C \gamma_\mu \gamma_t
+   @brief adjoint of CGmu \f$ = \gamma_t \left( C \gamma_\mu \right) \gamma_t \f$
  */
 const struct gamma
 CGmuT( const struct gamma Cgmu , 
@@ -31,7 +31,7 @@ gamma_mmul( struct gamma *__restrict a ,
 	    const struct gamma c ) ;
 
 /**
-   @fn int gamma_matrix( struct gamma *G , const proptype prop )
+   @fn int make_gammas( struct gamma *GAMMA , const proptype prop )
    @brief defines the gamma matrices in whatever compiled convention
    @return #SUCCESS or #FAILURE
  */

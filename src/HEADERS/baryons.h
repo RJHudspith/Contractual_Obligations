@@ -2,12 +2,11 @@
    @file baryons.h
    @brief baryon contraction code prototype functions
  */
-
 #ifndef BARYONS_H
 #define BARYONS_H
 
 /**
-   @fn int baryons_diagonal( struct propagator prop , const char *outfile )
+   @fn int baryons_diagonal( struct propagator prop , const struct cut_info CUTINFO , const char *outfile )
    @brief flavour diagonal baryon contractions
 
    The Baryon interpolating operator is of the form: B = eps_123  q1 *( q2 Cg_23 q3 )

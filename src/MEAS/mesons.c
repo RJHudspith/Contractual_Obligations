@@ -1,5 +1,5 @@
 /**
-   @file dispersions.c
+   @file mesons.c
    @brief dispersion relation computation for mesons
  */
 #include "common.h"
@@ -182,7 +182,7 @@ mesons_diagonal( struct propagator prop ,
     }
 
     // status of the computation
-    printf("\r[DISPREL] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;
@@ -462,7 +462,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf("\r[DISPREL] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

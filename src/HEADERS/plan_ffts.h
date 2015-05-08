@@ -108,4 +108,5 @@ small_create_plans_DFT( fftw_plan *__restrict forward ,
 			const int DIR ) ;
 
 #endif // HAVE_FFTW_H
+
 #endif

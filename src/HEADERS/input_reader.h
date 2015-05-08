@@ -18,7 +18,7 @@ void
 free_inputs( struct input_info inputs ) ;
 
 /**
-   @fn void free_inputs( struct propagator *prop , const int nprops )
+   @fn void free_props( struct propagator *prop , const int nprops )
    @brief free the propagator storage
  */
 void
@@ -35,7 +35,7 @@ get_contraction_map( int *map ,
 		     const int nprops ) ;
 
 /**
-   @fn int get_input_data( struct input_info *inputs , const char *file_name )
+   @fn int get_input_data( struct propagator **prop , struct input_info *inputs , const char *file_name )
    @brief set the gauge field header and pass a propagator name for now
    @warning several objects in inputs get malloc'd here
  */

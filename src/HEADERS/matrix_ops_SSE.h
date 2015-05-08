@@ -1,5 +1,5 @@
 /**
-   @file matrix_ops.h
+   @file matrix_ops_SSE.h
    @brief prototype functions for general matrix operations
  */
 #ifndef MATRIX_OPS_SSE_H
@@ -16,7 +16,7 @@ add_mat( __m128d *a ,
 	 const __m128d *b ) ;
 
 /**
-   @fn inline void colormatrix_equiv( __m128d *a , const __m128d *b )
+   @fn void colormatrix_equiv( double complex *a , const double complex *b )
    @brief equate two colormatrices
  */
 void
@@ -24,7 +24,7 @@ colormatrix_equiv( double complex *a ,
 		   const double complex *b ) ;
 
 /**
-   @fn inline void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
+   @fn void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
    @brief cast from single to working (double) precision a color matrix
  */
 void

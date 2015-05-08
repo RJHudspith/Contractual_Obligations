@@ -1,5 +1,5 @@
 /**
-   @brief input_general.c
+   @file input_general.c
    @brief general input file stuff like lattice geometry and config headers
  */
 #include "common.h"

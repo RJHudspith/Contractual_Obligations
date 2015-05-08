@@ -9,13 +9,8 @@
 #include "matrix_ops.h"   // link multiplies
 #include "spinor_ops.h"   // spinor - color matrix multiply
 
-/**
-   @brief Wilson non-local non-conserved axial
-   Computes \f[ 
-   \text{Tr}\left[ \gamma_\nu \gamma_5 ( \gamma_5  S2^{\dagger}(x) \gamma_5 ) \gamma_\mu \gamma_5 U_\mu\left( x+ a\frac{\hat\mu}{2} \right)S1(x+\mu) \right] + \text{Tr}\left[ \gamma_\nu \gamma_5 ( \gamma_5  S2^{\dagger}(x+\mu) \gamma_5 ) \gamma_\mu \gamma_5 U_\mu\left( x+ a\frac{\hat\mu}{2} \right)^{\dagger} S1(x) \right] 
-   \f]
-*/
-static double complex
+// non-conserved, non-local Axial current
+const static double complex
 CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2 ,       // S_2
@@ -29,13 +24,8 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    meson_contract( GAMMAS[ nu ] , S2xpmu , GAMMAS[ mu ] , UdS1x , GAMMAS[ GAMMA_5 ] ) ) ;
 }
 
-/**
-   @brief Wilson non-local non-conserved axial
-   Computes \f[ 
-   \text{Tr}\left[ \gamma_\nu ( \gamma_5  S2^{\dagger}(x) \gamma_5 ) \gamma_\mu U_\mu\left( x+ a\frac{\hat\mu}{2} \right)S1(x+\mu) \right] + \text{Tr}\left[ \gamma_\nu ( \gamma_5  S2^{\dagger}(x+\mu) \gamma_5 ) \gamma_\mu U_\mu\left( x+ a\frac{\hat\mu}{2} \right)^{\dagger} S1(x) \right]    \f]
-*/
 // non-conserved non-local vector current 
-double complex
+const static double complex
 NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	     const struct spinor S2 ,       // S_2
@@ -50,7 +40,7 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 }
 
 // Conserved-Local Vector current
-static double complex
+const static double complex
 CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )

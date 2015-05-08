@@ -1,6 +1,6 @@
 /**
-   @file bar_ops_SSE.c
-   @brief SSEd baryon operations
+   @file bar_ops.c
+   @brief baryon operations
  */
 #include "common.h"
 

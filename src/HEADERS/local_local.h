@@ -21,7 +21,6 @@ local_local( struct propagator prop ,
 /**
    @fn int local_local_double( struct propagator prop1 , struct propagator prop2 , const struct site *lat , const struct cut_info CUTINFO , const char *outfile )
    @brief local-local current flavour off-diagonal
-
    @return #SUCCESS or #FAILURE
  */
 int

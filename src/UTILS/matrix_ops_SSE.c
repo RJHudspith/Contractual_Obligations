@@ -1,6 +1,6 @@
 /**
-   @file matrix_ops.c
-   @brief simple matrix multiplies (SSE2 version)
+   @file matrix_ops_SSE.c
+   @brief simple matrix multiplies (SSEd version)
  */
 
 #include "common.h"

@@ -1,8 +1,6 @@
 /**
-   @file spinor_ops.c
-   @brief gauge*spinor, spinor*gauge and daggered variants
-
-   SSE2 variants
+   @file spinor_ops_SSE.c
+   @brief general spinor operations (SSEd version)
  */
 #include "common.h"
 

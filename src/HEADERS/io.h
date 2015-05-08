@@ -14,7 +14,7 @@ int
 check_checksum( FILE *fprop ) ;
 
 /**
-   @fn int read_prop( FILE *fprop, struct spinor *S )
+   @fn int read_prop( struct propagator prop , struct spinor *S )
    @brief read the propagator for a timeslice
    @param prop :: propagator file
    @param S :: spinor

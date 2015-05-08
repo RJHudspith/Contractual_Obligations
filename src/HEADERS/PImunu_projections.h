@@ -21,31 +21,19 @@ momspace_data( struct PIdata *data ,
 	       const vector_axial VA ) ;
 
 /**
-   @fn void projection_fullmom( const struct PIdata *data , const double **p , const double *psq , const struct veclist *list , const int *__restrict NMOM , const char *outfile )
+   @fn void projection( const struct PIdata *data , const double **p , const double *psq , const struct veclist *list , const int *__restrict NMOM , const char *outfile )
    @brief computes the transverse and longitudinal and their sum by projection
 
    \f[ \Pi^{1}(q^2) = \frac{1}{(ND-1)q^2}\left( \delta_{\mu\nu} - \frac{q_\mu q_\nu }{q^2}\right)\Pi_{\mu\nu}(q) \f]
-   \f[ \Pi^{1}(q^2) = -\frac{q_\mu q_\nu}{q^4}\Pi_{\mu\nu}(q) \f]
+   \f[ \Pi^{0}(q^2) = -\frac{q_\mu q_\nu}{q^4}\Pi_{\mu\nu}(q) \f]
  */
 void
-projection_fullmom( const struct PIdata *data ,
-		    const double **p ,
-		    const double *psq ,
-		    const struct veclist *list ,
-		    const int *__restrict NMOM ,
-		    const char *outfile ) ;
-
-/**
-   @fn void projection_tonly( const struct PIdata *data , const double **p , const double *psq , const struct veclist *list , const int *__restrict NMOM , const char *outfile )
-   @brief (0,0,0,pt) case is a special one
- */
-void
-projection_tonly( const struct PIdata *data ,
-		  const double **p ,
-		  const double *psq ,
-		  const struct veclist *list ,
-		  const int *__restrict NMOM ,
-		  const char *outfile ) ;
+projection( const struct PIdata *data ,
+	    const double **p ,
+	    const double *psq ,
+	    const struct veclist *list ,
+	    const int *__restrict NMOM ,
+	    const char *outfile ) ;
 
 /**
    @fn void subtract_zeromom( struct PIdata *__restrict data , const int NMOM[1] )

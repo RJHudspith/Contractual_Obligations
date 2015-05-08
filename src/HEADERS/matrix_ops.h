@@ -12,23 +12,23 @@
 #else
 
 /**
-   @fn inline void add_mat( double complex *a , const double complex *b )
+   @fn void add_mat( double complex *__restrict a , const double complex *__restrict b )
    @brief atomically add color matrix b to a
  */
 void
-add_mat( double complex *a ,
-	 const double complex *b ) ;
+add_mat( double complex *__restrict a ,
+	 const double complex *__restrict b ) ;
 
 /**
-   @fn inline void colormatrix_equiv( double complex a[ NCNC ] , const double complex b[ NCNC ] )
+   @fn void colormatrix_equiv( double complex *__restrict a , const double complex *__restrict b )
    @brief equate two colormatrices
  */
 void
-colormatrix_equiv( double complex a[ NCNC ] ,
-		   const double complex b[ NCNC ] ) ;
+colormatrix_equiv( double complex *__restrict a ,
+		   const double complex *__restrict b ) ;
 
 /**
-   @fn inline void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
+   @fn void colormatrix_equiv_f2d( double complex a[ NCNC ] , const float complex b[ NCNC ] )
    @brief cast from single to working (double) precision a color matrix
  */
 void
@@ -43,29 +43,29 @@ double complex
 colortrace( const double complex a[ NCNC ] ) ;
 
 /**
-   @fn inline double complex colortrace_prod( const double complex *a , const double complex *b )
+   @fn double complex colortrace_prod( const double complex *__restrict a , const double complex *__restrict b )
    @brief trace of the product of two color matrices
  */
 double complex
-colortrace_prod( const double complex *a , 
-		 const double complex *b ) ;
+colortrace_prod( const double complex *__restrict a , 
+		 const double complex *__restrict b ) ;
 
 /**
-   @fn constant_mul_gauge( double complex *res , const double complex constant , const double complex *U )
+   @fn void constant_mul_gauge( double complex *__restrict res , const double complex constant , const double complex *__restrict U )
    @brief computes \f$ res = constant * U \f$
  */
 void
-constant_mul_gauge( double complex *res , 
+constant_mul_gauge( double complex *__restrict res , 
 		    const double complex constant ,
-		    const double complex *U ) ;
+		    const double complex *__restrict U ) ;
 
 /**
-   @fn inline void dagger_gauge( double complex *res , const double complex *U )
+   @fn void dagger_gauge( double complex *__restrict res , const double complex *__restrict U )
    @brief computes \f$ res = U^{\dagger} \f$
  */
 void
-dagger_gauge( double complex *res ,
-	      const double complex *U ) ;
+dagger_gauge( double complex *__restrict res ,
+	      const double complex *__restrict U ) ;
 
 /**
    @fn void multab( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
