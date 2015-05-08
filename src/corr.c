@@ -81,9 +81,10 @@ main( const int argc,
   start_timer( ) ;
 
   // baryon contraction code
-  if( contract_baryons( prop , inputs.baryons , inputs.nbaryons ) 
+  if( contract_baryons( prop , inputs.baryons , inputs.CUTINFO ,
+			inputs.nbaryons ) 
       == FAILURE ) {
-    goto FREES ;
+    goto FREES ; // do not pass GO, do not collect £200
   }
 
   // calls a wrapper that has some logic tests
@@ -93,9 +94,9 @@ main( const int argc,
   }
 
   // tetraquark contraction code
-  if( contract_tetras( prop , inputs.tetras , inputs.ntetras ) 
-      == FAILURE ) {
-    goto FREES ;
+  if( contract_tetras( prop , inputs.tetras , inputs.CUTINFO , 
+		       inputs.ntetras ) == FAILURE ) {
+    goto FREES ; // do not pass GO, do not collect £200
   }
 
   // if we don't have a gauge field we can't do conserved-local
@@ -109,7 +110,7 @@ main( const int argc,
   // WME contraction, props have to be wall source
   if( contract_WME( prop , inputs.wme , 
 		    inputs.nWME ) == FAILURE ) {
-    goto FREES ;
+    goto FREES ; // do not pass GO, do not collect £200
   }
 
  FREES :

@@ -105,6 +105,25 @@ find_desired_mom( const int **momentum ,
   return FAILURE ;
 }
 
+// this is for you, Anthony
+static void
+write_momlist( const int **momentum ,
+	       const int NMOM )
+{
+  int p ;
+  printf( "\n[MOMS] outputting available %d-momenta ... \n\n" , ND - 1 ) ;
+  for( p = 0 ; p < NMOM ; p++ ) {
+    int mu ;
+    printf( "[MOMS] %d :: (" , p ) ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      printf( " %d " , momentum[ p ][ mu ] ) ;
+    }
+    printf( ") \n" ) ;
+  }
+  printf( "\n" ) ;
+  return ;
+}
+
 // little code for accessing elements of our correlator files
 int 
 main( const int argc ,
@@ -146,7 +165,6 @@ main( const int argc ,
   struct mcorr **corr = NULL ;
 
   int p ;
-  printf( "\n[MOMS] outputting available %d-momenta ... \n\n" , ND - 1 ) ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
     momentum[ p ] = malloc( ( ND - 1 ) * sizeof( int ) ) ;
     uint32_t n[ ND ] ;
@@ -156,14 +174,10 @@ main( const int argc ,
       return FAILURE ;
     }
     int mu ;
-    printf( "[MOMS] %d :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       momentum[ p ][ mu ] = (int)n[ 1 + mu ] ;
-      printf( " %d " , momentum[ p ][ mu ] ) ;
     }
-    printf( ") \n" ) ;
   }
-  printf( "\n" ) ;
 
   // read in the momentum list size again 
   uint32_t TNMOM[ 1 ] ;
@@ -213,7 +227,7 @@ main( const int argc ,
   printf( "[CHECKSUM] both checksums passed \n\n" ) ;
 
   // loop the ones we want
-  int i ;
+  int i , corrs_written = 0 ;
   for( i = 2 ; i < ( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
@@ -260,8 +274,15 @@ main( const int argc ,
 	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
     }
+    corrs_written++ ;
     //
     printf( "\n" ) ;
+  }
+
+  // if we don't have a match or didn't specify gammas give the momentum
+  // list as an option
+  if( corrs_written == 0 ) {
+    write_momlist( (const int **)momentum , NMOM[ 0 ] ) ;
   }
 
  memfree :

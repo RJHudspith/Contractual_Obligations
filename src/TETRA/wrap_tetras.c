@@ -11,6 +11,7 @@
 int
 contract_tetras( struct propagator *prop ,
 		 const struct tetra_info *tetras ,
+		 const struct cut_info CUTINFO ,
 		 const int ntetras )
 {
   printf( "\n[TETRA] performing %d contraction(s) \n" , ntetras ) ;
@@ -24,8 +25,9 @@ contract_tetras( struct propagator *prop ,
     const int p4 = tetras[ measurements ].map[3] ;
 
     if( p1 == p2 && p2 == p3 && p3 == p4 ) {
-      if( tetraquark_diagonal( prop[ p1 ] , tetras[ measurements ].outfile )
-			       == FAILURE ) {
+      if( tetraquark_diagonal( prop[ p1 ] , CUTINFO , 
+			       tetras[ measurements ].outfile
+			       ) == FAILURE ) {
 	    return FAILURE ;
 	  }
     } else {

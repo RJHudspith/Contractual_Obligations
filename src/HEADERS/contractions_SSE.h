@@ -71,11 +71,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
     \textrm{Tr} \left[ \gamma_{\textrm{GSNK}} \gamma_5 ( \textrm{bwd} )^{\dagger} \gamma_5 \gamma_{\textrm{GSRC}} ( \textrm{fwd} ) \right]
    \f]
  */
-#ifdef __GNU_C__
-inline double complex
-#else
 double complex
-#endif
 meson_contract( const struct gamma GSNK ,		
 		const struct spinor bwd , 
 		const struct gamma GSRC ,

@@ -14,6 +14,7 @@
 int
 contract_baryons( struct propagator *prop ,
 		  const struct baryon_info *baryons ,
+		  const struct cut_info CUTINFO , 
 		  const int nbaryons ) ;
 
 #endif

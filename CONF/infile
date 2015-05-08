@@ -5,10 +5,9 @@ DIMS2 = 16
 DIMS3 = 16
 ## propagator in the chiral basis is point source
 PROP0 = propagator_16x16x16x16b6.000000k0.12500c1.000000id1.1n1
-DISPERSION0 = 0,0,disprel
+BARYON0 = 0,0,0,baryons
 MESON0 = 0,0,mesons
 VPF0 = 0,0,CONSERVED_LOCAL,cl
-BARYON0 = 0,0,0,baryons
 ## momentum information
 MOM_CUT = CYLINDER_CUT
 MAXMOM = 30

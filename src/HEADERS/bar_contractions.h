@@ -32,4 +32,18 @@ baryon_contract_site( double complex **term ,
 		      const struct gamma Cgmu ,
 		      const struct gamma CgmuT ) ;
 
+/**
+   @fn void baryon_contract_site_mom( double complex **in , const struct spinor S1 , const struct spinor S2 , const struct spinor S3 , const struct gamma Cgmu , const struct gamma CgmuT , const int GSRC , const int site )
+   @brief perform a baryon contraction accumulating site-wise result into flat "in" array for FFT-ing
+ */
+void
+baryon_contract_site_mom( double complex **in ,
+			  const struct spinor S1 , 
+			  const struct spinor S2 , 
+			  const struct spinor S3 , 
+			  const struct gamma Cgmu ,
+			  const struct gamma CgmuT ,
+			  const int GSRC ,
+			  const int site ) ;
+
 #endif

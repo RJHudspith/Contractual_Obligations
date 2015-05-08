@@ -62,7 +62,6 @@ mesons_diagonal( struct propagator prop ,
 
   // compute the momentum list for the specified cut
   NMOM = (int*)malloc( sizeof( int ) ) ;
-  wwNMOM = (int*)malloc( sizeof( int ) ) ;
 
 #ifdef HAVE_FFTW3_H
 
@@ -96,6 +95,7 @@ mesons_diagonal( struct propagator prop ,
 
   // wall-wall is already zero-projected
   if( prop.source == WALL ) {
+    wwNMOM = (int*)malloc( sizeof( int ) ) ;
     wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
     wwdisp = allocate_momcorrs( NSNS , NSNS , wwNMOM[0] ) ;
   }
@@ -221,9 +221,7 @@ mesons_diagonal( struct propagator prop ,
 
   // free number of possible momenta and the momentum list
   free( NMOM ) ; free( (void*)list ) ;
-  if( prop.source == WALL ) {
-    free( wwNMOM ) ; free( (void*)wwlist ) ;
-  }
+  free( wwNMOM ) ; free( (void*)wwlist ) ;
 
   // free our GAMMAS
   free( GAMMAS ) ;

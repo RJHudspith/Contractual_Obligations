@@ -13,6 +13,7 @@
 int
 contract_baryons( struct propagator *prop ,
 		  const struct baryon_info *baryons ,
+		  const struct cut_info CUTINFO ,
 		  const int nbaryons )
 {
   printf( "\n[BARYONS] performing %d contraction(s) \n" , nbaryons ) ;
@@ -27,8 +28,8 @@ contract_baryons( struct propagator *prop ,
     // big logic block for contracting the right pieces
     if( p1 == p2 && p2 == p3 ) {
       // only have flavour diagonal option at the moment
-      if( baryons_diagonal( prop[ p1 ] , baryons[ measurements ].outfile ) 
-	  == FAILURE ) {
+      if( baryons_diagonal( prop[ p1 ] , CUTINFO , 
+			    baryons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
       // two props are the same S3 ( S1 Cgmu S1 Cgmu )
@@ -37,8 +38,8 @@ contract_baryons( struct propagator *prop ,
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
 	return FAILURE ;
       }
-      if( baryons_2diagonal( prop[ p1 ] , prop[ p3 ] , 
-			     baryons[ measurements ].outfile ) 
+      if( baryons_2fdiagonal( prop[ p1 ] , prop[ p3 ] , CUTINFO , 
+			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
 	return FAILURE ;
       }
@@ -48,8 +49,8 @@ contract_baryons( struct propagator *prop ,
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
 	return FAILURE ;
       }
-      if( baryons_2diagonal( prop[ p1 ] , prop[ p2 ] , 
-			     baryons[ measurements ].outfile ) 
+      if( baryons_2fdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
+			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
 	return FAILURE ;
       }
@@ -59,8 +60,8 @@ contract_baryons( struct propagator *prop ,
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
 	return FAILURE ;
       }
-      if( baryons_2diagonal( prop[ p2 ] , prop[ p1 ] , 
-			     baryons[ measurements ].outfile ) 
+      if( baryons_2fdiagonal( prop[ p2 ] , prop[ p1 ] , CUTINFO , 
+			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
 	return FAILURE ;
       }
@@ -73,7 +74,7 @@ contract_baryons( struct propagator *prop ,
 	return FAILURE ;
       }
       if( baryons_3fdiagonal( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ,
-			     baryons[ measurements ].outfile ) 
+			      CUTINFO , baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
 	return FAILURE ;
       }

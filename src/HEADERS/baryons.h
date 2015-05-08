@@ -44,6 +44,7 @@
  */
 int
 baryons_diagonal( struct propagator prop ,
+		  const struct cut_info CUTINFO ,
 		  const char *outfile ) ;
 
 #endif
