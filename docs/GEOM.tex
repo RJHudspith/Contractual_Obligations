@@ -1,0 +1,239 @@
+\section{Geometry}
+
+This section defines our default $\gamma$-matrix definitions and our lattice
+geometry and finally discusses the binding to FFTW \cite{} %href{}
+
+\subsection{Gamma definitions}
+
+Our gamma matrices are stored as two 8-bit integer arrays each of length $NS$.
+We record the non-zero column index ``i'' and an integer representing on of the
+four roots of unity ``ig''. This is compact and multiplication of elements can
+be performed by modular arithmetic.
+
+We define our $\gamma$ matrices in $(x,y,z,t..)$ format as we do our gauge
+field, so $\gamma_0=\gamma_x$ and so on. We also define 
+$\gamma_5=\gamma_0\gamma_1\gamma_2\gamma_3$. Here is the list of our gamma
+conventions.
+
+\subsection{Chiral basis}
+
+\begin{equation}
+\begin{gathered}
+%% gamma_0
+\mbox{ \footnotesize$
+\gamma_0=
+\left[
+\begin{array}{cccc}
+0 & 0 & 0 & -i \\
+0 & 0 & -i & 0 \\
+0 & +i & 0 & 0 \\
++i & 0 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% gamma_1
+\mbox{ \footnotesize$
+\gamma_1=
+\left[
+\begin{array}{cccc}
+0 & 0 & 0 & -1 \\
+0 & 0 & +1 & 0 \\
+0 & +1 & 0 & 0 \\
+-1 & 0 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% gamma_2
+\mbox{ \footnotesize$
+\gamma_2=
+\left[
+\begin{array}{cccc}
+0 & 0 & -i & 0 \\
+0 & 0 & 0 & +i \\
++i & 0 & 0 & 0 \\
+0 & -i & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \\
+%% gamma_3
+\mbox{ \footnotesize$
+\gamma_3=
+\left[
+\begin{array}{cccc}
+0 & 0 & -1 & 0 \\
+0 & 0 & 0 & -1 \\
+-1 & 0 & 0 & 0 \\
+0 & -1 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% identity
+\mbox{ \footnotesize$
+\gamma_4=
+\left[
+\begin{array}{cccc}
++1 & 0 & 0 & 0 \\
+0 & +1 & 0 & 0 \\
+0 & 0 & +1 & 0 \\
+0 & 0 & 0 & +1 \\
+\end{array}\right]
+$\normalsize }, \quad
+\mbox{ \footnotesize$
+\gamma_5=
+\left[
+\begin{array}{cccc}
+-1 & 0 & 0 & 0 \\
+0 & -1 & 0 & 0 \\
+0 & 0 & +1 & 0 \\
+0 & 0 & 0 & +1 \\
+\end{array}\right]
+$\normalsize }. \\
+\end{gathered}
+\end{equation}
+
+\subsection{Non-relativistic basis}
+
+\begin{equation}
+\begin{gathered}
+%% gamma_0
+\mbox{ \footnotesize$
+\gamma_0=
+\left[
+\begin{array}{cccc}
+0 & 0 & 0 & -i \\
+0 & 0 & -i & 0 \\
+0 & +i & 0 & 0 \\
++i & 0 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% gamma_1
+\mbox{ \footnotesize$
+\gamma_1=
+\left[
+\begin{array}{cccc}
+0 & 0 & 0 & -1 \\
+0 & 0 & +1 & 0 \\
+0 & +1 & 0 & 0 \\
+-1 & 0 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% gamma_2
+\mbox{ \footnotesize$
+\gamma_2=
+\left[
+\begin{array}{cccc}
+0 & 0 & -i & 0 \\
+0 & 0 & 0 & +i \\
++i & 0 & 0 & 0 \\
+0 & -i & 0 & 0 \\
+\end{array}\right]
+$\normalsize }, \\
+%% gamma_3
+\mbox{ \footnotesize$
+\gamma_3=
+\left[
+\begin{array}{cccc}
++1 & 0 & 0 & 0 \\
+0 & +1 & 0 & 0 \\
+0 & 0 & -1 & 0 \\
+0 & 0 & 0 & -1 \\
+\end{array}\right]
+$\normalsize }, \quad
+%% identity
+\mbox{ \footnotesize$
+\gamma_4=
+\left[
+\begin{array}{cccc}
++1 & 0 & 0 & 0 \\
+0 & +1 & 0 & 0 \\
+0 & 0 & +1 & 0 \\
+0 & 0 & 0 & +1 \\
+\end{array}\right]
+$\normalsize }, \quad
+\mbox{ \footnotesize$
+\gamma_5=
+\left[
+\begin{array}{cccc}
+0 & 0 & -1 & 0 \\
+0 & 0 & 0 & -1 \\
+-1 & 0 & 0 & 0 \\
+0 & -1 & 0 & 0 \\
+\end{array}\right]
+$\normalsize }. \\
+\end{gathered}
+\end{equation}
+
+The further $NS*NS$ elements of our gamma basis are defined as products of 
+these elementary gamma-matrices.
+
+i.e. we have,
+\begin{equation}
+\begin{gathered}
+\gamma_6 = \gamma_0 \gamma_5, 
+\quad \gamma_7 = \gamma_1 \gamma_5, 
+\quad \gamma_8 = \gamma_2 \gamma_5, \\
+\gamma_9 = \gamma_3 \gamma_5,
+\quad \gamma_{10} = \gamma_0\gamma_1, 
+\quad \gamma_{11} = \gamma_0\gamma_2,
+\quad \gamma_{12} = \gamma_0 \gamma_3,\\
+\quad \gamma_{13} = \gamma_1 \gamma_2,
+\quad \gamma_{14} = \gamma_1 \gamma_3,
+\quad \gamma_{15} = \gamma_2 \gamma_3.
+\end{gathered}
+\end{equation}
+
+\subsection{Geometry and lattice dimensions}
+
+We take the geometry functions from my other library GLU. As they were designed
+for navigating around gauge fields they assume periodicity in all dimensions.
+This is not a problem but should be taken into account if using some weird
+boundary conditions.
+
+For a $ND=4$ gauge theory we assume dimension labelling of $(x,y,z,t)$ where
+x runs fastest and t slowest in row-major ordering. We flatten our site index
+to lexicographical row-major order, i.e.
+\begin{equation}
+\text{site} = x + L_x( y + L_y ( z + L_z t ) ).
+\end{equation}
+Where $L_x$ is the length of the lattice in the x-direction.
+
+\subsection{Momenta}
+
+We have the library FFTW do all of our Fourier-transforming needs. Although we
+need to be careful as they define their first Brillouin Zone as between
+$0$ and $2\pi$ whereas we want it to be between $-\pi$ and $\pi$. As the DFT
+is periodic there is no difference in these two definitions, it just requires a
+mapping of momenta from $\pi \rightarrow 2\pi$ to $-\pi -> 0$ functions to do
+this are available in the code.
+
+Lattice momenta are often defined in one of the variants,
+\begin{equation}
+p_i = \frac{2\pi n_i}{L_i},\quad \tilde{p_i}=\sin\left(\frac{2\pi n_i}{L_i}\right),
+\quad \hat{p_i}=2\sin\left(\frac{\pi n_i}{L_i}\right).
+\end{equation}
+Depending on the quantity you are measuring. The $n's$ are the Fourier modes 
+(i.e. integer $ND$-tuples), the p's are the discrete momenta.
+
+\subsection{FFTW binding}
+
+\subsubsection{Discrete Fourier transforms}
+
+A 1-dimensional DFT is defined by,
+\begin{equation}
+f(p) = \sum_{x=0}^{L_x-1}e^{(\text{s})ipx}f(x).
+\end{equation}
+Where (s) is the signe of the transform, we use forward s=1 and backward s=-1.
+Generalising to an $ND$-dimensional DFT is simple,
+\begin{equation}
+f(p) = \sum_r^{L_{ND-1}-1} ... \sum_{y=0}^{L_y-1} \sum_{x=0}^{L_x-1}e^{(s)i(p_x x + p_y y + ... p_r r)}f(x).
+\end{equation}
+
+This can be done by brute force but after one or two different momenta, it is
+much more economical to use an FFT.
+
+\subsubsection{Wrappers and wisdom}
+
+We use wrappers for our FFTW binding, these create the plans necessary for the ffts.
+FFTW works by having many different variants/kernels of FFTs coded and searching
+for the fastest, this requires the code to test many FFTs over the volume specified
+which can be slow for large volumes. If \verb|--enable-notcondor| is set then the
+fastest FFT type is saved to a file and used the next time the code is called instead
+of it running the tests. This type of file cacheing is used a bit in our code (the
+momentum list after a cut is stored too) and the saved files can be found in 
+\verb|$install/Local/|.

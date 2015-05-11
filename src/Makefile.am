@@ -22,7 +22,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
 
 ## c files in ./MEAS/
 MEASFILES=./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c \
-	./MEAS/mesons.c
+	./MEAS/mesons.c ./MEAS/mesons_offdiag.c
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/wrap_tetras.c ./TETRA/tetraquark.c

@@ -44,4 +44,35 @@ baryon_contract_site_mom( double complex **in ,
 			  const int GSRC ,
 			  const int site ) ;
 
+/**
+   @fn void baryon_contract_walls( struct mcorr **Buud_corrWW , struct mcorr **Buuu_corrWW , struct mcorr **Buds_corrWW , const struct spinor SUM1 , const struct spinor SUM2 , const struct spinor SUM3 , const struct gamma *GAMMAS , const int t )
+   @brief perform the Wall-Wall Baryon contractions
+   @warning must be called inside the parallel environment
+ */
+void
+baryon_contract_walls( struct mcorr **Buud_corrWW , 
+		       struct mcorr **Buuu_corrWW ,
+		       struct mcorr **Buds_corrWW ,
+		       const struct spinor SUM1 ,
+		       const struct spinor SUM2 ,
+		       const struct spinor SUM3 ,
+		       const struct gamma *GAMMAS ,
+		       const int t ) ;
+
+/**
+   @fn void baryon_momentum_project( struct mcorr **Buud_corr , struct mcorr **Buuu_corr , struct mcorr **Buds_corr , double complex **in , double complex **out , const void *forward , const void *backward , const struct veclist *list , const int NMOM[ 1 ] , const int t )
+   @brief perform the momentum projection for our baryons
+ */
+void
+baryon_momentum_project( struct mcorr **Buud_corr , 
+			 struct mcorr **Buuu_corr ,
+			 struct mcorr **Buds_corr ,
+			 double complex **in ,
+			 double complex **out ,
+			 const void *forward ,
+			 const void *backward ,
+			 const struct veclist *list ,
+			 const int NMOM[ 1 ] ,
+			 const int t ) ;
+
 #endif

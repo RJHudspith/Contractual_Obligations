@@ -1,0 +1,101 @@
+\section{Utilities and general Linear Algebra}
+
+In this section we discuss some of the more nitty-gritty aspects
+of the code and general linear algebra and contractions that the
+code performs.
+
+The code also has SSE (2 and 3) variants of the operations in an
+attempt to accelerate several aspects of the code. It is partially
+successful at doing so.
+
+\subsection{(Color) matrix operations}
+
+We define a colo matrix as an $NC\times NC$ complex matrix.
+
+As our propagator is stored as dirac,dirac,color,color we can
+perform color-color operations with ok cache coherence. This
+became clear when we needed to take color products with gauge
+fields for the non-local currents.
+
+Again from Jamie's previous experience it is beneficial to
+have the following matrix operations hard-coded (a,b and c
+are color matrices),
+\begin{equation}
+\begin{gathered}
+a=b, \quad a+=b, \quad \text{Tr}\left[ a \right], \quad \text{Tr}\left[ a.b \right], 
+\quad a=B*c, \quad a=b^{\dagger}, \\
+a=b.c, \quad a=b.c^{\dagger}, \quad a=b^{\dagger}.c, \quad a=b^{\dagger}.c^{\dagger}.
+\end{gathered}
+\end{equation}
+Where $a=B*c$ is the product of a complex constant ``B'' multiplied
+by the color matrix c.
+
+In several cases these functions have a lower operation count than
+their brute force counterparts.
+
+\subsection{Spinor operations}
+
+We define a spinor as an $NS \times NS$ matrix of color matrices,
+with sink index running fastest and source index slowest.
+
+As of writing we support the following spinor operations (S1 
+and S2 amd S3 are spinors, U is a color matrix)
+\begin{equation}
+\begin{gathered}
+S1=S2, \quad S1=-S2, \quad S1 = U.S2, \quad S1 = U^{\dagger}.S2, \\
+\quad S1 = S2.U^{\dagger}, \quad S1=U.S2^{\dagger}, \\
+\quad S1 = S2.U , \quad S1 = S2^{\dagger}.U, \quad S1=S2.U^{\dagger},\\
+S1=\sum_{x}^{V_{ND-1}}S2[x], \quad S1 = S2.S3, 
+\quad S1[x] = 0 \; (x\in V_{ND-1}), \quad S1=0.
+\end{gathered}
+\end{equation}
+Where the dagger operation is only over the color matrices,
+although I am no longer sure what the point of most of these
+operations was.
+
+Also, $V_{ND-1}$ is our notation for the spatial-only subvolume.
+i.e. the sum is over a time-slice.
+
+\subsection{Contractions}
+
+Our code has some fairly clever gamma-spinor type stuff going
+on. Our code has the following operations encoded (again
+S1 and S2 are spinors, B is a complex number),
+\begin{equation}
+\begin{gathered}
+S1 = S2^{\dagger}, \quad B=\text{Tr}\left[ S1.S2 \right], 
+\quad S1 = \left( \gamma_5.S2.\gamma_5 \right)^{\dagger},\quad \\
+S1 = \gamma_i.S2, \quad S1 = S2.\gamma_i,
+\quad S1 = \gamma_i.S2.\gamma_j, \\
+\quad B = \text{Tr}\left[ \gamma_j.\left( \gamma_5.S2.\gamma_5\right)^{\dagger}.\gamma_i.S1\right], \\
+\quad B = \text{Tr}\left[ \gamma_j.S2.\gamma_i.S1\right], \\
+\end{gathered}
+\end{equation}
+
+Again, the motive for having both left multiply, right multiply
+and left-right multiply by gamma matrices is that the operation
+count is reduced for the left-right multiply.
+
+The final two spinor operations are meson traces for contracting
+($\gamma_5$-Hermitian) spinors correctly to form a meson.
+
+Unlike in the spinor operations subsection, the $\dagger$ is
+now acting over all spin-color indices as is the trace.
+
+\subsection{Baryon operations}
+
+\commentj{Anthony, could you have a crack at this when you have time?}
+
+\subsection{Baryon contractions}
+
+\commentj{Anthony, could you have a crack at this when you have time?}
+
+\subsection{Basis rotations}
+
+If we are contracting a propagator in the chiral propagator
+with a non-relativistic propagator we rotate the chiral
+propagator into the non-relativistic basis before contracting
+the two propagators.
+
+\commentj{Definition of the rotation matrix should go here}
+

@@ -8,6 +8,7 @@
 #include "basis_conversions.h" // chiral->nrel
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "contractions.h"      // for the 4 prop contraction
+#include "cut_routines.h"      // zero_veclist()
 #include "gammas.h"            // gamma matrices
 #include "GLU_timer.h"         // print_time() function
 #include "io.h"                // read prop
@@ -69,8 +70,12 @@ WME( struct propagator s0 ,
   // allocate the basis
   struct gamma *GAMMAS = NULL ;
 
+  // momentum list stuff
+  int *NMOM = NULL ;
+  struct veclist *list = NULL ;
+
   // data structure for holding the contractions
-  struct correlator **corr = NULL ;
+  struct mcorr **corr = NULL ;
 
   // allocate our four spinors expecting them to be at 0 and L/2
   if( posix_memalign( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
@@ -101,8 +106,12 @@ WME( struct propagator s0 ,
     }
   }
 
+  // create a ( 0 , 0 , 0 ) vector list
+  NMOM = malloc( sizeof( int ) ) ;
+  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
+
   // allocate our corrs
-  corr = allocate_corrs( NSNS , NSNS ) ;
+  corr = allocate_momcorrs( NSNS , NSNS , NMOM[0] ) ;
 
   // pseudoscalar projection state
   const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
@@ -153,7 +162,7 @@ WME( struct propagator s0 ,
 				PROJ , GAMMAS[ GAMMA_5 ] ) ;
       }
       // there is probably a factor in this is it 1/2?
-      corr[ GSRC ][ GSNK ].C[ t ] = tr - trtr ;
+      corr[ GSRC ][ GSNK ].mom[0].C[ t ] = tr - trtr ;
     }
     
     // tell us how far along we are
@@ -166,14 +175,17 @@ WME( struct propagator s0 ,
 #endif
 
   // and write out a file
-  write_correlators( outfile , (const struct correlator**)corr ,
-		     NSNS , NSNS ) ;
+  write_momcorr( outfile , (const struct mcorr**)corr ,
+		 list , NSNS , NSNS , NMOM ) ;
 
   // free our correlator measurement
-  free_corrs( corr , NSNS , NSNS ) ;
+  free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
 
   // free our gamma matrices
   free( GAMMAS ) ;
+
+  // free momentum list stuff
+  free( NMOM ) ; free( (void*)list ) ;
 
   // free the space
   free( DWALL_0 ) ; free( DWALL_L_2 ) ;
@@ -193,7 +205,10 @@ WME( struct propagator s0 ,
  free_failure :
 
   // free our correlator measurement
-  free_corrs( corr , NSNS , NSNS ) ;
+  free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
+
+  // free momentum list stuff
+  free( NMOM ) ; free( (void*)list ) ;
 
   // free our gamma matrices
   free( GAMMAS ) ;

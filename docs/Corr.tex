@@ -1,0 +1,42 @@
+\documentclass[12pt,prd,aps,nofootinbib,floatfix]{revtex4-1} 
+
+%%%%%%%%%%%%%%%%%%%%%%%% packages %%%%%
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{multirow} 
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{macros} 
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{slashed}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title{The Corr library}
+
+\author{A.~Francis and R.~J.~Hudspith}\affiliation{York University}
+
+\maketitle
+
+% structur is general introduction followed by more detailed stuff
+% vaguely following our directory structure for the library
+
+\input intro.tex
+\input GEOM.tex
+\input UTILS.tex
+\input IO.tex
+\input MEAS.tex
+\input VPF.tex
+\input WME.tex
+\input BARYONS.tex
+\input TETRA.tex
+\input TESTS.tex
+
+\bibliography{bibliography}{}
+\bibliographystyle{h-elsevier}
+
+\end{document}

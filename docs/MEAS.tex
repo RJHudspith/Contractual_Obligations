@@ -1,0 +1,68 @@
+\section{Mesons}
+
+In this section we briefly discuss how our code contracts mesons.
+
+\subsection{Flavour diagonal and off-diagonal}
+
+A general flavour diagonal meson is contracted from (with $ND-1$ 
+momentum insertion),
+\begin{equation}
+C_{\Gamma_1\Gamma_2}(p,t)=\sum_{x}^{V_{ND-1}}e^{ip\cdot x}\text{Tr}
+\left[\left(\bar{\Psi}(x,t)\Gamma_1 \Psi(x,t)\right) 
+\left(\bar{\Psi}(0,0)\Gamma_2 \Psi(0,0)\right)\right].
+\end{equation}
+
+Under Wick contraction we obtain,
+\begin{equation}
+C_{\Gamma_1\Gamma_2}(p,t)=\sum_{x}^{V_{ND-1}}e^{ip\cdot x}\text{Tr}
+\left[\Gamma_2 S(x,t:0,0) \Gamma_1 S(0,0:x,t) \right].
+\end{equation}
+
+Where S is a propagator and the solution of (for a point source with dirac matrix M),
+\begin{equation}
+M(x,z)S(z,y) = \delta_{x,y}.
+\end{equation}
+We have suppressed spin and color indices.
+
+For a $\gamma_5$-Hermitian theory the backwards propagation is the same as,
+\begin{equation}
+\left( \gamma_5 S(0,0:x,t) \gamma_5 \right)^{\dagger} = S(x,t:0,0).
+\end{equation}
+
+And so we have our formula for point source flavour diagonal 
+meson contraction,
+\begin{equation}
+C_{\Gamma_1\Gamma_2}(p,t)=\sum_{x}^{V_{ND-1}}e^{ip\cdot x}\text{Tr}
+\left[\Gamma_2 \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} \Gamma_1 S(x,t) \right].
+\end{equation}
+
+If we want to construct a 2-flavour meson, for example a Kaon
+we have to contract two different propagators,
+\begin{equation}
+C_{\Gamma_1\Gamma_2}^{f1,f2}(p,t)=\sum_{x}^{V_{ND-1}}e^{ip\cdot x}\text{Tr}
+\left[\Gamma_2 \left( \gamma_5 S_{f2}(x,t) \gamma_5 \right)^{\dagger} \Gamma_1 S_{f1}(x,t) \right].
+\end{equation}
+
+We can also use an extended source, such as a Coulomb gauge-fixed wall source.
+This explicitly zero-momentum projects the correlator and is the solution of,
+\begin{equation}
+M(x,z)S(z,y') = \delta_{x,y'},
+\end{equation}
+Where $y'=x$ if $y'$ and $x$ are on the same time-slice. This is a wall
+of point sources where we don't have to worry about parallel transport as
+the gauge fixing takes care of this.
+
+With wall sources we can define wall-local or wall-wall propagators
+(I use the flavour-diagonal for simplicity),
+\begin{equation}
+C_{\Gamma_1\Gamma_2}^{W,L}(0,t)=\sum_{x}^{V_{ND-1}}\text{Tr}
+\left[\Gamma_2 \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} \Gamma_1 S(x,t) \right].
+\end{equation}
+and,
+\begin{equation}
+\begin{gathered}
+S(t) = \sum_{x}^{V_{ND-1}} S(x,t), \\
+C_{\Gamma_1\Gamma_2}^{W,W}(0,t)=\text{Tr}
+\left[\Gamma_2 \left( \gamma_5 S(t) \gamma_5 \right)^{\dagger} \Gamma_1 S(t) \right].
+\end{gathered}
+\end{equation}

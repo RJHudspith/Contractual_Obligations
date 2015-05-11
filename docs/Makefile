@@ -6,7 +6,7 @@ doxygen:
 	doxygen
 
 documentation:
-	pdflatex intro.tex && mv -v *.pdf ${DOCPREFIX}/docs/ && rm *.out *.log *.aux *~
+	pdflatex Corr.tex && bibtex Corr.aux && pdflatex Corr.tex && pdflatex Corr.tex && mv -v *.pdf ${DOCPREFIX}/docs/ && rm *.out *.log *.aux *~ *.bbl *.blg
 
 .PHONY:
 	documentation

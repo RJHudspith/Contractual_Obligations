@@ -6,14 +6,6 @@
 #define CORRELATORS_H
 
 /**
-   @fn struct correlator ** allocate_corrs( const int NSRC , const int NSNK )
-   @brief allocate NSRC * NSNK correlator matrix C(t)
- */
-struct correlator **
-allocate_corrs( const int NSRC , 
-		const int NSNK ) ;
-
-/**
    @fn struct mcorr **allocate_momcorrs( const int length1 , const int length2 , const int nmom )
    @brief allocate Corr[length1][length2].mom[ nmom ].C[ #L0 ] correlation function
  */
@@ -21,15 +13,6 @@ struct mcorr **
 allocate_momcorrs( const int length1 , 
 		   const int length2 ,
 		   const int nmom ) ;
-
-/**
-   @fn void free_corrs( struct correlator **corr , const int NSRC , const int NSNK )
-   @brief free correlator matrix
- */
-void
-free_corrs( struct correlator **corr ,
-	    const int NSRC ,
-	    const int NSNK ) ;
 
 /**
    @fn void free_momcorrs( struct mcorr **mcorr , const int length1 , const int length2 , const int nmom )
@@ -47,7 +30,7 @@ free_momcorrs( struct mcorr **mcorr ,
  */
 void
 debug_mesons( const char *message , 
-	      const struct correlator **corr ) ;
+	      const struct mcorr **corr ) ;
 
 /**
    @fn void debug_baryons( const char *message , const struct correlator **corr )
@@ -55,17 +38,20 @@ debug_mesons( const char *message ,
  */
 void
 debug_baryons( const char *message , 
-	       const struct correlator **corr ) ;
+	       const struct mcorr **corr ) ;
 
 /**
-   @fn void write_correlators( const char *outfile , const struct correlator **corr , const int NSRC , const int NSNK )
-   @brief write the full correlation matrix out in binary to outfile
+   @fn void write_baryons( struct mcorr **Buud_corr , struct mcorr **Buuu_corr , struct mcorr **Buds_corr , const struct veclist *list , const int NMOM[ 1 ] , const GLU_bool is_wall , const char *outfile )
+   @brief write out our baryonic, momentum-projected correlation functions
  */
 void
-write_correlators( const char *outfile ,
-		   const struct correlator **corr ,
-		   const int NSRC ,
-		   const int NSNK ) ;
+write_baryons( struct mcorr **Buud_corr , 
+	       struct mcorr **Buuu_corr ,
+	       struct mcorr **Buds_corr ,
+	       const struct veclist *list ,
+	       const int NMOM[ 1 ] ,
+	       const GLU_bool is_wall ,
+	       const char *outfile ) ;
 
 /**
    @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const int NSRC , const int NSNK , const int *nmom )

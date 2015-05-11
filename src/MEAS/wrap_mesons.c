@@ -2,10 +2,10 @@
    @file wrap_mesons.c
    @brief meson contractions wrappers
  */
-
 #include "common.h"
 
-#include "mesons.h"     // meson contractions
+#include "mesons.h"          // flavour diagonal meson contractions
+#include "mesons_offdiag.h"  // flavour off-diagonal meson contractions
 
 // meson contraction driver
 int

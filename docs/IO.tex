@@ -1,0 +1,85 @@
+\section{IO}
+
+Our code sequentially reads the propagator timeslice-by-timeslice
+as a memory saving technique.
+
+\subsection{Our propagator format}
+
+The propagator file our code expects conforms to our lattice geometry
+(i.e. $x,y,z,t$ where x runs fastest and t slowest). It is expected
+to be in $\text{dirac}_1\text{dirac}_2\text{color}_1\text{color}_2$
+order. i.e. the full $NS*NS*NC*NC$ propagator matrix where 1 is the
+source index and 2 is the sink. It also has the following 
+information in the header,
+
+\begin{verbatim}
+<start_header>
+Lattice:  16 16 16 16
+Plaq: 1.000000
+OutProp:  6.000000 0.125000 1.000000
+SrcPos:   0 0 0 0
+Basis: Chiral/Nrel_fwd/Nrel_bwd
+Source:  Point
+Smearing: None/<enter favourite>
+Gaugesmearing: None/<enter favourite>
+Endian: Little
+Precision: Double
+<end_header>
+\end{verbatim}
+
+First of all, the \verb|tag: | the pattern is tag colon space stuff.
+\verb|Lattice| is $(x,y,z,t,..)$ i.e. if we are compiled for $ND=5$ it will
+expect 5 arguments here and fail if it doesn't get them.
+
+\verb|Plaq| is the plaquette of the gauge field this propagator was measured
+on.
+
+\verb|OutProp| is some general information about the prop such as $\kappa$.
+
+\verb|SrcPos| is the source position
+
+\verb|Basis| is the gamma basis needed for this propagator, i.e. is it a
+non-relativistic propagator or a chiral propagator.
+
+\verb|Source| can be \verb|Point,Wall,Z2WALL|
+
+\verb|Smearing| Fermion smearing information
+
+\verb|Gaugesmearing| Did we perform gauge field smearing
+
+\verb|Endian| Was this computed on a \verb|Little| or \verb|Big| Endian machine.
+
+\verb|Precision| Is the propagator \verb|Single| or \verb|Double| precision?
+Our code stores everything as double precision so if the propagator is single
+precision we have to do a cast.
+
+As of writing \verb|Lattice|, \verb|Precision|, \verb|Endian|, \verb|SrcPos|,
+\verb|Basis| and \verb|Source| are required quantities and the code will exit
+without these in the header.
+
+\subsection{Gauge configuration readers}
+
+We use the readers from my other code GLU %href{}
+for the gauge fields as well as plaquette checks and what have you.
+I guess this code was first introduced in \cite{Hudspith:2014oja}.
+
+The code reads the whole lattice-wide gauge field into memory so this
+can get a little expensive when reading large lattices.
+
+It supports the following gauge field types,
+\begin{itemize}
+\item NERSC gauge field (\verb|NERSC_GAUGE NERSC_NCxNC|) %\href.
+\item ILDG/Scidac/Lime (\verb|Scidac ILDG_SCIDAC ILDG_BQCD LIME|) %\href.
+\item HiRep (\verb|HIREP|) \cite{} %\href.
+\item Unit gauge field (\verb|UNIT|).
+\end{itemize}
+
+Where the quantities in parentheses are the various \verb|HEADER_MODE| settings
+required in the input file.
+
+The code attempts to check the various checksums available, apart from if
+using the LIME reader (i.e. you are reading something that is not standard). 
+It will tell you the read is unsafe but continue anyway.
+
+The code outputs the dimensions read from the configuration file as well as
+computing the average plaquette and average link trace.

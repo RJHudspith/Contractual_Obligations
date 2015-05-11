@@ -6,36 +6,21 @@
 #include "common.h"
 
 #include "crc32.h"        // crc 
+#include "correlators.h"  // so that I can alphabetise
 #include "cut_output.h"   // for write_mom_veclist
 
 // little convenience funtion
 static void
-print_convenience( const struct correlator **corr ,
+print_convenience( const struct mcorr **corr ,
 		   const int GSRC ,
 		   const int GSNK ) 
 {
   int t ;
   for( t = 0 ; t < L0 ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GSRC][GSNK].C[t] ) , cimag( corr[GSRC][GSNK].C[t] ) ) ;
+    printf( "%d %e %e \n" , t , creal( corr[GSRC][GSNK].mom[0].C[t] ) , 
+	    cimag( corr[GSRC][GSNK].mom[0].C[t] ) ) ;
   }
   return ;
-}
-
-// allocate the correlator matrix
-struct correlator **
-allocate_corrs( const int NSRC , 
-		const int NSNK )
-{
-  struct correlator **corr = (struct correlator**)malloc( NSRC * sizeof( struct correlator* ) ) ; 
-  int GSRC ;
-  for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
-    corr[ GSRC ] = ( struct correlator* )malloc( NSNK * sizeof( struct correlator ) ) ;
-    int GSNK ;
-    for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
-      corr[ GSRC ][ GSNK ].C = calloc( L0 , sizeof( double complex ) ) ;
-    }
-  }
-  return corr ;
 }
 
 // allocation of dispersion relation correlation function
@@ -58,24 +43,6 @@ allocate_momcorrs( const int length1 ,
     }
   }
   return mcorr ;
-}
-
-// free the correlator matrix
-void
-free_corrs( struct correlator **corr , 
-	    const int NSRC ,
-	    const int NSNK )
-{
-  int s ;
-  for( s = 0 ; s < NSRC ; s++ ) {
-    int t ;
-    for( t = 0 ; t < NSNK ; t++ ) {
-      free( corr[ s ][ t ].C ) ;
-    }
-    free( corr[ s ] ) ;
-  }
-  free( corr ) ;
-  return ;
 }
 
 // momcorr freer
@@ -104,7 +71,7 @@ free_momcorrs( struct mcorr **mcorr ,
 // debug printing
 void
 debug_mesons( const char *message , 
-	      const struct correlator **corr )
+	      const struct mcorr **corr )
 {
   printf( "%s PION\n" , message ) ;
   print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
@@ -129,7 +96,7 @@ debug_mesons( const char *message ,
 // debug printing for baryons
 void
 debug_baryons( const char *message , 
-	      const struct correlator **corr )
+	       const struct mcorr **corr )
 {
   printf( "%s OCTETT\n" , message ) ;
   print_convenience( corr , 5 , 0 ) ;
@@ -152,44 +119,36 @@ debug_baryons( const char *message ,
   return ;
 }
 
-// write the full correlator matrix
+// baryon writers
 void
-write_correlators( const char *outfile ,
-		   const struct correlator **corr ,
-		   const int NSRC ,
-		   const int NSNK )
+write_baryons( struct mcorr **Buud_corr , 
+	       struct mcorr **Buuu_corr ,
+	       struct mcorr **Buds_corr ,
+	       const struct veclist *list ,
+	       const int NMOM[ 1 ] ,
+	       const GLU_bool is_wall ,
+	       const char *outfile )
 {
-  printf( "[IO] writing correlation matrix to %s \n" , outfile ) ;
+  // write out the correlator
+  char outstr[ 256 ] , wall[ 8 ] = "" ;
+  if( is_wall == GLU_TRUE ) {
+    sprintf( wall , ".WW" ) ;
+  } 
 
-  FILE *output_file = fopen( outfile , "wb" ) ;
+  // write out the "uds" type
+  sprintf( outstr , "%s.uds%s" , outfile , wall ) ;
+  write_momcorr( outstr , (const struct mcorr**)Buds_corr , 
+		 list , B_CHANNELS , NSNS , NMOM ) ;
 
-  uint32_t magic[ 1 ] = { 67798233 } ; // THIS SPELLS COR! in ascii
+  // write out the "uud" type
+  sprintf( outstr , "%s.uud%s" , outfile , wall ) ;
+  write_momcorr( outstr , (const struct mcorr**)Buud_corr , 
+		 list , B_CHANNELS , NSNS , NMOM ) ;
 
-  fwrite( magic , sizeof( uint32_t ) , 1 , output_file ) ;
-
-  uint32_t NGSRC[ 1 ] = { NSRC } ;
-  uint32_t NGSNK[ 1 ] = { NSNK } ;
-
-  fwrite( NGSRC , sizeof( uint32_t ) , 1 , output_file ) ;
-  fwrite( NGSNK , sizeof( uint32_t ) , 1 , output_file ) ;
-
-  uint32_t LT[ 1 ] = { L0 } , cksuma = 0 , cksumb = 0 ;
-  int GSRC , GSNK ;
-  for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
-    for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
-      fwrite( LT , sizeof( uint32_t ) , 1 , output_file ) ;
-      fwrite( corr[GSRC][GSNK].C , sizeof( double complex ) , L0 , output_file ) ; 
-      // accumulate a checksum
-      DML_checksum_accum( &cksuma , &cksumb , GSNK + NSNK * GSRC , 
-			  (char*)corr[GSRC][GSNK].C , 
-			  sizeof( double complex ) * L0 ) ;
-    }
-  }
-  // write out both checksums
-  uint32_t csum[ 2 ] = { cksuma , cksumb } ;
-  fwrite( csum , sizeof( uint32_t ) , 2 , output_file ) ;
-
-  fclose( output_file ) ;
+  // write out the "uuu" type
+  sprintf( outstr , "%s.uuu%s" , outfile , wall ) ;
+  write_momcorr( outstr , (const struct mcorr**)Buuu_corr , 
+		 list , B_CHANNELS , NSNS , NMOM ) ;
 
   return ;
 }
