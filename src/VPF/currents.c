@@ -10,7 +10,7 @@
 #include "spinor_ops.h"   // spinor - color matrix multiply
 
 // non-conserved, non-local Axial current
-const static double complex
+const double complex
 CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2 ,       // S_2
@@ -25,7 +25,7 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 }
 
 // non-conserved non-local vector current 
-const static double complex
+const double complex
 NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	     const struct spinor S2 ,       // S_2
@@ -40,7 +40,7 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 }
 
 // Conserved-Local Vector current
-const static double complex
+const double complex
 CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
@@ -109,63 +109,32 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
   return ;
 }
 
-// man this has a lot of arguments -> TODO :: reduce these somehow
-void
-contract_conserved_local( struct PIdata *DATA_AA ,
-			  struct PIdata *DATA_VV ,
-			  const struct site *lat ,
-			  const struct spinor *S1 ,
- 			  const struct spinor *S1UP ,
-			  const struct spinor *S2 ,
-			  const struct spinor *S2UP ,
-			  const struct gamma *GAMMAS ,
-			  const int AGMAP[ ND ] ,
-			  const int VGMAP[ ND ] ,
-			  const int t ) 
-{
-  // test our multiplies
-  int x ;
-#pragma omp parallel for private(x)
-  for( x = 0 ; x < LCU ; x++ ) {
-    contract_conserved_local_site( DATA_AA , DATA_VV , lat ,
-				   S1 , S1UP , S2 , S2UP ,
-				   GAMMAS , AGMAP , VGMAP ,
-				   x , t ) ;
-  }
-  return ;
-}
-
 // LL
 void
-contract_local_local( struct PIdata *DATA_AA ,
-		      struct PIdata *DATA_VV ,
-		      const struct spinor *S1 ,
-		      const struct spinor *S2 ,
-		      const struct gamma *GAMMAS ,
-		      const int AGMAP[ ND ] ,
-		      const int VGMAP[ ND ] ,
-		      const int t ) 
+contract_local_local_site( struct PIdata *DATA_AA ,
+			   struct PIdata *DATA_VV ,
+			   const struct spinor *S1 ,
+			   const struct spinor *S2 ,
+			   const struct gamma *GAMMAS ,
+			   const int AGMAP[ ND ] ,
+			   const int VGMAP[ ND ] ,
+			   const int x ,
+			   const int t ) 
 {
-  int x ;
-  #pragma omp parallel for private(x)
-  for( x = 0 ; x < LCU ; x++ ) {
-
-    const int i = x + LCU * t ;
-    int mu , nu ;
-    for( mu = 0 ; mu < ND ; mu++ ) {
-      for( nu = 0 ; nu < ND ; nu++ ) {
-
-	DATA_AA[i].PI[mu][nu] = \
-	  meson_contract( GAMMAS[ AGMAP[ nu ] ] , S2[x] , 
-			  GAMMAS[ AGMAP[ mu ] ] , S1[x] ,
-			  GAMMAS[ GAMMA_5 ] ) ;
-
-	DATA_VV[i].PI[mu][nu] = \
-	  meson_contract( GAMMAS[ VGMAP[ nu ] ] , S2[x] , 
-			  GAMMAS[ VGMAP[ mu ] ] , S1[x] ,
-			  GAMMAS[ GAMMA_5 ] ) ;
-      }
-    }
+  const int i = x + LCU * t ;
+  int munu ;
+  for( munu = 0 ; munu < ND*ND ; munu++ ) {
+    const int mu = munu / ND ;
+    const int nu = munu % ND ;
+    DATA_AA[i].PI[mu][nu] =				\
+      meson_contract( GAMMAS[ AGMAP[ nu ] ] , S2[ x ] , 
+		      GAMMAS[ AGMAP[ mu ] ] , S1[ x ] ,
+		      GAMMAS[ GAMMA_5 ] ) ;
+    
+    DATA_VV[i].PI[mu][nu] =				\
+      meson_contract( GAMMAS[ VGMAP[ nu ] ] , S2[ x ] , 
+		      GAMMAS[ VGMAP[ mu ] ] , S1[ x ] ,
+		      GAMMAS[ GAMMA_5 ] ) ;
   }
   return ;
 }

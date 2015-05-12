@@ -1,1 +1,79 @@
 \section{Weak matrix elements}
+
+This section briefly discusses our Weak Matrix element calculation.
+
+\subsection{Calculation with point sources}
+
+We wish to contract the following four quark operator, which via
+the OPE describes the leading order box diagram for neutral meson
+mixing,
+\begin{equation}
+C_{\mathfrak{O}_i}(t_i,0,t_f:t)^{LLL}=\sum_{x_i,x_f}^{V_{ND-1}} \bar{\Psi}^{f1}(x_f,t-t_f)\gamma_5 \Psi^{f2}(x,t-t_f) \mathfrak{O}(0) \bar{\Psi}^{f1}(x_f,t-t_i)\gamma_5 \Psi^{f2}(x,t-t_i).
+\end{equation}
+We put the operator at the point $(0,0)$ and have propagator solutions
+at two different, well separated source positions $(0,t_f)$ and 
+$(0,t_i)$.
+
+In the standard model neutral kaons mix with a purely Vector-Axial
+structure, so the operator is,
+\begin{equation}
+\mathfrak{O}_1(0) = \bar{\Psi}^{f1}(0)\gamma_\mu(1-\gamma_5)\Psi^{f2}(0)\bar{\Psi}^{f1}(0)\gamma_\mu(1-\gamma_5)\Psi^{f2}(0).
+\end{equation}
+Upon wick contraction we have,
+\begin{equation}
+\begin{aligned}
+C_{\mathfrak{O}_1}(t_i,0,t_f:t)^{LLL}=\sum_{x_i,x_f}^{V_{ND-1}}
+&\text{Tr}\bigg[
+\gamma_5 ( \gamma_5 S(x_f,t-t_f) \gamma_5 )^{\dagger} \gamma_\mu ( 1 - \gamma_5 ) S(x_i,t-t_i)\\
+&\:\:\:\:\:\gamma_5 ( \gamma_5 S(x_i,t-t_i) \gamma_5 )^{\dagger} \gamma_\mu ( 1 - \gamma_5 ) S(x_f,t-t_f)
+\bigg]\\
+-&\text{Tr}\bigg[ 
+  \gamma_5 ( \gamma_5 S(x_f,t-t_f) \gamma_5 )^{\dagger} \gamma_\mu ( 1 - \gamma_5 ) S(x_i,t-t_i)
+\bigg] \\
+&\text{Tr}\bigg[ 
+  \gamma_5 ( \gamma_5 S(x_i,t-t_i) \gamma_5 )^{\dagger} \gamma_\mu ( 1 - \gamma_5 ) S(x_f,t-t_f)
+\bigg].
+\end{aligned}
+\end{equation}
+
+In the asymptotic regime, we should have a plateau (in this example I use Kaons),
+\begin{equation}
+C_{\mathfrak{O}_1}(t_i,0,t_f:t)^{LLL} \lim{t_i<<t<<t_f} = < 0 | P | K >< K | \mathfrak{O}_1(0) | K > < K | P | 0 > e^{m_K (t_f - t_i ) }.  
+\end{equation}
+P here is a pseudoscalar meson operator.
+
+\subsection{Calculation with walls}
+
+The above discussion is not really how best to do the calculation, local sources
+are noisy and often have poor overlap with the ground state. It is much more 
+economical to use gauge-fixed wall sources at two well separated wall source
+positions and move the operator's position.
+
+In the code we only support the wall source computation, we also only compute,
+\begin{equation}
+\begin{aligned}
+C_{\Gamma_1\Gamma_2}(t_i,t,t_f)^{WLW}=\sum_{x_i,x_f}^{V_{ND-1}}
+&\text{Tr}\bigg[
+\gamma_5 ( \gamma_5 S(x_f,t-t_f) \gamma_5 )^{\dagger} \Gamma_1 S(x_i,t-t_i)\\
+&\:\:\:\:\:\gamma_5 ( \gamma_5 S(x_i,t-t_i) \gamma_5 )^{\dagger} \Gamma_2 S(x_f,t-t_f)
+\bigg]\\
+-&\text{Tr}\bigg[ 
+  \gamma_5 ( \gamma_5 S(x_f,t-t_f) \gamma_5 )^{\dagger} \Gamma_1 S(x_i,t-t_i)
+\bigg] \\
+&\text{Tr}\bigg[ 
+  \gamma_5 ( \gamma_5 S(x_i,t-t_i) \gamma_5 )^{\dagger} \Gamma_2 S(x_f,t-t_f)
+\bigg].
+\end{aligned}
+\end{equation}
+For all possible ($(NS\times NS)^2$) $\Gamma$s in our basis. This means that to
+compute the full $V-A$ correlator, the combination,
+\begin{equation}
+C_{V_\mu,V_\mu}(t_i,t,t_f)^{WLW} - C_{A_\mu,A_\mu}(t_i,t,t_f)^{WLW}.
+\end{equation}
+Should be taken.
+
+In general the following dirac structures also appear in the OPE.
+\begin{equation}
+V+A,\quad S+P ,\quad S-P ,\quad TT.
+\end{equation}
+And can be used to bound possible BSM scenarios which mix Kaons.

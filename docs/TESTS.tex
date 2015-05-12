@@ -1,5 +1,40 @@
 \section{Tests}
 
+This section deals with the stuff in the tests directory, namely
+the unit tests and meson extractor.
+
 \subsection{Unit tests}
 
+We perform unit tests on the basic linear algebra of our library
+to ensure the basic stuff is correct. Higher level functions
+such as the meson and baryon correlators are up to you.
+
+The unit testing framework is built from minunit %\href{}
+which is the simplest possible framework (it is literally
+two macros). We decided on this because we didn't want the user
+to have to install any extra code just to check ours.
+
+The tests either all pass or break at a specific point, returning 
+the error message that was produced. If you change any of the
+contractions codes in UTILS we strongly recommend that the
+unit tests are run to make sure everything is kosher.
+
+If you add some extra function to the files already covered by
+the unit tests please add a unit test for it.
+
 \subsection{Meson extractor}
+
+The meson extractor is a simple code to look directly at the
+correlator files our code outputs. The output files the code
+produces are binary data with a spatial momentum list first and
+then the full correlator data afterwards.
+
+If I wanted to extract the Pion with 1,1,0 momentum projection
+from the file ``mesons.bin'' I would call,
+\begin{verbatim}
+./MESONS mesons.bin 5,5,1,1,0
+\end{verbatim}
+With the first two indices being the source and sink gamma indices
+which for our gamma convention is $\gamma_5 \gamma_5$. The momenta
+follows our conventions for geometry too, with px running fastest
+and in this example pz running slowest.

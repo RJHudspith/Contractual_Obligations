@@ -5,8 +5,10 @@
 
 #include "common.h"
 
-#include "conserved_local.h"     // conserved-local Wilson currents
-#include "local_local.h"         // local-local currents
+#include "cl_diagonal.h"      // conserved-local Wilson currents
+#include "cl_offdiagonal.h"   // conserved-local flavour off diagonal
+#include "ll_diagonal.h"      // local-local currents
+#include "ll_offdiagonal.h"   // flavour off diagonal local-local
 
 static int 
 ( *single_callback ) ( struct propagator prop ,
@@ -19,10 +21,10 @@ select_callback_single( const current_type current )
 {
   switch( current ) {
   case CONSERVED_LOCAL :
-    single_callback = conserved_local ;
+    single_callback = cl_diagonal ;
     break ;
   case LOCAL_LOCAL :
-    single_callback = local_local ;
+    single_callback = ll_diagonal ;
     break ;
     // have space for conserved-conserved if we choose to do it
   }
@@ -41,10 +43,10 @@ select_callback_double( const current_type current )
 {
   switch( current ) {
   case CONSERVED_LOCAL :
-    double_callback = conserved_local_double ;
+    double_callback = cl_offdiagonal ;
     break ;
   case LOCAL_LOCAL :
-    double_callback = local_local_double ;
+    double_callback = ll_offdiagonal ;
     break ;
   }
   return ;

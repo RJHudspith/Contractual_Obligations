@@ -37,8 +37,10 @@ UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 
 ## c files in ./VPF
 VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
-	./VPF/WardIdentity.c ./VPF/local_local.c ./VPF/conserved_local.c \
-	./VPF/momspace_PImunu.c ./VPF/tmoments_PImunu.c 
+	./VPF/WardIdentity.c ./VPF/momspace_PImunu.c ./VPF/tmoments_PImunu.c \
+	./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c\
+	./VPF/ll_diagonal.c ./VPF/ll_offdiagonal.c
+
 ## c files in ./WME/
 WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 

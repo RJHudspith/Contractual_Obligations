@@ -1,19 +1,18 @@
 /**
-   @file local_local.h
+   @file ll_diagonal.h
    @brief prototype functions for the local-local VPF
  */
-
-#ifndef LOCAL_LOCAL_H
-#define LOCAL_LOCAL_H
+#ifndef LL_DIAGONAL_H
+#define LL_DIAGONAL_H
 
 /**
-   @fn int local_local( struct propagator prop , const struct site *lat , const struct cut_info CUTINFO , const char *outfile )
+   @fn int ll_diagonal( struct propagator prop , const struct site *lat , const struct cut_info CUTINFO , const char *outfile )
    @brief local-local flavour diagonal
 
    @return #SUCCESS or #FAILURE
  */
 int
-local_local( struct propagator prop ,
+ll_diagonal( struct propagator prop ,
 	     const struct site *lat ,
 	     const struct cut_info CUTINFO ,
 	     const char *outfile ) ;

@@ -168,81 +168,6 @@ CGmuT( const struct gamma Cgmu ,
   return res ;
 }
 
-#ifdef CHROMA_DIRAC_CONVENTION
-
-// degrand-rossi
-void 
-make_gammas( struct gamma *GAMMA ,
-	     const proptype prop )
-{
-  // first gamma is the identity
-  int s ;
-  for( s = 0 ; s < NS ; s++ ) {
-    GAMMA[0].ig[s] = s ; // on the diagonal
-    GAMMA[0].g[s] = 0 ;  // all ones
-  }
-
-  switch( prop ) {
-  case NREL :
-    // gamma_0 -- x direction
-    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] =  3 ;
-    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] =  3 ;
-    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] =  1 ;
-    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] =  1 ;
-    // gamma_1 -- y direction
-    GAMMA[2].ig[0] = 3 ; GAMMA[2].g[0] = 2 ;
-    GAMMA[2].ig[1] = 2 ; GAMMA[2].g[1] = 0 ;
-    GAMMA[2].ig[2] = 1 ; GAMMA[2].g[2] = 0 ;
-    GAMMA[2].ig[3] = 0 ; GAMMA[2].g[3] = 2 ;
-    // gamma_2 -- z direction
-    GAMMA[4].ig[0] = 2 ; GAMMA[4].g[0] = 3 ;
-    GAMMA[4].ig[1] = 3 ; GAMMA[4].g[1] = 1 ;
-    GAMMA[4].ig[2] = 0 ; GAMMA[4].g[2] = 1 ;
-    GAMMA[4].ig[3] = 1 ; GAMMA[4].g[3] = 3 ;
-    // gamma_3 -- t direction
-    GAMMA[8].ig[0] = 0 ; GAMMA[8].g[0] = 0 ;
-    GAMMA[8].ig[1] = 1 ; GAMMA[8].g[1] = 0 ;
-    GAMMA[8].ig[2] = 2 ; GAMMA[8].g[2] = 2 ;
-    GAMMA[8].ig[3] = 3 ; GAMMA[8].g[3] = 2 ;
-    break ;
-  case CHIRAL :
-    // gamma_0 is encoded via
-    GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] = 1 ;
-    GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] = 1 ;
-    GAMMA[1].ig[2] = 1 ; GAMMA[1].g[2] = 3 ;
-    GAMMA[1].ig[3] = 0 ; GAMMA[1].g[3] = 3 ;
-    // gamma_1 is encoded via (is this right?)
-    GAMMA[2].ig[0] = 3 ; GAMMA[2].g[0] = 2 ;
-    GAMMA[2].ig[1] = 2 ; GAMMA[2].g[1] = 0 ;
-    GAMMA[2].ig[2] = 1 ; GAMMA[2].g[2] = 0 ;
-    GAMMA[2].ig[3] = 0 ; GAMMA[2].g[3] = 2 ;
-    // gamma_2 is encoded via
-    GAMMA[4].ig[0] = 2 ; GAMMA[4].g[0] = 1 ;
-    GAMMA[4].ig[1] = 3 ; GAMMA[4].g[1] = 3 ;
-    GAMMA[4].ig[2] = 0 ; GAMMA[4].g[2] = 3 ;
-    GAMMA[4].ig[3] = 1 ; GAMMA[4].g[3] = 1 ;
-    // gamma_3 is encoded via
-    GAMMA[8].ig[0] = 2 ; GAMMA[8].g[0] = 0 ;
-    GAMMA[8].ig[1] = 3 ; GAMMA[8].g[1] = 0 ;
-    GAMMA[8].ig[2] = 0 ; GAMMA[8].g[2] = 0 ;
-    GAMMA[8].ig[3] = 1 ; GAMMA[8].g[3] = 0 ;
-    break ;
-  }
-
-  // fill in the rest of the chroma basis
-  int outer , inner , sub ;
-  for( outer = 0 ; outer < NS-1 ; outer++ ) {
-    sub = 2 << outer ;
-    for( inner = 1 ; inner < sub ; inner++ ) {
-      gamma_mmul( &GAMMA[ sub + inner ] , GAMMA[inner] , GAMMA[ sub ] ) ;
-    }
-  }
-
-  return check_gammas( GAMMA ) ;
-}
-
-#else
-
 int
 make_gammas( struct gamma *GAMMA ,
 	     const proptype prop )
@@ -344,5 +269,4 @@ make_gammas( struct gamma *GAMMA ,
   return check_gammas( GAMMA ) ;
 }
 
-#endif
 

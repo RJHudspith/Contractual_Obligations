@@ -115,9 +115,7 @@ main( const int argc,
 
  FREES :
   // we will have to move this around only place where this is freed
-  if( MODE == GAUGE_AND_PROPS ) {
-    free( lat ) ;
-  }
+  free( lat ) ;
 
   // free the propagators
   free_props( prop , inputs.nprops ) ;

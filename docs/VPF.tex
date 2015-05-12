@@ -1,9 +1,156 @@
 \section{Vacuum polarisation functions}
 
+This section discusses our implementation of the various currents
+we have implemented for the computation of the vacuum polarisation
+function.
+
 \subsection{Conserved non-local Wilson currents}
+
+For Wilson fermions one can define a conserved vector current, i.e.
+one that satisfies a vector Ward identity.
+
+\subsubsection{Ward identities}
+
+The Ward identity $\partial_\mu \mathfrak{V}_\mu = 0$
+in continuum can be translated to the lattice via finite difference
+$\delta_\mu \mathfrak{V}_\mu = 0 $ we can define a ``backward'' current,
+\begin{equation}
+2\mathfrak{V}_\mu=
+\bar{\Psi}\left(x+a\hat{\mu}\right)\left( 1 + \gamma_\mu \right)U_\mu^{\dagger}\left(x+a\frac{\mu}{2}\right)\Psi(x)
+-\bar{\Psi}(x)\left( 1 - \gamma_\mu \right)U_\mu\left(x+a\frac{\mu}{2}\right)\Psi\left(x+a\hat{\mu}\right).
+\end{equation}
+Which satisfies the backward (-) finite difference,
+\begin{equation}
+\delta_\mu^{(-)}\mathfrak{V}_\mu(x) = \mathfrak{V}_\mu(x) - \mathfrak{V}_\mu(x-a\hat{\mu}) = 0.
+\end{equation}
+
+One could also define the ``forward'' current which satisfies
+a forward finite difference,
+\begin{equation}
+2\mathfrak{V}_\mu=
+\bar{\Psi}(x)\left( 1 + \gamma_\mu \right)U_\mu^{\dagger}\left(x-a\frac{\mu}{2}\right)\Psi\left(x-a\hat{\mu}\right)
+-\bar{\Psi}\left(x-a\hat{\mu}\right)\left( 1 - \gamma_\mu \right)U_\mu\left(x-a\frac{\mu}{2}\right)\Psi(x).
+\end{equation}
+With forward (+) finite difference,
+\begin{equation}
+\delta_\mu^{(+)}\mathfrak{V}_\mu(x) = \mathfrak{V}_\mu(x+a\hat{\mu}) - \mathfrak{V}_\mu(x) = 0.
+\end{equation}
+
+\subsection{Conserved-local currents}
+
+A popular current to compute is a conserved-local current. This is
+because it only requires 1 propagator inversion whereas a 
+conserved-conserved current would require $ND+1$.
+
+The idea is to contract one of the currents above with a local
+current sat at zero,
+\begin{equation}
+V_\mu(0,0) = \bar{\Psi}(0,0) \gamma_\mu \Psi(0,0).
+\end{equation}
+
+We make the wick contraction of a (flavour diagonal) backward conserved-local vector current,
+\begin{equation}
+\begin{aligned}
+2\mathfrak{V}_\mu(x,t)V_\nu(0,0) =& 
+-\text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} U_\mu\left( x + a\frac{\hat{\mu}}{2}\right) S(x+a\hat{\mu},t) \right] \\
+& + \text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} \gamma_\mu U_\mu\left( x + a\frac{\hat{\mu}}{2}\right) S(x+a\hat{\mu},t) \right] \\
+& + \text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x+a\hat{\mu},t) \gamma_5 \right)^{\dagger} U_\mu^{\dagger}\left( x + a\frac{\hat{\mu}}{2}\right) S(x,t) \right] \\
+& + \text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x+a\hat{\mu},t) \gamma_5 \right)^{\dagger} \gamma_\mu U_\mu^{\dagger}\left( x + a\frac{\hat{\mu}}{2}\right) S(x,t) \right].
+\end{aligned}
+\end{equation}
+
+The benefit of writing the contraction like this is that once we have (pre)computed the products,
+$U_\mu\left( x + a\frac{\hat{\mu}}{2}\right) S(x+a\hat{\mu},t)$ and
+$U_\mu^{\dagger}\left( x + a\frac{\hat{\mu}}{2}\right) S(x,t)$ our contraction is exactly that of
+the case of the mesons and we can use the optimised contraction routines from there.
 
 \subsection{Non-conserved non-local Wilson currents}
 
+We can also define non-local non-conserved Wilson currents. Of some interest is the axial,
+\begin{equation}
+\begin{aligned}
+2\mathfrak{A}_\mu^{(\text{NCNL})}(x,t)A_\nu(0,0) =& 
++\text{Tr}\left[ \gamma_\nu \gamma_5 \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} \gamma_\mu \gamma_5 U_\mu\left( x + a\frac{\hat{\mu}}{2}\right) S(x+a\hat{\mu},t) \right] \\
+&+ \text{Tr}\left[ \gamma_\nu \gamma_5 \left( \gamma_5 S(x+a\hat{\mu},t) \gamma_5 \right)^{\dagger} \gamma_\mu \gamma_5 U_\mu^{\dagger}\left( x + a\frac{\hat{\mu}}{2}\right) S(x,t) \right].
+\end{aligned}
+\end{equation}
+Which is not conserved.
+
+Also one can write down the non-local non-conserved vector,
+\begin{equation}
+\begin{aligned}
+2\mathfrak{V}_\mu^{(\text{NCNL})}(x,t)V_\nu(0,0) =& 
++\text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x,t) \gamma_5 \right)^{\dagger} \gamma_\mu U_\mu\left( x + a\frac{\hat{\mu}}{2}\right) S(x+a\hat{\mu},t) \right] \\
+&+ \text{Tr}\left[ \gamma_\nu \left( \gamma_5 S(x+a\hat{\mu},t) \gamma_5 \right)^{\dagger} \gamma_\mu U_\mu^{\dagger}\left( x + a\frac{\hat{\mu}}{2}\right) S(x,t) \right].
+\end{aligned}
+\end{equation}
+
 \subsection{Temporal correlators}
 
-\subsection{Momentum-space projections}
+Some people like to work with the zero spatial momentum projected current correlators,
+\begin{equation}
+\Pi_{\mu\nu}(0,t) = \frac{1}{2}\sum_{x}^{V_{ND-1}} \mathfrak{V}_\mu(x,t)V_\nu(0,0).
+\end{equation}
+
+This can then be used to compute the moments of the correlator. Our code computes this
+by default as well as full volume-wide FFTs.
+
+\subsection{Momentum-space currents}
+
+We also produce the full $ND$-volume FFT of our current-correlator, although this is
+only useful for point sources as extended sources such as the Walls explicitly zero-
+momentum project, as mentioned in the mesons section.
+
+We define the momentum-space correlator as,
+\begin{equation}
+\Pi_{\mu\nu}(q) = \frac{1}{2}e^{-iaq_\mu/2}\sum_{x}^{V}e^{iaq_\mu \cdot x} \mathfrak{V}_\mu(x)V_\nu(0).
+\end{equation}
+Note how we no longer distinguish between the spatial and temporal components.
+
+The factor $e^{-iaq_\mu/2}$ is to ensure the correct momentum-space Ward identity.
+Considering the two Fourier transforms,
+\begin{equation}
+\begin{aligned}
+&\sum_{x}^{V}e^{iaq\cdot x}\mathfrak{V}_{\mu}(x) = \mathfrak{V}_{\mu}(q), \\
+&\sum_{x}^{V}e^{iaq\cdot x}\mathfrak{V}_{\mu}(x-a\hat{\mu}) = e^{-iaq_\mu}\mathfrak{V}_{\mu}(q).
+\end{aligned}
+\end{equation}
+Taking the finite difference and Fourier transforming we have,
+\begin{equation}
+\begin{aligned}
+\sum_{\mu}\sum_{x}^{V}e^{iaq\cdot x}\left( \mathfrak{V}_{\mu}(x)- \mathfrak{V}_{\mu}(x-a\hat{\mu}) \right) &= \sum_\mu \left( \mathfrak{V}_{\mu}(q) - e^{-iaq_\mu}\mathfrak{V}_{\mu}(q) \right), \\
+&= \sum_\mu e^{-iaq_\mu/2}\left( e^{iaq_\mu /2}\mathfrak{V}_{\mu}(q) - e^{-iaq_\mu /2}\mathfrak{V}_{\mu}(q) \right),\\
+&= \sum_\mu e^{-iaq_\mu/2} 2i \sin( aq_\mu / 2 )\mathfrak{V}_{\mu}(q) = 0.\\
+\end{aligned}
+\end{equation}
+In comparison to the continuum ward identity $q_\mu \mathfrak{V}_\mu(q)$ we have a natural
+expression for the momentum of our current, that of $a\hat{q}_\mu = 2 \sin( aq_\mu / 2 )$ as
+this is the only momentum definition that satisfies the Ward identity.
+
+\subsubsection{Projections}
+
+We use the method of projection to compute various scalar quantities from our currents.
+In continuum, the Lorentz structure of the vacuum polarisation function is
+\begin{equation}
+\Pi_{\mu\nu}(q) = \left( q^2 \delta_{\mu\nu} - q_\mu q_\nu \right)\Pi^{(1)}(q^2) - q_\mu q_\nu \Pi^{(0)}(q^2).
+\end{equation}
+Where $\Pi^{(1)}(q^2)$ is the Transverse component of the vacuum polarisation function
+and $\Pi^{(0)}(q^2)$ is the Longitudinal. The conserved-local vector current is purely
+transverse as it satisfies a Ward identity, but other non-conserved currents can have
+longitudinal components.
+
+It seems natural to write the structure in terms of our lattice momentum,
+\begin{equation}
+\Pi_{\mu\nu}(a\hat{q}) = \left( \left(a\hat{q}\right)^2 \delta_{\mu\nu} - a^2\hat{q}_\mu \hat{q}_\nu \right)\Pi^{(1)}(a^2\hat{q}^2) - a^2\hat{q}_\mu \hat{q}_\nu \Pi^{(0)}(a^2\hat{q}^2) + \text{h.o.t}.
+\end{equation}
+Where I have implicitly allowed for possible higher order terms (h.o.t) which come from
+the violation of lorentz symmetry.
+
+We define the following projections to extract the longitudinal and transverse scalar
+form factors,
+\begin{equation}
+\begin{aligned}
+\Pi^{(0)}(a^2\hat{q}^2) &= -\frac{ a^2\hat{q}_\mu \hat{q}_\nu }{(a^2\hat{q}^2)^2} \Pi_{\mu\nu}(aq), \\
+\Pi^{(1)}(a^2\hat{q}^2) &= \frac{1}{(ND-1)a^2\hat{q}^2}\left( \delta_{\mu\nu} - \frac{ \hat{q}_\mu \hat{q}_\nu}{\hat{q}^2}\right)\Pi_{\mu\nu}(aq).
+\end{aligned}
+\end{equation}

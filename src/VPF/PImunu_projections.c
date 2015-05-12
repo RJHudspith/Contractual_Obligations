@@ -46,7 +46,7 @@ projection( const struct PIdata *data ,
       }
     }
     trans[ i ] = sumtrans * ( spsq * NORM ) ;
-    longitudinal[ i ] = -sumlong * spsq ;
+    longitudinal[ i ] = sumlong * spsq ;
   }
 
   // write out a file
