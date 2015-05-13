@@ -2,8 +2,9 @@
    @file cut_output.c
    @brief outputs our cut data
  */
-
 #include "common.h"
+
+#include "crc32.h"        // crc 
 
 // Write the gluonic two point function to the file Ap
 static void
@@ -12,7 +13,18 @@ write_binary( FILE *__restrict Ap ,
 	      const int NMOM[ 1 ] ) 
 {
   fwrite( NMOM , sizeof(uint32_t) , 1 , Ap ) ;
-  fwrite( g2 , sizeof(double) , NMOM[0] , Ap ) ;
+  //fwrite( g2 , sizeof(double) , NMOM[0] , Ap ) ;
+  // checksum it
+  uint32_t cksuma = 0 , cksumb = 0 ;
+  int i ;
+  for( i = 0 ; i < NMOM[0] ; i++ ) {
+    fwrite( g2 + i , sizeof(double) , 1 , Ap ) ;
+    DML_checksum_accum( &cksuma , &cksumb , i , 
+			(char*)( g2 + i ) , sizeof( double  ) ) ;
+  }
+  const uint32_t csum[ 2 ] = { cksuma , cksumb } ;
+  fwrite( csum , sizeof( uint32_t ) , 2 , Ap ) ;
+
   return ;
 }
 
@@ -70,6 +82,7 @@ write_momspace_data( const char *filename ,
   write_binary( outfile , data , NMOM ) ;
 
   fclose( outfile ) ;
+
   return ;
 }
 

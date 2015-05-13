@@ -16,8 +16,8 @@
 
 // I need to think about the logic here
 #if (defined HAVE_IMMINTRIN_H)
-#include <immintrin.h>
-  #ifdef __SSE2__
+  #include <immintrin.h>
+  #if (defined __SSE2__ ) || (defined __SSE3__ )
     #define HAVE_EMMINTRIN_H
     #include "SSE2_OPS.h"
   #endif

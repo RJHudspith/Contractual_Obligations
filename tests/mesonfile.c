@@ -1,4 +1,7 @@
-
+/**
+   @file mesonfile.c
+   @brief little correlation file reader
+ */
 #include "common.h"
 
 #include "crc32.h"        // do the crc of the binary data

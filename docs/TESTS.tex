@@ -38,3 +38,29 @@ With the first two indices being the source and sink gamma indices
 which for our gamma convention is $\gamma_5 \gamma_5$. The momenta
 follows our conventions for geometry too, with px running fastest
 and in this example pz running slowest.
+
+\subsection{VPF extractor}
+
+We also provide a small vacuum polarisation function reader for our
+data files. The momentum ordering is the same $(p_x,p_y,p_z,p_t..)$
+only we have taken the full Fourier transform over the whole volume
+for this data.
+
+The extractor requires 3 arguments (for example opening a file 
+``cl.CVLV.trans.bin'' with geometry $16x16x16x16$),
+\begin{verbatim}
+./VPFREADER cl.CVLV.trans.bin 16,16,16,16
+\end{verbatim}
+Will check the checksums and output all possible momenta along
+with $(a\hat{q})^2$ and $\Pi^{(1)}((a\hat{q})^2)$. An example would
+be,
+\begin{verbatim}
+....................
+[MOMS] 5325 :: ( -5  -5  7  7 ) 13.226252 -0.003262 
+[MOMS] 5326 :: ( 5  -5  7  7 ) 13.226252 -0.003262 
+[MOMS] 5327 :: ( -5  5  7  7 ) 13.226252 -0.003262 
+[MOMS] 5328 :: ( 5  5  7  7 ) 13.226252 -0.003262
+....................
+\end{verbatim}
+The first integer is the momentum index number, the 
+Fourier modes, then $(a\hat{q})^2$ and $\Pi^{(1)}((a\hat{q})^2)$.

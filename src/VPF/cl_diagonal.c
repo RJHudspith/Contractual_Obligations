@@ -1,5 +1,5 @@
 /**
-   @file conserved_local.c
+   @file cl_diagonal.c
    @brief conserved-local Wilson currents
 
    At the moment I treat the NREL like the chiral which is

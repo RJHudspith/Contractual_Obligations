@@ -2,7 +2,6 @@
    @file correlators.c
    @brief now holds the correlator definitions and IO
  */
-
 #include "common.h"
 
 #include "crc32.h"        // crc 
