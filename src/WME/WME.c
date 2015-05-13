@@ -78,16 +78,16 @@ WME( struct propagator s0 ,
   struct mcorr **corr = NULL ;
 
   // allocate our four spinors expecting them to be at 0 and L/2
-  if( posix_memalign( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
-  if( posix_memalign( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
-  if( posix_memalign( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
-  if( posix_memalign( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
 

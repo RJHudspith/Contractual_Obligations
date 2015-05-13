@@ -146,7 +146,7 @@ gamma_conj( const struct gamma G )
 }
 
 // computes GAMMA_T . GAMMA_Y . GAMMA_\mu
-const struct gamma
+struct gamma
 CGmu( const struct gamma GAMMA_MU , 
       const struct gamma *GAMMAS )
 {
@@ -158,7 +158,7 @@ CGmu( const struct gamma GAMMA_MU ,
 }
 
 // computes ( GAMMA_T . ( C Gamma_\mu )^* . GAMMA_T )
-const struct gamma
+struct gamma
 CGmuT( const struct gamma Cgmu , 
        const struct gamma *GAMMAS )
 {

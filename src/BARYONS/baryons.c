@@ -53,10 +53,10 @@ baryons_diagonal( struct propagator prop ,
 #endif
 
   // allocations
-  if( posix_memalign( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto FREE_FAIL ;
   }
-  if( posix_memalign( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto FREE_FAIL ;
   }
 

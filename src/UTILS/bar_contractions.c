@@ -39,15 +39,15 @@ baryon_contract_site( double complex **term ,
     term[0][ odc ] += baryon_contract( DiQ, S3 , 2 , 2 , OD1 , OD2 ) ;
     term[0][ odc ] += baryon_contract( DiQ, S3 , 3 , 3 , OD1 , OD2 ) ;
 
-    term[1][ odc ] += baryon_contract( DiQ, S3 , 0 , OD1 , 0 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , 1 , OD1 , 1 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , 2 , OD1 , 2 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , 3 , OD1 , 3 , OD2 ) ; 
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 0 , 0 , OD2 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 1 , 1 , OD2 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 2 , 2 , OD2 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 3 , 3 , OD2 ) ; 
 #else
     int dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
       term[0][ odc ] += baryon_contract( DiQ, S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[1][ odc ] += baryon_contract( DiQ, S3 , dirac , OD1 , dirac , OD2 ) ;
+      term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , dirac , dirac , OD2 ) ;
     }
 #endif
   }
@@ -82,21 +82,21 @@ baryon_contract_site_mom( double complex **in ,
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
     #if NS == 4
-    // first term
     in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 0 , 0 , OD1 , OD2 ) ;
     in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 1 , 1 , OD1 , OD2 ) ;
     in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 2 , 2 , OD1 , OD2 ) ;
     in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 3 , 3 , OD1 , OD2 ) ;
-    // second term
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 0 , OD1 , 0 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 1 , OD1 , 1 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 2 , OD1 , 2 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 3 , OD1 , 3 , OD2 ) ;
+
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 0 , 0 , OD2 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 1 , 1 , OD2 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 2 , 2 , OD2 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 3 , 3 , OD2 ) ;
+
     #else
     int dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
       in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , dirac , dirac , OD1 , OD2 ) ;
-      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , dirac , OD1 , dirac , OD2 ) ;
+      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , dirac , dirac , OD2 ) ;
     }
     #endif
   }
@@ -170,11 +170,11 @@ baryon_contract_omega_site( double complex **term ,
     int dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
       term[0][odc] += baryon_contract( DiQ , S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[1][odc] += baryon_contract( DiQ , S3 , dirac , OD1 , dirac , OD2 ) ;
+      term[1][odc] += baryon_contract( DiQ , S3 , OD1 , dirac , dirac , OD2 ) ;
       term[2][odc] += baryon_contract( DiQ51 , S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[3][odc] += baryon_contract( DiQ52 , CgS52, dirac , OD1 , dirac , OD2 ) ;
-      term[4][odc] += baryon_contract( DiQ52 , CgS52, OD1 , dirac , dirac , OD2 ) ;
-      term[5][odc] += baryon_contract( DiQ51 , S3 , OD1 , dirac , dirac , OD2 ) ;
+      term[3][odc] += baryon_contract( DiQ52 , CgS52, OD1 , dirac , dirac , OD2 ) ;
+      term[4][odc] += baryon_contract( DiQ52 , CgS52, dirac , OD1 , dirac , OD2 ) ;
+      term[5][odc] += baryon_contract( DiQ51 , S3 , dirac , OD1 , dirac , OD2 ) ;
     }
   }
   return ;

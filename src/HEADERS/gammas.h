@@ -9,7 +9,7 @@
    @fn const struct gamma CGmu( const struct gamma GAMMA_MU , const struct gamma *GAMMAS )
    @brief computes \f$ \gamma_t \gamma_y \f$
  */
-const struct gamma
+struct gamma
 CGmu( const struct gamma GAMMA_MU , 
       const struct gamma *GAMMAS ) ;
 
@@ -17,7 +17,7 @@ CGmu( const struct gamma GAMMA_MU ,
    @fn const struct gamma CGmuT( const struct gamma Cgmu , const struct gamma *GAMMAS )
    @brief adjoint of CGmu \f$ = \gamma_t \left( C \gamma_\mu \right) \gamma_t \f$
  */
-const struct gamma
+struct gamma
 CGmuT( const struct gamma Cgmu , 
        const struct gamma *GAMMAS ) ;
 

@@ -21,10 +21,10 @@
     #define HAVE_EMMINTRIN_H
     #include "SSE2_OPS.h"
   #endif
-  #ifdef __AVX__
-
-  #endif
 #endif
+
+// needed a wrapper for undefined posix_memalign
+#include "corr_malloc.h"
 
 // fftw instructions
 #ifdef HAVE_FFTW3_H

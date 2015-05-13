@@ -33,7 +33,7 @@ UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
 	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
 	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c \
 	./UTILS/matrix_ops_SSE.c ./UTILS/bar_contractions.c \
-	./UTILS/bar_ops.c ./UTILS/bar_ops_SSE.c 
+	./UTILS/bar_ops.c ./UTILS/bar_ops_SSE.c ./UTILS/corr_malloc.c
 
 ## c files in ./VPF
 VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \

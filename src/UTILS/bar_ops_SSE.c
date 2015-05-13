@@ -18,7 +18,7 @@ baryon_contract( const struct spinor DiQ ,
 		 const int d2 ,
 		 const int d3 )
 {
-  const __m128d *d = (const __m128d*)DiQ.D[d1][d0].C ;
+  const __m128d *d = (const __m128d*)DiQ.D[d0][d1].C ;
   const __m128d *s = (const __m128d*)S.D[d2][d3].C ;
 #if NC == 3
   register __m128d sum = SSE2_MUL( *d , *s) ; d++ ; s++ ;

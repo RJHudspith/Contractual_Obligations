@@ -9,7 +9,7 @@
 #ifndef HAVE_EMMINTRIN_H
 
 // This contracts the diquark with the remaining propagator
-// This does the color trace Tr[ A . B ] 
+// This effectively does the color trace Tr[ A . B^T ] 
 const double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
@@ -18,16 +18,16 @@ baryon_contract( const struct spinor DiQ ,
 		 const int d2 ,
 		 const int d3 )
 {
-  int c1, c2 ;
+  int c1c2 ;
   register double corrr = 0.0 , corri = 0.0 ;
-  for( c1 = 0 ; c1 < NC ; c1++ ) {
-    for( c2 = 0 ; c2 < NC ; c2++ ) {
-      corrr += creal( DiQ.D[d1][d0].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] ) 
-	- cimag( DiQ.D[d1][d0].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] );
-      corri += creal( DiQ.D[d1][d0].C[c1][c2] ) * cimag( S.D[d2][d3].C[c1][c2] ) 
-	+ cimag( DiQ.D[d1][d0].C[c1][c2] ) * creal( S.D[d2][d3].C[c1][c2] );
-    }
+  const double complex *diq = (const double complex*)DiQ.D[d0][d1].C ;
+  const double complex *s = (const double complex*)S.D[d2][d3].C ;
+  for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
+    corrr += creal( *diq ) * creal( *s ) - cimag( *diq ) * cimag( *s ) ;
+    corri += creal( *diq ) * cimag( *s ) + cimag( *diq ) * creal( *s ) ;
+    diq++ , s++ ;
   }
+
   return corrr + I * corri;
 }
 

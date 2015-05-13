@@ -21,7 +21,6 @@ fill_spinor( struct spinor *__restrict S ,
   if( tmpsize == sizeof( float complex ) ) {
     const float complex *ftmp = (const float complex*)tmp ;
     int d1d2 ;
-    #pragma omp parallel for private(d1d2)
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const int d1 = d1d2 / ND1 + d1shift ;
       const int d2 = d1d2 % ND1 + d1shift ;
@@ -32,7 +31,6 @@ fill_spinor( struct spinor *__restrict S ,
   } else {
     const double complex *ftmp = (const double complex*)tmp ;
     int d1d2 ;
-    #pragma omp parallel for private(d1d2)
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const int d1 = d1d2 / ND1 + d1shift ;
       const int d2 = d1d2 % ND1 + d1shift ;
@@ -128,11 +126,6 @@ read_chiralprop( struct propagator prop ,
       }
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
     }
-  }
-
-  // free the single prec memory if used
-  if( prop.precision == SINGLE ) {
-    free( ftmp ) ;
   }
 
   return SUCCESS ;

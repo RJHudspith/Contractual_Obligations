@@ -78,7 +78,6 @@ bswap_16( const int n , void *u )
 {
   uint16_t *T = u ;
   int i ;
-#pragma omp parallel for private(i)
   for( i = 0 ; i < n ; i++ ) {
     *( T + i ) = SwapByteOrder_16( *( T + i ) ) ;
   }
@@ -91,7 +90,6 @@ bswap_32( const int n , void *u )
 {
   uint32_t *T = u ;
   int i ;
-#pragma omp parallel for private(i)
   for( i = 0 ; i < n ; i++ ) {
     *( T + i ) = SwapByteOrder_32( *( T + i ) ) ;
   }
@@ -104,7 +102,6 @@ bswap_64( const int n , void *u )
 {
   uint64_t *T = u ;
   int i ;
-#pragma omp parallel for private(i)
   for( i = 0 ; i < n ; i++ ) {
     *( T + i ) = SwapByteOrder_64( *( T + i ) ) ;
   }
