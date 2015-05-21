@@ -308,6 +308,7 @@ momentum_average( struct veclist **avlist ,
 }
 
 // print to stdout the momentum correlators
+#ifdef verbose
 static void
 print_mcorrs( const struct veclist *momentum , 
 	      const struct mcorr **corr ,
@@ -331,7 +332,9 @@ print_mcorrs( const struct veclist *momentum ,
     }
     printf( "\n" ) ;
   }
+  return ;
 }
+#endif
 
 // write out a whole heap of averaged correlators
 static void
@@ -487,10 +490,12 @@ main( const int argc ,
 			      NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
 
   // have a look at some of the correlators
+#ifdef verbose
   print_mcorrs( avlist , (const struct mcorr**)corravg , Nequiv , 5 , 5 ) ;
+#endif
 
   // split the averaged results into separate files for ease of reading
-  write_averages( avlist , (const struct mcorr**)corr , argv[2] , 
+  write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
 		  Nequiv , NGSRC[0] , NGSNK[0] ) ;
 
  memfree :
