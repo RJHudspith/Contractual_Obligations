@@ -231,6 +231,7 @@ struct tetra_info {
 struct veclist {
   int idx ;
   int MOM[ ND ] ;
+  int nsq ;
 } ;
 
 /**

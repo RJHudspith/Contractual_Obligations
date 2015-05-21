@@ -306,6 +306,12 @@ get_mom_veclist( struct veclist *__restrict kept ,
     //int k[ ND ] ;
     get_mom_pipi( kept[i].MOM , kept[i].idx , DIMS ) ; 
     kept[i].idx = get_site_pipiBZ( kept[i].MOM , DIMS ) ;
+    // compute the fourier-mode squared
+    int mu ;
+    kept[i].nsq = 0 ;
+    for( mu = 0 ; mu < DIMS ; mu++ ) {
+      kept[i].nsq += ( kept[i].MOM[ mu ] * kept[i].MOM[ mu ] ) ;
+    }
   }
 
   return in ; 
@@ -335,6 +341,11 @@ get_veclist( struct veclist *__restrict kept ,
     if( passes_cuts( i , CUTINFO , DIMS ) == GLU_TRUE ) {
       kept[ size ].idx = i ;
       get_vec_from_origin( kept[ size ].MOM , i , DIMS ) ;
+      int mu ;
+      kept[ size ].nsq = 0 ;
+      for( mu = 0 ; mu < DIMS ; mu++ ) {
+	kept[ size ].nsq += ( kept[ size ].MOM[ mu ] * kept[ size ].MOM[ mu ] ) ;
+      }
       size ++ ;
     }
   }
@@ -484,6 +495,7 @@ zero_veclist( int *__restrict list_size ,
   for( mu = 0 ; mu < DIMS ; mu++ ) {
     list[ 0 ].MOM[ mu ] = 0 ;
   }
+  list[ 0 ].nsq = 0 ;
   list_size[ 0 ] = 1 ;
   return list ;
 }

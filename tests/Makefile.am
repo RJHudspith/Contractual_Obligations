@@ -2,12 +2,17 @@
 TOPDIR=@top_srcdir@
 BUILDDIR=@top_builddir@
 
-bin_PROGRAMS = MESONS UNIT VPFREAD
+bin_PROGRAMS = MESONS MOMAVG UNIT VPFREAD
 
 ## meson reader
 MESONS_SOURCES = mesonfile.c
 MESONS_CFLAGS = -Wall ${CFLAGS} -I${TOPDIR}/src/HEADERS/
 MESONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS}
+
+## momentum average reader
+MOMAVG_SOURCES = momavg.c
+MOMAVG_CFLAGS = -Wall ${CFLAGS} -I${TOPDIR}/src/HEADERS/
+MOMAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS}
 
 ## (non-exhaustive) unit test compilation
 UNIT_SOURCES = unit.c contract_tests.c matops_tests.c spinor_tests.c
