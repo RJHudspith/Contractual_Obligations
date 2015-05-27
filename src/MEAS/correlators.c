@@ -137,17 +137,17 @@ write_baryons( struct mcorr **Buud_corr ,
   // write out the "uds" type
   sprintf( outstr , "%s.uds%s" , outfile , wall ) ;
   write_momcorr( outstr , (const struct mcorr**)Buds_corr , 
-		 list , B_CHANNELS , NSNS , NMOM ) ;
+		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
 
   // write out the "uud" type
   sprintf( outstr , "%s.uud%s" , outfile , wall ) ;
   write_momcorr( outstr , (const struct mcorr**)Buud_corr , 
-		 list , B_CHANNELS , NSNS , NMOM ) ;
+		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
 
   // write out the "uuu" type
   sprintf( outstr , "%s.uuu%s" , outfile , wall ) ;
   write_momcorr( outstr , (const struct mcorr**)Buuu_corr , 
-		 list , B_CHANNELS , NSNS , NMOM ) ;
+		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
 
   return ;
 }

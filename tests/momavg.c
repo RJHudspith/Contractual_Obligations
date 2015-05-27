@@ -362,7 +362,7 @@ write_averages( const struct veclist *list ,
 
     // write out sequential "zero-mom" files 
     char str[ 256 ] ;
-    sprintf( str , "%s.%d.bin" , outname , list[p].nsq ) ;
+    sprintf( str , "%s.%d.bin" , outname , p ) ;
     write_momcorr( str , (const struct mcorr **)dcorr , dlist , NGSRC , NGSNK , dNMOM ) ;
   }
 
