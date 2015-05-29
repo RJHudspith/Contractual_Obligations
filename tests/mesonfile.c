@@ -94,14 +94,16 @@ read_momcorr( struct mcorr **corr ,
 // finds the desired mom
 static int
 find_desired_mom( const int **momentum , 
-		  int moms[ ND - 1 ] , 
+		  const int *moms , 
 		  const int NMOM )
 {
   int i ;
   for( i = 0 ; i < NMOM ; i++ ) {
     int mu , matches = 0 ;
     for( mu = 0 ; mu < ND - 1 ; mu++ ) {
-      if( momentum[ i ][ mu ] == moms[ mu ] ) matches++ ;
+      if( momentum[ i ][ mu ] == moms[ mu ] ) {
+	matches++ ;
+      }
     }
     if( matches == ND-1 ) return i ;
   }
@@ -143,7 +145,11 @@ main( const int argc ,
     return -1 ;
   }
 
-  uint32_t magic[1] , NGSRC[1] , NGSNK[1] , NMOM[1] ;
+  uint32_t magic[1] , NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
+
+  // allocate the momentum correlator
+  struct mcorr **corr = NULL ;
+  int **momentum = NULL ;
 
   if( fread( magic , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
     return FAILURE ;
@@ -162,32 +168,31 @@ main( const int argc ,
   // read the length of the momentum list
   if( FREAD32( NMOM , 1 , infile ) == FAILURE ) return FAILURE ;
 
-  int **momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
+  momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
 
-  // allocate the momentum correlator
-  struct mcorr **corr = NULL ;
-
+  GLU_bool failure = GLU_FALSE ;
   int p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
-    momentum[ p ] = malloc( ( ND - 1 ) * sizeof( int ) ) ;
     uint32_t n[ ND ] ;
-    if( FREAD32( n , ND , infile ) == FAILURE ) goto memfree ;
+    if( FREAD32( n , ND , infile ) == FAILURE ) failure = GLU_TRUE ;
+    momentum[ p ] = malloc( ( ND - 1 ) * sizeof( int ) ) ;
     if( n[ 0 ] != ND-1 ) {
       printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
-      return FAILURE ;
+      failure = GLU_TRUE ;
     }
     int mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       momentum[ p ][ mu ] = (int)n[ 1 + mu ] ;
     }
   }
+  if( failure == GLU_TRUE ) goto memfree ;
 
   // read in the momentum list size again 
   uint32_t TNMOM[ 1 ] ;
   if( FREAD32( TNMOM , 1 , infile ) == FAILURE ) goto memfree ;
   if( TNMOM[ 0 ] != NMOM[ 0 ] ) {
     printf( "[MOMLIST] length mismatch %d %d \n" , NMOM[0] , TNMOM[0] ) ;
-    return FAILURE ;
+    goto memfree ;
   }
 
   if( FREAD32( NGSRC , 1 , infile ) == FAILURE ) goto memfree ;
@@ -221,7 +226,7 @@ main( const int argc ,
 
   // check our checksums
   uint32_t csum[ 2 ] = { 0 , 0 } ; 
-  if( FREAD32( csum , 2 , infile ) == FAILURE ) return FAILURE ;
+  if( FREAD32( csum , 2 , infile ) == FAILURE ) goto memfree ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
     goto memfree ;
@@ -247,13 +252,18 @@ main( const int argc ,
       printf( "[Momcorr] Non-sensical sink index %d \n" , idx2 ) ;
       break ;
     } 
-    int moms[ ND - 1 ] ;
-    int mu ;
+
+    // initialise to 0
+    int moms[ ND - 1 ] , mu ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      moms[ mu ] = 0 ;
+    }
+
     printf( "[Momcorr] searching for momenta (" ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       char *ptok = strtok( NULL , "," ) ;
       if( ptok == NULL ) break ;
-      moms[ mu ] = atoi( ptok ) ;
+      moms[ mu ] = (int)atoi( ptok ) ;
       printf( " %d " , moms[ mu ] ) ;
     }
     printf( ") \n" ) ;

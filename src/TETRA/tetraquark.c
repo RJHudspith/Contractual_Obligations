@@ -68,7 +68,7 @@ tetraquark_diagonal( struct propagator prop ,
   NMOM = malloc( sizeof( int ) ) ;
   wwNMOM = malloc( sizeof( int ) ) ;
 
-  in = malloc( ( 2 * flat_dirac ) * sizeof( double complex ) ) ;
+  in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
   int i ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
@@ -76,7 +76,7 @@ tetraquark_diagonal( struct propagator prop ,
 
 #ifdef HAVE_FFTW3_H
 
-  out = malloc( ( 2 * flat_dirac ) * sizeof( double complex ) ) ;
+  out = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     out[ i ] = malloc( LCU * sizeof( double complex ) ) ;
   }
@@ -254,18 +254,29 @@ tetraquark_diagonal( struct propagator prop ,
  FREE_FAIL :
 
   // free the "in" allocation
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    free( in[ i ] ) ;
+  if( in != NULL ) {
+    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+      free( in[ i ] ) ;
+    }
   }
   free( in ) ;
 
 #ifdef HAVE_FFTW3_H
   // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
+  if( out != NULL ) {
+    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+      free( out[ i ] ) ;
+    }
+  }
+  if( forward != NULL ) {
+    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+      fftw_destroy_plan( forward[ i ] ) ;
+    }
+  }
+  if( backward != NULL ) {
+    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+      fftw_destroy_plan( forward[ i ] ) ;
+    }
   }
   free( forward )  ; free( backward ) ; 
   fftw_free( out ) ; 
@@ -273,14 +284,15 @@ tetraquark_diagonal( struct propagator prop ,
 #endif
 
   // free our correlators
-  free_momcorrs( Buds_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
-  free_momcorrs( Buud_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
-  free_momcorrs( Buuu_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
-
-  if( prop.source == WALL ) {
-    free_momcorrs( Buds_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buud_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buuu_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
+  if( NMOM != NULL ) {
+    free_momcorrs( Buds_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
+    free_momcorrs( Buud_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
+    free_momcorrs( Buuu_corr , B_CHANNELS , NSNS , NMOM[0] ) ;
+    if( prop.source == WALL ) {
+      free_momcorrs( Buds_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
+      free_momcorrs( Buud_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
+      free_momcorrs( Buuu_corrWW , B_CHANNELS , NSNS , NMOM[0] ) ;
+    }
   }
 
   // free spinors

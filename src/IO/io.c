@@ -59,6 +59,7 @@ check_checksum( FILE *fprop )
   for( site = 0 ; site < LVOLUME ; site++ ) {
     if( fread( prop_buf , sizeof(double) , spinsize*2 , fprop ) != spinsize*2 ) {
       printf( "[IO] fread failure ... exiting \n" ) ;
+      free( prop_buf ) ;
       return FAILURE ;
     }
     // we need to know what end is up, this is actually kinda tricky
@@ -66,12 +67,13 @@ check_checksum( FILE *fprop )
 			(char*)prop_buf , 
 			2 * spinsize * sizeof(double) ) ;
   }
+
+  free( prop_buf ) ;
   
   // we are at the end of the file now so we can fscanf for the value I will have to grok the output
   uint32_t rCRCsum29 , rCRCsum31 ;
   if( fscanf( fprop , "%x %x" , &rCRCsum29 , &rCRCsum31 ) != 2 ) {
     printf( "[IO] file read failure at the checksums \n" ) ;
-    free( prop_buf ) ;
     return FAILURE ;
   }
 
@@ -79,7 +81,6 @@ check_checksum( FILE *fprop )
     printf( "[IO] mismatched checksums \n" ) ;
     printf( "[IO] Computed Checksums %x %x\n" , CRCsum29 , CRCsum31 ) ;
     printf( "[IO] File Read Checksums %x %x\n" , rCRCsum29 , rCRCsum31 ) ;
-    free( prop_buf ) ;
     return FAILURE ;
   }
 
@@ -127,6 +128,9 @@ read_chiralprop( struct propagator prop ,
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
     }
   }
+
+  // free the possibly allocated floating-point storage
+  free( ftmp ) ;
 
   return SUCCESS ;
 }

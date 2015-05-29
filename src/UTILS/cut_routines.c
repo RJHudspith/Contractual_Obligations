@@ -359,8 +359,8 @@ compute_veclist( int *__restrict list_size ,
 		 const int DIMS ,
 		 const GLU_bool CONFIGSPACE )
 {
-  int in[1] ;
-  struct veclist *list ;
+  int in[1] = { 1 } ;
+  struct veclist *list = NULL ;
 
   // loop up to DIMS
   int LOOP = 1 , i ;
@@ -469,6 +469,12 @@ compute_veclist( int *__restrict list_size ,
   } else {
     in[0] = get_mom_veclist( kept , CUTINFO , LOOP , DIMS ) ;
   }
+  // stop 0-byte malloc
+  if( in[0] < 1 ) {
+    free( kept ) ;
+    return NULL ;
+  }
+
   list = malloc( in[0] * sizeof(struct veclist) );
 #pragma omp parallel for private(i)
   for( i = 0 ; i < in[0] ; i ++  ) {

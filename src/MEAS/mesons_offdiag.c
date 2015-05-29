@@ -265,13 +265,25 @@ mesons_offdiagonal( struct propagator prop1 ,
  free_failure :
 
 #ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
-    fftw_free( in[i] ) ;
+  if( in != NULL ) {
+    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
+      free( in[i] ) ;
+    }
+  }
+  if( out != NULL ) {
+    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
+      free( out[i] ) ;
+    }
+  }
+  if( forward != NULL ) {
+    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
+      fftw_destroy_plan( forward[i] ) ;
+    }
+  }
+  if( backward != NULL ) {
+    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
+      fftw_destroy_plan( backward[i] ) ;
+    }
   }
   free( forward )  ; free( backward ) ; 
   fftw_free( out ) ; fftw_free( in ) ; 
@@ -279,9 +291,11 @@ mesons_offdiagonal( struct propagator prop1 ,
 #endif
 
   // free correlators and momentum list
-  free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
-  if( prop1.source == WALL || prop2.source == WALL ) {
-    free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
+  if( NMOM != NULL ) {
+    free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
+    if( prop1.source == WALL ) {
+      free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
+    }
   }
 
   // free momenta lists

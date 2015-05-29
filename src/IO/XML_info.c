@@ -188,18 +188,18 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
       if ( are_equal( pch, "dims" ) ) {
 	while ( ( pch = strtok( 0 , "<>" ) ) ) {
 	  // break up the dimensions ...
-	  char *tofree = pch ;
 	  char *token = strtok( pch , " " ) ;
+	  if( token == NULL ) return FAILURE ;
 	  int idx = 0 ;
 	  while( ( token = strtok( NULL , " " ) ) != NULL ) {
 	    if(  ( are_equal( token , "/dims" ) ) ) break ;
-	    Latt.dims[ idx ] = atoi( token ) ;
+	    char *pEnd ;
+	    Latt.dims[ idx ] = strtol( token , &pEnd , 10 ) ;
 	    #ifdef DEBUG_ILDG
 	    printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
 	    #endif
 	    idx++ ;
 	  } 
-	  pch = tofree ;
 	  // and break the xml
 	  break;
 	}

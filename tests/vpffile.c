@@ -124,10 +124,14 @@ main( const int argc ,
   init_geom( ) ;
 
   // read the file
-  uint32_t magic[1] , NMOM[1] ;
+  uint32_t magic[1] , NMOM[1] = { 0 } ;
+
+  // PIdata and 
+  double *PIdata = NULL ;
+  int **momentum = NULL ;
 
   if( fread( magic , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
-    return FAILURE ;
+    goto memfree ;
   }
 
   // check the magic number, tells us the edianness
@@ -135,31 +139,38 @@ main( const int argc ,
     bswap_32( 1 , magic ) ;
     if( magic[0] != VPF_MAGIC) {
       printf( "Magic number read failure\n" ) ;
-      return FAILURE ;
+      goto memfree ;
     }
     must_swap = GLU_TRUE ;
   }
 
   // read the length of the momentum list
-  if( FREAD32( NMOM , 1 , infile ) == FAILURE ) return FAILURE ;
+  if( FREAD32( NMOM , 1 , infile ) == FAILURE ) goto memfree ;
 
-  int **momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
+  // this is a logic error
+  if( NMOM[0] < 1 ) goto memfree ;
 
-  double *PIdata = NULL ;
+  momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
 
+  GLU_bool failure = GLU_FALSE ;
   int p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
     momentum[ p ] = malloc( ( ND ) * sizeof( int ) ) ;
     uint32_t n[ ND + 1 ] ;
-    if( FREAD32( n , ND + 1 , infile ) == FAILURE ) goto memfree ;
+    if( FREAD32( n , ND + 1 , infile ) == FAILURE ) {
+      failure = GLU_TRUE ;
+    }
     if( n[ 0 ] != ND ) {
       printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND ) ;
-      return FAILURE ;
+      failure = GLU_TRUE ;
     }
     int mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       momentum[ p ][ mu ] = (int)n[ 1 + mu ] ;
     }
+  }
+  if( failure == GLU_TRUE ) {
+    goto memfree ;
   }
 
   // read in the momentum list size again 
@@ -167,7 +178,7 @@ main( const int argc ,
   if( FREAD32( TNMOM , 1 , infile ) == FAILURE ) goto memfree ;
   if( TNMOM[ 0 ] != NMOM[ 0 ] ) {
     printf( "[MOMLIST] length mismatch %d %d \n" , NMOM[0] , TNMOM[0] ) ;
-    return FAILURE ;
+    goto memfree ;
   }
 
   // read the data
@@ -181,8 +192,10 @@ main( const int argc ,
   free( PIdata ) ;
 
   // free the momentum list
-  for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
-    free( momentum[ p ] ) ;
+  if( momentum != NULL ) {
+    for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
+      free( momentum[ p ] ) ;
+    }
   }
   free( momentum ) ;
 

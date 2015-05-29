@@ -87,7 +87,7 @@ WME( struct propagator s0 ,
   if( corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
-  if( corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  if( corr_malloc( (void**)&DWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
   }
 
@@ -205,7 +205,9 @@ WME( struct propagator s0 ,
  free_failure :
 
   // free our correlator measurement
-  free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
+  if( NMOM != NULL ) {
+    free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
+  }
 
   // free momentum list stuff
   free( NMOM ) ; free( (void*)list ) ;

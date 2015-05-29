@@ -275,6 +275,11 @@ momentum_average( struct veclist **avlist ,
 
   printf( "[EQUIV] %d equivalents \n" , *Nequiv ) ;
 
+  // stop zero bytes malloc
+  if( *Nequiv < 1 ) {
+    return NULL ;
+  }
+
   *avlist = malloc( *Nequiv * sizeof( struct veclist ) ) ;
   struct mcorr **corravg = allocate_momcorrs( NGSRC , NGSNK , *Nequiv ) ;
 
@@ -391,7 +396,8 @@ main( const int argc ,
     return -1 ;
   }
 
-  uint32_t magic[1] , NGSRC[1] , NGSNK[1] , NMOM[1] ;
+  uint32_t magic[1] , NGSRC[1] = { 0 } ;
+  uint32_t NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
   if( fread( magic , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
     return FAILURE ;
@@ -425,9 +431,10 @@ main( const int argc ,
     if( FREAD32( n , ND , infile ) == FAILURE ) goto memfree ;
     if( n[ 0 ] != ND-1 ) {
       printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
-      return FAILURE ;
+      goto memfree ;
     }
     int mu ;
+    momentum[ p ].nsq = 0 ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       momentum[ p ].MOM[ mu ] = (int)n[ 1 + mu ] ;
       momentum[ p ].nsq += ( n[ 1 + mu ] * n[ 1 + mu ] ) ;
@@ -439,7 +446,7 @@ main( const int argc ,
   if( FREAD32( TNMOM , 1 , infile ) == FAILURE ) goto memfree ;
   if( TNMOM[ 0 ] != NMOM[ 0 ] ) {
     printf( "[MOMLIST] length mismatch %d %d \n" , NMOM[0] , TNMOM[0] ) ;
-    return FAILURE ;
+    goto memfree ;
   }
 
   if( FREAD32( NGSRC , 1 , infile ) == FAILURE ) goto memfree ;
@@ -473,7 +480,7 @@ main( const int argc ,
 
   // check our checksums
   uint32_t csum[ 2 ] = { 0 , 0 } ; 
-  if( FREAD32( csum , 2 , infile ) == FAILURE ) return FAILURE ;
+  if( FREAD32( csum , 2 , infile ) == FAILURE ) goto memfree ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
     goto memfree ;
@@ -488,6 +495,8 @@ main( const int argc ,
   corravg = momentum_average( &avlist , &Nequiv ,
 			      momentum , (const struct mcorr**)corr ,
 			      NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+
+  if( corravg == NULL ) goto memfree ;
 
   // have a look at some of the correlators
 #ifdef verbose
