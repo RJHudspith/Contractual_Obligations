@@ -99,19 +99,19 @@ equate_spinor_minus( void *mS ,
   int i ;
 #if NC == 3 
   for( i = 0 ; i < NSNS ; i++ ) {
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
-    *s = -*s2 ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
   }
 #else
   for( i = 0 ; i < NSNS*NCNC ; i++ ) {
-    *s = -*s2 ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
   }
 #endif
   return ;
@@ -125,19 +125,19 @@ flipsign_spinor( void *S )
   __m128d *s = (__m128d*)S ;
 #if NC == 3
   for( i = 0 ; i < NSNS ; i++ ) {
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
-    *s = -*s ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
   }
 #else
   for( i = 0 ; i < NSNS * NCNC ; i++ ) {
-     *s = -*s ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
   }
 #endif
   return ;

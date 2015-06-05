@@ -90,12 +90,11 @@ colortrace_prod( const __m128d *a ,
 		 const __m128d *b )
 {
 #if NC == 3
-  return 
-    _mm_add_pd( SSE2_MUL( a[0] , b[0] ) , SSE2_MUL( a[1] , b[3] ) ) +
-    _mm_add_pd( SSE2_MUL( a[2] , b[6] ) , SSE2_MUL( a[3] , b[1] ) ) +
-    _mm_add_pd( SSE2_MUL( a[4] , b[4] ) , SSE2_MUL( a[5] , b[7] ) ) +
-    _mm_add_pd( SSE2_MUL( a[6] , b[2] ) , SSE2_MUL( a[7] , b[5] ) ) +
-    SSE2_MUL( a[8] , b[8] ) ;
+  register __m128d sum = _mm_add_pd( SSE2_MUL( a[0] , b[0] ) , SSE2_MUL( a[1] , b[3] ) ) ;
+  sum = _mm_add_pd( sum , _mm_add_pd( SSE2_MUL( a[2] , b[6] ) , SSE2_MUL( a[3] , b[1] ) ) ) ;
+  sum = _mm_add_pd( sum , _mm_add_pd( SSE2_MUL( a[4] , b[4] ) , SSE2_MUL( a[5] , b[7] ) ) ) ;
+  sum = _mm_add_pd( sum , _mm_add_pd( SSE2_MUL( a[6] , b[2] ) , SSE2_MUL( a[7] , b[5] ) ) ) ;
+  return _mm_add_pd( sum , SSE2_MUL( a[8] , b[8] ) ) ;
 #else
   register __m128d sum = _mm_setzero_pd( ) ;
   int i ;

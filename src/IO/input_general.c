@@ -86,8 +86,10 @@ header_mode
 header_type( const struct inputs *INPUT )
 {
   const int header_idx = tag_search( "HEADER" ) ;
-  if( header_idx == FAILURE ) { return tag_failure( "HEADER" ) ; }
-
+  if( header_idx == FAILURE ) { 
+    tag_failure( "HEADER" ) ; 
+    return UNSUPPORTED ;
+  }
   if( are_equal( INPUT[header_idx].VALUE , "NERSC" ) ) {
     printf( "[IO] Attempting to read a NERSC file \n" ) ;
     return NERSC_HEADER ;
@@ -128,7 +130,7 @@ header_type( const struct inputs *INPUT )
   }
   printf( "[IO] HEADER %s not recognised ... Leaving \n" , 
 	  INPUT[header_idx].VALUE ) ;
-  return FAILURE ; 
+  return UNSUPPORTED ; 
 }
 
 // pack the cut_info struct

@@ -175,7 +175,7 @@ gen_calc_psq( const int k[ ND ] ,
 }
 
 // standard hypercube cut 
-static int
+static GLU_bool
 gen_calc_hyp( const int k[ ND ] , 
 	      const double root_mxmom , 
 	      const int DIMS )
@@ -187,9 +187,9 @@ gen_calc_hyp( const int k[ ND ] ,
     }
   }
   if( flag != DIMS ) {
-    return DO_NOT_ADD ;
+    return GLU_FALSE ;
   } else {
-    return ADD_TO_LIST ;
+    return GLU_TRUE ;
   }
 }
 

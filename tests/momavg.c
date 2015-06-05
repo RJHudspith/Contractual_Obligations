@@ -425,6 +425,9 @@ main( const int argc ,
   int Nequiv = 0 ;
   struct veclist *avlist = NULL ;
 
+  // checksums
+  uint32_t cksuma = 0 , cksumb = 0 , csum[ 2 ] = { 0 , 0 } ; 
+
   int p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
     uint32_t n[ ND ] ;
@@ -467,8 +470,6 @@ main( const int argc ,
   corr = allocate_momcorrs( NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
   // read the correlator
-  uint32_t cksuma = 0 , cksumb = 0 ; 
-
   for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
     if( read_momcorr( corr , infile , &cksuma , &cksumb ,
 		      NGSRC , NGSNK , LT , p ) == FAILURE ) {
@@ -479,7 +480,6 @@ main( const int argc ,
   printf( "[IO] All correlators read \n" ) ;
 
   // check our checksums
-  uint32_t csum[ 2 ] = { 0 , 0 } ; 
   if( FREAD32( csum , 2 , infile ) == FAILURE ) goto memfree ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;

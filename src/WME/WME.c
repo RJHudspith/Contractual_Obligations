@@ -77,6 +77,12 @@ WME( struct propagator s0 ,
   // data structure for holding the contractions
   struct mcorr **corr = NULL ;
 
+  // flag for whether we switch basis
+  GLU_bool NREL_FLAG = GLU_FALSE ;
+
+  // pseudoscalar projection state
+  const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
+
   // allocate our four spinors expecting them to be at 0 and L/2
   if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
@@ -93,7 +99,6 @@ WME( struct propagator s0 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  GLU_bool NREL_FLAG = GLU_FALSE ;
   if( s0.basis == NREL || d0.basis == NREL ||
       s1.basis == NREL || d1.basis == NREL ) {
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
@@ -112,9 +117,6 @@ WME( struct propagator s0 ,
 
   // allocate our corrs
   corr = allocate_momcorrs( NSNS , NSNS , NMOM[0] ) ;
-
-  // pseudoscalar projection state
-  const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
 
   int t ;
   // Time slice loop 

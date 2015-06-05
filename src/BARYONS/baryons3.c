@@ -158,7 +158,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     if( prop1.source == WALL ) {
       sumprop( &SUM1 , S1 ) ;
       sumprop( &SUM2 , S2 ) ;
-      sumprop( &SUM2 , S3 ) ;
+      sumprop( &SUM3 , S3 ) ;
     }
 
     // strange memory access pattern threads better than what was here before

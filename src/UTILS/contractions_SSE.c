@@ -85,6 +85,10 @@ gamma_mul_l( struct spinor *__restrict res ,
 {
   struct spinor tmp = *res ; // temporary space
   int i ;
+  // not allowed to declare in a switch
+#if NC != 3
+  int c ;
+#endif
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
     const int col = GAMMA.ig[i] ;
@@ -105,7 +109,6 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = *tp2 ; tp1++ ; tp2++ ;
 	}
@@ -125,7 +128,6 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	}
@@ -135,19 +137,18 @@ gamma_mul_l( struct spinor *__restrict res ,
     case 2 : 
       for( j = 0 ; j < NS ; j++ ) {
 	#if NC == 3 
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
-	  *tp1 = -*tp2 ; tp1++ ; tp2++ ;
+	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	}
 	#endif
       }
@@ -165,7 +166,6 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	}
@@ -186,7 +186,11 @@ gamma_mul_r( struct spinor *__restrict res ,
   struct spinor tmp = *res ; // temporary space
   __m128d *tp1 ;
   const __m128d *tp2 ;
-  int i , j , c ;
+  int i , j ;
+  // can't declare this in a switch
+#if NC != 3
+  int c ;
+#endif
   // loop columns of src
   for( j = 0 ; j < NS ; j++ ) {
     const int col = GAMMA.ig[j] ;
@@ -206,7 +210,6 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = *tp2 ; tp1++ ; tp2++ ;
 	}
@@ -228,7 +231,6 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	}
@@ -239,9 +241,21 @@ gamma_mul_r( struct spinor *__restrict res ,
       for( i = 0 ; i < NS ; i++ ) {
 	tp1 = (__m128d*)tmp.D[i][j].C ;
 	tp2 = (__m128d*)res -> D[i][col].C ;
+	#if NC == 3
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
-	  *tp1 = -*tp2 ; tp1++ ; tp2++ ; 
+	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	}
+	#endif
       }
       break ;
     case 3 : // multiply by -i
@@ -259,7 +273,6 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ; 
 	}
@@ -282,6 +295,10 @@ gamma_mul_lr( struct spinor *__restrict S ,
   __m128d *tp1 ;
   const __m128d *tp2 ;
   int i , j , col1 , col2 ;
+  // not allowed to declare in a switch
+#if NC != 3
+  int c ;
+#endif
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
     col1 = GLEFT.ig[ i ] ;
@@ -306,7 +323,6 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = *tp2 ; tp1++ ; tp2++ ;
 	}
@@ -324,7 +340,6 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	}
@@ -332,19 +347,18 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	break ;
       case 2 :
 	#if NC == 3 
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
-	*tp1 = -*tp2 ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
-	  *tp1 = -*tp2 ; tp1++ ; tp2++ ;
+	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	}
 	#endif
 	break ;
@@ -360,7 +374,6 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
-	int c ;
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	}
@@ -426,9 +439,9 @@ meson_contract( const struct gamma GSNK ,
       // switch for the phases
       switch( ( GSNK.g[ i ] + G5.g[ col1 ] +  G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
       case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
-      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( -sum , sum , 1 ) ) ; break ;
+      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
       case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
-      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , -sum , 1 ) ) ; break ;
+      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
       }
       // and we are done
     }
@@ -491,9 +504,9 @@ simple_meson_contract( const struct gamma GSNK ,
       // switch for the phases
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
       case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
-      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( -sum , sum , 1 ) ) ; break ;
+      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
       case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
-      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , -sum , 1 ) ) ; break ;
+      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
       }
     }
   }

@@ -151,6 +151,12 @@ main( const int argc ,
   struct mcorr **corr = NULL ;
   int **momentum = NULL ;
 
+  // checksums
+  uint32_t cksuma = 0 , cksumb = 0 , csum[ 2 ] = { 0 , 0 } ; 
+
+  // number of correlators printed to stdout
+  int corrs_written = 0 ;
+
   if( fread( magic , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
     return FAILURE ;
   }
@@ -213,8 +219,6 @@ main( const int argc ,
   corr = allocate_momcorrs( NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
   // read the correlator
-  uint32_t cksuma = 0 , cksumb = 0 ; 
-
   for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
     if( read_momcorr( corr , infile , &cksuma , &cksumb ,
 		      NGSRC , NGSNK , LT , p ) == FAILURE ) {
@@ -225,7 +229,6 @@ main( const int argc ,
   printf( "[IO] All correlators read \n" ) ;
 
   // check our checksums
-  uint32_t csum[ 2 ] = { 0 , 0 } ; 
   if( FREAD32( csum , 2 , infile ) == FAILURE ) goto memfree ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
@@ -235,7 +238,7 @@ main( const int argc ,
   printf( "[CHECKSUM] both checksums passed \n\n" ) ;
 
   // loop the ones we want
-  int i , corrs_written = 0 ;
+  int i ;
   for( i = 2 ; i < ( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;

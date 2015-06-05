@@ -130,6 +130,8 @@ main( const int argc ,
   double *PIdata = NULL ;
   int **momentum = NULL ;
 
+  GLU_bool failure = GLU_FALSE ;
+
   if( fread( magic , sizeof( uint32_t ) , 1 , infile ) != 1 ) {
     goto memfree ;
   }
@@ -152,7 +154,6 @@ main( const int argc ,
 
   momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
 
-  GLU_bool failure = GLU_FALSE ;
   int p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
     momentum[ p ] = malloc( ( ND ) * sizeof( int ) ) ;
