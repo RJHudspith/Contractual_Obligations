@@ -8,13 +8,15 @@
 #include "minunit.h"     // minimal unit testing framework
 #include "matrix_ops.h"  // matrix operations
 
-static double complex U[ NCNC ] ; // is a color matrix
-
 #ifdef HAVE_IMMINTRIN_H
 typedef __m128d dcomplex ;
 #else
 typedef double complex dcomplex ;
 #endif
+
+static double complex *U ; // is a color matrix
+static double complex *Id ; // is a color matrix
+static dcomplex *res ;
 
 #define FTOL ( NC * 1.E-14 ) 
 
@@ -100,7 +102,6 @@ colortrace_prod_test( void )
 {
   double complex tr = dcast( colortrace_prod( (const dcomplex*)U , 
 					      (const dcomplex*)U ) ) ;
-  dcomplex res[ NCNC ] ;
   multab( res , (const dcomplex*)U , (const dcomplex*)U ) ;
   double complex tr2 = dcast( colortrace( res ) ) ;
   // need some closed form solution here
@@ -114,7 +115,6 @@ colortrace_prod_test( void )
 static char *
 dagger_test( void )
 {
-  dcomplex res[ NCNC ] ;
   dagger_gauge( res , (dcomplex*)U ) ;
   int i , j ;
   for( i = 0 ; i < NC ; i++ ) {
@@ -133,14 +133,7 @@ dagger_test( void )
 static char *
 multab_test( void )
 {
-  double complex Id[ NCNC ] ;
-  int i , j ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      Id[ j + i * NC ] = ( i != j ) ? 0.0 : 1.0 ;
-    }
-  }
-  dcomplex res[ NCNC ] ;
+  int i ;
   multab( res , (const dcomplex*)Id , (const dcomplex*)U ) ;
   for( i = 0 ; i < NCNC ; i++ ) {
     const double complex r = dcast( res[ i ] ) ;
@@ -155,14 +148,7 @@ multab_test( void )
 static char *
 multab_dag_test( void )
 {
-  double complex Id[ NCNC ] ;
   int i , j ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      Id[ j + i * NC ] = ( i != j ) ? 0.0 : 1.0 ;
-    }
-  }
-  dcomplex res[ NCNC ] ;
   multab_dag( res , (const dcomplex*)Id , (const dcomplex*)U ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
@@ -179,14 +165,7 @@ multab_dag_test( void )
 static char *
 multabdag_test( void )
 {
-  double complex Id[ NCNC ] ;
   int i , j ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      Id[ j + i * NC ] = ( i != j ) ? 0.0 : 1.0 ;
-    }
-  }
-  dcomplex res[ NCNC ] ;
   multabdag( res , (const dcomplex*)U , (const dcomplex*)Id ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
@@ -203,14 +182,7 @@ multabdag_test( void )
 static char *
 multabdagdag_test( void )
 {
-  double complex Id[ NCNC ] ;
   int i , j ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      Id[ j + i * NC ] = ( i != j ) ? 0.0 : 1.0 ;
-    }
-  }
-  dcomplex res[ NCNC ] ;
   multab_dagdag( res , (const dcomplex*)U , (const dcomplex*)Id ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
@@ -227,9 +199,18 @@ multabdagdag_test( void )
 static char *
 matops_test( void )
 {
+  // gauge matrix
   int i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     U[ i ] = ( i + I * i ) ; 
+  }
+
+  // identity matrix
+  int j ;
+  for( i = 0 ; i < NC ; i++ ) {
+    for( j = 0 ; j < NC ; j++ ) {
+      Id[ j + i * NC ] = ( i != j ) ? 0.0 : 1.0 ;
+    }
   }
   
   // tests
@@ -251,11 +232,21 @@ matops_test( void )
 int
 matops_test_driver( void )
 {
+  // temporary storage
+  corr_malloc( (void**)&U , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&res , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&Id , 16 , NCNC * sizeof( double complex ) ) ;
+
   // initialise the test counters
   tests_run = tests_fail = 0 ;
 
   // matrix operations test
   char *matres = matops_test( ) ;
+
+  // and free the memory
+  free( U ) ;
+  free( res ) ;
+  free( Id ) ;
 
   if( tests_fail == 0 ) {
     printf( "[MATOPS UNIT] all %d tests passed\n\n" ,

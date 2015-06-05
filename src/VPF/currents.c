@@ -10,7 +10,7 @@
 #include "spinor_ops.h"   // spinor - color matrix multiply
 
 // non-conserved, non-local Axial current
-const double complex
+double complex
 CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2 ,       // S_2
@@ -25,7 +25,7 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 }
 
 // non-conserved non-local vector current 
-const double complex
+double complex
 NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	     const struct spinor S2 ,       // S_2
@@ -40,7 +40,7 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 }
 
 // Conserved-Local Vector current
-const double complex
+double complex
 CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor UdS1x ,    // U^{\dagger} S_1( x )
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )

@@ -303,6 +303,8 @@ contractions_test_driver( void )
   // matrix operations test
   char *contres = contractions_test( ) ;
 
+  free( GAMMAS ) ;
+
   if( tests_fail == 0 ) {
     printf( "[CONTRACT UNIT] all %d tests passed\n\n" ,
 	    tests_run ) ;

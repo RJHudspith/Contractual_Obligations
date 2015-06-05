@@ -126,7 +126,7 @@ gconj( const uint8_t g )
 }
 
 // takes a conjugate (and not a dagger)
-static const struct gamma
+static struct gamma
 gamma_conj( const struct gamma G )
 {
   struct gamma res ;

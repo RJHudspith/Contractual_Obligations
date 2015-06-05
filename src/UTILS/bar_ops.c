@@ -10,7 +10,7 @@
 
 // This contracts the diquark with the remaining propagator
 // This effectively does the color trace Tr[ A . B^T ] 
-const double complex
+double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
 		 const int d0 ,

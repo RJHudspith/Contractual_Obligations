@@ -17,7 +17,7 @@
 #define SSE2_OPS_H
 
 // gcc/clang allow for + / - * with SSE types, icc does not
-#ifdef __GNUC__
+#if !(defined __ICC)
   #define SSE_FLIP(a) ( -a )
 #else
   #define SSE_FLIP(a) ( _mm_xor_pd( a , _mm_set1_pd( -0.0 ) ) )
