@@ -7,39 +7,40 @@ lib_LIBRARIES = libCORR.a
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
 ## c files in ./BARYONS/
-BARYONFILES=./BARYONS/wrap_baryons.c ./BARYONS/baryons.c \
-	./BARYONS/baryons2.c ./BARYONS/baryons3.c
+BARYONFILES= ./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
+	./BARYONS/wrap_baryons.c
 
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 
 ## c files in ./IO/
-IOFILES=./IO/chklat_stuff.c ./IO/io.c ./IO/input_reader.c ./IO/read_config.c \
-	./IO/readers.c ./IO/read_headers.c ./IO/Scidac.c ./IO/XML_info.c \
-	./IO/read_propheader.c ./IO/cut_output.c ./IO/input_baryons.c \
-	./IO/input_general.c ./IO/input_mesons.c ./IO/input_tetras.c \
-	./IO/input_VPF.c ./IO/input_WME.c
+IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
+	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
+	./IO/input_tetras.c ./IO/input_VPF.c ./IO/input_WME.c \
+	./IO/read_config.c ./IO/read_headers.c ./IO/read_propheader.c \
+	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
 ## c files in ./MEAS/
-MEASFILES=./MEAS/correlators.c ./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c \
-	./MEAS/mesons.c ./MEAS/mesons_offdiag.c
+MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
+	./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c
 
 ## c files in ./TETRA/
-TETRAFILES=./TETRA/wrap_tetras.c ./TETRA/tetraquark.c
+TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c
 
 ## c files in ./UTILS/
-UTILSFILES=./UTILS/GLU_timer.c ./UTILS/gramschmidt.c ./UTILS/matrix_ops.c \
-	./UTILS/spinor_ops.c ./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/cut_routines.c ./UTILS/crc32.c ./UTILS/GLU_bswap.c \
-	./UTILS/spinor_ops_SSE.c ./UTILS/contractions_SSE.c \
-	./UTILS/matrix_ops_SSE.c ./UTILS/bar_contractions.c \
-	./UTILS/bar_ops.c ./UTILS/bar_ops_SSE.c ./UTILS/corr_malloc.c
+UTILSFILES=./UTILS/bar_contractions.c ./UTILS/bar_ops.c ./UTILS/bar_ops_SSE.c \
+	./UTILS/basis_conversions.c ./UTILS/contractions.c \
+	./UTILS/contractions_SSE.c ./UTILS/corr_malloc.c ./UTILS/corr_sort.c \
+	./UTILS/crc32.c ./UTILS/cut_routines.c \
+	./UTILS/GLU_bswap.c ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c \
+	./UTILS/matrix_ops.c ./UTILS/matrix_ops_SSE.c \
+	./UTILS/spinor_ops.c ./UTILS/spinor_ops_SSE.c
 
 ## c files in ./VPF
-VPFFILES=./VPF/wrap_VPF.c ./VPF/PImunu_projections.c ./VPF/currents.c \
-	./VPF/WardIdentity.c ./VPF/momspace_PImunu.c ./VPF/tmoments_PImunu.c \
-	./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c\
-	./VPF/ll_diagonal.c ./VPF/ll_offdiagonal.c
+VPFFILES=./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c ./VPF/currents.c \
+	./VPF/ll_diagonal.c ./VPF/ll_offdiagonal.c \
+	./VPF/momspace_PImunu.c ./VPF/PImunu_projections.c \
+	./VPF/tmoments_PImunu.c ./VPF/WardIdentity.c ./VPF/wrap_VPF.c
 
 ## c files in ./WME/
 WMEFILES=./WME/WME.c ./WME/wrap_WME.c
