@@ -4,11 +4,13 @@
  */
 #include "common.h"
 
-#include "crc32.h"        // do the crc of the binary data
+#include "corr_sort.h"    // generic sorting functions
 #include "correlators.h"  // allocate and free corrs
+#include "crc32.h"        // do the crc of the binary data
 #include "cut_routines.h" // zero_veclist()
 #include "geometry.h"     // init_geom()
 #include "GLU_bswap.h"    // byte swaps if necessary
+#include "GLU_timer.h"    // byte swaps if necessary
 
 static GLU_bool must_swap = GLU_FALSE ;
 
@@ -68,112 +70,34 @@ read_momcorr( struct mcorr **corr ,
     }
   }
 
-  int GSRC , GSNK ;
-  for( GSRC = 0 ; GSRC < (int)NGSRC[0] ; GSRC++ ) {
-    for( GSNK = 0 ; GSNK < (int)NGSNK[0] ; GSNK++ ) {
-      if( ( GSRC == 0 ) && ( GSNK == 0 ) ) {
-      } else {
-	// read the timeslice stuff
-	uint32_t LT[1] ;
-	if( FREAD32( LT , 1 , infile ) == FAILURE ) return FAILURE ;
-	if( (int)LT[0] != L0 ) { 
-	  printf( "[IO] LT Read failure %d %d \n" , (int)LT[0] , L0 ) ; 
-	  return FAILURE ; 
-	}
-      }
-      if( read_corr( corr[ GSRC ][ GSNK ].mom[ p ].C , cksuma , cksumb , infile ,
-		     GSNK + NGSNK[0] * GSRC ) == FAILURE ) {
-	printf( "[IO] corr Read failure \n" ) ;
-	return FAILURE ;
-      }
-      //
+  // read the first on its own
+  if( read_corr( corr[ 0 ][ 0 ].mom[ p ].C , cksuma , cksumb , 
+		 infile , 0 ) == FAILURE ) {
+    printf( "[IO] corr Read failure \n" ) ;
+    return FAILURE ;
+  }
+
+  // read the next, checking we get the right LT
+  size_t GSGK ;
+  for( GSGK = 1 ; GSGK < NGSRC[0]*NGSNK[0] ; GSGK++ ) {
+    const size_t GSRC = GSGK / NGSNK[0] ;
+    const size_t GSNK = GSGK % NGSNK[0] ;
+    // read the timeslice stuff
+    uint32_t LT[1] ;
+    if( FREAD32( LT , 1 , infile ) == FAILURE ) return FAILURE ;
+    if( (int)LT[0] != L0 ) { 
+      printf( "[IO] LT Read failure %d %d \n" , (int)LT[0] , L0 ) ; 
+      return FAILURE ; 
+    }
+    // read the correlator
+    if( read_corr( corr[ GSRC ][ GSNK ].mom[ p ].C , cksuma , cksumb , infile ,
+		   GSNK + NGSNK[0] * GSRC ) == FAILURE ) {
+      printf( "[IO] corr Read failure \n" ) ;
+      return FAILURE ;
     }
   }
+
   return SUCCESS ;
-}
-
-// swap correlators
-static void
-swap_mcorr( struct mcorr **swapped , 
-	    const int idx1 , const int idx2 ,
-	    const int NGSRC , const int NGSNK )
-{
-  int GSGK ;
-  for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSRC ;
-    const int GSNK = GSGK % NGSNK ;
-    int t ;
-    for( t = 0 ; t < L0 ; t++ ) {
-      const double complex c = swapped[GSRC][GSNK].mom[ idx1 ].C[ t ] ;
-      swapped[GSRC][GSNK].mom[ idx1 ].C[ t ] = swapped[GSRC][GSNK].mom[ idx2 ].C[ t ] ;
-      swapped[GSRC][GSNK].mom[ idx2 ].C[ t ] = c ;
-    }
-  }
-  return ;
-}
-
-static void
-swap_mlist( struct veclist *swapped , const int idx1 , const int idx2 )
-{
-  struct veclist temp ;
-  memcpy( &temp , &swapped[idx1] , sizeof( struct veclist ) ) ;
-  memcpy( &swapped[idx1] , &swapped[idx2] , sizeof( struct veclist ) ) ;
-  memcpy( &swapped[idx2] , &temp , sizeof( struct veclist ) ) ;
-  return ;
-}
-
-/// heapsort
-static void 
-siftDown( struct mcorr **momcorr , 
-	  struct veclist *list ,
-	  int root , 
-	  const int bottom ,
-	  const int NGSRC , 
-	  const int NGSNK )
-{
-  int done = 0 , maxChild ; 
-  while ( ( root*2 <= bottom ) && ( !done ) ) {
-    if( root*2 == bottom ) {
-      maxChild = root * 2 ; 
-    } else if ( list[root * 2].nsq > list[root * 2 + 1].nsq ) {
-      maxChild = root * 2 ; 
-    } else {
-      maxChild = root * 2 + 1 ; 
-    }
-    if ( list[root].nsq < list[maxChild].nsq ) {
-      // do a swap on the x and y again
-      swap_mcorr( momcorr , root , maxChild , NGSRC , NGSNK ) ;
-      swap_mlist( list , root , maxChild ) ;
-      root = maxChild ; 
-    } else {
-      done = 1 ;
-    } 
-  }
-  return ;
-}
-
-// heapsorts the data wrt to x index. y is along for the ride
-void 
-heapSort( struct mcorr **momcorr ,
-	  struct veclist *list ,
-	  const int array_size ,
-	  const int NGSRC , 
-	  const int NGSNK )
-{
-  int i ; 
-  for ( i = ( array_size / 2 ) ;  i >= 0 ;  i-- ) {
-    siftDown( momcorr , list ,  i ,  array_size - 1 , NGSRC , NGSNK ) ; 
-  }
-  
-  // swapsies
-  for ( i = array_size-1 ;  i >= 1 ;  i-- ) {
-    // swap the x and the y
-    swap_mcorr( momcorr , 0 , i , NGSRC , NGSNK ) ;
-    swap_mlist( list , 0 , i ) ;
-    // and go down the rabbit hole
-    siftDown( momcorr , list , 0 ,  i-1 , NGSRC , NGSNK ) ; 
-  }
-  return ;
 }
 
 // n^2 equivalents counter, data must be sorted
@@ -197,6 +121,54 @@ count_equivalents( const struct veclist *list ,
   return Nequiv ;
 }
 
+static inline int
+lt_nsq( const void *a , 
+	const void *b )
+{
+  return (( *(const struct veclist*)a ).nsq 
+	  < 
+	  ( *(const struct veclist*)b ).nsq ) ;
+}
+
+static void
+SORT( struct veclist *list ,
+      struct mcorr **corr ,
+      const int NMOM ,
+      const int NGSRC ,
+      const int NGSNK )
+{
+  // create a map
+  size_t *map = malloc( NMOM * sizeof( size_t ) ) ;
+  size_t i ;
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < NMOM ; i++ ) {
+    map[ i ] = i ;
+  }
+
+  merge_sort( list , map , sizeof( list[0] ) , sizeof( map[0] ), NMOM , lt_nsq ) ;
+
+  // apply the sort to the correlators
+  size_t GSGK ;
+#pragma omp parallel for private(GSGK)
+  for( GSGK = 0 ; GSGK < NGSRC * NGSNK ; GSGK++ ) {
+    const size_t GSRC = GSGK / NGSNK ;
+    const size_t GSNK = GSGK % NGSNK ;
+    struct correlator *m = malloc( NMOM * sizeof( struct correlator ) ) ;
+    size_t p ;
+    for( p = 0 ; p < NMOM ; p++ ) {
+      m[ p ].C = malloc( L0 * sizeof( double complex ) ) ;
+      memcpy( m[ p ].C , corr[ GSRC ][ GSNK ].mom[ map[ p ] ].C , sizeof( double complex ) * L0 ) ;
+    }
+    for( p = 0 ; p < NMOM ; p++ ) {
+      memcpy( corr[ GSRC ][ GSNK ].mom[ p ].C , m[ p ].C , sizeof( double complex ) * L0 ) ;
+      free( m[ p ].C ) ;
+    }
+    free( m ) ;
+  }		   
+  free( map ) ;
+  return ;
+}
+
 // equate two momentum correlators
 static void
 equate_momcorrs( struct mcorr **res ,
@@ -207,14 +179,13 @@ equate_momcorrs( struct mcorr **res ,
 		 const int NGSNK )
 {
   int GSGK ;
+#pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSRC ;
+    const int GSRC = GSGK / NGSNK ;
     const int GSNK = GSGK % NGSNK ;
-    int t ;
-    for( t = 0 ; t < L0 ; t++ ) {
-      res[ GSRC ][ GSNK ].mom[ momidx1 ].C[ t ] = 
-	corr[ GSRC ][ GSNK ].mom[ momidx2 ].C[ t ] ;
-    }
+    memcpy( res[ GSRC ][ GSNK ].mom[ momidx1 ].C , 
+	    corr[ GSRC ][ GSNK ].mom[ momidx2 ].C ,
+	    L0 * sizeof( double complex ) ) ;
   }
 }
 
@@ -230,7 +201,7 @@ add_momcorrs( struct mcorr **res ,
   int GSGK ;
 #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSRC ;
+    const int GSRC = GSGK / NGSNK ;
     const int GSNK = GSGK % NGSNK ;
     int t ;
     for( t = 0 ; t < L0 ; t++ ) {
@@ -252,7 +223,7 @@ divide_constant( struct mcorr **res ,
   int GSGK ;
 #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSRC ;
+    const int GSRC = GSGK / NGSNK ;
     const int GSNK = GSGK % NGSNK ;
     int t ;
     for( t = 0 ; t < L0 ; t++ ) {
@@ -273,7 +244,7 @@ momentum_average( struct veclist **avlist ,
 {
   *Nequiv = count_equivalents( list , NMOM ) ;
 
-  printf( "[EQUIV] %d equivalents \n" , *Nequiv ) ;
+  printf( "\n[AVE] %d equivalents \n" , *Nequiv ) ;
 
   // stop zero bytes malloc
   if( *Nequiv < 1 ) {
@@ -292,6 +263,14 @@ momentum_average( struct veclist **avlist ,
     // set average to corr
     equate_momcorrs( corravg , corr , idx , m , NGSRC , NGSNK ) ;
 
+    #ifdef verbose
+    printf( "Average :: ( %d %d ) [ %d %d %d ] -> [ %d %d %d ] :: ( %1.12e ) \n" , 
+	    m , m ,
+	    list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+	    list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+	    creal( corr[5][5].mom[m].C[1] ) ) ;
+    #endif
+
     // loop through equivalent momenta again
     int k , nequiv = 1 ;
     for( k = 1 ; k < NMOM ; k++ ) { 
@@ -299,11 +278,22 @@ momentum_average( struct veclist **avlist ,
       if( list[m].nsq != list[k+m].nsq ) {
 	break ;
       } else {
+	#ifdef verbose
+	printf( "Average :: ( %d, %d ) [ %d %d %d ] -> [ %d %d %d ] :: ( %1.12e ) \n" , 
+		m , k+m ,
+		list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+		list[m+k].MOM[0] , list[m+k].MOM[1] , list[m+k].MOM[2] , 
+		creal( corr[5][5].mom[k+m].C[1] ) ) ;
+	#endif
 	add_momcorrs( corravg , corr , idx , k+m , NGSRC , NGSNK ) ;
 	nequiv++ ;
       }
     }
-    divide_constant( corravg , (double)nequiv , idx , NGSRC , NGSNK ) ;
+    divide_constant( corravg , (double)(nequiv) , idx , NGSRC , NGSNK ) ;
+
+    #ifdef verbose
+    printf( "AVERAGE :: %d %1.12e \n" , idx , creal( corravg[5][5].mom[idx].C[1] ) ) ;
+    #endif
 
     idx ++ ;
     m += ( k - 1 ) ;
@@ -396,6 +386,8 @@ main( const int argc ,
     return -1 ;
   }
 
+  start_timer( ) ;
+
   uint32_t magic[1] , NGSRC[1] = { 0 } ;
   uint32_t NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
@@ -442,6 +434,7 @@ main( const int argc ,
       momentum[ p ].MOM[ mu ] = (int)n[ 1 + mu ] ;
       momentum[ p ].nsq += ( n[ 1 + mu ] * n[ 1 + mu ] ) ;
     }
+    momentum[ p ].idx = p ;
   }
 
   // read in the momentum list size again 
@@ -479,6 +472,8 @@ main( const int argc ,
 
   printf( "[IO] All correlators read \n" ) ;
 
+  print_time( ) ;
+
   // check our checksums
   if( FREAD32( csum , 2 , infile ) == FAILURE ) goto memfree ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
@@ -486,15 +481,25 @@ main( const int argc ,
     goto memfree ;
   } 
 
-  printf( "[CHECKSUM] both checksums passed \n\n" ) ;
+  printf( "\n[CHECKSUM] both checksums passed \n" ) ;
+
+  print_time( ) ;
 
   // sort the momenta && mom correlator
-  heapSort( corr , momentum , NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+  SORT( momentum , corr , NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+
+  printf( "\n[SORT] momentum list sorted \n" ) ;
+
+  print_time( ) ;
 
   // average
   corravg = momentum_average( &avlist , &Nequiv ,
 			      momentum , (const struct mcorr**)corr ,
 			      NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+
+  printf( "\n[AVE] correlators averaged \n" ) ;
+
+  print_time( ) ;
 
   if( corravg == NULL ) goto memfree ;
 
@@ -506,6 +511,10 @@ main( const int argc ,
   // split the averaged results into separate files for ease of reading
   write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
 		  Nequiv , NGSRC[0] , NGSNK[0] ) ;
+
+  printf( "\n[MOMAVG] all finished \n" ) ;
+
+  print_time( ) ;
 
  memfree :
 
@@ -521,7 +530,9 @@ main( const int argc ,
   // free the average correlator
   free_momcorrs( corravg , NGSRC[0] , NGSNK[0] , Nequiv ) ;
 
+  // close the file
   fclose( infile ) ;
 
-  return 0 ;
+  return SUCCESS ;
 }
+
