@@ -20,16 +20,16 @@
    @file gramschmidt.c
    @brief reunitarisation procedures
  */
-
 #include "common.h"
 
 #if NC > 3
 
+#include "matrix_ops.c"
+
 // gramschmidt projection V = V - V.U^{\dagger}
 static void
-project( V , U )
-     double complex *__restrict V ;
-     const double complex *__restrict U ;
+project( double complex *__restrict V  , 
+	 const double complex *__restrict U )
 {
   int i ;
   register double projRE = 0.0 , projIM = 0.0 ;
@@ -47,9 +47,8 @@ project( V , U )
 }
 
 // normalize a vector //
-INLINE_STATIC_VOID
-vect_norm2( a )
-     double complex *__restrict a ;
+static inline void
+vect_norm2( double complex *__restrict a )
 {
   int mu ;
   register double norm = 0.0 ;
@@ -168,7 +167,7 @@ reunit2( double complex *__restrict U )
  
 #elif NC == 2
 
-  GLU_real *uu = (GLU_real*)U ;
+  double *uu = (double*)U ;
   const double v00R = *( uu + 0 ) ;
   const double v00I = *( uu + 1 ) ;
   const double v01R = *( uu + 4 ) ;
@@ -221,9 +220,9 @@ reunit2( double complex *__restrict U )
     }
     // compute the determinant
     #if ( NC%2 == 0 )
-    register const GLU_real mulfact = ( i % 2 == 0 ) ? -1.0 : 1.0 ; 
+    register const double mulfact = ( i % 2 == 0 ) ? -1.0 : 1.0 ; 
     #else
-    register const GLU_real mulfact = ( i % 2 == 0 ) ? 1.0 : -1.0 ; 
+    register const double mulfact = ( i % 2 == 0 ) ? 1.0 : -1.0 ; 
     #endif
     // compute the determinant of the minors using the LU decomp
     U[i] = conj( mulfact * (double complex)LU_det( NC-1 , array ) ) ;

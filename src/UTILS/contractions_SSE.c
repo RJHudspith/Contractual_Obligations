@@ -31,6 +31,11 @@ adjoint_spinor( struct spinor *__restrict adj ,
       *res = SSE2_CONJ( *( s + 2 ) ) ; res++ ;
       *res = SSE2_CONJ( *( s + 5 ) ) ; res++ ;
       *res = SSE2_CONJ( *( s + 8 ) ) ; res++ ;
+      #elif NC == 2
+      *res = SSE2_CONJ( *( s + 0 ) ) ; res++ ;
+      *res = SSE2_CONJ( *( s + 2 ) ) ; res++ ;
+      *res = SSE2_CONJ( *( s + 1 ) ) ; res++ ;
+      *res = SSE2_CONJ( *( s + 3 ) ) ; res++ ;
       #else
       int c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
@@ -86,7 +91,7 @@ gamma_mul_l( struct spinor *__restrict res ,
   struct spinor tmp = *res ; // temporary space
   int i ;
   // not allowed to declare in a switch
-#if NC != 3
+#if NC > 3
   int c ;
 #endif
   // loop columns
@@ -104,6 +109,11 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
@@ -127,6 +137,11 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -146,6 +161,11 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
@@ -161,6 +181,11 @@ gamma_mul_l( struct spinor *__restrict res ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -188,7 +213,7 @@ gamma_mul_r( struct spinor *__restrict res ,
   const __m128d *tp2 ;
   int i , j ;
   // can't declare this in a switch
-#if NC != 3
+#if NC > 3
   int c ;
 #endif
   // loop columns of src
@@ -205,6 +230,11 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
@@ -230,6 +260,11 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -251,6 +286,11 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
@@ -268,6 +308,11 @@ gamma_mul_r( struct spinor *__restrict res ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -296,7 +341,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
   const __m128d *tp2 ;
   int i , j , col1 , col2 ;
   // not allowed to declare in a switch
-#if NC != 3
+#if NC > 3
   int c ;
 #endif
   // loop columns
@@ -322,6 +367,11 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
+	*tp1 = *tp2 ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = *tp2 ; tp1++ ; tp2++ ;
@@ -335,6 +385,11 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_iMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -356,6 +411,11 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
 	#else
 	for( c = 0 ; c < NCNC ; c++ ) {
 	  *tp1 = SSE_FLIP( *tp2 ) ; tp1++ ; tp2++ ;
@@ -369,6 +429,11 @@ gamma_mul_lr( struct spinor *__restrict S ,
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
+	#elif NC == 2
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
 	*tp1 = SSE2_miMUL( *tp2 ) ; tp1++ ; tp2++ ;
@@ -426,6 +491,11 @@ meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      #elif NC == 2
+      sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ); d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       #else 
@@ -492,6 +562,11 @@ simple_meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[2] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[5] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[8] ) ) ; bcache++ ;
+      #elif NC == 2
+      sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[0] ) ) ; bcache++ ;
+      sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[2] ) ) ; bcache++ ;
+      sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[1] ) ) ; bcache++ ;
+      sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[3] ) ) ; bcache++ ;
       #else 
       int c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {

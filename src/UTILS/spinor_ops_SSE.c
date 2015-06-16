@@ -27,6 +27,13 @@ add_spinors( __m128d *SUM ,
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
   }
+#elif NC == 2
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+  }
 #else
   for( i = 0 ; i < NSNS*NCNC ; i++ ) {
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
@@ -48,6 +55,13 @@ zero_spinor( __m128d *S )
     *S = zero ; S++ ;
     *S = zero ; S++ ;
     *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+    *S = zero ; S++ ;
+  }
+#elif NC == 2
+  for( i = 0 ; i < NSNS ; i++ ) {
     *S = zero ; S++ ;
     *S = zero ; S++ ;
     *S = zero ; S++ ;
@@ -81,6 +95,13 @@ equate_spinor( void *S ,
     *s = *s2 ; s++ ; s2++ ;
     *s = *s2 ; s++ ; s2++ ;
   }
+#elif NC == 2
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+    *s = *s2 ; s++ ; s2++ ;
+  }
 #else
   for( i = 0 ; i < NSNS*NCNC ; i++ ) {
     *s = *s2 ; s++ ; s2++ ;
@@ -109,6 +130,13 @@ equate_spinor_minus( void *mS ,
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
   }
+#elif NC == 3
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+    *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
+  }
 #else
   for( i = 0 ; i < NSNS*NCNC ; i++ ) {
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
@@ -130,6 +158,13 @@ flipsign_spinor( void *S )
     *s = SSE_FLIP( *s ) ; s++ ;
     *s = SSE_FLIP( *s ) ; s++ ;
     *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+    *s = SSE_FLIP( *s ) ; s++ ;
+  }
+#elif NC == 2
+  for( i = 0 ; i < NSNS ; i++ ) {
     *s = SSE_FLIP( *s ) ; s++ ;
     *s = SSE_FLIP( *s ) ; s++ ;
     *s = SSE_FLIP( *s ) ; s++ ;

@@ -68,6 +68,15 @@ dagger_gauge( double complex *__restrict res ,
 	      const double complex *__restrict U ) ;
 
 /**
+   @fn double complex LU_det( const int N , const double complex U[ N*N ] )
+   @brief determinant from an LU factorisation
+   @return the determinant of U
+ */
+double complex
+LU_det( const int N , 
+	const double complex U[ N*N ] ) ;
+
+/**
    @fn void multab( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
    @brief performs the matrix multiplication \f$ a = b * c \f$
  */

@@ -20,8 +20,13 @@
    @file plaqs_links.c
    @brief has all of the plaquette based measurements including gauge field strength tensor
  */
-
 #include "common.h"
+
+// multabs and traces
+#if NC > 3
+  #include "corr_malloc.h"
+  #include "matrix_ops.h"
+#endif
 
 // the one with the openmp locks, just an excuse to try this out to be honest
 #if ( defined HAVE_OMP_H ) && ( defined _OPENMP )
@@ -98,17 +103,28 @@ complete_plaquette( a , b , c , d )
 
   return tra + trb ;
 #else
-  /*
-  double complex temp1[NCNC] , temp2[NCNC] ; 
-  multab( temp1 , a , b ) ; 
-  multab_dag( temp2 , temp1 , c ) ; 
-  multab_dag( temp1 , temp2 , d ) ; 
-  double tr ;
-  speed_trace_Re( &tr , temp1 ) ;
-  return tr ;
-  */
+
+  #ifdef HAVE_IMMINTRIN_H
+
+  __m128d temp1[ NCNC ] , temp2[ NCNC ] ;
+  multab( temp1 , (const __m128d*)a , (const __m128d*)b ) ;
+  multab_dagdag( temp2 , (const __m128d*)c , (const __m128d*)d ) ;
+  double complex s ;
+  _mm_store_pd( (void*)&s , colortrace_prod( temp1 , temp2 ) ) ;
+  return creal( s ) ;
+
+  #else
+
+  double complex temp1[ NCNC ] , temp2[ NCNC ] ;
+  multab( temp1 , a , b ) ;
+  multab_dagdag( temp2 , c , d ) ;
+  return creal( colortrace_prod( temp1 , temp2 ) ) ;
+
+  #endif
+
 #endif
 }
+
 
 // all of the plaquettes
 double

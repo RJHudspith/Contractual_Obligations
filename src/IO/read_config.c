@@ -22,14 +22,14 @@
 
    @warning only HiRep and NERSC and MILC? supported atm.
  */
-
 #include "common.h"
 
+#include "corr_malloc.h"   // align to the correct boundary
 #include "geometry.h"      // init_navig is here 
 #include "plaqs_links.h"   // average plaquette, link traces
-#include "Scidac.h"        // Scidac header reading
 #include "readers.h"       // read config files
 #include "read_headers.h"  // header readers
+#include "Scidac.h"        // Scidac header reading
 
 // identity matrix
 static inline void
@@ -224,16 +224,14 @@ read_gauge_file( struct head_data *HEAD_DATA ,
     }
   }
 
-  // check for having enough memory for the gauge field
-  /*
-  if( have_memory_gauge( ) == FAILURE ) {
+  // malloc our gauge field and initialise our lattice geometry
+  struct site *lat = NULL ;
+  if( corr_malloc( (void**)&lat , 16 , LVOLUME * sizeof ( struct site ) ) != 0 ) {
+    printf( "[IO] Gauge field allocation failure ... Leaving \n" ) ;
     fclose( infile ) ;
+    free( lat ) ;
     return NULL ;
   }
-  */
-
-  // malloc our gauge field and initialise our lattice geometry
-  struct site *lat = malloc( LVOLUME * sizeof ( struct site ) ) ;
   init_navig( lat ) ;
 
   const uint32_t check = get_config_SUNC( infile , lat , tmp ) ;

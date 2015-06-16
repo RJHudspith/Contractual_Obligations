@@ -23,12 +23,15 @@
    TODO :: should probably stop computing the CRCs if they aren't used
    @warning some of this is done in parallel using OpenMP
  */
-
 #include "common.h"
 
 #include "GLU_bswap.h"
 #include "gramschmidt.h"
 #include "crc32.h" // for the scidac circular checksum
+
+#if NC > 3
+  #include "matrix_ops.h"
+#endif
 
 // complete the full matrix
 static inline void 
@@ -92,7 +95,7 @@ complete_top( O , uout )
     O[i] = uout[ 2*i ] + I * uout[ 2*i + 1 ] ;
   }
   // and complete, taken from the gramschmidt code, should consider a minors function ?
-  complex array[ ( NC - 1 ) * ( NC - 1 ) ] ;
+  double complex array[ ( NC - 1 ) * ( NC - 1 ) ] ;
   for( i = (NCNC-NC) ; i < NCNC ; i++ ) { // our bona-fide minor index
     int idx = 0 , j ;
     for( j = 0 ; j < ( NCNC - NC ) ; j++ ) {
@@ -104,9 +107,9 @@ complete_top( O , uout )
     }
     // compute the minors of the bottom row
     #if ( NC%2 == 0 )
-    register const real mulfact = ( i % 2 == 0 ) ? -1.0 : 1.0 ; 
+    register const double mulfact = ( i % 2 == 0 ) ? -1.0 : 1.0 ; 
     #else
-    register const real mulfact = ( i % 2 == 0 ) ? 1.0 : -1.0 ; 
+    register const double mulfact = ( i % 2 == 0 ) ? 1.0 : -1.0 ; 
     #endif
     O[i]= conj( mulfact * (complex)LU_det( NC-1 , array ) ) ;
   }
