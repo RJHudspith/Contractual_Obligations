@@ -32,6 +32,23 @@ zero_spinor( double complex *S )
   return ;
 }
 
+// trace out the color indices, S1 is a NS*NS flattened matrix
+void
+colortrace_spinor( void *S1 ,
+		   const void *S2 )
+{
+  double complex *s1 = (double complex*)S1 ;
+  const struct spinor *s2 = (const struct spinor*)S2 ;
+  int i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      *s1 = colortrace( (double complex*)s2->D[i][j].C ) ;
+      s1++ ;
+    }
+  }
+  return ;
+}
+
 // equate spinors
 void
 equate_spinor( void *S1 ,
@@ -173,21 +190,6 @@ spinor_gaugedag( struct spinor *__restrict res ,
   return ;
 }
 
-// sums a propagator over some volume into spinor "SUM"
-void
-sumprop( void *SUM ,
-	 const void *S )
-{
-  double complex *sum = (double complex*)SUM ;
-  zero_spinor( sum ) ;
-  const double complex *s = (const double complex*)S ;
-  int i ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    add_spinors( sum , s ) ; s += NSNS*NCNC ;
-  }
-  return ;
-}
-
 // multiplies two spinors A = B * A
 void
 spinmul_atomic_left( struct spinor *A ,
@@ -232,6 +234,42 @@ spinor_zero_site( void *S )
 {
   struct spinor *s = (struct spinor*)S ;
   zero_spinor( (double complex*)s -> D ) ;
+}
+
+// spintrace into a color matrix
+void
+spintrace( void *S ,
+	   const void *S2 )
+{
+  double complex *s = (double complex*)S ;
+  const struct spinor *s2 = (const struct spinor*)S2 ;
+  int i , j , d ;
+  for( i = 0 ; i < NC ; i++ ) {
+    for( j = 0 ; j < NC ; j++ ) {
+      ///
+      register double complex sum = 0.0 ;
+      for( d = 0 ; d < NS ; d++ ) {
+	sum += s2 -> D[d][d].C[i][j] ;
+      }
+      s[ j + i * NC ] = sum ;
+    }
+  }
+  return ;
+}
+
+// sums a propagator over some volume into spinor "SUM"
+void
+sumprop( void *SUM ,
+	 const void *S )
+{
+  double complex *sum = (double complex*)SUM ;
+  zero_spinor( sum ) ;
+  const double complex *s = (const double complex*)S ;
+  int i ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    add_spinors( sum , s ) ; s += NSNS*NCNC ;
+  }
+  return ;
 }
 
 #endif

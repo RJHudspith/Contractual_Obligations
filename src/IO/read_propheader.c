@@ -165,6 +165,11 @@ get_proptype( proptype *basis )
       return SUCCESS ;
     }
     // relativistic chiral basis
+    if( are_equal( token , "Static\n" ) ) {
+      *basis = STATIC ;
+      return SUCCESS ;
+    }
+    // relativistic chiral basis
     if( are_equal( token , "Chiral\n" ) ) {
       *basis = CHIRAL ;
       return SUCCESS ;

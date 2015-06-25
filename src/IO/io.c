@@ -6,8 +6,10 @@
 #include "common.h"
 
 #include "crc32.h"        // checksum calc
+#include "gammas.h"       // gamma matrix technology
 #include "GLU_bswap.h"    // byteswaps
 #include "matrix_ops.h"   // matrix equivs
+#include "polyakov.h"     // static quark computation
 #include "spinor_ops.h"   // zero the spinor
 
 // fill our spinor
@@ -196,6 +198,34 @@ read_nrprop( struct propagator prop ,
   return SUCCESS ;
 }
 
+// timeslice counter
+static size_t T = 0 ;
+
+// Read a static propagator on this slice 
+static int 
+read_staticprop( struct propagator prop , 
+		 struct spinor *S )
+{
+  // if we haven't read the gauge field we can't do this
+  if( lat == NULL ) {
+    printf( "[IO] Empty gauge field! Cannot compute static\n" ) ;
+    return FAILURE ;
+  }
+
+  // make the gammas
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  make_gammas( GAMMAS , CHIRAL ) ;
+
+  // poke into struct S
+  static_quark( S , GAMMAS[ GAMMA_3 ] , T , GLU_TRUE ) ;
+  free( GAMMAS ) ;
+
+  // increment our timeslice counter
+  T++ ;
+
+  return SUCCESS ;
+}
+
 // thin wrapper for propagator reading
 int
 read_prop( struct propagator prop ,
@@ -206,6 +236,8 @@ read_prop( struct propagator prop ,
     return read_chiralprop( prop , S ) ;
   case NREL :
     return read_nrprop( prop , S ) ;
+  case STATIC :
+    return read_staticprop( prop , S ) ;
   }
   return FAILURE ;
 }

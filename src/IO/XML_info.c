@@ -191,9 +191,13 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  char *token = strtok( pch , " " ) ;
 	  if( token == NULL ) return FAILURE ;
 	  int idx = 0 ;
+	  char *pEnd ;
+	  Latt.dims[ idx++ ] = strtol( token , &pEnd , 10 ) ;
+	  #ifdef DEBUG_ILDG
+	  printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
+	  #endif
 	  while( ( token = strtok( NULL , " " ) ) != NULL ) {
 	    if(  ( are_equal( token , "/dims" ) ) ) break ;
-	    char *pEnd ;
 	    Latt.dims[ idx ] = strtol( token , &pEnd , 10 ) ;
 	    #ifdef DEBUG_ILDG
 	    printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;

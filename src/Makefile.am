@@ -13,6 +13,8 @@ BARYONFILES= ./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 
+FIELDFILES=./FIELD/plaqs_links.c ./FIELD/polyakov.c
+
 ## c files in ./IO/
 IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
@@ -22,7 +24,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 
 ## c files in ./MEAS/
 MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
-	./MEAS/plaqs_links.c ./MEAS/wrap_mesons.c
+	./MEAS/wrap_mesons.c
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c
@@ -49,6 +51,7 @@ WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 libCORR_a_SOURCES = \
 	${BARYONFILES} \
 	${GEOMFILES} \
+	${FIELDFILES} \
 	${IOFILES} \
 	${MEASFILES} \
 	${TETRAFILES} \
@@ -60,6 +63,7 @@ libCORR_a_SOURCES = \
 include_HEADERS = \
 	$(BARYONFILES:./BARYONS/%.c=./HEADERS/%.h) \
 	$(GEOMFILES:./GEOMETRY/%.c=./HEADERS/%.h) \
+	$(FIELDFILES:./FIELD/%.c=./HEADERS/%.h) \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
 	$(TETRAFILES:./TETRA/%.c=./HEADERS/%.h) \

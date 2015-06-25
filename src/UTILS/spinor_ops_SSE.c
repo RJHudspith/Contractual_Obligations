@@ -74,6 +74,35 @@ zero_spinor( __m128d *S )
 #endif
 }
 
+// colortrace our spinor into a dirac matrix
+void
+colortrace_spinor( void *S1 ,
+		   const void *S2 )
+{
+  __m128d *s = (__m128d*)S1 ;
+  const __m128d *s2 = (const __m128d*)S2 ;
+  int i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = _mm_setzero_pd( ) ;
+    #if NC == 3
+    *s = _mm_add_pd( *s , *( s2 + 0 ) ) ; 
+    *s = _mm_add_pd( *s , *( s2 + 4 ) ) ; 
+    *s = _mm_add_pd( *s , *( s2 + 8 ) ) ; 
+    #elif NC == 2
+    *s = _mm_add_pd( *s , *( s2 + 0 ) ) ; 
+    *s = _mm_add_pd( *s , *( s2 + 3 ) ) ; 
+    #else
+    int c ;
+    for( c = 0 ; c < NC ; c++ ) {
+      *s = _mm_add_pd( *s , *( s2 + c * ( NC + 1 ) ) ) ; 
+    }
+    #endif
+    s2 += NCNC ;
+    s++ ;
+  }
+  return ;
+}
+
 // equate spinors
 void
 equate_spinor( void *S ,
@@ -280,19 +309,24 @@ spinor_gaugedag( struct spinor *__restrict res ,
   return ;
 }
 
-// sums a propagator over a timeslice
+// multithreaded zero a spinor over a timeslice
 void
-sumprop( void *SUM ,
-	 const void *S )
+spinor_zero( void *S )
 {
-  __m128d *tSUM = (__m128d*)SUM ;
-  zero_spinor( tSUM ) ;
-  const __m128d *tS = (const __m128d*)S ;
+  __m128d *s = (__m128d*)S ;
   int i ;
-  for( i = 0 ; i < VOL3 ; i++ ) {
-    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    zero_spinor( s + i * ( NSNS * NCNC ) ) ;
   }
   return ;
+}
+
+// zero a spinor at a site
+void
+spinor_zero_site( void *S )
+{
+  zero_spinor( (__m128d*)S ) ;
 }
 
 // multiplies two spinors A = B * A
@@ -323,24 +357,45 @@ spinmul_atomic_left( struct spinor *A ,
   return ;
 }
 
-// multithreaded zero a spinor over a timeslice
+// sums a propagator over a timeslice
 void
-spinor_zero( void *S )
+sumprop( void *SUM ,
+	 const void *S )
 {
-  __m128d *s = (__m128d*)S ;
+  __m128d *tSUM = (__m128d*)SUM ;
+  zero_spinor( tSUM ) ;
+  const __m128d *tS = (const __m128d*)S ;
   int i ;
-#pragma omp parallel for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {
-    zero_spinor( s + i * ( NSNS * NCNC ) ) ;
+  for( i = 0 ; i < VOL3 ; i++ ) {
+    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
   }
   return ;
 }
 
-// zero a spinor at a site
+// trace out our dirac indices
 void
-spinor_zero_site( void *S )
+spintrace( void *S ,
+	   const void *S2 )
 {
-  zero_spinor( (__m128d*)S ) ;
+  __m128d *s = (__m128d*)S ;
+  const __m128d *s2 = (const __m128d*)S2 ;
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    #if NS == 4
+    *s = *( s2 ) ;
+    *s = _mm_add_pd( *s , *( s2 + NCNC * ( NS + 1 ) ) ) ;
+    *s = _mm_add_pd( *s , *( s2 + 2 * NCNC * ( NS + 1 ) ) ) ;
+    *s = _mm_add_pd( *s , *( s2 + 3 * NCNC * ( NS + 1 ) ) ) ;
+    #else
+    int j ;
+    *s = _mm_setzero_pd( ) ;
+    for( j = 0 ; j < NS ; j++ ) {
+      *s = _mm_add_pd( *s , *( s2 + j * NCNC * ( NS + 1 ) ) ) ;
+    }
+    #endif
+    s++ ;
+    s2 ++ ;
+  }
 }
 
 #endif

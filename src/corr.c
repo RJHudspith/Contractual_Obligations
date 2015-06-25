@@ -10,6 +10,8 @@
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header
 
+#include "polyakov.h"
+
 #include "wrap_baryons.h"    // Baryon contraction wrapper
 #include "wrap_mesons.h"     // Meson contraction wrapper
 #include "wrap_tetras.h"     // Tetraquark contraction wrapper
@@ -19,6 +21,9 @@
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
 struct latt_info Latt ;
+
+// gauge field is global for now
+struct site *lat = NULL ;
 
 // enumeration for the arguments to our binary
 enum{ INFILE = 2 , GAUGE_FILE = 4 } ;
@@ -58,7 +63,6 @@ main( const int argc,
   init_geom( ) ;
 
   // my gauge field code requires us to read in the whole config
-  struct site *lat = NULL ;
   struct head_data HEAD_DATA ;
   if( MODE == GAUGE_AND_PROPS ) {
     if( ( lat = read_gauge_file( &HEAD_DATA , argv[GAUGE_FILE] ,
@@ -67,7 +71,7 @@ main( const int argc,
       free_inputs( inputs ) ; 
       return FAILURE ;
     }
-  } 
+  }
 
   // open up some propagator files and parse the
   // header checking the geometry

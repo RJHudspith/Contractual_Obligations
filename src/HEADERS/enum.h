@@ -61,15 +61,6 @@ typedef enum
    @enum gamma_labels
    @brief different conventions have different labelling
 */
-#ifdef CHROMA_DIRAC_CONVENTION
-typedef enum {
-  IDENTITY = 0 ,
-  GAMMA_0  = 1 ,
-  GAMMA_1  = 2 ,
-  GAMMA_2  = 4 ,
-  GAMMA_3  = 8 ,
-  GAMMA_5  = 15 } gamma_labels ;
-#else
 // Mainz labelling
 typedef enum {
   GAMMA_0  = 0 ,
@@ -78,7 +69,6 @@ typedef enum {
   GAMMA_3  = 3 ,
   IDENTITY = 4 ,
   GAMMA_5  = 5 } gamma_labels ;
-#endif
 
 /**
    @enum GLU_bool
@@ -154,7 +144,8 @@ typedef enum {
  */
 typedef enum {
   CHIRAL ,
-  NREL } proptype ;
+  NREL ,
+  STATIC } proptype ;
 
 /**
    @enum sourcetype

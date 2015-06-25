@@ -68,8 +68,7 @@ gamma_comparison( const struct gamma G1 ,
 {
   int j ;
   for( j = 0 ; j < NS ; j++ ) {
-    if( G1.ig[j] != G2.ig[j] ||
-	G1.g[j] != G2.g[j] ) {
+    if( G1.ig[j] != G2.ig[j] || G1.g[j] != G2.g[j] ) {
       printf( "%s\n" , message ) ;
       return 1 ;
     }
@@ -200,6 +199,7 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[5].ig[2] = 0 ; GAMMA[5].g[2] = 2 ;
     GAMMA[5].ig[3] = 1 ; GAMMA[5].g[3] = 2 ;
     break ;
+  case STATIC :
   case CHIRAL :
     // gamma_0
     GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] =  3 ;

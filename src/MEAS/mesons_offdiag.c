@@ -120,9 +120,9 @@ mesons_offdiagonal( struct propagator prop1 ,
   for( t = 0 ; t < L0 ; t++ ) {
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
+    if( prop1.basis == CHIRAL && ( prop2.basis == NREL ) ) {
       nrel_rotate_slice( S1 ) ;
-    } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
+    } else if( ( prop1.basis == NREL ) && prop2.basis == CHIRAL ) {
       nrel_rotate_slice( S2 ) ;
     }
 

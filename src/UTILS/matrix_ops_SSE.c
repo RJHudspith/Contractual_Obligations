@@ -502,7 +502,7 @@ multab_dagdag( __m128d *__restrict a ,
   return ;
 }
 
-// print a to stdout
+// print "a" to stdout
 void
 print_colormatrix( const double complex a[ NCNC ] )
 {

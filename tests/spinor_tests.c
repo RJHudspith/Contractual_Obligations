@@ -10,10 +10,30 @@
 
 static struct gamma *GAMMAS = NULL ; // gamma matrix technology
 
-struct spinor *S = NULL ; // LCU spinor
-struct spinor A ;         // single spinor storage
+static struct spinor *S = NULL ; // LCU spinor
+static struct spinor A ;         // single spinor storage
+static double complex *C ;
+static double complex *D ;
 
 #define FTOL ( NC * 1.E-14 ) 
+
+static char
+*colortrace_spinor_test( void )
+{
+  // take the color trace
+  colortrace_spinor( C , A.D ) ;
+  int j ;
+  for( j = 0 ; j < NSNS ; j++ ) {
+    // result is an identity
+    const size_t res = NC * ( NCNC - 1 ) / 2 + j * NC * ( NCNC ) ;
+    mu_assert( "[UNIT] error : spinor ops colortrace_spinor broken " , 
+	       !( fabs( creal( C[j] ) - res ) > FTOL 
+		  ||
+		  fabs( cimag( C[j] ) - res ) > FTOL 
+		  ) ) ;
+  }
+  return NULL ;
+}
 
 static char 
 *equate_minus_test( void )
@@ -267,6 +287,22 @@ static char
   return NULL ;
 }
 
+static char
+*spintrace_test( void )
+{
+  spintrace( D , A.D ) ;
+  int i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    const size_t res = ( NCNC * ( NSNS - 1 ) * NS ) / 2 + i * NS ;
+    mu_assert( "[UNIT] error : spinor ops spintrace broken " , 
+	       !( fabs( creal( D[i] ) - res ) > FTOL 
+		  ||
+		  fabs( cimag( D[i] ) - res ) > FTOL 
+		  ) ) ;
+  }
+  return NULL ;
+}
+
 // spinor tests
 static char *
 spinops_test( void )
@@ -284,18 +320,20 @@ spinops_test( void )
   }
 
   // run spinor ops tests
-  mu_run_test( gammas_test ) ;
+  mu_run_test( colortrace_spinor_test ) ;
   mu_run_test( equate_minus_test ) ;
   mu_run_test( flipsign_test ) ;
   mu_run_test( gauge_test ) ;
   mu_run_test( gaugedag_test ) ;
   mu_run_test( gauge_spinordag_test ) ;
+  mu_run_test( gammas_test ) ;
   mu_run_test( spinor_gauge_test ) ;
   mu_run_test( spinordag_gauge_test ) ;
   mu_run_test( spinor_gaugedag_test ) ;
   mu_run_test( sumprop_test ) ;
   mu_run_test( spinmul_atomic_left_test ) ;
   mu_run_test( spinor_zero_test ) ;
+  mu_run_test( spintrace_test ) ;
 
   return NULL ;
 }
@@ -312,9 +350,14 @@ spinor_test_driver( void )
   // LCU spinor storage
   S = ( struct spinor* )malloc( LCU * sizeof( struct spinor ) ) ;
 
+  corr_malloc( (void**)&C , 16 , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&D , 16 , NCNC * sizeof( double complex ) ) ;
+
   // initial gamma setup and test
   char *spinres = spinops_test( ) ;
 
+  free( D ) ;
+  free( C ) ;
   free( S ) ;
   free( GAMMAS ) ;
 

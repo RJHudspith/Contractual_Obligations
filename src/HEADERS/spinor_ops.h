@@ -15,6 +15,14 @@
 #else
 
 /**
+   @fn void colortrace_spinor( void *S1 , const void *S2 )
+   @brief trace the color indices of our spinor
+ */
+void
+colortrace_spinor( void *S1 ,
+		   const void *S2 ) ;
+
+/**
    @fn void equate_spinor( void *S1 , const void *S2 )
    @brief equate two spinors
  */
@@ -74,6 +82,22 @@ spinor_gauge( struct spinor *__restrict res ,
 	      const double complex link[ NCNC ] ) ;
 
 /**
+   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
+   @brief atomically left multiply spinor A by spinor B ( A = B * A )
+ */
+void
+spinmul_atomic_left( struct spinor *A ,
+		     const struct spinor B ) ;
+
+/**
+   @fn void spinor_zero( void *S )
+   @brief zero a spinor over the timeslice
+   @warning is threaded
+ */
+void
+spinor_zero( void *S ) ;
+
+/**
    @fn void spinordag_gauge( struct spinor *__restrict res , const struct spinor S , const double complex link[ NCNC ] )
    @brief computes \f$ res = S^{\dagger}.U \f$
  */
@@ -92,36 +116,29 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ) ;
 
 /**
+   @fn void spinor_zero_site( void *S )
+   @brief zero a spinor on a site
+ */
+void
+spinor_zero_site( void *S ) ;
+
+/**
+   @fn void spintrace( void *S , const void *S2 )
+   @brief traces over spin indices of S2 into an #NCNC flattened color matrix S
+   @param S :: color matrix
+   @param S2 :: spinor
+ */
+void
+spintrace( void *S ,
+	   const void *S2 ) ;
+
+/**
    @fn void sumprop( void* SUM , const void* S )
    @brief sum a propagator over a timeslice
  */
 void
 sumprop( void *SUM ,
 	 const void *S ) ;
-
-/**
-   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
-   @brief atomically left multiply spinor A by spinor B ( A = B * A )
- */
-void
-spinmul_atomic_left( struct spinor *A ,
-		     const struct spinor B ) ;
-
-/**
-   @fn void spinor_zero( void *S )
-   @brief zero a spinor over the timeslice
-   @warning is threaded
- */
-void
-spinor_zero( void *S ) ;
-
-
-/**
-   @fn void spinor_zero_site( void *S )
-   @brief zero a spinor on a site
- */
-void
-spinor_zero_site( void *S ) ;
 
 #endif
 

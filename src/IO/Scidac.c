@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with GLU.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 /**
    @file Scidac.c
    @brief Scidac and ILDG configuration header readers and writers

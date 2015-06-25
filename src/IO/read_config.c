@@ -168,14 +168,6 @@ get_config_SUNC( FILE *__restrict CONFIG ,
     if( HEAD_DATA.config_type == OUTPUT_SMALL ||
 	HEAD_DATA.config_type == OUTPUT_GAUGE ||
 	HEAD_DATA.config_type == OUTPUT_NCxNC ) {
-      /* TODO fix this
-      const int SAFETY = have_memory_readers_writers( HEAD_DATA.config_type ) ;
-      if( SAFETY != 1 ) {
-	return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
-      } else {
-	return lattice_reader_suNC( lat , CONFIG , HEAD_DATA ) ;
-      }
-      */
       return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
     } break ;
   case UNIT_GAUGE :
@@ -217,6 +209,7 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   int mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( Latt.dims[ mu ] != refdims[ mu ] ) {
+      printf( "[IO] %d %d \n" , Latt.dims[ mu ] , refdims[ mu ] ) ;
       printf( "[IO] gauge_field and input file dimensions mismatch %d != %d \n" 
 	      , Latt.dims[ mu ] , refdims[ mu ] ) ;
       fclose( infile ) ;

@@ -173,6 +173,7 @@ struct propagator {
   int origin[ ND ] ;
   fp_precision precision ;
   endianness endian ;
+  size_t t ;
 } ;
 
 /**
