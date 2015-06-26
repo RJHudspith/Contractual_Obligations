@@ -35,7 +35,7 @@ MAINZ
 #include "common.h" // needed for struct gamma definition
 
 // gamma multiply
-inline void
+void
 gamma_mmul( struct gamma *__restrict a ,
 	    const struct gamma b ,
 	    const struct gamma c )

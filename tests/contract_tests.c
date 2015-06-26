@@ -13,6 +13,8 @@
 
 static struct spinor A , Id ;         // single spinor storage
 
+double complex *D = NULL ;
+
 static struct gamma *GAMMAS = NULL ;
 
 // test spincolor adjoint
@@ -46,6 +48,18 @@ bilinear_trace_test( void )
   const int sp = NC * NS ;
   const double sol = 0.5 * ( sp * ( sp - 1 ) * ( sp + 1 ) ) ;
   mu_assert("[CONTRACT UNIT] error : bilinear_trace broken", 
+	    !( fabs( creal( tr ) - sol ) > FTOL ||
+	       fabs( cimag( tr ) - sol ) > FTOL ) ) ;
+  return NULL ;
+}
+
+// computes Tr[ Id * A ] = Tr[ A ]
+static char *
+dirac_trace_test( void )
+{
+  const double complex tr = dirac_trace( GAMMAS[ IDENTITY ] , D ) ;
+  const int sol = NS * ( NSNS - 1 ) / 2 ;
+    mu_assert("[CONTRACT UNIT] error : dirac_trace broken", 
 	    !( fabs( creal( tr ) - sol ) > FTOL ||
 	       fabs( cimag( tr ) - sol ) > FTOL ) ) ;
   return NULL ;
@@ -263,6 +277,9 @@ contractions_test( void )
   int d1 , d2 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
+      // set spinmatrix to be lexi index
+      D[ d2 + NS * d1 ] = ( 1 + I ) * ( d2 + NS * d1 ) ;
+      // identity spinor
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  if( c1 == c2 && d1 == d2 ) {
@@ -279,6 +296,7 @@ contractions_test( void )
   mu_run_test( gammas_test ) ;
   mu_run_test( adjoint_test ) ;
   mu_run_test( bilinear_trace_test ) ;
+  mu_run_test( dirac_trace_test ) ;
   mu_run_test( gamma_mul_l_test ) ;
   mu_run_test( gamma_mul_r_test ) ;
   mu_run_test( gamma_mul_lr_test ) ;
@@ -300,9 +318,13 @@ contractions_test_driver( void )
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
 
+  // allocate spinmatrix "D"
+  corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
+
   // matrix operations test
   char *contres = contractions_test( ) ;
 
+  free( D ) ;
   free( GAMMAS ) ;
 
   if( tests_fail == 0 ) {
