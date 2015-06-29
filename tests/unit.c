@@ -7,7 +7,8 @@
 
 #include "contract_tests.h"  
 #include "geometry.h"        // init_geom()
-#include "matops_tests.h"  
+#include "matops_tests.h"
+#include "spinmatrix_tests.h"
 #include "spinor_tests.h"
 
 struct latt_info Latt ;
@@ -35,6 +36,10 @@ main( const int argc , const char *argv[] )
 
   // have a look at matrix operations
   if( matops_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
+  // have a look at spinor operations
+  if( spinmatrix_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   // have a look at spinor operations

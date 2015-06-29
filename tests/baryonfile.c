@@ -6,10 +6,11 @@
  */
 #include "common.h"
 
-#include "contractions.h" // dirac_trace
-#include "correlators.h"  // free_momcorrs()
-#include "gammas.h"       // make_gammas()
-#include "reader.h"       // process file
+#include "contractions.h"   // dirac_trace
+#include "correlators.h"    // free_momcorrs()
+#include "gammas.h"         // make_gammas()
+#include "reader.h"         // process file
+#include "spinmatrix_ops.h" // spinmatrix linear algebra 
 
 // global lattice dimensions and stuff
 struct latt_info Latt ;
@@ -21,80 +22,86 @@ typedef enum { LO , L1 , L2 , L3 , L4 , L5 } bprojection ;
 static int
 are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str_2 ) ; }
 
-// computes res = G * spinmatrix
-static void
-gamma_spinmatrix( void *res , 
-		  const struct gamma G ,
-		  const void *spinmatrix ) 
-{
-  double complex *r = (double complex*)res ;
-  const double complex *d = (const double complex*)spinmatrix ;
-  int i , j ;
-  for( i = 0 ; i < NS ; i++ ) {
-    register double complex factor = 1.0 ;
-    switch( G.g[i] ) {
-    case 0 : factor = +1 ; break ;
-    case 1 : factor = +I ; break ;
-    case 2 : factor = -1 ; break ;
-    case 3 : factor = -I ; break ;
-    }
-    for( j = 0 ; j < NS ; j++ ) {
-      r[ j + i * NS ] = factor * d[ j + G.ig[i] * NS ] ;
-    }
-  }
-}
-
-// atomically add two spinmatrices
-static void
-atomic_add_spinors( void *res ,
-		    const void *D )
-{
-  double complex *r = (double complex*)res ;
-  const double complex *d = (const double complex*)D ;
-  int i ;
-  for( i = 0 ; i < NSNS ; i++ ) {
-    r[ i ] += d[ i ] ;
-  }
-}
-
+#if 0
 // spin 1/2 projection? summed into D
 void
 spinhalf_project( double complex *D , 
 		  const struct mcorr **corr ,
 		  const struct gamma *GAMMA ,
+		  const int **momentum ,
 		  const size_t i ,
-		  const size_t p ,
+		  const size_t pidx ,
 		  const size_t t )
 {
-  double complex *tmp1 = NULL , *tmp2 = NULL ;
+  double complex *tmp1 = NULL , *tmp2 = NULL , *pslash ;
   corr_malloc( (void**)&tmp1 , 16 , NSNS * sizeof( double complex ) ) ;
   corr_malloc( (void**)&tmp2 , 16 , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&pslash , 16 , NSNS * sizeof( double complex ) ) ;
 
+  // set result to 0
   int j , d ;
   for( d = 0 ; d < NSNS ; d++ ) {
     D[ d ] = 0.0 ;
   }
 
+  // compute p2
+  register double p2 = 0.0 ;
+  double p[ ND ] ;
+  int mu ;
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    p[ mu ] = sin( momentum[pidx][mu] * Latt.twiddles[mu] ) ;
+    p2 += p[ mu ] * p[ mu ] ;
+  }
+
+  // compute pslash
+  compute_pslash( pslash , tmp1 , tmp2 , p ) ;
+
   // perform 1/3 \gamma_i \gamma_j O_j
   for( j = 0 ; j < ND-1 ; j++ ) {
     for( d = 0 ; d < NSNS ; d++ ) {
-      tmp1[ d ] = corr[ j+i*B_CHANNELS ][ d ].mom[ p ].C[ t ] ;
+      tmp1[ d ] = corr[ j+i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] / 3.0 ;
     }
     struct gamma gij ; gamma_mmul( &gij , GAMMA[i] , GAMMA[j] ) ;
     gamma_spinmatrix( tmp2 , gij , tmp1 ) ;
     atomic_add_spinors( D , tmp2 ) ;
+
+    if( p2 > 0 ) {
+      // set tmp2 to zero
+      spinmatrix_mulconst( tmp2 , 0.0 ) ;
+      // compute \slashed{p} \gamma_i p_j
+      if( momentum[j] != 0 ) {
+	spinmatrix_gamma( tmp , pslash , GAMMA[ i ] ) ;
+	spinmatrix_mulconst( tmp , p[j] / p2 ) ;
+	atomic_add_spinors( tmp2 , tmp1 ) ;
+      }
+      // compute p_i \gamma_j \slashed{p}
+      if( momentum[i] != 0 ) {
+	gamma_spinmatrix( tmp , GAMMA[ j ] , pslash ) ;
+	spinmatrix_mulconst( tmp , p[i] / p2 ) ;
+	atomic_add_spinors( tmp2 , tmp1 ) ;
+      }
+      // full projector is in tmp2
+      // left multiply momentum projector
+      for( d = 0 ; d < NSNS ; d++ ) {
+	tmp1[ d ] = corr[ j+i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] / 3.0 ;
+      }
+      spinmatrix_multiply( pslash , tmp2 , tmp1 ) ;
+      atomic_add_spinors( D , tmp2 ) ;
+      
+      // and add the second part -p_\mu -p_\nu / p^2
+      for( d = 0 ; d < NSNS ; d++ ) {
+	tmp1[ d ] = p[i] * p[j] * corr[ j+i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] / p2 ;
+      }
+      atomic_add_spinors( D , tmp1 ) ;
+    }
   }
 
-  // normalise
-  for( d = 0 ; d < NSNS ; d++ ) {
-    D[ d ] /= 3.0 ;
-  }
   free( tmp1 ) ;
   free( tmp2 ) ;
   return ;
 }
 
-// spin 1/2 projection? summed into D
+// spin 3/2 projection (delta_ij - 1/3 \gamma_i \gamma_j)? summed into D
 void
 spinthreehalf_project( double complex *D , 
 		       const struct mcorr **corr ,
@@ -133,11 +140,13 @@ spinthreehalf_project( double complex *D ,
   free( tmp2 ) ;
   return ;
 }
+#endif
 
 // returns the correlator at some momentum
 double complex*
 baryon_project( const struct mcorr **corr ,
 		const struct gamma *GAMMA ,
+		const int **momentum ,
 		const size_t GSRC ,
 		const size_t GSNK ,
 		const size_t p ,
@@ -165,36 +174,36 @@ baryon_project( const struct mcorr **corr ,
 
     switch( projection ) {
     case LO : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) + 
-			     dirac_trace( GAMMA[ GAMMA_3 ] , D ) - 
-			     I * dirac_trace( g0g5 , D ) - 
-			     I * dirac_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) - 
+			     I * gammaspinmatrix_trace( g0g5 , D ) - 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) - 
-			     dirac_trace( GAMMA[ GAMMA_3 ] , D ) +
-			     I * dirac_trace( g0g5 , D ) - 
-			     I * dirac_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
+			     I * gammaspinmatrix_trace( g0g5 , D ) - 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) - 
-			     dirac_trace( GAMMA[ GAMMA_3 ] , D ) -
-			     I * dirac_trace( g0g5 , D ) + 
-			     I * dirac_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) -
+			     I * gammaspinmatrix_trace( g0g5 , D ) + 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) + 
-			     dirac_trace( GAMMA[ GAMMA_3 ] , D ) +
-			     I * dirac_trace( g0g5 , D ) + 
-			     I * dirac_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
+			     I * gammaspinmatrix_trace( g0g5 , D ) + 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L4 :
-      result[ t ] = 0.5 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) +
-			    dirac_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
       break ;
     case L5 :
-      result[ t ] = 0.5 * ( dirac_trace( GAMMA[ IDENTITY ] , D ) - 
-			    dirac_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
       break ;
     }
   }
@@ -209,7 +218,7 @@ main( const int argc ,
       const char *argv[] )
 {
   if( argc < 4 ) {
-    return printf( "usage ./BARYONS {correlator file} BASIS PROJECTION GSRC,GSNK,px,py,pz ... \n" ) ;
+    return printf( "usage ./BARYONS {correlator file} BASIS PROJECTION Lx,Ly,Lz GSRC,GSNK,px,py,pz ... \n" ) ;
   }
 
   // read the correlation file
@@ -257,6 +266,16 @@ main( const int argc ,
     goto memfree ;
   }
 
+  // get the dimensions
+  int mu ;
+  char *tok = strtok( (char*)argv[4] , "," ) ;
+  Latt.dims[ 0 ] = (int)atoi( tok ) ;
+  for( mu = 1 ; mu < ND-1 ; mu++ ) {
+    char *ptok = strtok( NULL , "," ) ;
+    if( ptok == NULL ) break ;
+    Latt.dims[ mu ] = (int)atoi( ptok ) ;
+  }
+
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( make_gammas( GAMMAS , basis ) == FAILURE ) {
@@ -273,7 +292,7 @@ main( const int argc ,
 
   // loop the ones we want
   int i ;
-  for( i = 4 ; i < ( argc ) ; i++ ) {
+  for( i = 5 ; i < ( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
     if( tok1 == NULL ) break ;
@@ -321,7 +340,7 @@ main( const int argc ,
 
     // do the projection
     const double complex *C = baryon_project( (const struct mcorr**)corr , 
-					      GAMMAS ,
+					      GAMMAS , (const int**)momentum ,
 					      idx1 , idx2 , matchmom ,
 					      projection ) ;
     

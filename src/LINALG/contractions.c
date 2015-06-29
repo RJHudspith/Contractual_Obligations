@@ -41,25 +41,6 @@ bilinear_trace( const struct spinor A ,
   return sum ;
 }
 
-// computes spintrace :: Tr[ G spinmatrix ]
-double complex
-dirac_trace( const struct gamma G ,
-	     const void *spinmatrix )
-{
-  const double complex *D = (const double complex*)spinmatrix ;
-  register double complex sum = 0.0 ;
-  int i ;
-  for( i = 0 ; i < NS ; i++ ) {
-    switch( G.g[i] ) {
-    case 0 : sum += D[ i + G.ig[i] * NS ] ; break ;
-    case 1 : sum += +I * D[ i + G.ig[i] * NS ] ; break ;
-    case 2 : sum += -D[ i + G.ig[i] * NS ] ; break ;
-    case 3 : sum += -I * D[ i + G.ig[i] * NS ] ; break ;
-    }
-  }
-  return sum ;
-}
-
 // computes G5 ( adj( S ) ) G5
 void
 full_adj( struct spinor *__restrict adj ,

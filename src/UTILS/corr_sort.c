@@ -157,6 +157,11 @@ merge_sort( void *list1 , void *list2 ,
   // break list into two sublists
   const size_t low_size = size >> 1 ;
   const size_t upp_size = size - low_size ;
+
+  // this really shouldn't happen as the insertion
+  // sort should capture such behaviour, is mostly
+  // to remove the static anlayzer warning
+  if( low_size < 1 || upp_size < 1 ) return 0 ;
   
   // temporary lists
   char *lower1 = malloc( low_size * base1 ) ;

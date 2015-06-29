@@ -20,7 +20,8 @@ MOMAVG_CFLAGS = -I${TOPDIR}/src/HEADERS/
 MOMAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 
 ## (non-exhaustive) unit test compilation
-UNIT_SOURCES = unit.c contract_tests.c matops_tests.c spinor_tests.c
+UNIT_SOURCES = unit.c contract_tests.c matops_tests.c \
+	spinmatrix_tests.c spinor_tests.c
 UNIT_CFLAGS = -I${TOPDIR}/src/HEADERS/
 UNIT_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 

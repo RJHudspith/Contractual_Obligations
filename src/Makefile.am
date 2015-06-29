@@ -22,6 +22,13 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/read_config.c ./IO/read_headers.c ./IO/read_propheader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
+LINALGFILES=./LINALG/bar_contractions.c \
+	./LINALG/bar_ops.c ./LINALG/bar_ops_SSE.c \
+	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
+	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
+	./LINALG/spinor_ops.c ./LINALG/spinor_ops_SSE.c \
+	./LINALG/spinmatrix_ops.c ./LINALG/spinmatrix_ops_SSE.c
+
 ## c files in ./MEAS/
 MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
@@ -30,13 +37,9 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c
 
 ## c files in ./UTILS/
-UTILSFILES=./UTILS/bar_contractions.c ./UTILS/bar_ops.c ./UTILS/bar_ops_SSE.c \
-	./UTILS/basis_conversions.c ./UTILS/contractions.c \
-	./UTILS/contractions_SSE.c ./UTILS/corr_malloc.c ./UTILS/corr_sort.c \
+UTILSFILES=./UTILS/basis_conversions.c ./UTILS/corr_malloc.c ./UTILS/corr_sort.c \
 	./UTILS/crc32.c ./UTILS/cut_routines.c \
-	./UTILS/GLU_bswap.c ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c \
-	./UTILS/matrix_ops.c ./UTILS/matrix_ops_SSE.c \
-	./UTILS/spinor_ops.c ./UTILS/spinor_ops_SSE.c
+	./UTILS/GLU_bswap.c ./UTILS/GLU_timer.c ./UTILS/gramschmidt.c
 
 ## c files in ./VPF
 VPFFILES=./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c ./VPF/currents.c \
@@ -53,6 +56,7 @@ libCORR_a_SOURCES = \
 	${GEOMFILES} \
 	${FIELDFILES} \
 	${IOFILES} \
+	${LINALGFILES} \
 	${MEASFILES} \
 	${TETRAFILES} \
 	${UTILSFILES} \
@@ -65,6 +69,7 @@ include_HEADERS = \
 	$(GEOMFILES:./GEOMETRY/%.c=./HEADERS/%.h) \
 	$(FIELDFILES:./FIELD/%.c=./HEADERS/%.h) \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
+	$(LINALGFILES:./LINALG/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
 	$(TETRAFILES:./TETRA/%.c=./HEADERS/%.h) \
 	$(UTILSSFILES:./UTILS/%.c=./HEADERS/%.h) \

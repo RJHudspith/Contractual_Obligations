@@ -80,9 +80,6 @@ WME( struct propagator s0 ,
   // flag for whether we switch basis
   GLU_bool NREL_FLAG = GLU_FALSE ;
 
-  // pseudoscalar projection state
-  const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
-
   // allocate our four spinors expecting them to be at 0 and L/2
   if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     goto free_failure ;
@@ -110,6 +107,9 @@ WME( struct propagator s0 ,
       goto free_failure ;
     }
   }
+
+  // pseudoscalar projection state
+  const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
 
   // create a ( 0 , 0 , 0 ) vector list
   NMOM = malloc( sizeof( int ) ) ;

@@ -197,9 +197,6 @@ process_file( int ***momentum ,
   uint32_t LT[ 1 ] ;
   if( FREAD32( LT , 1 , infile ) == FAILURE ) return NULL ;
 
-  Latt.dims[0] = 0 ;
-  Latt.dims[1] = 0 ;
-  Latt.dims[2] = 0 ;
   Latt.dims[ ND - 1 ] = (int)LT[ 0 ] ;
 
   init_geom( ) ;

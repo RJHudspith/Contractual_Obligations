@@ -53,18 +53,6 @@ bilinear_trace_test( void )
   return NULL ;
 }
 
-// computes Tr[ Id * A ] = Tr[ A ]
-static char *
-dirac_trace_test( void )
-{
-  const double complex tr = dirac_trace( GAMMAS[ IDENTITY ] , D ) ;
-  const int sol = NS * ( NSNS - 1 ) / 2 ;
-    mu_assert("[CONTRACT UNIT] error : dirac_trace broken", 
-	    !( fabs( creal( tr ) - sol ) > FTOL ||
-	       fabs( cimag( tr ) - sol ) > FTOL ) ) ;
-  return NULL ;
-}
-
 // sanity check gamma matrices
 static char 
 *gammas_test( void )
@@ -296,7 +284,6 @@ contractions_test( void )
   mu_run_test( gammas_test ) ;
   mu_run_test( adjoint_test ) ;
   mu_run_test( bilinear_trace_test ) ;
-  mu_run_test( dirac_trace_test ) ;
   mu_run_test( gamma_mul_l_test ) ;
   mu_run_test( gamma_mul_r_test ) ;
   mu_run_test( gamma_mul_lr_test ) ;

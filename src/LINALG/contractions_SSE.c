@@ -71,27 +71,6 @@ bilinear_trace( const struct spinor A ,
   return s ;
 }
 
-// computes spintrace :: Tr[ G spinmatrix ]
-double complex
-dirac_trace( const struct gamma G ,
-	     const void *spinmatrix )
-{
-  const __m128d *D = (const __m128d*)spinmatrix ;
-  register __m128d sum = _mm_setzero_pd( ) ;
-  int i ;
-    for( i = 0 ; i < NS ; i++ ) {
-    switch( G.g[i] ) {
-    case 0 : sum = _mm_add_pd( sum , D[ i + G.ig[i] * NS ] ) ; break ;
-    case 1 : sum = _mm_add_pd( sum , SSE2_iMUL( D[ i + G.ig[i] * NS ] ) ) ; break ;
-    case 2 : sum = _mm_add_pd( sum , SSE_FLIP( D[ i + G.ig[i] * NS ] ) ) ; break ;
-    case 3 : sum = _mm_add_pd( sum , SSE2_miMUL( D[ i + G.ig[i] * NS ] ) ) ; break ;
-    }
-  }
-  double complex s ;
-  _mm_store_pd( (void*)&s , sum ) ;
-  return s ;
-}
-
 // computes ( G5 S G5 )^{ \dagger }
 void
 full_adj( struct spinor *__restrict adj ,

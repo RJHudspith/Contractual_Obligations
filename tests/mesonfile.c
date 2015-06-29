@@ -25,6 +25,12 @@ main( const int argc ,
     return -1 ;
   }
 
+  // set geometry to 0
+  int mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    Latt.dims[ mu ] = 0 ;
+  }
+
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
   // allocate the momentum correlator

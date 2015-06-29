@@ -28,16 +28,6 @@ bilinear_trace( const struct spinor A ,
 		const struct spinor B ) ;
 
 /**
-   @fn double complex dirac_trace( const struct gamma G , const void *spinmatrix )
-   @brief computes dirac matrix trace \f$ \text{Tr}\left[ G spinmatix \right]
-   @param G :: gamma matrix
-   @param spinmatrix :: an #NSNS length flattened spinmatrix
- */
-double complex
-dirac_trace( const struct gamma G ,
-	     const void *spinmatrix ) ;
-
-/**
    @fn void full_adj( struct spinor *__restrict adj , const struct spinor S , const struct gamma G5 )
    @brief computes \f$ gamma_5 adj( S ) gamma_5 \f$ , puts result in adj
  */
