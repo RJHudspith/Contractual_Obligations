@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-#include "crc32.h"        // do the crc of the binary data
+#include "crc32c.h"        // do the crc of the binary data
 #include "correlators.h"  // allocate and free corrs
 #include "geometry.h"     // init_geom()
 #include "GLU_bswap.h"    // byte swaps if necessary
@@ -26,9 +26,9 @@ read_corr( double complex *corr ,
   if( must_swap ) bswap_64( L0 * 2 , corr ) ;
 
   // accumulate the checksums
-  DML_checksum_accum( cksuma , cksumb , rank , 
-		      (char*)corr, 
-		      sizeof( double complex ) * L0 ) ;
+  DML_checksum_accum_crc32c( cksuma , cksumb , rank , 
+			     corr , 
+			     sizeof( double complex ) * L0 ) ;
   return SUCCESS ;
 }
 
@@ -91,18 +91,17 @@ read_momcorr( struct mcorr **corr ,
 }
 
 // finds the desired mom
-int
-find_desired_mom( const int **momentum , 
+size_t
+find_desired_mom( const struct veclist *momentum , 
 		  const int *moms , 
 		  const int NMOM )
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NMOM ; i++ ) {
-    int mu , matches = 0 ;
-    for( mu = 0 ; mu < ND - 1 ; mu++ ) {
-      if( momentum[ i ][ mu ] == moms[ mu ] ) {
-	matches++ ;
-      }
+    size_t mu , matches = 0 ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      if( momentum[ i ].MOM[ mu ] != moms[ mu ] ) break ;
+      matches++ ;
     }
     if( matches == ND-1 ) return i ;
   }
@@ -111,7 +110,7 @@ find_desired_mom( const int **momentum ,
 
 // this is for you, Anthony
 void
-write_momlist( const int **momentum ,
+write_momlist( const struct veclist *momentum ,
 	       const int NMOM )
 {
   int p ;
@@ -120,7 +119,7 @@ write_momlist( const int **momentum ,
     int mu ;
     printf( "[MOMS] %d :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      printf( " %d " , momentum[ p ][ mu ] ) ;
+      printf( " %d " , momentum[ p ].MOM[ mu ]  ) ;
     }
     printf( ") \n" ) ;
   }
@@ -130,7 +129,7 @@ write_momlist( const int **momentum ,
 
 // allocates and packs mcorr array
 struct mcorr**
-process_file( int ***momentum ,
+process_file( struct veclist **momentum ,
 	      FILE *infile ,
 	      uint32_t NGSRC[1] ,
 	      uint32_t NGSNK[1] ,
@@ -163,24 +162,26 @@ process_file( int ***momentum ,
   // read the length of the momentum list
   if( FREAD32( NMOM , 1 , infile ) == FAILURE ) return NULL ;
 
-  *momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
+  *momentum = malloc( NMOM[0] * sizeof( struct veclist ) ) ;
 
   GLU_bool failure = GLU_FALSE ;
-  int p ;
+  size_t p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
     uint32_t n[ ND ] ;
     if( FREAD32( n , ND , infile ) == FAILURE ) failure = GLU_TRUE ;
-    (*momentum)[ p ] = malloc( ( ND - 1 ) * sizeof( int ) ) ;
     if( n[ 0 ] != ND-1 ) {
       printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
       failure = GLU_TRUE ;
     }
-    int mu ;
+    size_t mu ;
+    (*momentum)[ p ].nsq = 0 ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      (*momentum)[ p ][ mu ] = (int)n[ 1 + mu ] ;
+      (*momentum)[ p ].MOM[ mu ] = (int)n[ 1 + mu ] ;
+      (*momentum)[ p ].nsq += n[ 1 + mu ] * n[ 1 + mu ] ;
     }
   }
   if( failure == GLU_TRUE ) return NULL ;
+  printf( "MOMLIST DID \n" ) ;
 
   // read in the momentum list size again 
   uint32_t TNMOM[ 1 ] ;

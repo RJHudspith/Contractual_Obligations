@@ -7,6 +7,7 @@
 #include "correlators.h" // free_momcorr()
 #include "reader.h"      // process_file()
 
+// lattice geometry information
 struct latt_info Latt ;
 
 // little code for accessing elements of our correlator files
@@ -26,7 +27,7 @@ main( const int argc ,
   }
 
   // set geometry to 0
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     Latt.dims[ mu ] = 0 ;
   }
@@ -35,18 +36,18 @@ main( const int argc ,
 
   // allocate the momentum correlator
   struct mcorr **corr = NULL ;
-  int **momentum = NULL ;
+  struct veclist *momentum = NULL ;
 
   // number of correlators printed to stdout
   int corrs_written = 0 ;
 
-  corr = process_file( &momentum , infile ,
-		       NGSRC , NGSNK , NMOM ) ;
+  // read in the file and pack our structs
+  corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
   
   if( corr == NULL ) goto memfree ;
 
   // loop the ones we want
-  int i ;
+  size_t i ;
   for( i = 2 ; i < ( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
@@ -80,21 +81,22 @@ main( const int argc ,
     printf( ") \n" ) ;
 
     // find the correlator in the list
-    const int matchmom = find_desired_mom( (const int**)momentum , moms , 
-					   (int)NMOM[0] ) ;
+    const size_t matchmom = find_desired_mom( momentum , moms , 
+					      (int)NMOM[0] ) ;
     if( matchmom == FAILURE ) {
       printf( "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
       break ;
     }
 
-    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ][ 0 ] ,
-	    momentum[ matchmom ][ 1 ] ,  momentum[ matchmom ][ 2 ] ) ;
+    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[0] ,
+	    momentum[ matchmom ].MOM[1] ,  momentum[ matchmom ].MOM[2] ) ;
 
     printf( "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
 	    idx1 , idx2 ) ;
-    int t ;
+
+    size_t t ;
     for( t = 0 ; t < L0 ; t++ ) {
-      printf( "CORR %d %1.12e %1.12e\n" , t ,
+      printf( "CORR %zu %1.12e %1.12e\n" , t ,
 	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
     }
@@ -106,7 +108,7 @@ main( const int argc ,
   // if we don't have a match or didn't specify gammas give the momentum
   // list as an option
   if( corrs_written == 0 ) {
-    write_momlist( (const int **)momentum , NMOM[ 0 ] ) ;
+    write_momlist( momentum , NMOM[ 0 ] ) ;
   }
 
  memfree :
@@ -115,10 +117,6 @@ main( const int argc ,
   free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
   // free the momentum list
-  int p ;
-  for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
-    free( momentum[ p ] ) ;
-  }
   free( momentum ) ;
 
   fclose( infile ) ;

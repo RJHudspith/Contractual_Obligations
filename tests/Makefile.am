@@ -15,7 +15,7 @@ MESONS_CFLAGS = -I${TOPDIR}/src/HEADERS/
 MESONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 
 ## momentum average reader
-MOMAVG_SOURCES = momavg.c
+MOMAVG_SOURCES = momavg.c reader.c
 MOMAVG_CFLAGS = -I${TOPDIR}/src/HEADERS/
 MOMAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 

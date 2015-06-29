@@ -51,7 +51,8 @@ compute_pslash( void *pslash ,
     size_t d , j ;
     for( d = 0 ; d < NS ; d++ ) {
       for( j = 0 ; j < NS ; j++ ) {
-	tmp1[ j + d*NS ] = ( d == j ) ? p[mu] : 0.0 ; 
+	tmp1[ j + d*NS ] = ( d == j ) ? _mm_setr_pd( p[mu] , 0.0 ) :\
+	  _mm_setzero_pd( ) ; 
       }
     }
     // multiply and add

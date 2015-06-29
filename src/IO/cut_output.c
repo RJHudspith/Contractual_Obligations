@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-#include "crc32.h"        // crc 
+#include "crc32c.h"        // crc 
 
 // Write the gluonic two point function to the file Ap
 static void
@@ -19,8 +19,8 @@ write_binary( FILE *__restrict Ap ,
   int i ;
   for( i = 0 ; i < NMOM[0] ; i++ ) {
     fwrite( g2 + i , sizeof(double) , 1 , Ap ) ;
-    DML_checksum_accum( &cksuma , &cksumb , i , 
-			(char*)( g2 + i ) , sizeof( double  ) ) ;
+    DML_checksum_accum_crc32c( &cksuma , &cksumb , i , 
+			       (void*)( g2 + i ) , sizeof( double  ) ) ;
   }
   const uint32_t csum[ 2 ] = { cksuma , cksumb } ;
   fwrite( csum , sizeof( uint32_t ) , 2 , Ap ) ;

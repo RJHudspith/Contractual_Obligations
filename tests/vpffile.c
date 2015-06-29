@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-#include "crc32.h"        // do the crc of the binary data
+#include "crc32c.h"       // do the crc of the binary data
 #include "correlators.h"  // allocate and free corrs
 #include "geometry.h"     // init_geom()
 #include "GLU_bswap.h"    // byte swaps if necessary
@@ -27,8 +27,8 @@ read_data( double *PIdata ,
   uint32_t cksuma = 0 , cksumb = 0 ;
   int p ;
   for( p = 0 ; p < NMOM ; p++ ) {
-    DML_checksum_accum( &cksuma , &cksumb , p , 
-			(char*)( PIdata + p ) , sizeof( double ) ) ;
+    DML_checksum_accum_crc32c( &cksuma , &cksumb , p , 
+			       PIdata + p , sizeof( double ) ) ;
   }
   uint32_t cksum[ 2 ] ;
   if( fread( cksum , sizeof( uint32_t ) , 2 , infile ) != 2 ) {

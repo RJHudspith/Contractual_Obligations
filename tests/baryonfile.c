@@ -146,7 +146,7 @@ spinthreehalf_project( double complex *D ,
 double complex*
 baryon_project( const struct mcorr **corr ,
 		const struct gamma *GAMMA ,
-		const int **momentum ,
+		const struct veclist *momentum ,
 		const size_t GSRC ,
 		const size_t GSNK ,
 		const size_t p ,
@@ -232,7 +232,7 @@ main( const int argc ,
   // structs
   struct gamma *GAMMAS = NULL ;
   struct mcorr **corr = NULL ;
-  int **momentum = NULL ;
+  struct veclist *momentum = NULL ;
 
   // set the basis
   proptype basis = CHIRAL ;
@@ -325,28 +325,29 @@ main( const int argc ,
     printf( ") \n" ) ;
 
     // find the correlator in the list
-    const int matchmom = find_desired_mom( (const int**)momentum , moms , 
+    const int matchmom = find_desired_mom( momentum , moms , 
 					   (int)NMOM[0] ) ;
     if( matchmom == FAILURE ) {
       printf( "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
       break ;
     }
 
-    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ][ 0 ] ,
-	    momentum[ matchmom ][ 1 ] ,  momentum[ matchmom ][ 2 ] ) ;
+    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[ 0 ] ,
+	    momentum[ matchmom ].MOM[ 1 ] ,  momentum[ matchmom ].MOM[ 2 ] ) ;
 
     printf( "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
 	    idx1 , idx2 ) ;
 
     // do the projection
     const double complex *C = baryon_project( (const struct mcorr**)corr , 
-					      GAMMAS , (const int**)momentum ,
+					      GAMMAS , 
+					      momentum ,
 					      idx1 , idx2 , matchmom ,
 					      projection ) ;
     
-    int t ;
+    size_t t ;
     for( t = 0 ; t < L0 ; t++ ) {
-      printf( "CORR %d %1.12e %1.12e\n" , t ,
+      printf( "CORR %zu %1.12e %1.12e\n" , t ,
 	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
     }
@@ -360,7 +361,7 @@ main( const int argc ,
   // if we don't have a match or didn't specify gammas give the momentum
   // list as an option
   if( corrs_written == 0 ) {
-    write_momlist( (const int **)momentum , NMOM[ 0 ] ) ;
+    write_momlist( momentum , NMOM[ 0 ] ) ;
   }
 
  memfree :
@@ -372,10 +373,6 @@ main( const int argc ,
   free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
   // free the momentum list
-  size_t p ;
-  for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
-    free( momentum[ p ] ) ;
-  }
   free( momentum ) ;
 
   fclose( infile ) ;

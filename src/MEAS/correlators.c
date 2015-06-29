@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-#include "crc32.h"        // crc 
+#include "crc32c.h"       // crc 
 #include "correlators.h"  // so that I can alphabetise
 #include "cut_output.h"   // for write_mom_veclist
 
@@ -29,13 +29,11 @@ allocate_momcorrs( const int length1 ,
 		   const int nmom )
 {
   struct mcorr **mcorr = malloc( length1 * sizeof( struct mcorr* ) ) ;
-  int i ;
+  size_t i , j , p ;
   for( i = 0 ; i < length1 ; i++ ) {
     mcorr[ i ] = malloc( length2 * sizeof( struct mcorr ) ) ;
-    int j ;
     for( j = 0 ; j < length2 ; j++ ) {
       mcorr[ i ][ j ].mom = malloc( nmom * sizeof( struct correlator ) ) ;
-      int p ;
       for( p = 0 ; p < nmom ; p++ ) {
 	mcorr[ i ][ j ].mom[ p ].C = malloc( L0 * sizeof( double complex ) ) ;
       }
@@ -191,10 +189,11 @@ write_momcorr( const char *outfile ,
       for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
 	fwrite( LT , sizeof( uint32_t ) , 1 , output_file ) ;
 	fwrite( corr[GSRC][GSNK].mom[p].C , sizeof( double complex ) , L0 , output_file ) ; 
-	// accumulate a checksum
-	DML_checksum_accum( &cksuma , &cksumb , GSNK + NSNK * GSRC , 
-			    (char*)corr[GSRC][GSNK].mom[p].C , 
-			    sizeof( double complex ) * L0 ) ;
+	// accumulate the newer, fancier checksum
+	DML_checksum_accum_crc32c( &cksuma , &cksumb ,
+				   GSNK + NSNK * GSRC , 
+				   corr[GSRC][GSNK].mom[p].C , 
+				   sizeof( double complex ) * L0 ) ;
       }
     }
   }
