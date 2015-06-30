@@ -5,7 +5,7 @@ BUILDDIR=@top_builddir@
 bin_PROGRAMS = BARYONS MESONS MOMAVG UNIT VPFREAD
 
 ## meson reader
-BARYONS_SOURCES = baryonfile.c reader.c
+BARYONS_SOURCES = baryonfile.c reader.c baryon_projections.c
 BARYONS_CFLAGS = -I${TOPDIR}/src/HEADERS/ 
 BARYONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 

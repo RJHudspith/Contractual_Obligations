@@ -98,6 +98,20 @@ gammaspinmatrix_trace( const struct gamma G ,
   return sum ;
 }
 
+// set the spinmatrix to the identity
+void
+identity_spinmatrix( void *spinmatrix )
+{
+  double complex *s = (double complex*)spinmatrix ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      *s = ( i != j ) ? 0.0 : 1.0 ; s++ ;
+    }
+  }
+  return ;
+}
+
 // right multiply a spinmatrix by a gamma G
 void
 spinmatrix_gamma( void *spinmatrix ,
@@ -105,7 +119,7 @@ spinmatrix_gamma( void *spinmatrix ,
 {
   double complex r[ NSNS ] ; // temporary space
   double complex *d = (double complex*)spinmatrix ;
-  int i , j ;
+  size_t i , j ;
   // loop columns of src
   for( j = 0 ; j < NS ; j++ ) {
     const int col = G.ig[j] ;
@@ -175,6 +189,18 @@ spinmatrix_trace( const void *spinmatrix )
     sum += s[ i * ( NS + 1 ) ] ;
   }
   return sum ;
+}
+
+// zero a spinmatrix
+void
+zero_spinmatrix( void *spinmatrix )
+{
+  double complex *s = (double complex*)spinmatrix ;
+  size_t i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = 0.0 , s++ ;
+  }
+  return ;
 }
 
 #endif

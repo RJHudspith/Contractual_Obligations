@@ -15,28 +15,15 @@ static double complex *C = NULL ;
 
 #define FTOL ( NC * 1.E-14 ) 
 
-static void
-identity_spinmatrix( void *a )
-{
-  double complex *A = (double complex*)a ;
-   int i , j ;
-  for( i = 0 ; i < NS ; i++ ) {
-    for( j = 0 ; j < NS ; j++ ) {
-      A[ j + i * NS ] = ( i != j ) ? 0.0 : 1.0 ;
-    }
-  } 
-  return ;
-}
-
 // add spinmatrix test
-static char
-*atomic_add_spinmatrices_test( void )
+static char*
+atomic_add_spinmatrices_test( void )
 {
   // set C to be the identity
   identity_spinmatrix( C ) ;
   atomic_add_spinmatrices( C , D ) ;
   // check that C = 1 + D
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NS ; i++ ) {
     for( j = 0 ; j < NS ; j++ ) {
       mu_assert( "[UNIT] error : spinmatrix ops atomic_add_spinmatrices broken " , 
@@ -50,13 +37,13 @@ static char
 }
 
 // gamma spinmatrix test, multiply by identity?
-static char
-*gamma_spinmatrix_test( void )
+static char*
+gamma_spinmatrix_test( void )
 {
   // set c to d and multiply c by identity
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
   gamma_spinmatrix( C , GAMMA[ IDENTITY ] ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
     mu_assert( "[UNIT] error : spinmatrix ops gamma_spinmatrix broken " , 
 	       !( cabs( C[ i ] - D[ i ] ) > FTOL ) ) ;
@@ -65,8 +52,8 @@ static char
 }
 
 // gammaspin_trace test
-static char
-*gammaspinmatrix_trace_test( void )
+static char*
+gammaspinmatrix_trace_test( void )
 {
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
   // direct trace of the product
@@ -83,14 +70,25 @@ static char
   return NULL ;
 }
 
+// trace should be NS
+static char*
+identity_spinmatrix_test( void )
+{
+  identity_spinmatrix( C ) ;
+  const double complex tr = spinmatrix_trace( C ) ;
+  mu_assert( "[UNIT] error : spinmatrix ops identity_spinmatrix broken " , 
+	     !( cabs( tr - NS ) > FTOL ) ) ;
+  return NULL ;
+}
+
 // spinmatrix gamma test, multiply by identity?
-static char
-*spinmatrix_gamma_test( void )
+static char*
+spinmatrix_gamma_test( void )
 {
   // set c to d and multiply c by identity
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
   spinmatrix_gamma( C , GAMMA[ IDENTITY ] ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
     mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_gamma broken " , 
 	       !( cabs( C[ i ] - D[ i ] ) > FTOL ) ) ;
@@ -99,12 +97,12 @@ static char
 }
 
 // multiply by zero test
-static char
-*spinmatrix_mulconst_test( void )
+static char*
+spinmatrix_mulconst_test( void )
 {
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
   spinmatrix_mulconst( C , 0.0 ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
     mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_mulconst broken " , 
 	       !( cabs( C[ i ] ) > FTOL ) ) ;
@@ -113,13 +111,13 @@ static char
 }
 
 // multiply
-static char
-*spinmatrix_multiply_test( void )
+static char*
+spinmatrix_multiply_test( void )
 {
   identity_spinmatrix( C ) ;
   double complex A[ NSNS ] ;
   spinmatrix_multiply( A , C , D ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
     mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_multiply broken " , 
 	       !( cabs( A[i] - D[i] ) > FTOL ) ) ;
@@ -128,14 +126,27 @@ static char
 }
 
 // trace test uses an identity
-static char
-*spinmatrix_trace_test( void )
+static char*
+spinmatrix_trace_test( void )
 {
   const double complex tr = spinmatrix_trace( D ) ;
   const int sol = NS * ( NSNS - 1 ) / 2 ;
   mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_trace broken " , 
 	     !( fabs( creal( tr ) - sol ) > FTOL || 
 		fabs( cimag( tr ) - sol ) > FTOL ) ) ;
+  return NULL ;
+}
+
+// test if we can zero an array
+static char*
+zero_spinmatrix_test( void )
+{
+  zero_spinmatrix( C ) ;
+  size_t i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    mu_assert( "[UNIT] error : spinmatrix ops zero_spinmatrix broken " , 
+	       !( cabs( C[i] ) > FTOL ) ) ;
+  }
   return NULL ;
 }
 
@@ -151,12 +162,15 @@ spinmatrices_test( void )
   }
 
   // run spinmatrix ops tests
-  mu_run_test( atomic_add_spinmatrices_test ) ;
   mu_run_test( gamma_spinmatrix_test ) ;
+  mu_run_test( identity_spinmatrix_test ) ;
+  mu_run_test( atomic_add_spinmatrices_test ) ;
   mu_run_test( spinmatrix_gamma_test ) ;
   mu_run_test( spinmatrix_mulconst_test ) ;
   mu_run_test( spinmatrix_multiply_test ) ;
   mu_run_test( spinmatrix_trace_test ) ;
+  mu_run_test( zero_spinmatrix_test ) ;
+
   // relies on spinmatrix multiply and spinmatrix trace
   mu_run_test( gammaspinmatrix_trace_test ) ;
 

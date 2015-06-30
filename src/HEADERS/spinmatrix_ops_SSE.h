@@ -42,6 +42,13 @@ gammaspinmatrix_trace( const struct gamma G ,
 		       const void *spinmatrix ) ;
 
 /**
+   @fn void identity_spinmatrix( void *spinmatrix )
+   @brief set spinmatrix to the identity
+ */
+void
+identity_spinmatrix( void *spinmatrix ) ;
+
+/**
    @fn void spinmatrix_gamma( void *spinmatrix , const struct gamma G ) 
    @brief right multiply by a gamma, res = spinmatrix * G
  */
@@ -73,6 +80,13 @@ spinmatrix_mulconst( void *spinmatrix ,
  */
 double complex
 spinmatrix_trace( const void *spinmatrix ) ;
+
+/**
+   @fn void zero_spinmatrix( void *spinmatrix )
+   @brief zero a spinmatrix
+ */
+void
+zero_spinmatrix( void *spinmatrix ) ;
 
 #endif
 

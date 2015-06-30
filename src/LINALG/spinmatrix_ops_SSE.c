@@ -128,6 +128,21 @@ gammaspinmatrix_trace( const struct gamma G ,
   return csum ;
 }
 
+// set spinmatrix to the identity
+void 
+identity_spinmatrix( void *spinmatrix )
+{
+  __m128d *s = (__m128d*)spinmatrix ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      *s = ( i != j ) ? _mm_setzero_pd() : \
+	_mm_setr_pd( 1.0 , 0.0 ) ; s++ ;
+    }
+  }
+  return ;
+}
+
 // right multiply a spinmatrix by a gamma G
 void
 spinmatrix_gamma( void *spinmatrix ,
@@ -240,6 +255,18 @@ spinmatrix_trace( const void *spinmatrix )
   double complex csum ;
   _mm_store_pd( (void*)&csum , sum ) ;
   return csum ;
+}
+
+// set spinmatrix to zero
+void
+zero_spinmatrix( void *spinmatrix )
+{
+  __m128d *s = (__m128d*)spinmatrix ;
+  size_t i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    *s = _mm_setzero_pd( ) , s++ ;
+  }
+  return ;
 }
 
 #endif
