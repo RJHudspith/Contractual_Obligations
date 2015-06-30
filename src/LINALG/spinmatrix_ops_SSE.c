@@ -190,17 +190,23 @@ spinmatrix_multiply( void *a ,
   __m128d *A = (__m128d*)a ;
   const __m128d *B = (const __m128d*)b ;
   const __m128d *C = (const __m128d*)c ;
-  size_t i , j ;
   register __m128d sum ;
+  size_t i , j ;
+#if NS == 4
+  register __m128d a0 , a1 , a2 , a3 ;
+#endif
   for( i = 0 ; i < NS ; i++ ) {
+    #if NS == 4
+    a0 = *B++ ; a1 = *B++ ; a2 = *B++ ; a3 = *B++ ;
+    #endif
     for( j = 0 ; j < NS ; j++ ) {
-      sum = _mm_setzero_pd( ) ;
       #if NS == 4
-      sum = _mm_add_pd( sum , SSE2_MUL( B[ 0 + i * NS ] , C[ j ] ) );
-      sum = _mm_add_pd( sum , SSE2_MUL( B[ 1 + i * NS ] , C[ j + 1 * NS ] ) );
-      sum = _mm_add_pd( sum , SSE2_MUL( B[ 2 + i * NS ] , C[ j + 2 * NS ] ) );
-      sum = _mm_add_pd( sum , SSE2_MUL( B[ 3 + i * NS ] , C[ j + 3 * NS ] ) );
+      sum = SSE2_MUL( a0 , C[ j ] ) ;
+      sum = _mm_add_pd( sum , SSE2_MUL( a1 , C[ j + 1 * NS ] ) );
+      sum = _mm_add_pd( sum , SSE2_MUL( a2 , C[ j + 2 * NS ] ) );
+      sum = _mm_add_pd( sum , SSE2_MUL( a3 , C[ j + 3 * NS ] ) );
       #else
+      sum = _mm_setzero_pd( ) ;
       size_t m ;
       for( m = 0 ; m < NS ; m++  ) {
 	sum = _mm_add_pd( sum , SSE2_MUL( B[ m + i * NS ] , C[ j + m * NS ] ) );
