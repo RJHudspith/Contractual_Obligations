@@ -107,13 +107,16 @@ mesons_diagonal( struct propagator prop ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
 
     // compute wall-wall sum
     struct spinor SUM1 ;
     if( prop.source == WALL ) {
       sumprop( &SUM1 , S1 ) ;
     }
+    
+    // for multiple time sources
+    const size_t tshifted = ( t - prop.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT (if available) in parallel
     int GSGK = 0 ;
@@ -122,7 +125,7 @@ mesons_diagonal( struct propagator prop ,
     {
       #pragma omp master
       {
-	if( t < ( L0 - 1 ) ) {
+	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop , S1f ) == FAILURE ) {
 	    error_flag = FAILURE ;
 	  }
@@ -145,9 +148,9 @@ mesons_diagonal( struct propagator prop ,
 	// fft forward
 	fftw_execute( forward[ GSGK ] ) ;
 	// pack our struct
-	int p ;
+	size_t p ;
 	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  disp[ GSRC ][ GSNK ].mom[ p ].C[ t ] = out[ GSGK ][ list[ p ].idx ] ;
+	  disp[ GSRC ][ GSNK ].mom[ p ].C[ tshifted ] = out[ GSGK ][ list[ p ].idx ] ;
 	}
 	#else
 	// non - fftw version falls back to the usual zero-momentum sum
@@ -157,12 +160,12 @@ mesons_diagonal( struct propagator prop ,
 				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
-	disp[ GSRC ][ GSNK ].mom[ 0 ].C[ t ] = sum ;
+	disp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = sum ;
 	#endif
 
 	// correlator computed just out of the summed walls
 	if( prop.source == WALL ) {
-	  wwdisp[ GSRC ][ GSNK ].mom[0].C[ t ] =	\
+	  wwdisp[ GSRC ][ GSNK ].mom[0].C[ tshifted ] =	\
 	    meson_contract( GAMMAS[ GSNK ] , SUM1 , 
 			    GAMMAS[ GSRC ] , SUM1 ,
 			    GAMMAS[ GAMMA_5 ] ) ;
@@ -182,7 +185,7 @@ mesons_diagonal( struct propagator prop ,
     }
 
     // status of the computation
-    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

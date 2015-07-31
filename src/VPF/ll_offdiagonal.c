@@ -69,13 +69,16 @@ ll_offdiagonal( struct propagator prop1 ,
 
   // loop the timeslices
   int t , x ;
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
+
+    // multiple time source support
+    const size_t tshifted = ( t + LT - prop1.origin[ ND-1 ] ) % LT ;
 
     // do the conserved-local contractions
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
-      if( t < L0-1 ) {
+      if( t < LT-1 ) {
       #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
@@ -93,7 +96,8 @@ ll_offdiagonal( struct propagator prop1 ,
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {
 	contract_local_local_site( DATA_AA , DATA_VV , S1 , S2 , 
-				   GAMMAS , AGMAP , VGMAP , x , t ) ;
+				   GAMMAS , AGMAP , VGMAP , x , 
+				   tshifted ) ;
       }
     }
 
@@ -111,7 +115,7 @@ ll_offdiagonal( struct propagator prop1 ,
 
     // status
     printf("\r[VPF] ll-flavour diagonal done %.f %%", 
-	   (t+1)/((L0)/100.) ) ; 
+	   (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

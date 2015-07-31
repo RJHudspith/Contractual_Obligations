@@ -7,7 +7,7 @@
 
 /**
    @fn struct mcorr **allocate_momcorrs( const int length1 , const int length2 , const int nmom )
-   @brief allocate Corr[length1][length2].mom[ nmom ].C[ #L0 ] correlation function
+   @brief allocate Corr[length1][length2].mom[ nmom ].C[ #LT ] correlation function
  */
 struct mcorr **
 allocate_momcorrs( const int length1 , 

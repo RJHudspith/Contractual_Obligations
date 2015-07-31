@@ -62,7 +62,10 @@ ll_diagonal( struct propagator prop ,
 
   // loop the timeslices
   int t , x ;
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
+
+    // multiple time source support
+    const size_t tshifted = ( t + LT - prop.origin[ ND-1 ] ) % LT ;
 
     // do the conserved-local contractions
     int error_flag = SUCCESS ;
@@ -70,7 +73,7 @@ ll_diagonal( struct propagator prop ,
     {
       #pragma omp master
       {
-	if( t < L0-1 ) {
+	if( t < LT-1 ) {
 	  if( read_prop( prop , S1f ) == FAILURE ) {
 	    error_flag = FAILURE ;
 	  }
@@ -79,7 +82,8 @@ ll_diagonal( struct propagator prop ,
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {
 	contract_local_local_site( DATA_AA , DATA_VV , S1 , S1 , 
-				   GAMMAS , AGMAP , VGMAP , x , t ) ;
+				   GAMMAS , AGMAP , VGMAP , x , 
+				   tshifted ) ;
       }
     }
 
@@ -96,7 +100,7 @@ ll_diagonal( struct propagator prop ,
 
     // status
     printf("\r[VPF] ll-flavour diagonal done %.f %%", 
-	   (t+1)/((L0)/100.) ) ; 
+	   (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

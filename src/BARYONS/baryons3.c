@@ -140,7 +140,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
     
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     if( prop1.basis == CHIRAL && ( prop2.basis == NREL || prop3.basis == NREL ) ) {
@@ -161,12 +161,15 @@ baryons_3fdiagonal( struct propagator prop1 ,
       sumprop( &SUM3 , S3 ) ;
     }
 
+    // multiple time source support
+    const size_t tshifted = ( t + LT - prop1.origin[ND-1] ) % LT ;
+
     // strange memory access pattern threads better than what was here before
     int site ;
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
-      if( t < ( L0 - 1 ) ) {
+      if( t < ( LT - 1 ) ) {
          #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
@@ -217,14 +220,14 @@ baryons_3fdiagonal( struct propagator prop1 ,
       // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
 	baryon_contract_walls( Buud_corrWW , Buuu_corrWW , Buds_corrWW ,
-			       SUM1 , SUM2 , SUM3 , GAMMAS , t ) ;
+			       SUM1 , SUM2 , SUM3 , GAMMAS , tshifted ) ;
       }
     }
 
     // momentum projection 
     baryon_momentum_project( Buud_corr , Buuu_corr , Buds_corr ,
 			     in , out , forward , backward ,
-			     list , NMOM , t ) ;
+			     list , NMOM , tshifted ) ;
 
     // if we error we leave
     if( error_flag == FAILURE ) {
@@ -241,7 +244,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf("\r[BARYONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[BARYONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

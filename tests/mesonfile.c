@@ -95,7 +95,7 @@ main( const int argc ,
 	    idx1 , idx2 ) ;
 
     size_t t ;
-    for( t = 0 ; t < L0 ; t++ ) {
+    for( t = 0 ; t < LT ; t++ ) {
       printf( "CORR %zu %1.12e %1.12e\n" , t ,
 	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;

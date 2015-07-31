@@ -9,6 +9,27 @@
 #include "baryons2.h"  // 2 the same, 1 different
 #include "baryons3.h"  // 3 different quarks in contraction
 
+// make sure we have the same source origins
+static int
+check_origins( struct propagator p1 ,
+	       struct propagator p2 ,
+	       struct propagator p3 )
+{
+  int mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    if( ( p1.origin[ mu ] != p2.origin[ mu ] ) || 
+	( p1.origin[ mu ] != p3.origin[ mu ] ) ||
+	( p2.origin[ mu ] != p3.origin[ mu ] ) ) {
+      printf( "[BARYONS] contraction of mesons with unequal origins"
+	      "%d vs %d vs. %d ( index %d ) " , 
+	      p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , 
+	      mu ) ;
+      return FAILURE ;
+    }
+  }
+  return SUCCESS ;
+}
+
 // placeholder for when we do the baryons
 int
 contract_baryons( struct propagator *prop ,
@@ -38,6 +59,9 @@ contract_baryons( struct propagator *prop ,
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
 	return FAILURE ;
       }
+      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p3 ] ) == FAILURE ) {
+	return FAILURE ;
+      }
       if( baryons_2fdiagonal( prop[ p1 ] , prop[ p3 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -47,6 +71,9 @@ contract_baryons( struct propagator *prop ,
     } else if( p1 == p3 && p3 != p2 ) {
       if( prop[ p1 ].source != prop[ p2 ].source ) {
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
+      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
 	return FAILURE ;
       }
       if( baryons_2fdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
@@ -60,6 +87,9 @@ contract_baryons( struct propagator *prop ,
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
 	return FAILURE ;
       }
+      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
+	return FAILURE ;
+      }
       if( baryons_2fdiagonal( prop[ p2 ] , prop[ p1 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -71,6 +101,9 @@ contract_baryons( struct propagator *prop ,
 	  prop[ p1 ].source != prop[ p3 ].source ||
 	  prop[ p2 ].source != prop[ p3 ].source ) {
 	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	return FAILURE ;
+      }
+      if( check_origins( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {
 	return FAILURE ;
       }
       if( baryons_3fdiagonal( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ,

@@ -20,12 +20,12 @@ DFT( struct PIdata *cpAA ,
      const struct mcorr **ctAA ,
      const struct mcorr **ctVV )
 {
-  struct veclist *list = malloc( L0 * sizeof( struct veclist ) ) ;
+  struct veclist *list = malloc( LT * sizeof( struct veclist ) ) ;
 
-  const int lt_2 = L0 >> 1 ;
+  const int lt_2 = LT >> 1 ;
   int pt = 0 ;
 #pragma omp parallel for private( pt ) 
-  for( pt = 0 ; pt < L0 ; pt++ ) {
+  for( pt = 0 ; pt < LT ; pt++ ) {
  
     // set up the veclist
     int mu , nu ;
@@ -33,14 +33,14 @@ DFT( struct PIdata *cpAA ,
       list[ pt ].MOM[ mu ] = 0 ;
     }
     // equivalent Fourier modes in the -Pi -> Pi BZ
-    list[ pt ].MOM[ ND-1 ] = pt > ( lt_2 - 1 ) ? -L0 + pt : pt ;
+    list[ pt ].MOM[ ND-1 ] = pt > ( lt_2 - 1 ) ? -LT + pt : pt ;
     list[ pt ].idx = pt ;
 
     // precompute all the twiddles along the t-direction
-    double complex twiddles[ L0 ] ;
+    double complex twiddles[ LT ] ;
     int t ;
     double cache = 0.0 ;
-    for( t = 0 ; t < L0 ; t++ ) {
+    for( t = 0 ; t < LT ; t++ ) {
       cache = ( ( pt ) * t * Latt.twiddles[ ND-1 ] ) ;
       twiddles[ t ] = cos( cache ) - I * sin( cache ) ;
     }
@@ -50,7 +50,7 @@ DFT( struct PIdata *cpAA ,
       for( nu = 0 ; nu < ND ; nu++ ) {
 	register double complex sumAA = 0.0 ;
 	register double complex sumVV = 0.0 ;
-	for( t = 0 ; t < L0 ; t++ ) {
+	for( t = 0 ; t < LT ; t++ ) {
 	  sumAA += twiddles[ t ] * ctAA[ mu ][ nu ].mom[ 0 ].C[ t ] ;
 	  sumVV += twiddles[ t ] * ctVV[ mu ][ nu ].mom[ 0 ].C[ t ] ;
 	}
@@ -72,7 +72,7 @@ spatialzero_DFT( struct mcorr **corr ,
   // do the 0 spatial momentum sum first
   int t ;
 #pragma omp parallel for private(t)
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
     int mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {
@@ -127,8 +127,8 @@ tmoments( const struct PIdata *AA ,
 		 tlist , ND , ND , tNMOM ) ;
 
   // storage for the momentum-space data
-  struct PIdata *cpAA = malloc( L0 * sizeof( struct PIdata ) ) ;
-  struct PIdata *cpVV = malloc( L0 * sizeof( struct PIdata ) ) ;
+  struct PIdata *cpAA = malloc( LT * sizeof( struct PIdata ) ) ;
+  struct PIdata *cpVV = malloc( LT * sizeof( struct PIdata ) ) ;
 
   // we now have a correlator C(t) which we Fourier transform
   // in the t-direction
@@ -136,7 +136,7 @@ tmoments( const struct PIdata *AA ,
 				    (const struct mcorr**)ctAA , 
 				    (const struct mcorr**)ctVV ) ;
 
-  const int NMOM[ 1 ] = { L0 } ;
+  const int NMOM[ 1 ] = { LT } ;
 
   // free the temporal correlators now
   free_momcorrs( ctAA , ND , ND , tNMOM[0] ) ;

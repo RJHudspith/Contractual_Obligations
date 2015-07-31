@@ -20,15 +20,15 @@ read_corr( double complex *corr ,
 	   FILE *infile ,
 	   const int rank )
 {
-  if( fread( corr , sizeof( double complex ) , L0 , infile ) != L0 ) {
+  if( fread( corr , sizeof( double complex ) , LT , infile ) != LT ) {
     return FAILURE ;
   }
-  if( must_swap ) bswap_64( L0 * 2 , corr ) ;
+  if( must_swap ) bswap_64( LT * 2 , corr ) ;
 
   // accumulate the checksums
   DML_checksum_accum_crc32c( cksuma , cksumb , rank , 
 			     corr , 
-			     sizeof( double complex ) * L0 ) ;
+			     sizeof( double complex ) * LT ) ;
   return SUCCESS ;
 }
 
@@ -51,7 +51,7 @@ read_momcorr( struct mcorr **corr ,
 	      uint32_t *cksumb ,
 	      const uint32_t NGSRC[ 1 ] ,
 	      const uint32_t NGSNK[ 1 ] ,
-	      const uint32_t LT[ 1 ] ,
+	      const uint32_t L0[ 1 ] ,
 	      const int p )
 {
   if( p != 0 ) {
@@ -59,7 +59,7 @@ read_momcorr( struct mcorr **corr ,
     if( FREAD32( tNGSRC , 1 , infile ) == FAILURE ) return FAILURE ;
     if( FREAD32( tNGSNK , 1 , infile ) == FAILURE ) return FAILURE ;
     if( FREAD32( tLT , 1 , infile ) == FAILURE ) return FAILURE ;
-    if( tNGSRC[ 0 ] != NGSRC[ 0 ] || tNGSNK[ 0 ] != NGSNK[ 0 ] || tLT[ 0 ] != LT[ 0 ] ) {
+    if( tNGSRC[ 0 ] != NGSRC[ 0 ] || tNGSNK[ 0 ] != NGSNK[ 0 ] || tLT[ 0 ] != L0[ 0 ] ) {
       printf( "[IO] NGSRC , NGSNK , LT misread \n" ) ;
       printf( "[IO] %d %d %d \n" , tNGSRC[ 0 ] , tNGSNK[ 0 ] , tLT[ 0 ] ) ;
       return FAILURE ;
@@ -72,10 +72,10 @@ read_momcorr( struct mcorr **corr ,
       if( ( GSRC == 0 ) && ( GSNK == 0 ) ) {
       } else {
 	// read the timeslice stuff
-	uint32_t LT[1] ;
-	if( FREAD32( LT , 1 , infile ) == FAILURE ) return FAILURE ;
-	if( (int)LT[0] != L0 ) { 
-	  printf( "[IO] LT Read failure %d %d \n" , (int)LT[0] , L0 ) ; 
+	uint32_t L0[1] ;
+	if( FREAD32( L0 , 1 , infile ) == FAILURE ) return FAILURE ;
+	if( (int)L0[0] != LT ) { 
+	  printf( "[IO] LT Read failure %d %d \n" , (int)L0[0] , LT ) ; 
 	  return FAILURE ; 
 	}
       }
@@ -195,10 +195,10 @@ process_file( struct veclist **momentum ,
   if( FREAD32( NGSNK , 1 , infile ) == FAILURE ) return NULL ;
 
   // read in an LT
-  uint32_t LT[ 1 ] ;
-  if( FREAD32( LT , 1 , infile ) == FAILURE ) return NULL ;
+  uint32_t L0[ 1 ] ;
+  if( FREAD32( L0 , 1 , infile ) == FAILURE ) return NULL ;
 
-  Latt.dims[ ND - 1 ] = (int)LT[ 0 ] ;
+  Latt.dims[ ND - 1 ] = (int)L0[ 0 ] ;
 
   init_geom( ) ;
 
@@ -208,7 +208,7 @@ process_file( struct veclist **momentum ,
   // read the correlator
   for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
     if( read_momcorr( corr , infile , &cksuma , &cksumb ,
-		      NGSRC , NGSNK , LT , p ) == FAILURE ) {
+		      NGSRC , NGSNK , L0 , p ) == FAILURE ) {
       return NULL ;
     }
   }
@@ -219,7 +219,7 @@ process_file( struct veclist **momentum ,
   if( FREAD32( csum , 2 , infile ) == FAILURE ) return NULL ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
-    return NULL ;
+    //return NULL ;
   } 
 
   printf( "[CHECKSUM] both checksums passed \n\n" ) ;

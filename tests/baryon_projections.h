@@ -11,7 +11,7 @@ typedef enum { OneHalf_11 , OneHalf_12 , OneHalf_21 ,
 
 
 // enum for the projections we allow
-typedef enum { LO , L1 , L2 , L3 , L4 , L5 } bprojection ;
+typedef enum { L0 , L1 , L2 , L3 , L4 , L5 } bprojection ;
 
 /**
    @fn void spin_project( double complex *Oi , const struct mcorr **corr , const struct gamma *GAMMA , const struct veclist *momentum , const size_t GSRC , const size_t GSNK , const size_t p , const size_t t , const spinhalf projection ) 

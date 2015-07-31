@@ -85,14 +85,18 @@ cl_diagonal( struct propagator prop ,
 
   // loop the timeslices
   int t ;
-  for( t = 0 ; t < L0-1 ; t++ ) {
+  for( t = 0 ; t < ( LT-1 ) ; t++ ) {
 
+    // multiple time source support
+    const size_t tshifted = ( t + LT - prop.origin[ ND-1 ] ) % LT ;
+    
+    // parallel loop with an error flag
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       #pragma omp master
       {
-	if( t < L0-2 ) {
+	if( t < ( LT-2 ) ) {
 	  if( read_prop( prop , S1f ) == FAILURE ) {
 	    error_flag = FAILURE ;
 	  }
@@ -103,7 +107,8 @@ cl_diagonal( struct propagator prop ,
 	// do the conserved-local contractions
 	contract_conserved_local_site( DATA_AA , DATA_VV , 
 				       lat , S1 , S1UP , S1 , S1UP ,
-				       GAMMAS , AGMAP , VGMAP , x , t ) ;
+				       GAMMAS , AGMAP , VGMAP , x , 
+				       tshifted ) ;
       }
     }
 
@@ -120,16 +125,18 @@ cl_diagonal( struct propagator prop ,
 
     // status
     printf("\r[VPF] cl-flavour diagonal done %.f %%", 
-	   (t+1)/((L0)/100.) ) ; 
+	   (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
 
   // and contract the final timeslice
+  const size_t tshifted = ( t + LT - prop.origin[ ND-1 ] ) % LT ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
     contract_conserved_local_site( DATA_AA , DATA_VV , 
 				   lat , S1 , S1END , S1 , S1END ,
-				   GAMMAS , AGMAP , VGMAP , x , t ) ;
+				   GAMMAS , AGMAP , VGMAP , x , 
+				   tshifted ) ;
   }
 
   printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 

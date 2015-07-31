@@ -120,7 +120,7 @@ WME( struct propagator s0 ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
 
     // read in the file
     if( read_prop( s0 , SWALL_0 ) == FAILURE || 
@@ -168,7 +168,7 @@ WME( struct propagator s0 ,
     }
     
     // tell us how far along we are
-    printf("\r[WME] done %.f %%",100.0*(t+1)/(double)(L0) ) ;
+    printf("\r[WME] done %.f %%",100.0*(t+1)/(double)(LT) ) ;
     fflush( stdout ) ;
   }
   printf("\n") ;

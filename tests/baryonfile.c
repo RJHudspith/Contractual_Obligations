@@ -54,9 +54,9 @@ main( const int argc ,
   }
 
   // set the projection
-  bprojection projection = LO ;
+  bprojection projection = L0 ;
   if( are_equal( argv[3] , "L0" ) ) {
-    projection = LO ;
+    projection = L0 ;
   } else if( are_equal( argv[3] , "L1" ) ) {
     projection = L1 ;
   } else if( are_equal( argv[3] , "L2" ) ) {
@@ -152,7 +152,7 @@ main( const int argc ,
 					      projection ) ;
     
     size_t t ;
-    for( t = 0 ; t < L0 ; t++ ) {
+    for( t = 0 ; t < LT ; t++ ) {
       printf( "CORR %zu %1.12e %1.12e\n" , t ,
 	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
 	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;

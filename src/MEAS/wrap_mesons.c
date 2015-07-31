@@ -32,7 +32,7 @@ contract_mesons( struct propagator *prop ,
       if( prop[ p1 ].source != prop[ p2 ].source ) {
 	printf( "[MESONS] attempt to contract two different source type"
 		"propagators thwarted \n" ) ;
-	//return FAILURE ;
+	return FAILURE ;
       }
       // check that the two props have the same origin?
       int mu ;

@@ -117,7 +117,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 
   int t ;
   // Time slice loop 
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     if( prop1.basis == CHIRAL && ( prop2.basis == NREL ) ) {
@@ -132,6 +132,9 @@ mesons_offdiagonal( struct propagator prop1 ,
       sumprop( &SUM1 , S1 ) ;
       sumprop( &SUM2 , S2 ) ;
     }
+    
+    // support for multiple time sources
+    const size_t tshifted = ( t - prop1.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT in parallel
     int GSGK = 0 ;
@@ -139,7 +142,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
      // two threads for IO
-      if( t < ( L0 - 1 ) ) {
+      if( t < ( LT - 1 ) ) {
         #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
@@ -169,9 +172,10 @@ mesons_offdiagonal( struct propagator prop1 ,
 	// fft forward is e^{ip.x}
 	fftw_execute( forward[ GSGK ] ) ;
 	// pack our struct
-	int p ;
+	size_t p ;
 	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  disp[ GSRC ][ GSNK ].mom[ p ].C[ t ] = out[ GSGK ][ list[ p ].idx ] ;
+	  disp[ GSRC ][ GSNK ].mom[ p ].C[ tshifted ] =
+	    out[ GSGK ][ list[ p ].idx ] ;
 	}
         #else
 	register double complex sum = 0.0 ;
@@ -181,12 +185,12 @@ mesons_offdiagonal( struct propagator prop1 ,
 				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}
-	disp[ GSRC ][ GSNK ].mom[ 0 ].C[ t ] = sum ;
+	disp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = sum ;
 	#endif
 
 	// and contract the walls
 	if( prop1.source == WALL || prop2.source == WALL ) {
-	  wwdisp[ GSRC ][ GSNK ].mom[ 0 ].C[ t ] =	\
+	  wwdisp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = \
 	    meson_contract( GAMMAS[ GSNK ] , SUM2 , 
 			    GAMMAS[ GSRC ] , SUM1 ,
 			    GAMMAS[ GAMMA_5 ] ) ;
@@ -207,7 +211,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf("\r[MESONS] done %.f %%", (t+1)/((L0)/100.) ) ; 
+    printf("\r[MESONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;

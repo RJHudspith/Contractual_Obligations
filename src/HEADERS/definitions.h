@@ -32,10 +32,10 @@
 #define GLU_STR_LENGTH 256
 
 /**
-   @def L0
+   @def LT
    @brief Length of the time direction
  */
-#define L0 ( Latt.dims[ ND - 1 ] )
+#define LT ( Latt.dims[ ND - 1 ] )
 
 /**
    @def LCU

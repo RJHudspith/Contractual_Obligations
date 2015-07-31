@@ -70,11 +70,11 @@ SORT( struct veclist *list ,
     struct correlator *m = malloc( NMOM * sizeof( struct correlator ) ) ;
     size_t p ;
     for( p = 0 ; p < NMOM ; p++ ) {
-      m[ p ].C = malloc( L0 * sizeof( double complex ) ) ;
-      memcpy( m[ p ].C , corr[ GSRC ][ GSNK ].mom[ map[ p ] ].C , sizeof( double complex ) * L0 ) ;
+      m[ p ].C = malloc( LT * sizeof( double complex ) ) ;
+      memcpy( m[ p ].C , corr[ GSRC ][ GSNK ].mom[ map[ p ] ].C , sizeof( double complex ) * LT ) ;
     }
     for( p = 0 ; p < NMOM ; p++ ) {
-      memcpy( corr[ GSRC ][ GSNK ].mom[ p ].C , m[ p ].C , sizeof( double complex ) * L0 ) ;
+      memcpy( corr[ GSRC ][ GSNK ].mom[ p ].C , m[ p ].C , sizeof( double complex ) * LT ) ;
       free( m[ p ].C ) ;
     }
     free( m ) ;
@@ -99,7 +99,7 @@ equate_momcorrs( struct mcorr **res ,
     const int GSNK = GSGK % NGSNK ;
     memcpy( res[ GSRC ][ GSNK ].mom[ momidx1 ].C , 
 	    corr[ GSRC ][ GSNK ].mom[ momidx2 ].C ,
-	    L0 * sizeof( double complex ) ) ;
+	    LT * sizeof( double complex ) ) ;
   }
 }
 
@@ -118,7 +118,7 @@ add_momcorrs( struct mcorr **res ,
     const int GSRC = GSGK / NGSNK ;
     const int GSNK = GSGK % NGSNK ;
     int t ;
-    for( t = 0 ; t < L0 ; t++ ) {
+    for( t = 0 ; t < LT ; t++ ) {
       res[ GSRC ][ GSNK ].mom[ momidx1 ].C[ t ] += 
 	corr[ GSRC ][ GSNK ].mom[ momidx2 ].C[ t ] ;
     }
@@ -140,7 +140,7 @@ divide_constant( struct mcorr **res ,
     const int GSRC = GSGK / NGSNK ;
     const int GSNK = GSGK % NGSNK ;
     int t ;
-    for( t = 0 ; t < L0 ; t++ ) {
+    for( t = 0 ; t < LT ; t++ ) {
       res[ GSRC ][ GSNK ].mom[ momidx1 ].C[ t ] *= invconstant ;
     }
   }

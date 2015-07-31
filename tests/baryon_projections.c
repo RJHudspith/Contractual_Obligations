@@ -403,7 +403,7 @@ baryon_project( const struct mcorr **corr ,
   double complex *D = NULL , *result = NULL ;
 
   corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&result , 16 , L0 * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&result , 16 , LT * sizeof( double complex ) ) ;
 
   // build these just in case
   struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
@@ -411,13 +411,13 @@ baryon_project( const struct mcorr **corr ,
 
   // loop times
   size_t t ;
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
     
     // set D
     set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
 
     switch( projection ) {
-    case LO : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
+    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) - 
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 

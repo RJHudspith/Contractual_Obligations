@@ -15,7 +15,7 @@ print_convenience( const struct mcorr **corr ,
 		   const int GSNK ) 
 {
   int t ;
-  for( t = 0 ; t < L0 ; t++ ) {
+  for( t = 0 ; t < LT ; t++ ) {
     printf( "%d %e %e \n" , t , creal( corr[GSRC][GSNK].mom[0].C[t] ) , 
 	    cimag( corr[GSRC][GSNK].mom[0].C[t] ) ) ;
   }
@@ -35,7 +35,7 @@ allocate_momcorrs( const int length1 ,
     for( j = 0 ; j < length2 ; j++ ) {
       mcorr[ i ][ j ].mom = malloc( nmom * sizeof( struct correlator ) ) ;
       for( p = 0 ; p < nmom ; p++ ) {
-	mcorr[ i ][ j ].mom[ p ].C = malloc( L0 * sizeof( double complex ) ) ;
+	mcorr[ i ][ j ].mom[ p ].C = malloc( LT * sizeof( double complex ) ) ;
       }
     }
   }
@@ -173,7 +173,7 @@ write_momcorr( const char *outfile ,
   
   fwrite( NMOM , sizeof( uint32_t ) , 1 , output_file ) ;
 
-  uint32_t LT[ 1 ] = { L0 } , cksuma = 0 , cksumb = 0 ;
+  uint32_t L0[ 1 ] = { LT } , cksuma = 0 , cksumb = 0 ;
 
   int p ;
   for( p = 0 ; p < nmom[0] ; p++ ) {
@@ -187,13 +187,13 @@ write_momcorr( const char *outfile ,
     int GSRC , GSNK ;
     for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
       for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
-	fwrite( LT , sizeof( uint32_t ) , 1 , output_file ) ;
-	fwrite( corr[GSRC][GSNK].mom[p].C , sizeof( double complex ) , L0 , output_file ) ; 
+	fwrite( L0 , sizeof( uint32_t ) , 1 , output_file ) ;
+	fwrite( corr[GSRC][GSNK].mom[p].C , sizeof( double complex ) , LT , output_file ) ; 
 	// accumulate the newer, fancier checksum
 	DML_checksum_accum_crc32c( &cksuma , &cksumb ,
 				   GSNK + NSNK * GSRC , 
 				   corr[GSRC][GSNK].mom[p].C , 
-				   sizeof( double complex ) * L0 ) ;
+				   sizeof( double complex ) * LT ) ;
       }
     }
   }
