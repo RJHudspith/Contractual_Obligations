@@ -292,7 +292,11 @@ main( const int argc ,
   print_time( ) ;
 
   // sort the momenta && mom correlator
-  SORT( momentum , corr , NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+  if( NMOM[0] > 0 ) {
+    SORT( momentum , corr , NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
+  } else {
+    goto memfree ;
+  }
 
   printf( "\n[SORT] momentum list sorted \n" ) ;
 
@@ -309,11 +313,6 @@ main( const int argc ,
 
   if( corravg == NULL ) goto memfree ;
 
-  // have a look at some of the correlators
-  #ifdef verbose
-  print_mcorrs( avlist , (const struct mcorr**)corravg , Nequiv , 5 , 5 ) ;
-  #endif
-
   // split the averaged results into separate files for ease of reading
   write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
 		  Nequiv , NGSRC[0] , NGSNK[0] ) ;
@@ -325,7 +324,9 @@ main( const int argc ,
  memfree :
 
   // free the memory
-  free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+  if( NMOM[0] > 0 ) {
+    free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+  }
 
   // free the momentum list
   free( momentum ) ;
@@ -334,7 +335,9 @@ main( const int argc ,
   free( avlist ) ;
 
   // free the average correlator
-  free_momcorrs( corravg , NGSRC[0] , NGSNK[0] , Nequiv ) ;
+  if( Nequiv > 0 ) {
+    free_momcorrs( corravg , NGSRC[0] , NGSNK[0] , Nequiv ) ;
+  }
 
   // close the file
   fclose( infile ) ;

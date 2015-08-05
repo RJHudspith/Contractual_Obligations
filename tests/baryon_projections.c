@@ -72,11 +72,11 @@ momentum_factor_right( double complex *proj ,
   return ;
 }
 
-// select matrix with dirac indices j (row) k (cols)
+// select matrix G_{ik} with dirac indices i (row) k (cols)
 static void
-set_Ojk( double complex *Ojk , 
+set_Gik( double complex *Gik , 
 	 const struct mcorr **corr ,
-	 const size_t j ,
+	 const size_t i ,
 	 const size_t k ,
 	 const size_t pidx ,
 	 const size_t t ,
@@ -85,14 +85,14 @@ set_Ojk( double complex *Ojk ,
   size_t d ;
 #if NS == 4
   for( d = 0 ; d < NS ; d++ ) {
-    Ojk[ 0 + d * NS ] = corr[ k + j*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Ojk[ 1 + d * NS ] = corr[ k + j*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Ojk[ 2 + d * NS ] = corr[ k + j*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Ojk[ 3 + d * NS ] = corr[ k + j*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] * factor ;
   }
 #else
   for( d = 0 ; d < NSNS ; d++ ) {
-    Ojk[ d ] = corr[ k + j*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] * factor ;
   }
 #endif
 }
@@ -138,7 +138,7 @@ spinhalf11_project( double complex *D ,
   // perform 1/3 \gamma_i \gamma_j O_j
   for( j = 0 ; j < ND-1 ; j++ ) {
     // set it up
-    set_Ojk( tmp1 , corr , j , k , pidx , t , 1.0 / 3.0 ) ;
+    set_Gik( tmp1 , corr , j , k , pidx , t , 1.0 / 3.0 ) ;
     struct gamma gij ; gamma_mmul( &gij , GAMMA[i] , GAMMA[j] ) ;
     gamma_spinmatrix( tmp1 , gij ) ;
     atomic_add_spinmatrices( D , tmp1 ) ;
@@ -146,12 +146,12 @@ spinhalf11_project( double complex *D ,
     if( p2 > 0 ) {
       if( p[ i ] > 0 && p[ j ] > 0 ) {
 	// set tmp1 to be O_{jk}
-	set_Ojk( tmp1 , corr , j , k , pidx , t , 1.0 / 3.0 ) ;
+	set_Gik( tmp1 , corr , j , k , pidx , t , 1.0 / 3.0 ) ;
 	spinmatrix_mulconst( tmp1 , -p[ i ] * p[ j ] / p2 ) ;
 	atomic_add_spinmatrices( D , tmp1 ) ;
       }
       // set tmp1 to be +1/(3p^2) O_j
-      set_Ojk( tmp1 , corr , j , k , pidx , t , 1.0 / ( 3.0 * p2 ) ) ;
+      set_Gik( tmp1 , corr , j , k , pidx , t , 1.0 / ( 3.0 * p2 ) ) ;
       double complex proj[ NSNS ] , res[ NSNS ] ;
       // computes the projector and puts it in "proj"
       momentum_factor_left( proj , pslash , GAMMA , ND-1 , p , i , j ) ;
@@ -194,14 +194,14 @@ spinhalf12_project( double complex *D ,
     for( j = 0 ; j < ND-1 ; j++ ) {
       // D += ( p_i p_j ) O_j
       if( p[ i ] > 0 && p[ j ] > 0 ) {
-	set_Ojk( tmp1 , corr , j , k , pidx , t , 1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
+	set_Gik( tmp1 , corr , j , k , pidx , t , 1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
 	spinmatrix_mulconst( tmp1 , p[ i ] * p[ j ] / p2 ) ;
 	atomic_add_spinmatrices( D , tmp1 ) ;
       }
       // D -= ( pslash gamma_i p_j ) O_j
       if( p[ j ] > 0 ) {
 	// compute O_{jk} * ( 1 / ( sqrt(3) * p^2 ) )
-	set_Ojk( tmp1 , corr , j , k , pidx , t , -1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
+	set_Gik( tmp1 , corr , j , k , pidx , t , -1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
 	double complex proj[ NSNS ] , res[ NSNS ] ;
 	// computes the momentum projection and puts in "proj"
 	momentum_factor_left( proj , pslash , GAMMA , ND-1 , p , i , j ) ;
@@ -243,14 +243,14 @@ spinhalf21_project( double complex *D ,
     for( j = 0 ; j < ND-1 ; j++ ) {
       // D -= ( p_i p_j ) O_j
       if( p[ i ] > 0 && p[ j ] > 0 ) {
-	set_Ojk( tmp1 , corr , j , k , pidx , t , -1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
+	set_Gik( tmp1 , corr , j , k , pidx , t , -1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
 	spinmatrix_mulconst( tmp1 , p[ i ] * p[ j ] / p2 ) ;
 	atomic_add_spinmatrices( D , tmp1 ) ;
       }
       // D += ( p_i gamma_j pslash ) O_j
       if( p[ j ] > 0 ) {
 	// compute O_j * ( 1 / ( sqrt(3) * p^2 ) )
-	set_Ojk( tmp1 , corr , j , k , pidx , t , 1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
+	set_Gik( tmp1 , corr , j , k , pidx , t , 1.0 / ( sqrt( 3.0 ) * p2 ) ) ;
 	double complex proj[ NSNS ] , res[ NSNS ] ;
 	// computes the momentum projection and puts in "proj"
 	momentum_factor_right( proj , pslash , GAMMA , ND-1 , p , i , j ) ;
@@ -287,7 +287,7 @@ spinhalf22_project( double complex *D ,
   if( p2 > 0 ) {
     size_t j ;
     for( j = 0 ; j < ND-1 ; j++ ) {
-      set_Ojk( tmp1 , corr , j , k , pidx , t , p[ i ] * p[ j ] / p2 ) ;
+      set_Gik( tmp1 , corr , j , k , pidx , t , p[ i ] * p[ j ] / p2 ) ;
       atomic_add_spinmatrices( D , tmp1 ) ;
     }
   }
@@ -321,7 +321,7 @@ spinthreehalf_project( double complex *D ,
   size_t j ;
   // perform delta_ij - 1/3 \gamma_i \gamma_j G_{ji}
   for( j = 0 ; j < ND-1 ; j++ ) {
-    set_Ojk( tmp1 , corr , j , k , pidx , t , -1.0 / 3.0 ) ;
+    set_Gik( tmp1 , corr , j , k , pidx , t , -1.0 / 3.0 ) ;
     if( i == j ) atomic_add_spinmatrices( D , tmp1 ) ;
     struct gamma gij ; gamma_mmul( &gij , GAMMA[i] , GAMMA[j] ) ;
     gamma_spinmatrix( tmp1 , gij ) ;
@@ -329,7 +329,7 @@ spinthreehalf_project( double complex *D ,
     // if p2 > 0 we do a momentum projection
     if( p2 > 0 ) {
       // set tmp1 to be -1/(3p^2) O_i
-      set_Ojk( tmp1 , corr , j , k , pidx , t , -1.0 / ( 3.0 * p2 ) ) ;
+      set_Gik( tmp1 , corr , j , k , pidx , t , -1.0 / ( 3.0 * p2 ) ) ;
       double complex proj[ NSNS ] , res[ NSNS ] ;
       // computes the momentum projection and puts in "proj"
       momentum_factor_left( proj , pslash , GAMMA , ND-1 , p , i , j ) ;
@@ -345,45 +345,47 @@ spinthreehalf_project( double complex *D ,
   return ;
 }
 
-// projection is P_{ik} G_{kl} = G_{il}
-void
-spin_project( double complex *Oi , 
+// projection is P_{ij} G_{jk} = G_{ik}
+static void
+spin_project( double complex *Gik , 
 	      const struct mcorr **corr ,
 	      const struct gamma *GAMMA ,
 	      const struct veclist *momentum ,
-	      const size_t GSRC ,
-	      const size_t GSNK ,
+	      const size_t i ,
+	      const size_t k ,
 	      const size_t p ,
 	      const size_t t ,
 	      const spinhalf projection ) 
 {
-  if( GSRC > 2 || GSNK > 2 ) {
-    size_t d ;
-    for( d = 0 ; d < NSNS ; d++ ) {
-      Oi[ d ] = corr[ GSNK + B_CHANNELS * GSRC ][ d ].mom[ p ].C[ t ] ;
-    }
+  // spin projections are for spatial indices only!!
+  if( i > ( ND-2 ) || k > ( ND-2 ) ) {
+    set_Gik( Gik , corr , i , k , p , t , 1.0 ) ;
     return ;
   }
+  // do the spin projections
   switch( projection ) {
   case OneHalf_11 :
-    spinhalf11_project( Oi , corr , GAMMA , momentum ,
-			GSRC , GSNK , p , t ) ;
+    spinhalf11_project( Gik , corr , GAMMA , momentum ,
+			i , k , p , t ) ;
     break ;
   case OneHalf_12 :
-    spinhalf12_project( Oi , corr , GAMMA , momentum ,
-			GSRC , GSNK , p , t ) ;
+    spinhalf12_project( Gik , corr , GAMMA , momentum ,
+			i , k , p , t ) ;
     break ;
   case OneHalf_21 :
-    spinhalf21_project( Oi , corr , GAMMA , momentum ,
-			GSRC , GSNK , p , t ) ;
+    spinhalf21_project( Gik , corr , GAMMA , momentum ,
+			i , k , p , t ) ;
     break ;
   case OneHalf_22 :
-    spinhalf22_project( Oi , corr , GAMMA , momentum ,
-			GSRC , GSNK , p , t ) ;
+    spinhalf22_project( Gik , corr , GAMMA , momentum ,
+			i , k , p , t ) ;
     break ;
   case ThreeHalf :
-    spinthreehalf_project( Oi , corr , GAMMA , momentum , 
-			   GSRC , GSNK , p , t ) ;
+    spinthreehalf_project( Gik , corr , GAMMA , momentum , 
+			   i , k , p , t ) ;
+    break ;
+  case NONE :
+    set_Gik( Gik , corr , i , k , p , t , 1.0 ) ;
     break ;
   }
   return ;
@@ -397,7 +399,8 @@ baryon_project( const struct mcorr **corr ,
 		const size_t GSRC ,
 		const size_t GSNK ,
 		const size_t p ,
-		const bprojection projection ) 
+		const bprojection parity_proj , 
+		const spinhalf spin_proj ) 
 {
   // D is a temporary spinmatrix
   double complex *D = NULL , *result = NULL ;
@@ -409,60 +412,48 @@ baryon_project( const struct mcorr **corr ,
   struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
   struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ 3 ] , g0g5 ) ;
 
-  // loop times inside switch
+  // loop times 
   size_t t ;
-  switch( projection ) {
-  case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
-    // set D
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+  for( t = 0 ; t < LT ; t++ ) {
+
+    // set open dirac matrix doing the spin projection if desired
+    spin_project( D , corr , GAMMA , momentum , 
+		  GSRC , GSNK , p , t , spin_proj ) ; 
+
+    switch( parity_proj ) {
+    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) - 
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-    }
-    break ;
-  case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+      break ;
+    case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-    }
-    break ;
-  case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+      break ;
+    case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) -
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-    }
-    break ;
-  case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+      break ;
+    case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-    }
-    break ;
-  case L4 : // does 1/2 ( g_I + g_3 )
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+      break ;
+    case L4 : // does 1/2 ( g_I + g_3 )
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
 			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
-    }
-    break ;
-  case L5 : // does 1/2 ( g_I - g_3 )
-    for( t = 0 ; t < LT ; t++ ) {
-      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
+      break ;
+    case L5 : // does 1/2 ( g_I - g_3 )
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
+      break ;
     }
-    break ;
   }
 
   free( D ) ;
