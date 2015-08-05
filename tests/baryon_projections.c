@@ -409,47 +409,60 @@ baryon_project( const struct mcorr **corr ,
   struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
   struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ 3 ] , g0g5 ) ;
 
-  // loop times
+  // loop times inside switch
   size_t t ;
-  for( t = 0 ; t < LT ; t++ ) {
-    
+  switch( projection ) {
+  case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
     // set D
-    set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
-
-    switch( projection ) {
-    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) - 
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
+    }
+    break ;
+  case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
+    }
+    break ;
+  case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) -
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
+    }
+    break ;
+  case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
 			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L4 : // does 1/2 ( g_I + g_3 )
+    }
+    break ;
+  case L4 : // does 1/2 ( g_I + g_3 )
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
 			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
-      break ;
-    case L5 : // does 1/2 ( g_I - g_3 )
+    }
+    break ;
+  case L5 : // does 1/2 ( g_I - g_3 )
+    for( t = 0 ; t < LT ; t++ ) {
+      set_Ojk( D , corr , GSRC , GSNK , p , t , 1.0 ) ;
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
 			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
-      break ;
     }
+    break ;
   }
 
   free( D ) ;

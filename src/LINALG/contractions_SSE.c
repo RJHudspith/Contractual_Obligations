@@ -463,14 +463,14 @@ meson_contract( const struct gamma GSNK ,
   // global sum gets cast to double complex
   register __m128d gsum = _mm_setzero_pd( ) ;
 
-  const __m128d *d1 ;
-  const __m128d *d2 = (const __m128d*)fwd.D ;
+  const register __m128d *d1 ;
+  const register __m128d *d2 = (const __m128d*)fwd.D ;
 
   // local sum
   register __m128d sum ;
 
-  int i , j ;
-  register int col2 , col1 ;
+  size_t i , j ;
+  register uint8_t col2 , col1 ;
   for( j = 0 ; j < NS ; j++ ) {
 
     col2 = GSRC.ig[ G5.ig[ j ] ] ; 
@@ -485,7 +485,7 @@ meson_contract( const struct gamma GSNK ,
       // unrolled for SU(3)
       #if NC == 3
       sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ); d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
@@ -495,7 +495,7 @@ meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       #elif NC == 2
       sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ); d1 ++ ; d2 ++ ;
+      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       #else 
@@ -536,15 +536,15 @@ simple_meson_contract( const struct gamma GSNK ,
   const __m128d *bcache ;
   register __m128d sum ;
 
-  int i , j ;
+  size_t i , j ;
   // loop columns
   for( j = 0 ; j < NS ; j++ ) {
     
-    const int col2 = GSRC.ig[ j ] ;
+    const size_t col2 = GSRC.ig[ j ] ;
     
     for( i = 0 ; i < NS ; i++ ) {
       
-      const int col1 = GSNK.ig[ i ] ;
+      const size_t col1 = GSNK.ig[ i ] ;
       
       // cache the color matrices
       fcache = (const __m128d*)fwd.D[j][i].C ;
@@ -585,6 +585,7 @@ simple_meson_contract( const struct gamma GSNK ,
       }
     }
   }
+
   double complex s ;
   _mm_store_pd( (void*)&s , gsum ) ;
   return s ;

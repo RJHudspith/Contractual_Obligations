@@ -181,7 +181,6 @@ process_file( struct veclist **momentum ,
     }
   }
   if( failure == GLU_TRUE ) return NULL ;
-  printf( "MOMLIST DID \n" ) ;
 
   // read in the momentum list size again 
   uint32_t TNMOM[ 1 ] ;
@@ -216,13 +215,15 @@ process_file( struct veclist **momentum ,
   printf( "[IO] All correlators read \n" ) ;
 
   // check our checksums
+  // at the moment this is a soft warning as I changed the type of checksum we 
+  // use to one that has an intrinsic
+  // TODO :: change it to a full exit in the near future - J
   if( FREAD32( csum , 2 , infile ) == FAILURE ) return NULL ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
-    printf( "Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
-    //return NULL ;
-  } 
-
-  printf( "[CHECKSUM] both checksums passed \n\n" ) ;
+    printf( "[CHECKSUM] Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
+  } else {
+    printf( "[CHECKSUM] both checksums passed \n\n" ) ;
+  }
 
   return corr ;
 }

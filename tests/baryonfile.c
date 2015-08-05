@@ -23,8 +23,8 @@ int
 main( const int argc ,
       const char *argv[] )
 {
-  if( argc < 4 ) {
-    return printf( "usage ./BARYONS {correlator file} BASIS PROJECTION Lx,Ly,Lz GSRC,GSNK,px,py,pz ... \n" ) ;
+  if( argc != 6 ) {
+    return printf( "usage ./BARYONS {correlator file} BASIS PROJECTION Lx,Ly,Lz {outfile} \n" ) ;
   }
 
   // read the correlation file
@@ -35,10 +35,10 @@ main( const int argc ,
   }
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
-  // structs
-  struct gamma *GAMMAS = NULL ;
-  struct mcorr **corr = NULL ;
-  struct veclist *momentum = NULL ;
+  struct gamma *GAMMAS = NULL ;     // Gamma matrices
+  struct mcorr **corr = NULL ;      // read-in correlator
+  struct veclist *momentum = NULL ; // momentum list
+  struct mcorr **proj_corr = NULL ; // projected correlator
 
   // set the basis
   proptype basis = CHIRAL ;
@@ -56,16 +56,22 @@ main( const int argc ,
   // set the projection
   bprojection projection = L0 ;
   if( are_equal( argv[3] , "L0" ) ) {
+    printf( "[PARITY] Performing an L0 projection\n" ) ;
     projection = L0 ;
   } else if( are_equal( argv[3] , "L1" ) ) {
+    printf( "[PARITY] Performing an L1 projection\n" ) ;
     projection = L1 ;
   } else if( are_equal( argv[3] , "L2" ) ) {
+    printf( "[PARITY] Performing an L2 projection\n" ) ;
     projection = L2 ;
   } else if( are_equal( argv[3] , "L3" ) ) {
+    printf( "[PARITY] Performing an L3 projection\n" ) ;
     projection = L3 ;
   } else if( are_equal( argv[3] , "L4" ) ) {
+    printf( "[PARITY] Performing an L4 projection\n" ) ;
     projection = L4 ;
   } else if( are_equal( argv[3] , "L5" ) ) {
+    printf( "[PARITY] Performing an L5 projection\n" ) ;
     projection = L5 ;
   } else {
     printf( "[INPUTS] I don't understand your projection %s \n" , argv[3] ) ;
@@ -76,10 +82,20 @@ main( const int argc ,
   int mu ;
   char *tok = strtok( (char*)argv[4] , "," ) ;
   Latt.dims[ 0 ] = (int)atoi( tok ) ;
+  if( Latt.dims[ 0 ] < 1 ) {
+    printf( "[INPUTS] non-sensical lattice dimension %d %d \n" , 
+	    0 , Latt.dims[0] ) ;
+    goto memfree ;
+  }
   for( mu = 1 ; mu < ND-1 ; mu++ ) {
     char *ptok = strtok( NULL , "," ) ;
     if( ptok == NULL ) break ;
     Latt.dims[ mu ] = (int)atoi( ptok ) ;
+    if( Latt.dims[mu] < 1 ) {
+      printf( "[INPUTS] non-sensical lattice dimension %d %d \n" , 
+	      mu , Latt.dims[mu] ) ;
+      goto memfree ;
+    }
   }
 
   // precompute the gamma basis
@@ -88,99 +104,62 @@ main( const int argc ,
     goto memfree ;
   }
 
-  // number of correlators printed to stdout
-  int corrs_written = 0 ;
-
   // is defined in reader.c
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
   if( corr == NULL ) goto memfree ;
 
-  // loop the ones we want
-  int i ;
-  for( i = 5 ; i < ( argc ) ; i++ ) {
-    // tokenize argv into the correlators people want
-    char *tok1 = strtok( (char*)argv[i] , "," ) ;
-    if( tok1 == NULL ) break ;
-    const int idx1 = atoi( tok1 ) ;
-    if( idx1 >= B_CHANNELS || idx1 < 0 ) { 
-      printf( "[Momcorr] Non-sensical source index %d \n" , idx1 ) ;
-      break ;
-    } 
-    char *tok2 = strtok( NULL , "," ) ;
-    if( tok2 == NULL ) break ;
-    const int idx2 = atoi( tok2 ) ;
-    if( idx2 >= B_CHANNELS || idx2 < 0 ) { 
-      printf( "[Momcorr] Non-sensical sink index %d \n" , idx2 ) ;
-      break ;
-    } 
+  // allocate corr
+  
+  proj_corr = allocate_momcorrs( B_CHANNELS , B_CHANNELS , NMOM[0] ) ;
 
-    // initialise to 0
-    int moms[ ND - 1 ] , mu ;
-    for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      moms[ mu ] = 0 ;
-    }
+  // do the projection
+  size_t GSGK ;
+#pragma omp parallel for private( GSGK )
+  for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
 
-    printf( "[Momcorr] searching for momenta (" ) ;
-    for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      char *ptok = strtok( NULL , "," ) ;
-      if( ptok == NULL ) break ;
-      moms[ mu ] = (int)atoi( ptok ) ;
-      printf( " %d " , moms[ mu ] ) ;
-    }
-    printf( ") \n" ) ;
+    const size_t GSRC = GSGK / B_CHANNELS ;
+    const size_t GSNK = GSGK % B_CHANNELS ;
 
-    // find the correlator in the list
-    const int matchmom = find_desired_mom( momentum , moms , 
-					   (int)NMOM[0] ) ;
-    if( matchmom == FAILURE ) {
-      printf( "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
-      break ;
-    }
+    // loop momenta
+    size_t p ;
+    for( p = 0 ; p < NMOM[0] ; p++ ) {
 
-    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[ 0 ] ,
-	    momentum[ matchmom ].MOM[ 1 ] ,  momentum[ matchmom ].MOM[ 2 ] ) ;
-
-    printf( "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
-	    idx1 , idx2 ) ;
-
-    // do the projection
-    const double complex *C = baryon_project( (const struct mcorr**)corr , 
-					      GAMMAS , 
-					      momentum ,
-					      idx1 , idx2 , matchmom ,
-					      projection ) ;
+      // projections happen here
+      const double complex *C = baryon_project( (const struct mcorr**)corr , 
+						GAMMAS , momentum ,
+						GSRC , GSNK , p ,
+						projection ) ;
+      
+      // poke into proj_corr
+      size_t t ;
+      for( t = 0 ; t < LT ; t++ ) {
+	proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = C[ t ] ;
+      }
     
-    size_t t ;
-    for( t = 0 ; t < LT ; t++ ) {
-      printf( "CORR %zu %1.12e %1.12e\n" , t ,
-	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
-	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
+      free( (void*)C ) ;
     }
-
-    free( (void*)C ) ;
-    corrs_written++ ;
-    //
-    printf( "\n" ) ;
   }
 
-  // if we don't have a match or didn't specify gammas give the momentum
-  // list as an option
-  if( corrs_written == 0 ) {
-    write_momlist( momentum , NMOM[ 0 ] ) ;
-  }
+  // write out the correlator
+  write_momcorr( argv[5] , (const struct mcorr **)proj_corr , 
+		 momentum , B_CHANNELS , B_CHANNELS , (const int*)NMOM ) ;
 
  memfree :
 
   // free the gamma matrices
   free( GAMMAS ) ;
 
-  // free the memory
+  // free the memory of the read-in correlator
   free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+
+  // free the memory of the projected correlator
+  free_momcorrs( proj_corr , B_CHANNELS , B_CHANNELS , NMOM[0] ) ;
 
   // free the momentum list
   free( momentum ) ;
 
+  // close the infile
   fclose( infile ) ;
 
   return 0 ;

@@ -285,6 +285,8 @@ main( const int argc ,
 
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
+  printf( "%d %d %d \n" , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+
   printf( "\n[IO] file read \n" ) ;
 
   print_time( ) ;
@@ -308,9 +310,9 @@ main( const int argc ,
   if( corravg == NULL ) goto memfree ;
 
   // have a look at some of the correlators
-#ifdef verbose
+  #ifdef verbose
   print_mcorrs( avlist , (const struct mcorr**)corravg , Nequiv , 5 , 5 ) ;
-#endif
+  #endif
 
   // split the averaged results into separate files for ease of reading
   write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
