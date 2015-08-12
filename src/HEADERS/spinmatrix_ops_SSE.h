@@ -16,14 +16,13 @@ atomic_add_spinmatrices( void *res ,
 			 const void *D ) ;
 
 /**
-   @fn void compute_pslash( void *pslash , const struct gamma *GAMMA , const size_t DIMS , const double p[ DIMS ] )
+   @fn void compute_pslash( void *pslash , const struct gamma *GAMMA , const double p[ ND ] )
    @brief compute pslash \f$ \sum_{i=0}^{i<DIMS} p_i.\gamma_i \f$
  */
 void
 compute_pslash( void *pslash , 
 		const struct gamma *GAMMA ,
-		const size_t DIMS , 
-		const double p[ DIMS ] ) ;
+		const double p[ ND ] ) ;
 
 /**
    @fn void gamma_spinmatrix( void *spinmatrix , const struct gamma G ) 

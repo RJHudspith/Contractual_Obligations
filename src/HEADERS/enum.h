@@ -6,6 +6,18 @@
 #define ENUM_H
 
 /**
+   @enum bprojection
+   @brief choices for baryon parity projections
+ */
+typedef enum { 
+  L0 , 
+  L1 , 
+  L2 , 
+  L3 , 
+  L4 , 
+  L5 } bprojection ;
+
+/**
    @enum config_size
    @brief for writing out files
    loops number of spaces for this format uses NC and NCNC
@@ -61,7 +73,6 @@ typedef enum
    @enum gamma_labels
    @brief different conventions have different labelling
 */
-// Mainz labelling
 typedef enum {
   GAMMA_0  = 0 ,
   GAMMA_1  = 1 ,
@@ -146,6 +157,17 @@ typedef enum {
   CHIRAL ,
   NREL ,
   STATIC } proptype ;
+
+/**
+   @enum spinhalf
+   @brief spin-1/2 and 3/2 projection choices
+ */
+typedef enum { NONE , 
+	       OneHalf_11 , 
+	       OneHalf_12 , 
+	       OneHalf_21 ,
+	       OneHalf_22 , 
+	       ThreeHalf } spinhalf ;
 
 /**
    @enum sourcetype

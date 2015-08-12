@@ -36,28 +36,40 @@ atomic_add_spinmatrices( void *res ,
 void
 compute_pslash( void *pslash , 
 		const struct gamma *GAMMA ,
-		const size_t DIMS , 
-		const double p[ DIMS ] )
+		const double p[ ND ] )
 {
-  __m128d tmp1[ NSNS ] ;
   __m128d *ps = (__m128d *)pslash ;
-  size_t i ;
-  for( i = 0 ; i < NSNS ; i++ ) {
-    *ps = _mm_setzero_pd( ) , p++ ;
+  size_t mu , s ;
+  // set pslash to 0.0
+  for( mu = 0 ; mu < NSNS ; mu++ ) {
+    ps[ mu ] = _mm_setzero_pd( ) ;
   }
   // perform the sum
-  size_t mu ;
-  for( mu = 0 ; mu < DIMS ; mu++ ) {
-    size_t d , j ;
-    for( d = 0 ; d < NS ; d++ ) {
-      for( j = 0 ; j < NS ; j++ ) {
-	tmp1[ j + d*NS ] = ( d == j ) ? _mm_setr_pd( p[mu] , 0.0 ) :\
-	  _mm_setzero_pd( ) ; 
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    for( s = 0 ; s < NS ; s++ ) {
+      switch( GAMMA[ mu ].g[ s ] ) {
+      case 0 : 
+	ps[ GAMMA[ mu ].ig[ s ] + s * NS ] = 
+	  _mm_add_pd( ps[ GAMMA[ mu ].ig[ s ] + s * NS ] , 
+		      _mm_setr_pd( p[mu] , 0 ) ) ; 
+	break ;
+      case 1 : 
+	ps[ GAMMA[ mu ].ig[ s ] + s * NS ] = 
+	  _mm_add_pd( ps[ GAMMA[ mu ].ig[ s ] + s * NS ] , 
+		      _mm_setr_pd( 0 , p[mu] ) ) ; 
+	break ;
+      case 2 : 
+	ps[ GAMMA[ mu ].ig[ s ] + s * NS ] = 
+	  _mm_add_pd( ps[ GAMMA[ mu ].ig[ s ] + s * NS ] , 
+		      _mm_setr_pd( -p[mu] , 0 ) ) ; 
+	break ;
+      case 3 : 
+	ps[ GAMMA[ mu ].ig[ s ] + s * NS ] = 
+	  _mm_add_pd( ps[ GAMMA[ mu ].ig[ s ] + s * NS ] , 
+		      _mm_setr_pd( 0 , -p[mu] ) ) ; 
+	break ;
       }
     }
-    // multiply and add
-    gamma_spinmatrix( tmp1 , GAMMA[ mu ] ) ;
-    atomic_add_spinmatrices( ps , tmp1 ) ;
   }
   return ;
 }

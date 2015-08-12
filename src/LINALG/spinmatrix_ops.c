@@ -26,29 +26,24 @@ atomic_add_spinmatrices( void *res ,
 void
 compute_pslash( void *pslash , 
 		const struct gamma *GAMMA ,
-		const size_t DIMS , 
-		const double p[ DIMS ] )
+		const double p[ ND ] )
 {
-  double complex tmp1[ NSNS ] ;
   double complex *ps = (double complex*)pslash ;
+  size_t mu , s ;
   // set pslash to 0.0
-  int i ;
-  for( i = 0 ; i < NSNS ; i++ ) {
-    ps[i] = 0.0 ;
+  for( mu = 0 ; mu < NSNS ; mu++ ) {
+    ps[ mu ] = 0.0 ;
   }
   // perform the sum
-  int mu ;
-  for( mu = 0 ; mu < DIMS ; mu++ ) {
-    // set it to the identity*p_mu
-    int d , j ;
-    for( d = 0 ; d < NS ; d++ ) {
-      for( j = 0 ; j < NS ; j++ ) {
-	tmp1[ j + d*NS ] = ( d == j ) ? p[mu] : 0.0 ; 
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    for( s = 0 ; s < NS ; s++ ) {
+      switch( GAMMA[ mu ].g[ s ] ) {
+      case 0 : ps[ GAMMA[ mu ].ig[ s ] + s * NS ] +=      p[mu] ; break ;
+      case 1 : ps[ GAMMA[ mu ].ig[ s ] + s * NS ] +=  I * p[mu] ; break ;
+      case 2 : ps[ GAMMA[ mu ].ig[ s ] + s * NS ] -=      p[mu] ; break ;
+      case 3 : ps[ GAMMA[ mu ].ig[ s ] + s * NS ] += -I * p[mu] ; break ;
       }
     }
-    // multiply and add
-    gamma_spinmatrix( tmp1 , GAMMA[mu] ) ;
-    atomic_add_spinmatrices( ps , tmp1 ) ;
   }
   return ;
 }

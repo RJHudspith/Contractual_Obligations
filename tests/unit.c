@@ -5,6 +5,7 @@
 
 #include "common.h"
 
+#include "bar_projections_tests.h"
 #include "contract_tests.h"  
 #include "geometry.h"        // init_geom()
 #include "matops_tests.h"
@@ -38,12 +39,16 @@ main( const int argc , const char *argv[] )
   if( matops_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
-  // have a look at spinor operations
+  // have a look at spinmatrix operations
   if( spinmatrix_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   // have a look at spinor operations
   if( spinor_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
+  // have a look at baryon projection operations
+  if( bar_projections_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   printf( "[UNIT] %d tests run and passed\n" , total ) ;

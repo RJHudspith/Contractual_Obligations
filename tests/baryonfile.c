@@ -6,10 +6,10 @@
  */
 #include "common.h"
 
-#include "baryon_projections.h" // enums and projections
-#include "correlators.h"        // free_momcorrs()
-#include "gammas.h"             // make_gammas()
-#include "reader.h"             // process file
+#include "bar_projections.h"  // enums and projections
+#include "correlators.h"      // free_momcorrs()
+#include "gammas.h"           // make_gammas()
+#include "reader.h"           // process file
 
 // global lattice dimensions and stuff
 struct latt_info Latt ;
@@ -19,7 +19,7 @@ static int
 usage( void )
 {
   return printf( "[BARYON] usage :: ./BARYONS {correlator file} "
-		 " BASIS SPIN PARITY Lx,Ly,Lz.. {outfile} \n" ) ;
+		 " BASIS SPIN PARITY Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
 }
 
 // provide a help function
@@ -52,7 +52,9 @@ main( const int argc ,
 {
   // have a help function now to avoid confusion
   if( argc != 7 ) {
-    if( are_equal( argv[ INFILE ] , "--help" ) ) {
+    if( argc == 1 ) {
+      return usage( ) ;
+    } else if( are_equal( argv[ INFILE ] , "--help" ) ) {
       return help( ) ;
     } else {
       return usage( ) ;
@@ -142,7 +144,7 @@ main( const int argc ,
 	    0 , Latt.dims[0] ) ;
     goto memfree ;
   }
-  for( mu = 1 ; mu < ND-1 ; mu++ ) {
+  for( mu = 1 ; mu < ND ; mu++ ) {
     char *ptok = strtok( NULL , "," ) ;
     if( ptok == NULL ) break ;
     Latt.dims[ mu ] = (int)atoi( ptok ) ;

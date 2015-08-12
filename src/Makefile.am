@@ -23,6 +23,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
 LINALGFILES=./LINALG/bar_contractions.c \
+	./LINALG/bar_projections.c \
 	./LINALG/bar_ops.c ./LINALG/bar_ops_SSE.c \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \

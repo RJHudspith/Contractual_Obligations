@@ -1,6 +1,6 @@
 /**
-   @file spinor_tests.c
-   @brief spinor_ops testing
+   @file spinmatrix_tests.c
+   @brief spinmatrix operations testing
  */
 #include "common.h"
 
@@ -150,7 +150,7 @@ zero_spinmatrix_test( void )
   return NULL ;
 }
 
-// spinor tests
+// spinmatrix tests
 static char *
 spinmatrices_test( void )
 {

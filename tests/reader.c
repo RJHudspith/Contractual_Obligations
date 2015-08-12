@@ -179,6 +179,7 @@ process_file( struct veclist **momentum ,
       (*momentum)[ p ].MOM[ mu ] = (int)n[ 1 + mu ] ;
       (*momentum)[ p ].nsq += n[ 1 + mu ] * n[ 1 + mu ] ;
     }
+    (*momentum)[ p ].MOM[ mu ] = 0 ; // set the t-direction to 0
   }
   if( failure == GLU_TRUE ) return NULL ;
 

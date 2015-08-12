@@ -5,7 +5,7 @@ BUILDDIR=@top_builddir@
 bin_PROGRAMS = BARYONS MESONS MOMAVG UNIT VPFREAD
 
 ## meson reader
-BARYONS_SOURCES = baryonfile.c reader.c baryon_projections.c
+BARYONS_SOURCES = baryonfile.c reader.c
 BARYONS_CFLAGS = -I${TOPDIR}/src/HEADERS/ 
 BARYONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 
@@ -21,7 +21,8 @@ MOMAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS}
 
 ## (non-exhaustive) unit test compilation
 UNIT_SOURCES = unit.c contract_tests.c matops_tests.c \
-	spinmatrix_tests.c spinor_tests.c
+	spinmatrix_tests.c spinor_tests.c \
+	bar_projections_tests.c
 UNIT_CFLAGS = -I${TOPDIR}/src/HEADERS/
 UNIT_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 
