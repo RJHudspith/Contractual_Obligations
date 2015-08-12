@@ -11,6 +11,9 @@
 #include "minunit.h"          // unit test framework
 #include "spinmatrix_ops.h"   // spinmatrix operations
 
+// floating-point operation tolerance
+#define FTOL ( NC * 1.E-14 ) 
+
 // gamma matrix technology
 static struct gamma *GAMMA = NULL ; 
 
@@ -50,7 +53,7 @@ compute_p_psq_test( void )
   double p2 = 0 , p[ ND ] ;
   compute_p_psq( p , &p2 , momentum[ pidx ] ) ;
   mu_assert( "[UNIT] error : bar_projections compute p_psq\n" ,
-	     fabs( p2 - (double)ND ) < 1E-14 ) ;
+	     fabs( p2 - (double)ND ) < FTOL ) ;
   return NULL ;
 }
 
@@ -82,7 +85,7 @@ idempotent( void (*p1)( double complex *proj , const size_t i , const size_t j ,
   // compare the product with what we expect it to be
   size_t d ;
   for( d = 0 ; d < NSNS ; d++ ) {
-    if( cabs( t1[ d ] - sum[ d ] ) > 1E-14 ) {
+    if( cabs( t1[ d ] - sum[ d ] ) > FTOL ) {
       printf( "idempotency broken %zu %zu \n" , mu , nu ) ;
       write_spinmatrix( t3 ) ;
       write_spinmatrix( sum ) ;
@@ -232,6 +235,7 @@ p32_idempotency_test( void )
   return NULL ;
 }
 
+// driver for the p-slash tests
 static int
 pslash_driver( void (*proj)( double complex *proj , const size_t i , 
 			   const size_t j , const struct gamma *GAMMA , 
@@ -249,13 +253,33 @@ pslash_driver( void (*proj)( double complex *proj , const size_t i ,
       spinmatrix_multiply( t1 , pslash , t3 ) ;
       spinmatrix_multiply( t2 , t3 , pslash ) ;
       for( d = 0 ; d < NSNS ; d++ ) {
-	if( cabs( t1[ d ] + factor * t2[ d ] ) > 1E-14 ) {
+	if( cabs( t1[ d ] + factor * t2[ d ] ) > FTOL ) {
 	  return FAILURE ;
 	}
       }
     }
   }
   return SUCCESS ;
+}
+
+// test that gamma_\mu P^{3/2}_{\mu\nu} = 0
+static char *
+gamma_mu_P32_test( void )
+{
+  zero_spinmatrix( sum ) ;
+  size_t nu , mu , d ;
+  for( nu = 0 ; nu < ND ; nu++ ) {
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      P32( t1 , mu , nu , GAMMA , momentum , pidx ) ;
+      gamma_spinmatrix( t1 , GAMMA[ mu ] ) ;
+      atomic_add_spinmatrices( sum , t1 ) ;
+    }
+    for( d = 0 ; d < NSNS ; d++ ) {
+      mu_assert( "[UNIT] error : bar_projections gamma_mu P^{3/2}_{mu,nu} != 0\n" 
+		 , cabs( sum[ d ] ) < FTOL ) ;
+    }
+  }
+  return NULL ;
 }
 
 // check the pslash identities
@@ -275,6 +299,7 @@ check_pslashes( void )
   return NULL ;
 }
 
+// p_mu P = 0 identities
 static int
 pidentities_driver( void (*P)( double complex *proj , const size_t i , 
 			       const size_t j , const struct gamma *GAMMA , 
@@ -291,7 +316,7 @@ pidentities_driver( void (*P)( double complex *proj , const size_t i ,
       atomic_add_spinmatrices( sum , t1 ) ;
     }
     for( d = 0 ; d < ND ; d++ ) {
-      if( cabs( sum[ d ] ) > 1E-14 ) {
+      if( cabs( sum[ d ] ) > FTOL ) {
 	return FAILURE ;
       }
     }
@@ -312,6 +337,29 @@ check_pidentities( void )
   return NULL ;
 }
 
+// check that P32 + P11 + P22 = \delta_{\mu\nu}
+static char *
+check_sum_identity( void )
+{
+  size_t nu , mu , d ;
+  for( nu = 0 ; nu < ND ; nu++ ) {
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      P32( t1 , mu , nu , GAMMA , momentum , pidx ) ;
+      P11( t2 , mu , nu , GAMMA , momentum , pidx ) ;
+      P22( t3 , mu , nu , GAMMA , momentum , pidx ) ;
+      atomic_add_spinmatrices( t1 , t2 ) ;
+      atomic_add_spinmatrices( t1 , t3 ) ;
+      for( d = 0 ; d < NS ; d++ ) {
+	mu_assert( "[UNIT] error : bar_projections sum identity failed\n" ,
+		   ( mu == nu ) ?			\
+		   cabs( t1[ d*(NS+1) - 1 ] ) < FTOL: \
+		   cabs( t1[ d*(NS+1) ] ) < FTOL ) ;
+      }
+    }
+  }
+  return NULL ;
+}
+
 // spinor tests
 static char *
 bar_projections_test( void )
@@ -326,11 +374,17 @@ bar_projections_test( void )
   mu_run_test( p22_idempotency_test ) ;
   mu_run_test( p32_idempotency_test ) ;
 
+  // run the gamma_\mu P^{3/2}_{\mu\nu} = 0 test
+  mu_run_test( gamma_mu_P32_test ) ;
+
   // run the pslash tests
   mu_run_test( check_pslashes ) ;
 
   // run the momentum tests
   mu_run_test( check_pidentities ) ;
+
+  // check P32 + P11 + P22 = delta_{\mu\nu}
+  mu_run_test( check_sum_identity ) ;
 
   return NULL ;
 }
@@ -350,7 +404,8 @@ bar_projections_test_driver( void )
   corr_malloc( (void**)&t3 , 16 , NSNS * sizeof( double complex ) ) ;
   corr_malloc( (void**)&sum , 16 , NSNS * sizeof( double complex ) ) ;
 
-  // make the gammas in the CHIRAL basis
+  // make the gammas in the CHIRAL basis, these projections should be
+  // basis independent
   make_gammas( GAMMA , CHIRAL ) ;
 
   // set up veclist as momenta of all ones
