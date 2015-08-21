@@ -9,7 +9,20 @@
 #include "contractions.h" // gamma_mul_lr()
 #include "gammas.h"       // Cgmu and CgmuT
 
-// baryon contraction of ( \Gamma ) ( \Gamma^{T} ) S3 ( S2 S1 )
+// baryon contraction of ( \Gamma_mu^T S1 Gamma_\mu S2 ) S3
+// NOTES ::
+//
+// term[0] is proportional to Tr( \Gamma_mu^T Gamma_\mu ).I_{NSxNS}
+// whereas term[1] is proportional to \Gamma_mu^T Gamma_\mu for 
+// identity spinors
+//
+// term[0] can be simplified to TrC( ( DiQ_{0,0} + DiQ_{1,1} + DiQ_{NS-1,NS-1} ) S3^{T} )
+// i.e. the color trace of the sum of the diagonal of the diquark pieces multiplied by S3
+// this is then a spinmatrix with open dirac indices
+//
+// term[1] can be expressed as T[k][i] = TrC[ DiQ_{ij} S_{jk}^T ]
+// i.e. the DiQ should be transposed in spin indices before being multiplied by S^{T} where
+// the transpose is in color indices as above. This is done implicitly in the code below
 void
 baryon_contract_site( double complex **term ,
 		      const struct spinor S1 , 
@@ -18,36 +31,65 @@ baryon_contract_site( double complex **term ,
 		      const struct gamma Cgmu ,
 		      const struct gamma CgmuT )
 {
-  // get diquark
+  // get diquark = ( CgmuT S1 Cgmu )
   struct spinor DiQ = S1 ;
   gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
 
   // Cross color product and sink Dirac trace back into DiQ
   cross_color_trace( &DiQ , S2 ) ;
 
+  // term[0] can be simplified by precomputing the diagonal sum 
+  // of the DiQuark piece, this then gets color traced with S3
+  double complex t[ NCNC ] ;
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    const size_t c1 = i / NC ;
+    const size_t c2 = i % NC ;
+    #if NS == 4
+    t[ i ] = 
+      DiQ.D[0][0].C[c1][c2] +
+      DiQ.D[1][1].C[c1][c2] +
+      DiQ.D[2][2].C[c1][c2] +
+      DiQ.D[3][3].C[c1][c2] ;
+    #else
+    t[ i ] = 0.0 ;
+    size_t d ;
+    for( d = 0 ; d < NS ; d++ ) {
+      t[ i ] += DiQ.D[d][d].C[c1][c2] ;
+    }
+    #endif
+  }
+
   // loop over open dirac indices
-  int odc , OD1 , OD2 ;
+  size_t odc , OD1 , OD2 ;
   for( odc = 0 ; odc < NSNS ; odc++ ) {
     // open dirac index for source and sink
     OD1 = odc / NS ;
     OD2 = odc % NS ;
+    // by hand compute color trace 
+    // Tr( ( DiQ_{0,0} + DiQ_{1,1} + ... + DiQ_{NS,NS} ) S3_{OD2,OD1}^T ) for term[0]
+    double complex *C = (double complex*)S3.D[ OD2 ][ OD1 ].C ;
+    for( i = 0 ; i < NCNC ; i++ ) {
+      term[0][ odc ] += t[ i ] * ( *C ) ; C++ ;
+    }
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
 #if NS == 4
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 0 , 0 , OD1 , OD2 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 1 , 1 , OD1 , OD2 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 2 , 2 , OD1 , OD2 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 3 , 3 , OD1 , OD2 ) ;
-
-    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 0 , 0 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 1 , 1 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 2 , 2 , OD2 ) ;
-    term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , 3 , 3 , OD2 ) ; 
+    /*
+    term[0][ odc ] += baryon_contract( DiQ, S3 , 0 , 0 , OD2 , OD1 ) ;
+    term[0][ odc ] += baryon_contract( DiQ, S3 , 1 , 1 , OD2 , OD1 ) ;
+    term[0][ odc ] += baryon_contract( DiQ, S3 , 2 , 2 , OD2 , OD1 ) ;
+    term[0][ odc ] += baryon_contract( DiQ, S3 , 3 , 3 , OD2 , OD1 ) ; 
+     */
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
+    term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 3 , 3 , OD1 ) ; 
 #else
-    int dirac ;
+    szie_t dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
-      term[0][ odc ] += baryon_contract( DiQ, S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[1][ odc ] += baryon_contract( DiQ, S3 , OD1 , dirac , dirac , OD2 ) ;
+      term[0][ odc ] += baryon_contract( DiQ, S3 , dirac , dirac , OD2 , OD1 ) ;
+      term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
 #endif
   }
@@ -73,30 +115,60 @@ baryon_contract_site_mom( double complex **in ,
   // Cross color product and sink Dirac trace back into DiQ
   cross_color_trace( &DiQ , S2 ) ;
 
+  // term[0] can be simplified by precomputing the diagonal sum 
+  // of the DiQuark piece, this then gets color traced with S3
+  double complex t[ NCNC ] ;
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    const size_t c1 = i / NC ;
+    const size_t c2 = i % NC ;
+    #if NS == 4
+    t[ i ] = 
+      DiQ.D[0][0].C[c1][c2] +
+      DiQ.D[1][1].C[c1][c2] +
+      DiQ.D[2][2].C[c1][c2] +
+      DiQ.D[3][3].C[c1][c2] ;
+    #else
+    t[ i ] = 0.0 ;
+    size_t d ;
+    for( d = 0 ; d < NS ; d++ ) {
+      t[ i ] += DiQ.D[d][d].C[c1][c2] ;
+    }
+    #endif
+  }
+
   // loop over open dirac indices
-  int odc , OD1 , OD2 ;
+  size_t odc , OD1 , OD2 ;
   for( odc = 0 ; odc < NSNS ; odc++ ) {
     // open dirac index for source and sink
     OD1 = odc / NS ;
     OD2 = odc % NS ;
+
+    // by hand compute color trace 
+    // Tr( ( DiQ_{0,0} + DiQ_{1,1} + ... + DiQ_{NS,NS} ) S3_{OD2,OD1}^T ) for term[0]
+    double complex *C = (double complex*)S3.D[ OD2 ][ OD1 ].C ;
+    for( i = 0 ; i < NCNC ; i++ ) {
+      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += t[ i ] * ( *C ) ; C++ ;
+    }
+
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
     #if NS == 4
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 0 , 0 , OD1 , OD2 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 1 , 1 , OD1 , OD2 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 2 , 2 , OD1 , OD2 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 3 , 3 , OD1 , OD2 ) ;
-
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 0 , 0 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 1 , 1 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 2 , 2 , OD2 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , 3 , 3 , OD2 ) ;
-
+    /*
+    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 0 , 0 , OD2 , OD1 ) ;
+    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 1 , 1 , OD2 , OD1 ) ;
+    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 2 , 2 , OD2 , OD1 ) ;
+    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 3 , 3 , OD2 , OD1 ) ;
+    */
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 3 , 3 , OD1 ) ;
     #else
     int dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
-      in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , dirac , dirac , OD1 , OD2 ) ;
-      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD1 , dirac , dirac , OD2 ) ;
+      //in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , dirac , dirac , OD2 , OD1 ) ;
+      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
     #endif
   }

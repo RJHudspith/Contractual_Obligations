@@ -9,8 +9,7 @@
 #include "input_reader.h"    // input file readers
 #include "read_config.h"     // read a gauge configuration file
 #include "read_propheader.h" // read the propagator file header
-
-#include "polyakov.h"
+#include "bar_projections.h"
 
 #include "wrap_baryons.h"    // Baryon contraction wrapper
 #include "wrap_mesons.h"     // Meson contraction wrapper

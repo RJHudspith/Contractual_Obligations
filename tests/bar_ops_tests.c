@@ -1,17 +1,109 @@
 /**
    @file bar_ops_tests.c
-   @brief baryon operations tests
+   @brief baryon operations and projections tests
  */
 #include "common.h"
 
+#include "bar_contractions.h"
 #include "bar_ops.h"
+#include "gammas.h"
 #include "minunit.h"
+#include "matrix_ops.h"
+#include "spinor_ops.h" // spinor_identity
+#include "spinmatrix_ops.h"
 
 // our tolerance
 #define FLTOL (NC*1.E-14)
 
 // some temporary space
 static struct spinor S1 , S2 ;
+
+static char*
+baryon_contract_site_test( void )
+{
+  // 3 temporary spinors
+  struct spinor a , b , c ;
+  spinor_zero_site( &a ) ;
+  spinor_zero_site( &b ) ;
+  spinor_zero_site( &c ) ;
+
+  // lower triangular matrix all ones, determinant is 1 so
+  // cross color trace is simply identity matrix multiplied 
+  // by 2 * NC
+  size_t d ;
+  for( d = 0 ; d < NS ; d++ ) {
+    size_t i , j ;
+    for( i = 0 ; i < NC ; i++ ) {
+      for( j = 0 ; j <= i ; j++ ) {
+	a.D[d][d].C[i][j] =			\
+	  b.D[d][d].C[i][j] =			\
+	  c.D[d][d].C[i][j] = 1.0 ;
+      }
+    }
+  }
+
+  // allocate and set gammas
+  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
+  make_gammas( GAMMAS , CHIRAL ) ;
+
+  // allocate and set the terms
+  double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
+  term[0] = malloc( NSNS * sizeof( double complex ) ) ;
+  term[1] = malloc( NSNS * sizeof( double complex ) ) ;
+
+  size_t GSGK ;
+  for( GSGK = 0 ; GSGK < (B_CHANNELS*B_CHANNELS) ; GSGK++ ) {
+
+    // zero the terms
+    zero_spinmatrix( term[0] ) ;
+    zero_spinmatrix( term[1] ) ;
+
+    // compute the gammas we will be looking at
+    const size_t GSRC = GSGK / B_CHANNELS ;
+    const size_t GSNK = GSGK % B_CHANNELS ;
+    const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
+    const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
+    const struct gamma CgnuT = CGmuT( Cgnu , GAMMAS ) ;
+    baryon_contract_site( term , a ,  b , c , Cgmu , CgnuT ) ;
+
+    // compute product T = ( Cgnu^T Cgmu )
+    double complex T[ NSNS ] ;
+    identity_spinmatrix( T ) ;
+    gamma_spinmatrix( T , CgnuT ) ;
+    spinmatrix_gamma( T , Cgmu ) ;
+
+    // compute the trace of the above product
+    double complex tr = spinmatrix_trace( T ) ;
+
+    // loop open dirac indices
+    size_t d1 , d2 ;
+    for( d1 = 0 ; d1 < NS ; d1++ ) {
+      for( d2 = 0 ; d2 < NS ; d2++ ) {
+	// term[0] is proportional to the trace
+	if( d1 == d2 ) {
+	  mu_assert( "[UNIT] error : bar_contract_site term[0] broken" ,
+		     cabs( term[0][ d2 + d1 * NS ] - ( 2.0 * NC * tr ) ) < FLTOL ) ;
+	} else {
+	  mu_assert( "[UNIT] error : bar_contract_site term[0] broken" ,
+		     cabs( term[0][ d2 + d1 * NS ] ) < FLTOL ) ;
+	}
+	// term[1] is proportional to the product of the gamma matrices
+	mu_assert( "[UNIT] error : bar_contract_site term[0] broken" ,
+		   cabs( term[1][ d2 + d1 * NS ] - 2 * NC * T[ d2 + d1 * NS ] ) < FLTOL ) ;
+	
+      }
+    }
+  }
+
+  // free the allocated memory
+  free( term[1] ) ;
+  free( term[0] ) ;
+  free( term ) ;
+
+  free( GAMMAS ) ;
+
+  return NULL ;
+}
 
 // check the baryon contractor
 static char *
@@ -77,6 +169,9 @@ bar_ops_test( void )
 
   // check the cross product is 0
   mu_run_test( cross_color_test ) ;
+
+  // check the higher level function
+  mu_run_test( baryon_contract_site_test ) ;
 
   return NULL ;
 }

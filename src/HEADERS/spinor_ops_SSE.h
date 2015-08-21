@@ -48,11 +48,6 @@ gauge_spinor( struct spinor *__restrict res ,
 	      const double complex link[ NCNC ] ,
 	      const struct spinor S ) ;
 
-void
-gauge_spinor2( struct spinor *__restrict res ,
-	       const double complex link[ NCNC ] ,
-	       const struct spinor S ) ;
-
 /**
    @fn void gaugedag_spinor( struct spinor *__restrict res , const double complex link[ NCNC ] , const struct spinor S )
    @brief multiplies a spinor with a daggered link \f$ res = link^{\dagger} S \f$
@@ -62,11 +57,6 @@ gaugedag_spinor( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S ) ;
 
-void
-gaugedag_spinor2( struct spinor *__restrict res ,
-		  const double complex link[ NCNC ] ,
-		  const struct spinor S ) ;
-
 /**
    @fn void gauge_spinordag( struct spinor *__restrict res , const double complex link[ NCNC ] , const struct spinor S ) 
    @brief computes \f$ res = U.S^{\dagger} \f$
@@ -75,6 +65,13 @@ void
 gauge_spinordag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S ) ;
+
+/**
+   @fn void identity_spinor( struct spinor *__restrict res )
+   @brief set a spinor to be deltas in both color and spin
+ */
+void
+identity_spinor( struct spinor *__restrict res ) ;
 
 /**
    @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )

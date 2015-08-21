@@ -258,6 +258,28 @@ gauge_spinordag( struct spinor *__restrict res ,
   return ;
 }
 
+// set a spinor to the identity
+void
+identity_spinor( struct spinor *__restrict res )
+{
+  __m128d *r = (__m128d*)res -> D ;
+  zero_spinor( r ) ;
+  const register __m128d one = _mm_setr_pd( 1.0 , 0.0 ) ;
+  size_t d ;
+  for( d = 0 ; d < NS ; d++ ) {
+    #if NC == 3
+    *r = one ; *( r + NC + 1 ) = one ; *( r + 2 * ( NC + 1 ) ) = one ;
+    #else
+    size_t c ;
+    for( c = 0 ; c < NC ; c++ ) {
+      *( r + c * ( NC + 1 ) ) = one ;
+    }
+    #endif
+    r += NCNC * ( NS + 1 ) ;
+  }
+  return ;
+}
+
 // multiply by a link :: res = S * link
 void
 spinor_gauge( struct spinor *__restrict res ,  

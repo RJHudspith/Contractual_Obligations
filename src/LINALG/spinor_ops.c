@@ -139,6 +139,20 @@ gauge_spinordag( struct spinor *__restrict res ,
   return ;
 }
 
+// set a spinor to the identity
+void
+identity_spinor( struct spinor *__restrict res )
+{
+  zero_spinor( (double complex*)res -> D ) ;
+  size_t d , c ;
+  for( d = 0 ; d < NS ; d++ ) {
+    for( c = 0 ; c < NC ; c++ ) {
+      res -> D[ d ][ d ].C[ c ][ c ] = 1.0 ;
+    }
+  }
+  return ;
+}
+
 // multiply by a link :: res = S * link
 void
 spinor_gauge( struct spinor *__restrict res ,  

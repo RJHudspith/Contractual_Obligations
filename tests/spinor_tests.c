@@ -154,6 +154,33 @@ static char
   return NULL ;
 }
 
+// check if a spinor is set to the identity
+static char*
+identity_spinor_test( void )
+{
+  struct spinor S ;
+  identity_spinor( &S ) ;
+  size_t d1 , d2 , c1 , c2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  // should be 1
+	  if( d1 == d2 && c1 == c2 ) {
+	    mu_assert( "[UNIT] error : identity_spinor broken\n" ,
+		       cabs( S.D[d1][d2].C[c1][c2] - 1.0 ) < FTOL ) ;
+	  // should be 0
+	  } else {
+	    mu_assert( "[UNIT] error : identity_spinor broken\n" ,
+		       cabs( S.D[d1][d2].C[c1][c2] ) < FTOL ) ;
+	  }
+	}
+      }
+    }
+  }
+  return NULL ;
+}
+
 // compute B = A * Id, where Id is a color matrix, A & B are spinors
 static char
 *spinor_gauge_test( void )
@@ -327,6 +354,7 @@ spinops_test( void )
   mu_run_test( gaugedag_test ) ;
   mu_run_test( gauge_spinordag_test ) ;
   mu_run_test( gammas_test ) ;
+  mu_run_test( identity_spinor_test ) ;
   mu_run_test( spinor_gauge_test ) ;
   mu_run_test( spinordag_gauge_test ) ;
   mu_run_test( spinor_gaugedag_test ) ;

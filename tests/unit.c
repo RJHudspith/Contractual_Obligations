@@ -48,9 +48,11 @@ main( const int argc , const char *argv[] )
   if( spinor_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
+  /*
   // have a look at baryon projection operations
   if( bar_projections_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
+  */
 
   // have a look at baryon operations
   if( bar_ops_test_driver( ) == FAILURE ) goto failure ;

@@ -98,6 +98,7 @@ cross_color_trace( struct spinor *__restrict DiQ ,
       }
     }
   }
+
   // poke back into the diquark
   for( i = 0 ; i < NS ; i++ ) {
     for( j = 0 ; j < NS ; j++ ) {

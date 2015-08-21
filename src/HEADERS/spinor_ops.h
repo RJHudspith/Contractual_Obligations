@@ -73,6 +73,13 @@ gauge_spinordag( struct spinor *__restrict res ,
 		 const struct spinor S ) ;
 
 /**
+   @fn void identity_spinor( struct spinor *__restrict res )
+   @brief set a spinor to be deltas in both color and spin
+ */
+void
+identity_spinor( struct spinor *__restrict res ) ;
+
+/**
    @fn void spinor_gauge( struct spinor *__restrict res , const struct spinor S , const double complex link[ NCNC ] ) 
    @brief multiplies a spinor with a link matrix \f$ res = S * link \f$
  */

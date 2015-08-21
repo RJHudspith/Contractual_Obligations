@@ -9,7 +9,7 @@
 #ifdef HAVE_EMMINTRIN_H
 
 // This contracts the diquark with the remaining propagator
-// This does the color trace Tr[ A . B ] 
+// This does the color trace Tr[ A . B^T ] 
 double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
