@@ -75,12 +75,6 @@ baryon_contract_site( double complex **term ,
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
 #if NS == 4
-    /*
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 0 , 0 , OD2 , OD1 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 1 , 1 , OD2 , OD1 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 2 , 2 , OD2 , OD1 ) ;
-    term[0][ odc ] += baryon_contract( DiQ, S3 , 3 , 3 , OD2 , OD1 ) ; 
-     */
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
@@ -148,18 +142,12 @@ baryon_contract_site_mom( double complex **in ,
     // Tr( ( DiQ_{0,0} + DiQ_{1,1} + ... + DiQ_{NS,NS} ) S3_{OD2,OD1}^T ) for term[0]
     double complex *C = (double complex*)S3.D[ OD2 ][ OD1 ].C ;
     for( i = 0 ; i < NCNC ; i++ ) {
-      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += t[ i ] * ( *C ) ; C++ ;
+      in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += t[ i ] * ( *C ) ; C++ ;
     }
 
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
     #if NS == 4
-    /*
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 0 , 0 , OD2 , OD1 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 1 , 1 , OD2 , OD1 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 2 , 2 , OD2 , OD1 ) ;
-    in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , 3 , 3 , OD2 , OD1 ) ;
-    */
     in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
     in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
     in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
