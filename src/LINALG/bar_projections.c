@@ -281,20 +281,19 @@ set_Gik( double complex *Gik ,
 	 const size_t i ,
 	 const size_t k ,
 	 const size_t pidx ,
-	 const size_t t ,
-	 const double factor )
+	 const size_t t )
 {
   size_t d ;
 #if NS == 4
   for( d = 0 ; d < NS ; d++ ) {
-    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] * factor ;
-    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] ;
   }
 #else
   for( d = 0 ; d < NSNS ; d++ ) {
-    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] * factor ;
+    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] ;
   }
 #endif
 }
@@ -320,15 +319,36 @@ spinproj( double complex *Gik ,
   // set sum to zero
   zero_spinmatrix( Gik ) ;
 
+  size_t mu , sum = 0 ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    sum += abs( momentum[ pidx ].MOM[ mu ] ) ;
+  }
+
   // temporary storage for the projector
   double complex pij[ NSNS ] , tmp[ NSNS ] , Gjk[ NSNS ] ;
   size_t j ;
-  for( j = 0 ; j < ND ; j++ ) {
-    set_Gik( Gjk , corr , j , k , pidx , t , 1.0 ) ;
-    p( pij , i , j , GAMMA , momentum , pidx ) ;
-    spinmatrix_multiply( tmp , pij , Gjk ) ;
-    atomic_add_spinmatrices( Gik , tmp ) ;
+
+  switch( sum ) {
+    // switch for the zero mom
+  case 0 :
+    for( j = 0 ; j < ND-1 ; j++ ) {
+      set_Gik( Gjk , corr , j , k , pidx , t ) ;
+      p( pij , i , j , GAMMA , momentum , pidx ) ;
+      spinmatrix_multiply( tmp , pij , Gjk ) ;
+      atomic_add_spinmatrices( Gik , tmp ) ;
+    }
+    break ;
+    // for "full" momenta
+  default :
+    for( j = 0 ; j < ND ; j++ ) {
+      set_Gik( Gjk , corr , j , k , pidx , t ) ;
+      p( pij , i , j , GAMMA , momentum , pidx ) ;
+      spinmatrix_multiply( tmp , pij , Gjk ) ;
+      atomic_add_spinmatrices( Gik , tmp ) ;
+    }
+    break ;
   }
+
   return ;
 }
 
@@ -346,7 +366,7 @@ spin_project( double complex *Gik ,
 {
   // spin projections are for spatial indices only!!
   if( i > ( ND-2 ) || k > ( ND-2 ) ) {
-    set_Gik( Gik , corr , i , k , p , t , 1.0 ) ;
+    set_Gik( Gik , corr , i , k , p , t ) ;
     return ;
   }
   // do the spin projections
@@ -367,7 +387,7 @@ spin_project( double complex *Gik ,
     spinproj( Gik , P32 , corr , i , k , t , GAMMA , momentum , p ) ;
     break ;
   case NONE :
-    set_Gik( Gik , corr , i , k , p , t , 1.0 ) ;
+    set_Gik( Gik , corr , i , k , p , t ) ;
     break ;
   }
   return ;

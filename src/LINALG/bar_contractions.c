@@ -82,7 +82,6 @@ baryon_contract_site( double complex **term ,
 #else
     szie_t dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
-      term[0][ odc ] += baryon_contract( DiQ, S3 , dirac , dirac , OD2 , OD1 ) ;
       term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
 #endif
@@ -155,7 +154,6 @@ baryon_contract_site_mom( double complex **in ,
     #else
     int dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
-      //in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , dirac , dirac , OD2 , OD1 ) ;
       in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
     #endif
