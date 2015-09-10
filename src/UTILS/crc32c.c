@@ -44,8 +44,8 @@
  */
 #include "common.h"
 
-// call the hardware version if possible
-#if defined (__SSE4_2__) || defined (__SSE4_1__)
+// call the hardware version if possible is ~8x faster!
+#if defined (__SSE4_2__)
 
 static uint32_t 
 crc32c( uint32_t crc, 

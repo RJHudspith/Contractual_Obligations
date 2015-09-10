@@ -16,7 +16,7 @@
 #include "read_propheader.h"   // for read_propheader()
 #include "spinor_ops.h"        // sumprop()
 
-// flavour degenerate baryon contraction
+// no flavours degenerate baryon contraction, is the most memory expensive
 int
 baryons_3fdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,
@@ -142,7 +142,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
     
-    // if we are doing nonrel-chiral mesons we switch chiral to nrel
+    // if we are doing nonrel-chiral hadrons we switch chiral to nrel
     if( prop1.basis == CHIRAL && ( prop2.basis == NREL || prop3.basis == NREL ) ) {
       nrel_rotate_slice( S1 ) ;
     } 

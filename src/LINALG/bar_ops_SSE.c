@@ -21,15 +21,18 @@ baryon_contract( const struct spinor DiQ ,
   const __m128d *d = (const __m128d*)DiQ.D[d0][d1].C ;
   const __m128d *s = (const __m128d*)S.D[d2][d3].C ;
 #if NC == 3
-  register __m128d sum = SSE2_MUL( *d , *s) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
-  sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
+  register __m128d sum ;
+  sum = _mm_add_pd( SSE2_MUL( *d , *s ) , 
+		    _mm_add_pd( SSE2_MUL( *(d+1) , *(s+1) ) , 
+				SSE2_MUL( *(d+2) , *(s+2) ) ) ) ; 
+  d+=3 ; s+=3 ;
+  sum = _mm_add_pd( _mm_add_pd( sum , SSE2_MUL( *(d) , *(s) ) ) ,
+		    _mm_add_pd( SSE2_MUL( *(d+1) , *(s+1) ) , 
+				SSE2_MUL( *(d+2) , *(s+2) ) ) ) ; 
+  d+=3 ; s+=3 ;
+  sum = _mm_add_pd( _mm_add_pd( sum , SSE2_MUL( *(d) , *(s) ) ) ,
+		    _mm_add_pd( SSE2_MUL( *(d+1) , *(s+1) ) , 
+				SSE2_MUL( *(d+2) , *(s+2) ) ) ) ; 
 #elif NC == 2
   register __m128d sum = SSE2_MUL( *d , *s) ; d++ ; s++ ;
   sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;

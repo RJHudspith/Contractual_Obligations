@@ -16,7 +16,7 @@
 #include "read_propheader.h"   // for read_propheader()
 #include "spinor_ops.h"        // sumprop()
 
-// flavour degenerate baryon contraction
+// 2-flavour degenerate baryon contraction
 int
 baryons_2fdiagonal( struct propagator prop1 ,
 		    struct propagator prop2 ,

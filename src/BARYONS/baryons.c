@@ -1,11 +1,7 @@
 /**
    @file baryons.c
    @brief baryon contraction code
-
-   TODO :: flatten some part of the src/snk indices and master/slave the IO
-   seems tough will need to think about it ...
 */
-
 #include "common.h"
 
 #include "bar_contractions.h"  // baryon_contract_site_mom()
