@@ -300,7 +300,7 @@ set_Gik( double complex *Gik ,
 
 // project out a spinmatrix into D
 // performs G_{ik} = P_{ij} G_{jk}
-void
+int
 spinproj( double complex *Gik ,
 	  void (*p)( double complex *proj ,
 		     const size_t i ,
@@ -319,37 +319,46 @@ spinproj( double complex *Gik ,
   // set sum to zero
   zero_spinmatrix( Gik ) ;
 
+  // absolute value of momenta
   size_t mu , sum = 0 ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     sum += abs( momentum[ pidx ].MOM[ mu ] ) ;
   }
 
-  // temporary storage for the projector
-  double complex pij[ NSNS ] , tmp[ NSNS ] , Gjk[ NSNS ] ;
-  size_t j ;
+  // flag for success or failure of the routine
+  size_t flag = SUCCESS ; 
 
-  switch( sum ) {
-    // switch for the zero mom
-  case 0 :
-    for( j = 0 ; j < ND-1 ; j++ ) {
-      set_Gik( Gjk , corr , j , k , pidx , t ) ;
-      p( pij , i , j , GAMMA , momentum , pidx ) ;
-      spinmatrix_multiply( tmp , pij , Gjk ) ;
-      atomic_add_spinmatrices( Gik , tmp ) ;
-    }
-    break ;
-    // for "full" momenta
-  default :
-    for( j = 0 ; j < ND ; j++ ) {
-      set_Gik( Gjk , corr , j , k , pidx , t ) ;
-      p( pij , i , j , GAMMA , momentum , pidx ) ;
-      spinmatrix_multiply( tmp , pij , Gjk ) ;
-      atomic_add_spinmatrices( Gik , tmp ) ;
-    }
-    break ;
+  // temporary storage for the projector
+  double complex *pij = NULL , *tmp = NULL , *Gjk = NULL ;
+  if( corr_malloc( (void**)&pij , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+    flag = FAILURE ;
+    goto memfree ;
+  }
+  if( corr_malloc( (void**)&tmp , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+    flag = FAILURE ;
+    goto memfree ;
+  }
+  if( corr_malloc( (void**)&Gjk , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+    flag = FAILURE ;
+    goto memfree ;
   }
 
-  return ;
+  // perform contraction
+  size_t j ;
+  for( j = 0 ; j < ND ; j++ ) {
+    set_Gik( Gjk , corr , j , k , pidx , t ) ;
+    p( pij , i , j , GAMMA , momentum , pidx ) ;
+    spinmatrix_multiply( tmp , pij , Gjk ) ;
+    atomic_add_spinmatrices( Gik , tmp ) ;
+  }
+
+ memfree :
+    
+  free( tmp ) ;
+  free( pij ) ;
+  free( Gjk ) ;
+
+  return flag ;
 }
 
 // project out a specific spin

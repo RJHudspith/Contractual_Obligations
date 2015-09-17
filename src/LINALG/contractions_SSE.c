@@ -470,10 +470,12 @@ meson_contract( const struct gamma GSNK ,
   register __m128d sum ;
 
   size_t i , j ;
-  register uint8_t col2 , col1 ;
+  register uint8_t col2 , col1 , G5GSRC ;
   for( j = 0 ; j < NS ; j++ ) {
 
     col2 = GSRC.ig[ G5.ig[ j ] ] ; 
+    
+    G5GSRC = G5.g[ col2 ] + GSRC.g[ col2 ] ;
 
     for( i = 0 ; i < NS ; i++ ) {
 
@@ -484,15 +486,16 @@ meson_contract( const struct gamma GSNK ,
 
       // unrolled for SU(3)
       #if NC == 3
-      sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
-      sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
+      sum = SSE2_MULCONJ( *d1 , *d2 ) ;
+      register __m128d sum1 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+1) , *(d2+1) ) ,
+						      SSE2_MULCONJ( *(d1+2) , *(d2+2) ) ) ,
+					  _mm_add_pd( SSE2_MULCONJ( *(d1+3) , *(d2+3) ) ,
+						      SSE2_MULCONJ( *(d1+4) , *(d2+4) ) ) ) ; 
+      register __m128d sum2 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+5) , *(d2+5) ) ,
+						      SSE2_MULCONJ( *(d1+6) , *(d2+6) ) ) ,
+					  _mm_add_pd( SSE2_MULCONJ( *(d1+7) , *(d2+7) ) ,
+						      SSE2_MULCONJ( *(d1+8) , *(d2+8) ) ) ) ;
+      _mm_add_pd( sum , _mm_add_pd( sum1 , sum2 ) ) ; d1 += 9 ; d2 += 9 ;
       #elif NC == 2
       sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
@@ -507,7 +510,7 @@ meson_contract( const struct gamma GSNK ,
       #endif
 
       // switch for the phases
-      switch( ( GSNK.g[ i ] + G5.g[ col1 ] +  G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
+      switch( ( GSNK.g[ i ] + G5.g[ col1 ] + G5GSRC ) & 3 ) {
       case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
       case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
       case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
