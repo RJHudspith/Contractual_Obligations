@@ -110,18 +110,37 @@ spinmatrix_mulconst_test( void )
   return NULL ;
 }
 
-// multiply
+// square a matrix and take its trace
 static char*
 spinmatrix_multiply_test( void )
 {
-  identity_spinmatrix( C ) ;
   double complex A[ NSNS ] ;
-  spinmatrix_multiply( A , C , D ) ;
-  size_t i ;
-  for( i = 0 ; i < NSNS ; i++ ) {
-    mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_multiply broken " , 
-	       !( cabs( A[i] - D[i] ) > FTOL ) ) ;
+
+  // compute C = D^{T}
+  size_t d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      C[ d2 + d1*NS ] = D[ d1 + d2*NS ] ;
+    }
   }
+
+  // multiply D with its transpose
+  spinmatrix_multiply( A , D , C ) ;
+
+  // do a slow, by hand matrix multiply to check
+  register double complex sum ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      size_t d3 ;
+      sum = 0 ;
+      for( d3 = 0 ; d3 < NS ; d3++ ) {
+	sum += D[ d3 + d2 * NS ] * D[ d3 + d1 * NS ] ;
+      }
+      mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_multiply broken " , 
+		 !( cabs( sum - A[d2 + d1*NS] ) > PREC_TOL ) ) ;
+    }
+  }
+ 
   return NULL ;
 }
 

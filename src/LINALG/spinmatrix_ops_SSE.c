@@ -283,7 +283,7 @@ spinmatrix_multiply( void *a ,
 			       SSE2_MUL( *(B + 0x3) , *(C + 0xe) ) ) ) ;
   A++ ;
   *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x0) , *(C + 0x3) ) ,
-			       SSE2_MUL( *(B + 0x1) , *(C + 0x6) ) ) ,
+			       SSE2_MUL( *(B + 0x1) , *(C + 0x7) ) ) ,
 		   _mm_add_pd( SSE2_MUL( *(B + 0x2) , *(C + 0xb) ) ,
 			       SSE2_MUL( *(B + 0x3) , *(C + 0xf) ) ) ) ;	    
   A++ ;
