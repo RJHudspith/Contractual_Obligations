@@ -44,30 +44,33 @@ merge( void *list1 , void *list2 ,
        const size_t base1 , const size_t base2 , 
        int(*compare)( const void *a , const void *b ) )
 {
-  int a = 0 , b = 0 , counter = 0 ;
-  while( a < low_size || b < upp_size ) {
+  // instead of a while use a for loop
+  size_t i , a = 0 , b = 0 ;
+  for( i = 0 ; i < low_size + upp_size ; i++ ) {
+    // potentially have an a candidate to put in list
     if( a < low_size ) {
-      if( b < upp_size ) {
-	if( compare( (char*)lower1 + base1*a , (char*)upper1 + base1*b ) ) {
-	  memcpy( (char*)list1 + base1*counter , (char*)lower1 + base1*a , base1 ) ;
-	  memcpy( (char*)list2 + base2*counter , (char*)lower2 + base2*a , base2 ) ;
-	  a++ ;
-	} else {
-	  memcpy( (char*)list1 + base1*counter , (char*)upper1 + base1*b , base1 ) ;
-	  memcpy( (char*)list2 + base2*counter , (char*)upper2 + base2*b , base2 ) ;
-	  b++ ;
-	}
+      // if it satisfie the compare poke it in
+      if( b >= upp_size || compare( (char*)lower1 + base1*a , 
+				    (char*)upper1 + base1*b ) ) {
+	goto swapa ;
+      // otherwise put a b in the list
       } else {
-	memcpy( (char*)list1 + base1*counter , (char*)lower1 + base1*a , base1 ) ;
-	memcpy( (char*)list2 + base2*counter , (char*)lower2 + base2*a , base2 ) ;
-	a++ ;
+	goto swapb ;
       }
+      // fill the list up with bees
     } else {
-      memcpy( (char*)list1 + base1*counter , (char*)upper1 + base1*b , base1 ) ;
-      memcpy( (char*)list2 + base2*counter , (char*)upper2 + base2*b , base2 ) ;
-      b++ ;
+      goto swapb ;
     }
-    counter++ ;
+  swapa :
+    memcpy( (char*)list1 + base1*i , (char*)lower1 + base1*a , base1 ) ;
+    memcpy( (char*)list2 + base2*i , (char*)lower2 + base2*a , base2 ) ;
+    a++ ;
+    continue ;
+  swapb :
+    memcpy( (char*)list1 + base1*i , (char*)upper1 + base1*b , base1 ) ;
+    memcpy( (char*)list2 + base2*i , (char*)upper2 + base2*b , base2 ) ;
+    b++ ;
+    continue ;
   }
   free( (void*)lower1 ) ; free( (void*)upper1 ) ; 
   free( (void*)lower2 ) ; free( (void*)upper2 ) ;

@@ -36,6 +36,29 @@ atomic_add_spinmatrices_test( void )
   return NULL ;
 }
 
+// multiply by 1 should be the sum of our gamma matrices
+static char*
+compute_pslash_test( void ) 
+{
+  // set a spinmatrix to the identity
+  zero_spinmatrix( D ) ;
+  double p[ ND ] ;
+  size_t mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    p[ mu ] = 1.0 ;
+    identity_spinmatrix( C ) ;
+    gamma_spinmatrix( C , GAMMA[ mu ] ) ;
+    atomic_add_spinmatrices( D , C ) ;
+  }
+  compute_pslash( C , GAMMA , p ) ;
+  size_t i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    mu_assert( "[UNIT] error : spinmatrix ops compute_pslash broken " , 
+	       !( cabs( C[i] - D[i] ) > FTOL ) ) ;
+  }
+  return NULL ;
+}
+
 // gamma spinmatrix test, multiply by identity?
 static char*
 gamma_spinmatrix_test( void )
@@ -192,6 +215,7 @@ spinmatrices_test( void )
 
   // relies on spinmatrix multiply and spinmatrix trace
   mu_run_test( gammaspinmatrix_trace_test ) ;
+  mu_run_test( compute_pslash_test ) ;
 
   return NULL ;
 }
