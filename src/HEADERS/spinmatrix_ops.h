@@ -86,6 +86,15 @@ double complex
 spinmatrix_trace( const void *spinmatrix ) ;
 
 /**
+   @fn double complex trace_prod_spinmatrices( const void *a , const void *b )
+   @brief trace of the product of two spinmatrices
+   @return Tr[a.b]
+ */
+double complex
+trace_prod_spinmatrices( const void *a , 
+			 const void *b ) ;
+
+/**
    @fn void zero_spinmatrix( void *spinmatrix )
    @brief zero a spinmatrix
  */

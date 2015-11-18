@@ -179,6 +179,18 @@ spinmatrix_trace_test( void )
   return NULL ;
 }
 
+// trace of the product of two matrices
+static char*
+trace_prod_spinmatrices_test( void )
+{
+  const double complex tr1 = trace_prod_spinmatrices( D , D ) ;
+  spinmatrix_multiply( C , D , D ) ;
+  const double complex tr2 = spinmatrix_trace( C ) ;
+  mu_assert( "[UNIT] error : spinmatric ops trace_prod_spinmatrices"
+	     " broken" , !( cabs( tr1 - tr2 ) > FTOL ) ) ;
+  return NULL ;
+}
+
 // test if we can zero an array
 static char*
 zero_spinmatrix_test( void )
@@ -214,6 +226,7 @@ spinmatrices_test( void )
   mu_run_test( zero_spinmatrix_test ) ;
 
   // relies on spinmatrix multiply and spinmatrix trace
+  mu_run_test( trace_prod_spinmatrices_test ) ;
   mu_run_test( gammaspinmatrix_trace_test ) ;
   mu_run_test( compute_pslash_test ) ;
 

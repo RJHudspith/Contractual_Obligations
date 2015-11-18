@@ -48,10 +48,10 @@ contract_tetras( struct propagator *prop ,
     const int p3 = tetras[ measurements ].map[2] ;
     const int p4 = tetras[ measurements ].map[3] ;
 
-    if( p1 == p2 && p2 == p3 && p3 == p4 ) {
-      if( tetraquark_diagonal( prop[ p1 ] , CUTINFO , 
-			       tetras[ measurements ].outfile
-			       ) == FAILURE ) {
+    if( p3 == p4 ) {
+      if( tetraquark( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , CUTINFO , 
+		      tetras[ measurements ].outfile
+		      ) == FAILURE ) {
 	    return FAILURE ;
 	  }
     } else {

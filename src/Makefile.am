@@ -13,6 +13,7 @@ BARYONFILES= ./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 
+## c files in ./FIELD/
 FIELDFILES=./FIELD/plaqs_links.c ./FIELD/polyakov.c
 
 ## c files in ./IO/
@@ -22,6 +23,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/read_config.c ./IO/read_headers.c ./IO/read_propheader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
+## c files in ./LINALG/
 LINALGFILES=./LINALG/bar_contractions.c \
 	./LINALG/bar_projections.c \
 	./LINALG/bar_ops.c ./LINALG/bar_ops_SSE.c \
@@ -35,7 +37,8 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
 
 ## c files in ./TETRA/
-TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c
+TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c \
+	./TETRA/tetra_contractions.c
 
 ## c files in ./UTILS/
 UTILSFILES=./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \

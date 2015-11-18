@@ -6,12 +6,15 @@
 #define TETRAQUARK_H
 
 /**
-   @fn int tetraquark_diagonal( struct propagator prop , const struct cut_info CUTINFO , const char *outfile )
+   @fn int tetraquark( struct propagator prop1 , struct propagator prop2 , struct propagator prop3 , const struct cut_info CUTINFO , const char *outfile )
    @brief tetraquark contraction code
+   @return #SUCCESS or #FAILURE
  */
 int
-tetraquark_diagonal( struct propagator prop ,
-		     const struct cut_info CUTINFO ,
-		     const char *outfile ) ;
+tetraquark( struct propagator prop1 ,
+	    struct propagator prop2 ,
+	    struct propagator prop3 ,
+	    const struct cut_info CUTINFO ,
+	    const char *outfile ) ;
 
 #endif
