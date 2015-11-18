@@ -38,7 +38,7 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/tetraquark.c ./TETRA/wrap_tetras.c \
-	./TETRA/tetra_contractions.c
+	./TETRA/tetra_contractions.c ./TETRA/tetra_degen.c
 
 ## c files in ./UTILS/
 UTILSFILES=./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \

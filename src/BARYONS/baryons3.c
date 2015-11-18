@@ -83,7 +83,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     }
   }
 
-
+  // these have size 1
   NMOM = malloc( sizeof( int ) ) ;
   wwNMOM = malloc( sizeof( int ) ) ;
 
@@ -126,9 +126,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL ) {
-    Buds_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    Buuu_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    Buds_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    Buuu_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -193,14 +193,14 @@ baryons_3fdiagonal( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 	
-	int GSGK ;
+	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
 
-	  const int GSRC = GSGK / B_CHANNELS ;
-	  const int GSNK = GSGK % B_CHANNELS ;
+	  const size_t GSRC = GSGK / B_CHANNELS ;
+	  const size_t GSNK = GSGK % B_CHANNELS ;
 
 	  // zero our terms
-	  int odc ;
+	  size_t odc ;
 	  for( odc = 0 ; odc < NSNS ; odc++ ) {
 	    in[ 0 + 2 * ( odc + NSNS * GSGK ) ][ site ] = 0.0 ;
 	    in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] = 0.0 ;
@@ -235,7 +235,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     }
 
     // copy over the propagators
-    int i ;
+    size_t i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
       memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
@@ -264,9 +264,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
   free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
 
   if( prop1.source == WALL ) {
-    free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // free the "in" allocation
@@ -349,9 +349,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
     free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
     free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
     if( prop1.source == WALL ) {
-      free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-      free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+      free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
     }
   }
 

@@ -117,9 +117,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL ) {
-    Buds_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    Buuu_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    Buds_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    Buuu_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -245,9 +245,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
   free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
 
   if( prop1.source == WALL ) {
-    free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // free the "in" allocation
@@ -328,9 +328,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
     free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
     free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
     if( prop1.source == WALL ) {
-      free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-      free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+      free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
     }
   }
 

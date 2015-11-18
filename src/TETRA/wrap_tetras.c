@@ -43,13 +43,21 @@ contract_tetras( struct propagator *prop ,
     const int p2 = tetras[ measurements ].map[1] ;
     const int p3 = tetras[ measurements ].map[2] ;
 
-    // at the moment don't suppor p1==p2
-    if( p1 != p2 && p2 != p3 ) {
+    // support for degenerate light content
+    if( p1 == p2 && p2 != p3 ) {
+      if( tetraquark_degen( prop[ p1 ] , prop[ p3 ] , CUTINFO , 
+			    tetras[ measurements ].outfile
+			    ) == FAILURE ) {
+	return FAILURE ;
+      }
+    // general p1 != p2 combination
+    } else if( p1 != p2 && p2 != p3 ) {
       if( tetraquark( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , CUTINFO , 
 		      tetras[ measurements ].outfile
 		      ) == FAILURE ) {
-	    return FAILURE ;
-	  }
+	return FAILURE ;
+      }
+    // otherwise complain 
     } else {
       if( check_origins( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ) 
 	  == FAILURE ) {
