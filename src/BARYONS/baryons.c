@@ -162,7 +162,7 @@ baryons_diagonal( struct propagator prop ,
 	  const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	  // precompute \gamma_t ( Cg_\mu )^{*} \gamma_t -> \Gamma^{T} in note
 	  const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-	  const struct gamma CgnuT = CGmuT( Cgnu , GAMMAS ) ;
+	  const struct gamma CgnuT = gt_Gconj_gt( Cgnu , GAMMAS ) ;
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( in , S1[ site ] , S1[ site ] , S1[ site ] , 

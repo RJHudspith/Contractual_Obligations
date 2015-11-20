@@ -1,11 +1,10 @@
 /**
    @file tetra_contractions.c
    @brief tetraquark contractions
-
-   TODO :: perhaps move some of these to LINALG?
  */
 #include "common.h"
 
+#include "contractions.h"   // gamma_mul_r()
 #include "gammas.h"         // Cgmu()
 #include "spinmatrix_ops.h" // trace_prod_spinmatrices()
 
@@ -16,11 +15,11 @@ get_spinmatrix( double complex *s ,
 		const size_t c1 , 
 		const size_t c2 )
 {
-  size_t d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      s[ d2 + NS * d1 ] = S.D[ d1 ][ d2 ].C[ c1 ][ c2 ] ;
-    }
+  const double complex *dS = (const double complex*)S.D ;
+  dS += c2 + NC * c1 ;
+  size_t d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    *s = *dS ; s++ ; dS += NCNC ;
   }
   return ;
 }
@@ -56,6 +55,18 @@ c4( const struct spinor s1 , const size_t c1 , const size_t c2 , const struct ga
   return trace_prod_spinmatrices( prod1 , prod2 ) ;
 }
 
+// little function to determine a,b,c and d
+static void
+get_abcd( size_t *a , size_t *b , size_t *c , size_t *d , const size_t abcd )
+{
+  // cache this
+  const size_t NCNCNC = NCNC * NC ;
+  *a = ( abcd ) / ( NCNCNC ) ;
+  *b = ( abcd % NCNCNC ) / ( NCNC ) ;
+  *c = ( abcd % NCNC ) / ( NC ) ;
+  *d = ( abcd % NC ) ;
+}
+
 // diquark-diquark contraction
 double complex
 diquark_diquark( const struct spinor U ,
@@ -65,28 +76,29 @@ diquark_diquark( const struct spinor U ,
 		 const size_t mu )
 {
   // precompute Cg5 and Cg5T
-  const struct gamma Cg5  = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  const struct gamma Cg5T = CGmuT( Cg5 , GAMMAS ) ;
+  const struct gamma Cg5   = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
+  const struct gamma Cg5T  = gt_Gdag_gt( Cg5 , GAMMAS ) ;
 
   // ang Cgmu
-  const struct gamma Cgmu = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
-  const struct gamma CgmuT = CGmuT( Cgmu , GAMMAS ) ;
+  const struct gamma Cgmu  = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
+  const struct gamma CgmuT = gt_Gdag_gt( Cgmu , GAMMAS ) ;
 
-  size_t a , b ;
+  // loop all colors
+  size_t abcd , a , b , c , d ;
   register double complex sum1 = 0.0 , sum2 = 0.0 ;
-  for( a = 0 ; a < NC ; a++ ) {
-    for( b = 0 ; b < NC ; b++ ) {
-      // [ Uaa.Cg5.Dbb.Cg5T.Baa.Cgmu.Bbb.CgmuT ]
-      sum1 += c4( U , a , a , Cg5 ,  
-		  D , b , b , Cg5T ,
-		  B , a , a , Cgmu , 
-		  B , b , b , CgmuT ) ;
-      // [ Uaa.Cg5.Dbb.Cg5T.Baa.Cgmu.Bbb.CgmuT ]
-      sum2 += c4( U , a , a , Cg5 ,  
-		  D , b , b , Cg5T ,
-		  B , a , b , Cgmu , 
-		  B , b , a , CgmuT ) ;
-    }
+  for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
+    // get the color indices from linearised index abcd
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // [ Uac.Cg5.Dbd.Cg5T.Bac.Cgmu.Bbd.CgmuT ]
+    sum1 += c4( U , a , c , Cg5 ,  
+		D , b , d , Cg5T ,
+		B , a , c , Cgmu , 
+		B , b , d , CgmuT ) ;
+    // [ Uac.Cg5.Dbd.Cg5T.Bad.Cgmu.Bbc.CgmuT ]
+    sum2 += c4( U , a , c , Cg5 ,  
+		D , b , d , Cg5T ,
+		B , a , d , Cgmu , 
+		B , b , c , CgmuT ) ;
   }
   return sum1 - sum2 ;
 }
@@ -105,31 +117,34 @@ dimeson_dimeson( const struct spinor U ,  // u prop
 
   // cache the common gamma matrices
   const struct gamma g5 = GAMMAS[ GAMMA_5 ] , gi = GAMMAS[ mu ] ;
+  struct gamma g5dag = gt_Gdag_gt( g5 , GAMMAS ) ;
+  struct gamma gidag = gt_Gdag_gt( gi , GAMMAS ) ;
 
-  size_t a , b ;
-  for( a = 0 ; a < NC ; a++ ) {
-    for( b = 0 ; b < NC ; b++ ) {
-      // [ Baa.g5.Uaa.gi.Bbb.g5.Dbb.gi ]
-      sum1 += c4( B , a , a , g5 , 
-		  U , a , a , gi ,
-		  B , b , b , g5 , 
-		  D , b , b , gi ) ;
-      // [ Bab.g5.Uaa.gi.Bba.g5.Dbb.gi ]
-      sum2 += c4( B , a , b , g5 , 
-		  U , a , a , gi ,
-		  B , b , a , g5 , 
-		  D , b , b , gi ) ;
-      // [ Baa.g5.Uab.gi.Bbb.g5.Dba.gi ]
-      sum3 += c4( B , a , a , g5 , 
-		  U , a , b , gi ,
-		  B , b , b , g5 , 
-		  D , b , a , gi ) ;
-      // [ Bab.g5.Uab.gi.Bba.g5.Dba.gi ]
-      sum4 += c4( B , a , b , g5 , 
-		  U , a , b , gi ,
-		  B , b , a , g5 , 
-		  D , b , a , gi ) ;
-    }
+  // loop all colors
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    // get the color indices from linearised index abcd
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // [ Bac.g5.Uac.gi.Bbd.g5.Dbd.gi ]
+    sum1 += c4( B , a , c , g5 , 
+		U , a , c , g5dag ,
+		B , b , d , gi , 
+		D , b , d , gidag ) ;
+    // [ Bad.g5.Uac.g5.Bbc.gi.Dbd.gi ]
+    sum2 += c4( B , a , d , g5 , 
+		U , a , c , g5dag ,
+		B , b , c , gi , 
+		D , b , d , gidag ) ;
+    // [ Bac.g5.Uad.g5.Bbd.g5.Dbc.gi ]
+    sum3 += c4( B , a , c , g5 , 
+		U , a , d , g5dag ,
+		B , b , d , gi , 
+		D , b , c , gidag ) ;
+    // [ Bad.g5.Uad.g5.Bbc.gi.Dbc.gi ]
+    sum4 += c4( B , a , d , g5 , 
+		U , a , d , g5dag ,
+		B , b , c , gi , 
+		D , b , c , gidag ) ;
   }
   return sum1 - sum2 - sum3 + sum4 ;
 }

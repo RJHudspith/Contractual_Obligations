@@ -8,8 +8,6 @@
 #include "minunit.h"     // minimal unit testing framework
 #include "spinor_ops.h"  // spinor operations
 
-static struct gamma *GAMMAS = NULL ; // gamma matrix technology
-
 static struct spinor *S = NULL ; // LCU spinor
 static struct spinor A ;         // single spinor storage
 static double complex *C ;
@@ -64,14 +62,6 @@ static char
 	       !(*a != -*b) ) ;
     a++ , b++ ;
   }
-  return NULL ;
-}
-
-static char 
-*gammas_test( void )
-{
-  mu_assert("[UNIT] error : gamma matrix setup failure ", 
-	    !( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) ) ;
   return NULL ;
 }
 
@@ -353,7 +343,6 @@ spinops_test( void )
   mu_run_test( gauge_test ) ;
   mu_run_test( gaugedag_test ) ;
   mu_run_test( gauge_spinordag_test ) ;
-  mu_run_test( gammas_test ) ;
   mu_run_test( identity_spinor_test ) ;
   mu_run_test( spinor_gauge_test ) ;
   mu_run_test( spinordag_gauge_test ) ;
@@ -372,9 +361,6 @@ spinor_test_driver( void )
   // init to zero again
   tests_run = tests_fail = 0 ;
   
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  
   // LCU spinor storage
   S = ( struct spinor* )malloc( LCU * sizeof( struct spinor ) ) ;
 
@@ -387,7 +373,6 @@ spinor_test_driver( void )
   free( D ) ;
   free( C ) ;
   free( S ) ;
-  free( GAMMAS ) ;
 
   if( tests_fail == 0 ) {
     printf( "[SPINORS UNIT] all %d tests passed\n\n" ,

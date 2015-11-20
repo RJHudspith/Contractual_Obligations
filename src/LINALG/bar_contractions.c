@@ -186,7 +186,7 @@ baryon_contract_walls( struct mcorr **Buud_corrWW ,
     // recompute teh Cgmus, these are basically free to calculate
     const struct gamma Cgmu  = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
     const struct gamma Cgnu  = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuT = CGmuT( Cgnu , GAMMAS ) ;
+    const struct gamma CgnuT = gt_Gconj_gt( Cgnu , GAMMAS ) ;
     baryon_contract_site( term , SUM1 , SUM1 , SUM1 , Cgmu , CgnuT ) ;
     // wall contractions project to zero spatial momentum explicitly
     int odc ;

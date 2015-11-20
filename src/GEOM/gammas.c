@@ -1,11 +1,8 @@
 /**
    @file gammas.c
-   @brief reshuffler for the gamma matrices
-
-   int gamma_matrix: 
-   	gamma matrices for mesons, returns reshuffled index and sign
-
-MAINZ
+   @brief gamma matrix business
+   
+   Now mapped Gattringer & Lang Appendices, A.21
 
    0 -> gamma_0 ( x )
    1 -> gamma_1 ( y )
@@ -34,6 +31,72 @@ MAINZ
  */
 #include "common.h" // needed for struct gamma definition
 
+#include "gammas.h"
+
+// computes GAMMA_T . GAMMA_Y . GAMMA_\mu
+struct gamma
+CGmu( const struct gamma G , 
+      const struct gamma *GAMMAS )
+{
+  struct gamma res , C ;
+  /////////// res  =       gamma_y     .  gamma_t
+  gamma_mmul( &C , GAMMAS[ GAMMA_1 ] , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_muli( &C ) ;
+  gamma_mmul( &res , C , G ) ;
+  return res ;
+}
+
+// takes a conjugate (and not a dagger)
+struct gamma
+gamma_conj( const struct gamma G )
+{
+  struct gamma res ;
+#if NS == 4 
+  res.g[ 0 ] = gconj( G.g[ 0 ] ) ; res.ig[ 0 ] = G.ig[ 0 ] ;
+  res.g[ 1 ] = gconj( G.g[ 1 ] ) ; res.ig[ 1 ] = G.ig[ 1 ] ;
+  res.g[ 2 ] = gconj( G.g[ 2 ] ) ; res.ig[ 2 ] = G.ig[ 2 ] ; 
+  res.g[ 3 ] = gconj( G.g[ 3 ] ) ; res.ig[ 3 ] = G.ig[ 3 ] ;
+#else
+  int i ;
+  for( i = 0 ; i < NS ; i++ ) {
+    res.ig[ i ] = G.ig[ i ] ;
+    res.g[ i ] = gconj( G.g[ i ] ) ;
+  }
+#endif
+  return res ;
+}
+
+// takes a conjugate transpose
+struct gamma
+gamma_dag( const struct gamma G )
+{
+  struct gamma res ;
+#if NS == 4 
+  res.g[ 0 ] = gconj( G.g[ G.ig[ 0 ] ] ) ; res.ig[ G.ig[ 0 ] ] = 0 ;
+  res.g[ 1 ] = gconj( G.g[ G.ig[ 1 ] ] ) ; res.ig[ G.ig[ 1 ] ] = 1 ;
+  res.g[ 2 ] = gconj( G.g[ G.ig[ 2 ] ] ) ; res.ig[ G.ig[ 2 ] ] = 2 ;
+  res.g[ 3 ] = gconj( G.g[ G.ig[ 3 ] ] ) ; res.ig[ G.ig[ 3 ] ] = 3 ;
+#else
+  int i ;
+  for( i = 0 ; i < NS ; i++ ) {
+    res.ig[ G.ig[ i ] ] = i ;
+    res.g[ i ] = gconj( G.g[ G.ig[ i ] ] ) ;
+  }
+#endif
+  return res ;
+}
+
+// multiply by i
+void
+gamma_muli( struct gamma *G )
+{
+  G -> g[0] = ( G -> g[0] + 1 ) & 3 ;
+  G -> g[1] = ( G -> g[1] + 1 ) & 3 ;
+  G -> g[2] = ( G -> g[2] + 1 ) & 3 ;
+  G -> g[3] = ( G -> g[3] + 1 ) & 3 ;
+  return ;
+}
+
 // gamma multiply
 void
 gamma_mmul( struct gamma *__restrict a ,
@@ -60,113 +123,56 @@ gamma_mmul( struct gamma *__restrict a ,
 #endif
 }
 
-// gamma matrix comparison
-static int
-gamma_comparison( const struct gamma G1 , 
-		  const struct gamma G2 ,
-		  const char *message )
-{
-  int j ;
-  for( j = 0 ; j < NS ; j++ ) {
-    if( G1.ig[j] != G2.ig[j] || G1.g[j] != G2.g[j] ) {
-      printf( "%s\n" , message ) ;
-      return 1 ;
-    }
-  }
-  return 0 ;
-}
-
-// check our gamma matrices are sensible
-static int
-check_gammas( const struct gamma *GAMMA ) 
-{
-  // multiply by identity
-  struct gamma res ;
-  int mu , flag = 0 ;
-  for( mu = 0 ; mu < NSNS ; mu++ ) {
-    gamma_mmul( &res , GAMMA[ IDENTITY ] , GAMMA[ mu ] ) ;
-    flag += gamma_comparison( res , GAMMA[ mu ] , "Identity Multiply" ) ;
-    gamma_mmul( &res , GAMMA[ mu ] , GAMMA[ IDENTITY ] ) ;
-    flag += gamma_comparison( res , GAMMA[ mu ] , "Identity Multiply" ) ;
-  }
-
-  // check gamma_5 * gamma_5 is the identity
-  gamma_mmul( &res , GAMMA[ GAMMA_0 ] , GAMMA[ GAMMA_0 ] ) ;
-  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma0 Gamma0" ) ;
-  gamma_mmul( &res , GAMMA[ GAMMA_1 ] , GAMMA[ GAMMA_1 ] ) ;
-  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma1 Gamma1" ) ;
-  gamma_mmul( &res , GAMMA[ GAMMA_2 ] , GAMMA[ GAMMA_2 ] ) ;
-  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma2 Gamma2" ) ;
-  gamma_mmul( &res , GAMMA[ GAMMA_3 ] , GAMMA[ GAMMA_3 ] ) ;
-  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma3 Gamma3" ) ;
-  gamma_mmul( &res , GAMMA[ GAMMA_5 ] , GAMMA[ GAMMA_5 ] ) ;
-  flag += gamma_comparison( res , GAMMA[ IDENTITY ] , "Gamma5 Gamma5" ) ;
-
-  // compute gamma_0.gamma_1.gamma_2.gamma_3 = gamma_5 and compare
-  struct gamma t1 , t2 ;
-  gamma_mmul( &t1 , GAMMA[ GAMMA_0 ] , GAMMA[ GAMMA_1 ] ) ;
-  gamma_mmul( &t2 , GAMMA[ GAMMA_2 ] , GAMMA[ GAMMA_3 ] ) ;
-  gamma_mmul( &res , t1 , t2 ) ;
-  flag += gamma_comparison( res , GAMMA[ GAMMA_5 ] , 
-			    "Gamma0.Gamma1.Gamma2.Gamma3 = Gamma5" ) ;
-
-  // if any failure happens we leave in disgust
-  if( flag != 0 ) {
-    return FAILURE ;
-  }
-  return SUCCESS ;
-}
-
-// conjugate a gamma
-static inline uint8_t
-gconj( const uint8_t g ) 
-{
-  return ( ( g & 1 ) ? ( g + 2 ) : g ) & 3 ;
-}
-
-// takes a conjugate (and not a dagger)
-static struct gamma
-gamma_conj( const struct gamma G )
+// takes a transpose
+struct gamma
+gamma_transpose( const struct gamma G )
 {
   struct gamma res ;
 #if NS == 4 
-  res.g[ 0 ] = gconj( G.g[ 0 ] ) ; res.ig[ 0 ] = G.ig[ 0 ] ;
-  res.g[ 1 ] = gconj( G.g[ 1 ] ) ; res.ig[ 1 ] = G.ig[ 1 ] ;
-  res.g[ 2 ] = gconj( G.g[ 2 ] ) ; res.ig[ 2 ] = G.ig[ 2 ] ; 
-  res.g[ 3 ] = gconj( G.g[ 3 ] ) ; res.ig[ 3 ] = G.ig[ 3 ] ;
+  res.g[ 0 ] = G.g[ G.ig[ 0 ] ] ; res.ig[ G.ig[ 0 ] ] = 0 ;
+  res.g[ 1 ] = G.g[ G.ig[ 1 ] ] ; res.ig[ G.ig[ 1 ] ] = 1 ;
+  res.g[ 2 ] = G.g[ G.ig[ 2 ] ] ; res.ig[ G.ig[ 2 ] ] = 2 ;
+  res.g[ 3 ] = G.g[ G.ig[ 3 ] ] ; res.ig[ G.ig[ 3 ] ] = 3 ;
 #else
   int i ;
   for( i = 0 ; i < NS ; i++ ) {
-    res.ig[ i ] = G.ig[ i ] ;
-    res.g[ i ] = gconj( G.g[ i ] ) ;
+    res.ig[ G.ig[ i ] ] = i ;
+    res.g[ i ] = G.g[ G.ig[ i ] ] ;
   }
 #endif
   return res ;
 }
 
-// computes GAMMA_T . GAMMA_Y . GAMMA_\mu
-struct gamma
-CGmu( const struct gamma GAMMA_MU , 
-      const struct gamma *GAMMAS )
+// conjugate a gamma
+uint8_t
+gconj( const uint8_t g ) 
 {
-  struct gamma res , tmp ;
-  /////////// res  =       gamma_t     .  gamma_y 
-  gamma_mmul( &tmp , GAMMAS[ GAMMA_3 ] , GAMMAS[ GAMMA_1 ] ) ;
-  gamma_mmul( &res , tmp , GAMMA_MU ) ;
-  return res ;
+  return ( ( g % 2 ) == 1 ? ( g + 2 ) : g ) & 3 ;
 }
 
-// computes ( GAMMA_T . ( C Gamma_\mu )^* . GAMMA_T )
+// computes ( GAMMA_T . ( G )^* . GAMMA_T )
 struct gamma
-CGmuT( const struct gamma Cgmu , 
-       const struct gamma *GAMMAS )
+gt_Gconj_gt( const struct gamma G, 
+	     const struct gamma *GAMMAS )
 {
   struct gamma res , tmp ;
-  gamma_mmul( &tmp , gamma_conj( Cgmu ) , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &tmp , gamma_conj( G ) , GAMMAS[ GAMMA_3 ] ) ;
   gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
   return res ;
 }
 
+// computes ( GAMMA_T . ( G )^\dagger . GAMMA_T )
+struct gamma
+gt_Gdag_gt( const struct gamma G , 
+	    const struct gamma *GAMMAS )
+{
+  struct gamma res , tmp ;
+  gamma_mmul( &tmp , gamma_dag( G ) , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+  return res ;
+}
+
+// create a look up table for our gamma matrices
 int
 make_gammas( struct gamma *GAMMA ,
 	     const proptype prop )
@@ -174,10 +180,10 @@ make_gammas( struct gamma *GAMMA ,
   switch( prop ) {
   case NREL :
     // gamma_0 -- x direction
-    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] =  3 ;
-    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] =  3 ;
-    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] =  1 ;
-    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] =  1 ;
+    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] = 3 ;
+    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] = 3 ;
+    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] = 1 ;
+    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] = 1 ;
     // gamma_1 -- y direction
     GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] = 2 ;
     GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] = 0 ;
@@ -202,10 +208,10 @@ make_gammas( struct gamma *GAMMA ,
   case STATIC :
   case CHIRAL :
     // gamma_0
-    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] =  3 ;
-    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] =  3 ;
-    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] =  1 ;
-    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] =  1 ;
+    GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] = 3 ;
+    GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] = 3 ;
+    GAMMA[0].ig[2] = 1 ; GAMMA[0].g[2] = 1 ;
+    GAMMA[0].ig[3] = 0 ; GAMMA[0].g[3] = 1 ;
     // gamma_1
     GAMMA[1].ig[0] = 3 ; GAMMA[1].g[0] = 2 ;
     GAMMA[1].ig[1] = 2 ; GAMMA[1].g[1] = 0 ;
@@ -217,15 +223,15 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[2].ig[2] = 0 ; GAMMA[2].g[2] = 1 ;
     GAMMA[2].ig[3] = 1 ; GAMMA[2].g[3] = 3 ;
     // gamma_3
-    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 2 ;
-    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 2 ;
-    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 2 ;
-    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 2 ;
+    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 0 ;
+    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 0 ;
+    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 0 ;
+    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 0 ;
     // gamma_5 gets flipped no?
-    GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 2 ;
-    GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 2 ;
-    GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 0 ;
-    GAMMA[5].ig[3] = 3 ; GAMMA[5].g[3] = 0 ;
+    GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 0 ;
+    GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 0 ;
+    GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 2 ;
+    GAMMA[5].ig[3] = 3 ; GAMMA[5].g[3] = 2 ;
     break ;
   }
 
@@ -266,7 +272,33 @@ make_gammas( struct gamma *GAMMA ,
   // gamma_2 gamma_3 
   gamma_mmul( &GAMMA[15] , GAMMA[2] , GAMMA[3] ) ;
   
-  return check_gammas( GAMMA ) ;
+  // compliance is now checked in gamma_tests.c as part 
+  // of the unit-testing structure
+  return SUCCESS ;
 }
 
-
+// have a look at our gammas
+void
+picture_gamma( const struct gamma G ) 
+{
+  size_t d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      // 
+      if( G.ig[ d1 ] == d2 ) {
+	switch( G.g[d1] ) {
+	case 0 : printf( " +1 " ) ; break ;
+	case 1 : printf( " +i " ) ; break ;
+	case 2 : printf( " -1 " ) ; break ;
+	case 3 : printf( " -i " ) ; break ;
+	}
+      } else {
+	printf( "  0 " ) ;
+      }
+      //
+    }
+    printf( "\n" ) ;
+  }
+  printf( "\n" ) ;
+  return ;
+}

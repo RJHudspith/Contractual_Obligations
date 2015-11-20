@@ -5,7 +5,8 @@
 
 #include "common.h"
 
-#include "tetraquark.h"   // flavour degenerate
+#include "tetra_degen.h"  // light flavour degenerate
+#include "tetraquark.h"   // light flavour agnostic
 
 // for origin checking
 static int
