@@ -158,12 +158,6 @@ gt_Gconj_gt_test( void )
 	     !( gamma_comparison( GAMMAS[IDENTITY] ,
 				  gt_Gconj_gt( GAMMAS[IDENTITY] ,
 					       GAMMAS ) ) ) ) ;
-  /* this is untrue!!!
-  struct gamma Cg5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  struct gamma gtCg5gt = gt_Gconj_gt( Cg5 , GAMMAS ) ;
-  mu_assert( "[UNIT] error : gt.Cg5.gt != Cg5" ,
-	     !( gamma_comparison( Cg5 , gtCg5gt ) ) ) ;
-  */
   return NULL ;
 }
 
@@ -206,6 +200,7 @@ gammas_test( void )
   
   // these rely on the above
   mu_run_test( Cgmu_test ) ;
+
   mu_run_test( gt_Gconj_gt_test ) ;
   mu_run_test( gt_Gdag_gt_test ) ;
 
