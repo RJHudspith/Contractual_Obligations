@@ -7,7 +7,7 @@
 
 #include "bar_ops.h"      // baryon operations
 #include "contractions.h" // gamma_mul_lr()
-#include "gammas.h"       // Cgmu and CgmuT
+#include "gammas.h"       // Cgmu and CgmuD
 
 // baryon contraction of ( \Gamma_mu^T S1 Gamma_\mu S2 ) S3
 // NOTES ::
@@ -29,11 +29,11 @@ baryon_contract_site( double complex **term ,
 		      const struct spinor S2 , 
 		      const struct spinor S3 , 
 		      const struct gamma Cgmu ,
-		      const struct gamma CgmuT )
+		      const struct gamma GgmuD )
 {
-  // get diquark = ( CgmuT S1 Cgmu )
+  // get diquark = ( GgmuD S1 Cgmu )
   struct spinor DiQ = S1 ;
-  gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
+  gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
 
   // Cross color product and sink Dirac trace back into DiQ
   cross_color_trace( &DiQ , S2 ) ;
@@ -89,7 +89,7 @@ baryon_contract_site( double complex **term ,
   return ;
 }
 
-// baryon contraction of ( \Gamma ) ( \Gamma^{T} ) S3 ( S2 S1 )
+// baryon contraction of ( \Gamma ) ( \Gamma^{dagger} ) S3 ( S2 S1 )
 // accumulates site-wise value in flattened "in" array
 void
 baryon_contract_site_mom( double complex **in ,
@@ -97,13 +97,13 @@ baryon_contract_site_mom( double complex **in ,
 			  const struct spinor S2 , 
 			  const struct spinor S3 , 
 			  const struct gamma Cgmu ,
-			  const struct gamma CgmuT ,
+			  const struct gamma GgmuD ,
 			  const int GSRC ,
 			  const int site )
 {
   // get diquark
   struct spinor DiQ = S1 ;
-  gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
+  gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
 
   // Cross color product and sink Dirac trace back into DiQ
   cross_color_trace( &DiQ , S2 ) ;
@@ -186,8 +186,8 @@ baryon_contract_walls( struct mcorr **Buud_corrWW ,
     // recompute teh Cgmus, these are basically free to calculate
     const struct gamma Cgmu  = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
     const struct gamma Cgnu  = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuT = gt_Gconj_gt( Cgnu , GAMMAS ) ;
-    baryon_contract_site( term , SUM1 , SUM1 , SUM1 , Cgmu , CgnuT ) ;
+    const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS ) ;
+    baryon_contract_site( term , SUM1 , SUM1 , SUM1 , Cgmu , CgnuD ) ;
     // wall contractions project to zero spatial momentum explicitly
     int odc ;
     for( odc = 0 ; odc < NSNS ; odc++ ) {
@@ -207,12 +207,12 @@ baryon_contract_omega_site( double complex **term ,
 			    const struct spinor S2 , 
 			    const struct spinor S3 , 
 			    const struct gamma Cgmu ,
-			    const struct gamma CgmuT )
+			    const struct gamma GgmuD )
 {
   // get diquark
   struct spinor DiQ = S1 , CgS51 = S1 , CgS52 = S1 ;
-  gamma_mul_lr( &DiQ , CgmuT , Cgmu ) ;
-  gamma_mul_l( &CgS51 , CgmuT ) ;
+  gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
+  gamma_mul_l( &CgS51 , GgmuD ) ;
   gamma_mul_r( &CgS52 , Cgmu ) ;
 
   // Cross color product and sink Dirac trace back into DiQ

@@ -190,13 +190,13 @@ baryons_2fdiagonal( struct propagator prop1 ,
 	  
 	  // precompute Cg_\mu is the product, gamma_t gamma_y gamma_[GSRC]
 	  const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
-	  // precompute \gamma_t ( Cg_\nu )^{*} \gamma_t -> \Gamma^{T} in note
-	  const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-	  const struct gamma CgnuT = gt_Gconj_gt( Cgnu , GAMMAS ) ;
+	  // precompute \gamma_t ( Cg_\mu )^{dagger} \gamma_t 
+          const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
+          const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS ) ;
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( in , S1[ site ] , S1[ site ] , S2[ site ] , 
-				    Cgmu , CgnuT , GSGK , site ) ;
+				    Cgmu , CgnuD , GSGK , site ) ;
 	}
       }
       // loop over open indices performing wall contraction
