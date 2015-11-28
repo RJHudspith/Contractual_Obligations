@@ -2,26 +2,25 @@
    @file corr_sort.c
    @brief type-agnostic merge and heap sorts
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdlib.h> // malloc
+#include <string.h> // memcpy
 
 #include "corr_sort.h" // for alphabetisation
 
 // tuning for when to use insertion sort
-#define INSERTION_TUNE ( 2 << 9 )
+static size_t INSERTION_TUNE = 2 << 9 ;
 
 // insertion sort
 static int
 insertion_sort( void *list1 , void *list2 , 
 		const size_t base1 , const size_t base2 ,
-		const size_t N ,
+		const size_t lower , const size_t upper ,
 		int(*compare)( const void *a , const void *b ) )
 {
   char insert1[ base1 ] , insert2[ base2 ] ; // temporary storage
   int i , hole ;
   // standard insertion sort
-  for( i = 1 ; i < N ; i++ ) {
+  for( i = lower ; i < upper ; i++ ) {
     memcpy( insert1 , (char*)list1 + i*base1 , base1 ) ;
     memcpy( insert2 , (char*)list2 + i*base2 , base2 ) ;
     hole = i ;
@@ -39,19 +38,18 @@ insertion_sort( void *list1 , void *list2 ,
 // merge two lists
 static int
 merge( void *list1 , void *list2 ,
-       const void *lower1 , const void *lower2 , const size_t low_size ,
-       const void *upper1 , const void *upper2 , const size_t upp_size ,
+       void *tlist1 , void *tlist2 ,
+       const size_t lower , const size_t middle , const size_t upper ,
        const size_t base1 , const size_t base2 , 
        int(*compare)( const void *a , const void *b ) )
 {
-  // instead of a while use a for loop
-  size_t i , a = 0 , b = 0 ;
-  for( i = 0 ; i < low_size + upp_size ; i++ ) {
+  size_t i , a = lower , b = middle ;
+  for( i = lower ; i < upper ; i++ ) {
     // potentially have an a candidate to put in list
-    if( a < low_size ) {
-      // if it satisfie the compare poke it in
-      if( b >= upp_size || compare( (char*)lower1 + base1*a , 
-				    (char*)upper1 + base1*b ) ) {
+    if( a < middle ) {
+      // if it satisfies the compare poke it in
+      if( b >= upper || compare( (char*)tlist1 + base1*a , 
+				 (char*)tlist1 + base1*b ) ) {
 	goto swapa ;
       // otherwise put a b in the list
       } else {
@@ -62,18 +60,21 @@ merge( void *list1 , void *list2 ,
       goto swapb ;
     }
   swapa :
-    memcpy( (char*)list1 + base1*i , (char*)lower1 + base1*a , base1 ) ;
-    memcpy( (char*)list2 + base2*i , (char*)lower2 + base2*a , base2 ) ;
+    memcpy( (char*)list1 + base1*i , (char*)tlist1 + base1*a , base1 ) ;
+    memcpy( (char*)list2 + base2*i , (char*)tlist2 + base2*a , base2 ) ;
     a++ ;
     continue ;
   swapb :
-    memcpy( (char*)list1 + base1*i , (char*)upper1 + base1*b , base1 ) ;
-    memcpy( (char*)list2 + base2*i , (char*)upper2 + base2*b , base2 ) ;
+    memcpy( (char*)list1 + base1*i , (char*)tlist1 + base1*b , base1 ) ;
+    memcpy( (char*)list2 + base2*i , (char*)tlist2 + base2*b , base2 ) ;
     b++ ;
     continue ;
   }
-  free( (void*)lower1 ) ; free( (void*)upper1 ) ; 
-  free( (void*)lower2 ) ; free( (void*)upper2 ) ;
+  // copy merged list back into workspace lists
+  memcpy( (char*)tlist1 + base1*lower , (char*)list1 + base1*lower , 
+	  (upper-lower) * base1 ) ;
+  memcpy( (char*)tlist2 + base2*lower , (char*)list2 + base2*lower , 
+	  (upper-lower ) * base2 ) ;
   return 0 ;
 }
 
@@ -129,6 +130,7 @@ heap_sort( void *list1 , void *list2 ,
   return ;
 }
 
+// double comparison example
 int
 lt_dbl( const void *a , 
 	const void *b )
@@ -136,6 +138,7 @@ lt_dbl( const void *a ,
   return (*(const double*)a < *(const double*)b) ; 
 }
 
+// int comparison exampled
 int
 lt_int( const void *a , 
 	const void *b )
@@ -145,46 +148,69 @@ lt_int( const void *a ,
 
 // merge_sort
 int
+mergesort( void *list1 , void *list2 ,
+	   void *tlist1 , void *tlist2 ,
+	   const size_t lower , const size_t upper ,
+	   const size_t base1 , const size_t base2 ,
+	   int(*compare)( const void *a , const void *b ) )
+{
+  // recursively break the list up into even buckets
+  if( (upper-lower) <= INSERTION_TUNE ) { 
+    // sort temporary list as this is the one we merge back into 
+    // the full lists, this is why pivot_tune < size
+    return insertion_sort( tlist1 , tlist2 , base1 , base2 , 
+			   lower , upper , compare ) ; 
+  }
+
+  // return when we only have one element in the list or if 
+  // we are using the insertion sort to speed things up
+  if( ( upper - lower ) == 1 ) return 0 ;
+
+  // the middle of this list
+  const size_t middle = ( lower + upper ) >> 1 ;
+
+  // recursively break up lower and upper into smaller lists
+  mergesort( list1 , list2 , tlist1 , tlist2 , 
+	     lower , middle , base1 , base2 , compare ) ;
+
+  mergesort( list1 , list2 , tlist1 , tlist2 , 
+	     middle , upper , base1 , base2 , compare ) ;
+
+  // merge the two lists
+  return merge( list1 , list2 , tlist1 , tlist2 ,
+		lower , middle , upper , base1 , base2 , compare ) ;
+}
+
+// new merge sort allocates temporary space and uses that
+// for the sorted lists
+int
 merge_sort( void *list1 , void *list2 ,
 	    const size_t base1 , const size_t base2 ,
 	    const size_t size ,
 	    int(*compare)( const void *a , const void *b ) )
 {
-  // recursively break the list up into even buckets
-  if( size <= INSERTION_TUNE ) { 
-    return insertion_sort( list1 , list2 , 
-			   base1 , base2 , 
-			   size , compare ) ; 
+  // allocate two temporary lists
+  char *tlist1 = malloc( size * base1 ) ;
+  char *tlist2 = malloc( size * base1 ) ;
+
+  // copy into the two workspace lists
+  memcpy( tlist1 , list1 , size * base1 ) ;
+  memcpy( tlist2 , list2 , size * base2 ) ;
+
+  // make sure we do at least one split
+  if( size < INSERTION_TUNE ) {
+    INSERTION_TUNE = size-1 ;
   }
 
-  // break list into two sublists
-  const size_t low_size = size >> 1 ;
-  const size_t upp_size = size - low_size ;
+  // do the merging
+  mergesort( list1 , list2 , tlist1 , tlist2 ,
+	     0 , size , base1 , base2 , compare ) ;
 
-  // this really shouldn't happen as the insertion
-  // sort should capture such behaviour, is mostly
-  // to remove the static anlayzer warning
-  if( low_size < 1 || upp_size < 1 ) return 0 ;
-  
-  // temporary lists
-  char *lower1 = malloc( low_size * base1 ) ;
-  char *lower2 = malloc( low_size * base2 ) ;
-  char *upper1 = malloc( upp_size * base1 ) ;
-  char *upper2 = malloc( upp_size * base2 ) ;
+  // free the lists
+  free( tlist1 ) ;
+  free( tlist2 ) ;
 
-  memcpy( lower1 , list1 , low_size * base1 ) ;
-  memcpy( lower2 , list2 , low_size * base2 ) ;
-  memcpy( upper1 , (char*)list1 + low_size * base1 , upp_size * base1 ) ;
-  memcpy( upper2 , (char*)list2 + low_size * base2 , upp_size * base2 ) ;
-
-  // recursively break up lower and upper into smaller lists
-  merge_sort( lower1 , lower2 , low_size , base1 , base2 , compare ) ;
-  merge_sort( upper1 , upper2 , upp_size , base1 , base2 , compare ) ;
-
-  return merge( list1 , list2 , 
-		lower1 , lower2 , low_size , 
-		upper1 , upper2 , upp_size , 
-		base1 , base2 , compare ) ;
+  return 0 ;
 }
 
 // type-agnostic swap
