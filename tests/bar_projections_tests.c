@@ -352,7 +352,7 @@ check_sum_identity( void )
       for( d = 0 ; d < NS ; d++ ) {
 	mu_assert( "[UNIT] error : bar_projections sum identity failed\n" ,
 		   ( mu == nu ) ?			\
-		   cabs( t1[ d*(NS+1) - 1 ] ) < FTOL: \
+		   cabs( t1[ d*(NS+1) ] - 1.0 ) < FTOL: \
 		   cabs( t1[ d*(NS+1) ] ) < FTOL ) ;
       }
     }

@@ -220,6 +220,13 @@ gamma_test_driver( void )
 
   char *gammares = gammas_test( ) ;
 
+  if( tests_fail != 0 ) {
+    printf( "%s \n" , gammares ) ;
+    printf( "[GAMMAS UNIT] %d out of %d tests failed\n\n" , 
+	    tests_fail , tests_run ) ;
+    return FAILURE ;
+  }
+
   make_gammas( GAMMAS , NREL ) ;
 
   gammares = gammas_test( ) ;

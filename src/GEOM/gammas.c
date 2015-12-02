@@ -39,7 +39,7 @@ CGmu( const struct gamma G ,
       const struct gamma *GAMMAS )
 {
   struct gamma res , C ;
-  /////////// res  =       gamma_y     .  gamma_t
+  // res  =  i .  gamma_y . gamma_t
   gamma_mmul( &C , GAMMAS[ GAMMA_1 ] , GAMMAS[ GAMMA_3 ] ) ;
   gamma_muli( &C ) ;
   gamma_mmul( &res , C , G ) ;

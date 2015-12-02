@@ -183,7 +183,7 @@ tetraquark_degen( struct propagator prop1 ,
 						GAMMAS , GSRC ) ;
 	  // poke in the dimesons
 	  in[ GSRC + ND-1 ][ site ] = 
-	    2.0 * dimeson_dimeson( S1[ site ] , S1[ site ] , bwdH , GAMMAS , GSRC ) ;
+	    2.0 * dimeson( S1[ site ] , S1[ site ] , bwdH , GAMMAS , GSRC ) ;
 	}
       }
       // wall-wall contractions
@@ -197,7 +197,7 @@ tetraquark_degen( struct propagator prop1 ,
 	    diquark_diquark( SUM1 , SUM1 , bwdH , GAMMAS , GSRC ) ;
 	  // meson-meson
 	  tetra_corrWW[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
-	    2.0 * dimeson_dimeson( SUM1 , SUM1 , bwdH , GAMMAS , GSRC ) ;
+	    2.0 * dimeson( SUM1 , SUM1 , bwdH , GAMMAS , GSRC ) ;
 	}
 	///
       }
