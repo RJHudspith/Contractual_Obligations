@@ -23,7 +23,7 @@ MOMAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS}
 UNIT_SOURCES = unit.c contract_tests.c matops_tests.c \
 	spinmatrix_tests.c spinor_tests.c \
 	bar_projections_tests.c bar_ops_tests.c \
-	gamma_tests.c
+	gamma_tests.c utils_tests.c 
 UNIT_CFLAGS = -I${TOPDIR}/src/HEADERS/
 UNIT_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
 

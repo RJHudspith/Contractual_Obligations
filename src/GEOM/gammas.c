@@ -33,7 +33,7 @@
 
 #include "gammas.h"
 
-// computes GAMMA_T . GAMMA_Y . GAMMA_\mu
+// computes i GAMMA_Y . GAMMA_Y . GAMMA_\mu // gattringer & lang
 struct gamma
 CGmu( const struct gamma G , 
       const struct gamma *GAMMAS )
