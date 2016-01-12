@@ -118,13 +118,12 @@ debug_baryons( const char *message ,
 
 // baryon writers
 void
-write_baryons( struct mcorr **Buud_corr , 
-	       struct mcorr **Buuu_corr ,
-	       struct mcorr **Buds_corr ,
-	       const struct veclist *list ,
-	       const int NMOM[ 1 ] ,
-	       const GLU_bool is_wall ,
-	       const char *outfile )
+write_baryon( struct mcorr **corr , 
+	      const struct veclist *list ,
+	      const int NMOM[ 1 ] ,
+	      const GLU_bool is_wall ,
+	      const char *outfile ,
+	      const char *type )
 {
   // write out the correlator
   char outstr[ 256 ] , wall[ 8 ] = "" ;
@@ -132,19 +131,9 @@ write_baryons( struct mcorr **Buud_corr ,
     sprintf( wall , ".WW" ) ;
   } 
 
-  // write out the "uds" type
-  sprintf( outstr , "%s.uds%s" , outfile , wall ) ;
-  write_momcorr( outstr , (const struct mcorr**)Buds_corr , 
-		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
-
-  // write out the "uud" type
-  sprintf( outstr , "%s.uud%s" , outfile , wall ) ;
-  write_momcorr( outstr , (const struct mcorr**)Buud_corr , 
-		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
-
-  // write out the "uuu" type
-  sprintf( outstr , "%s.uuu%s" , outfile , wall ) ;
-  write_momcorr( outstr , (const struct mcorr**)Buuu_corr , 
+  // write out whatever type we are using
+  sprintf( outstr , "%s.%s%s" , outfile , type , wall ) ;
+  write_momcorr( outstr , (const struct mcorr**)corr , 
 		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
 
   return ;

@@ -41,17 +41,16 @@ debug_baryons( const char *message ,
 	       const struct mcorr **corr ) ;
 
 /**
-   @fn void write_baryons( struct mcorr **Buud_corr , struct mcorr **Buuu_corr , struct mcorr **Buds_corr , const struct veclist *list , const int NMOM[ 1 ] , const GLU_bool is_wall , const char *outfile )
+   @fn void write_baryon( struct mcorr **corr , const struct veclist *list , const int NMOM[ 1 ] , const GLU_bool is_wall , const char *outfile , const char *type )
    @brief write out our baryonic, momentum-projected correlation functions
  */
 void
-write_baryons( struct mcorr **Buud_corr , 
-	       struct mcorr **Buuu_corr ,
-	       struct mcorr **Buds_corr ,
-	       const struct veclist *list ,
-	       const int NMOM[ 1 ] ,
-	       const GLU_bool is_wall ,
-	       const char *outfile ) ;
+write_baryon( struct mcorr **corr ,
+	      const struct veclist *list ,
+	      const int NMOM[ 1 ] ,
+	      const GLU_bool is_wall ,
+	      const char *outfile ,
+	      const char *type ) ;
 
 /**
    @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const int NSRC , const int NSNK , const int *nmom )

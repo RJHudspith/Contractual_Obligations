@@ -72,7 +72,7 @@ mesons_offdiagonal( struct propagator prop1 ,
   NMOM = (int*)malloc( sizeof( int ) ) ;
   wwNMOM = (int*)malloc( sizeof( int ) ) ;
 
-  int i ;
+  size_t i ;
 
 #ifdef HAVE_FFTW3_H
 
@@ -115,7 +115,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     goto free_failure ;
   }
 
-  int t ;
+  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -137,7 +137,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     const size_t tshifted = ( t - prop1.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT in parallel
-    int GSGK = 0 ;
+    size_t GSGK = 0 ;
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
@@ -161,11 +161,13 @@ mesons_offdiagonal( struct propagator prop1 ,
       for( GSGK = 0 ; GSGK < ( NSNS*NSNS ) ; GSGK++ ) {
 	const int GSRC = GSGK / NSNS ;
 	const int GSNK = GSGK % NSNS ;
+	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
+						       GAMMAS ) ;
 	// loop spatial hypercube
-	int site ;
+	size_t site ;
         #ifdef HAVE_FFTW3_H
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  in[ GSGK ][ site ] = meson_contract( GAMMAS[ GSNK ] , S2[ site ] , 
+	  in[ GSGK ][ site ] = meson_contract( gt_GSNKdag_gt  , S2[ site ] , 
 					       GAMMAS[ GSRC ] , S1[ site ] ,
 					       GAMMAS[ GAMMA_5 ] ) ;
 	}
@@ -181,7 +183,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 	register double complex sum = 0.0 ;
 	// for the non-fftw'd version we fall back on the zero-mom projection
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] , S2[ site ] , 
+	  sum += meson_contract( gt_GSNKdag_gt  , S2[ site ] , 
 				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}

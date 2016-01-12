@@ -495,7 +495,7 @@ meson_contract( const struct gamma GSNK ,
 						      SSE2_MULCONJ( *(d1+6) , *(d2+6) ) ) ,
 					  _mm_add_pd( SSE2_MULCONJ( *(d1+7) , *(d2+7) ) ,
 						      SSE2_MULCONJ( *(d1+8) , *(d2+8) ) ) ) ;
-      _mm_add_pd( sum , _mm_add_pd( sum1 , sum2 ) ) ; d2 += 9 ;
+      sum = _mm_add_pd( sum , _mm_add_pd( sum1 , sum2 ) ) ; d2 += 9 ;
       #elif NC == 2
       sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
@@ -503,7 +503,7 @@ meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       #else 
       sum = _mm_setzero_pd( ) ;
-      int c1c2 ;
+      size_t c1c2 ;
       for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
 	sum = _mm_add_pd( sum , SSE2_MULCONJ( *d1 , *d2 ) ) ; d1 ++ ; d2 ++ ;
       }

@@ -42,8 +42,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
   double complex **in = NULL , **out = NULL ;
 
   // correlators
-  struct mcorr **Buud_corr = NULL , **Buuu_corr = NULL , **Buds_corr = NULL ;
-  struct mcorr **Buud_corrWW = NULL , **Buuu_corrWW = NULL , **Buds_corrWW = NULL ;
+  struct mcorr **Buds_corr = NULL , **Buds_corrWW = NULL ;
 
 #ifdef HAVE_FFTW3_H
   fftw_plan *forward = NULL , *backward = NULL ; 
@@ -88,7 +87,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
   wwNMOM = malloc( sizeof( int ) ) ;
 
   in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
   }
@@ -121,14 +120,10 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   // Define our output correlators, with B_CHANNELS channels and NSNS components
   Buds_corr = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-  Buud_corr = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-  Buuu_corr = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL ) {
     Buds_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-    Buuu_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -138,7 +133,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     goto FREE_FAIL ;
   }
 
-  int t ;
+  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
     
@@ -165,7 +160,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     const size_t tshifted = ( t + LT - prop1.origin[ND-1] ) % LT ;
 
     // strange memory access pattern threads better than what was here before
-    int site ;
+    size_t site ;
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
@@ -219,15 +214,14 @@ baryons_3fdiagonal( struct propagator prop1 ,
       }
       // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
-	baryon_contract_walls( Buud_corrWW , Buuu_corrWW , Buds_corrWW ,
-			       SUM1 , SUM2 , SUM3 , GAMMAS , tshifted ) ;
+	baryon_contract_walls( Buds_corrWW , SUM1 , SUM2 , SUM3 , GAMMAS , tshifted ,
+			       UDS_BARYON ) ;
       }
     }
 
     // momentum projection 
-    baryon_momentum_project( Buud_corr , Buuu_corr , Buds_corr ,
-			     in , out , forward , backward ,
-			     list , NMOM , tshifted ) ;
+    baryon_momentum_project( Buds_corr , in , out , forward , backward ,
+			     list , NMOM , tshifted , UDS_BARYON ) ;
 
     // if we error we leave
     if( error_flag == FAILURE ) {
@@ -250,23 +244,17 @@ baryons_3fdiagonal( struct propagator prop1 ,
   printf( "\n" ) ;
 
   // write out the baryons wall-local and maybe wall-wall
-  write_baryons( Buud_corr , Buuu_corr , Buds_corr ,
-		 list , NMOM , GLU_FALSE , outfile ) ;
+  write_baryon( Buds_corr , list , NMOM , GLU_FALSE , outfile , "uds" ) ;
 
   if( prop1.source == WALL ) {
-    write_baryons( Buud_corrWW , Buuu_corrWW , Buds_corrWW ,
-		   wwlist , wwNMOM , GLU_TRUE , outfile ) ;
+    write_baryon( Buds_corrWW , wwlist , wwNMOM , GLU_TRUE , outfile , "uds" ) ;
   }
 
   // free our momentum correlators
   free_momcorrs( Buds_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-  free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-  free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
 
   if( prop1.source == WALL ) {
     free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-    free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
   }
 
   // free the "in" allocation
@@ -346,12 +334,8 @@ baryons_3fdiagonal( struct propagator prop1 ,
   // free our momentum correlators
   if( NMOM != NULL ) {
     free_momcorrs( Buds_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    free_momcorrs( Buuu_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
     if( prop1.source == WALL ) {
       free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-      free_momcorrs( Buuu_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
     }
   }
 

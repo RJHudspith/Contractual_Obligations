@@ -44,7 +44,7 @@ mesons_diagonal( struct propagator prop ,
   // structure containing dispersion relation stuff
   struct mcorr **disp = NULL , **wwdisp = NULL ;
 
-  int i ;
+  size_t i ;
 
   // and our spinor
   if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
@@ -105,7 +105,7 @@ mesons_diagonal( struct propagator prop ,
     goto free_failure ;
   }
 
-  int t ;
+  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -119,7 +119,7 @@ mesons_diagonal( struct propagator prop ,
     const size_t tshifted = ( t - prop.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT (if available) in parallel
-    int GSGK = 0 ;
+    size_t GSGK = 0 ;
     int error_flag = SUCCESS ;
     #pragma omp parallel
     {
@@ -129,19 +129,20 @@ mesons_diagonal( struct propagator prop ,
 	  if( read_prop( prop , S1f ) == FAILURE ) {
 	    error_flag = FAILURE ;
 	  }
-	  //
 	}
       }
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < ( NSNS*NSNS ) ; GSGK++ ) {
-	const int GSRC = GSGK / NSNS ;
-	const int GSNK = GSGK % NSNS ;
+	const size_t GSRC = GSGK / NSNS ;
+	const size_t GSNK = GSGK % NSNS ;
+	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
+						       GAMMAS ) ;
 	// loop spatial hypercube
-	int site ;
+	size_t site ;
         #ifdef HAVE_FFTW3_H
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  in[ GSGK ][ site ] = meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
+	  in[ GSGK ][ site ] = meson_contract( gt_GSNKdag_gt  , S1[ site ] , 
 					       GAMMAS[ GSRC ] , S1[ site ] ,
 					       GAMMAS[ GAMMA_5 ] ) ;
 	}
@@ -156,7 +157,7 @@ mesons_diagonal( struct propagator prop ,
 	// non - fftw version falls back to the usual zero-momentum sum
 	register double complex sum = 0.0 ;
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( GAMMAS[ GSNK ] , S1[ site ] , 
+	  sum += meson_contract( gt_GSNKdag_gt  , S1[ site ] , 
 				 GAMMAS[ GSRC ] , S1[ site ] ,
 				 GAMMAS[ GAMMA_5 ] ) ;
 	}

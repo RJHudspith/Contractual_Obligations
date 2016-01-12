@@ -2,8 +2,17 @@
    @file enum.h
    @brief storage for all the enums
  */
-#ifndef ENUM_H
-#define ENUM_H
+#ifndef CORR_ENUM_H
+#define CORR_ENUM_H
+
+/**
+   @enum baryon_type
+   @brief type of baryon contraction to be performed
+ */
+typedef enum {
+  UDS_BARYON ,
+  UUD_BARYON ,
+  UUU_BARYON } baryon_type ;
 
 /**
    @enum bprojection

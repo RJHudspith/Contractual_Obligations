@@ -45,34 +45,32 @@ baryon_contract_site_mom( double complex **in ,
 			  const int site ) ;
 
 /**
-   @fn void baryon_contract_walls( struct mcorr **Buud_corrWW , struct mcorr **Buuu_corrWW , struct mcorr **Buds_corrWW , const struct spinor SUM1 , const struct spinor SUM2 , const struct spinor SUM3 , const struct gamma *GAMMAS , const int t )
+   @fn void baryon_contract_walls( struct mcorr **corr , const struct spinor SUM1 , const struct spinor SUM2 , const struct spinor SUM3 , const struct gamma *GAMMAS , const baryon_type btype )
    @brief perform the Wall-Wall Baryon contractions
    @warning must be called inside the parallel environment
  */
 void
-baryon_contract_walls( struct mcorr **Buud_corrWW , 
-		       struct mcorr **Buuu_corrWW ,
-		       struct mcorr **Buds_corrWW ,
+baryon_contract_walls( struct mcorr **corr , 
 		       const struct spinor SUM1 ,
 		       const struct spinor SUM2 ,
 		       const struct spinor SUM3 ,
 		       const struct gamma *GAMMAS ,
-		       const int t ) ;
+		       const size_t t ,
+		       const baryon_type btype ) ;
 
 /**
-   @fn void baryon_momentum_project( struct mcorr **Buud_corr , struct mcorr **Buuu_corr , struct mcorr **Buds_corr , double complex **in , double complex **out , const void *forward , const void *backward , const struct veclist *list , const int NMOM[ 1 ] , const int t )
+   @fn void baryon_momentum_project( struct mcorr **corr , double complex **in , double complex **out , const void *forward , const void *backward , const struct veclist *list , const int NMOM[ 1 ] , const size_t t , const baryon_type btype )
    @brief perform the momentum projection for our baryons
  */
 void
-baryon_momentum_project( struct mcorr **Buud_corr , 
-			 struct mcorr **Buuu_corr ,
-			 struct mcorr **Buds_corr ,
+baryon_momentum_project( struct mcorr **corr , 
 			 double complex **in ,
 			 double complex **out ,
 			 const void *forward ,
 			 const void *backward ,
 			 const struct veclist *list ,
 			 const int NMOM[ 1 ] ,
-			 const int t ) ;
+			 const size_t t ,
+			 const baryon_type btype ) ;
 
 #endif

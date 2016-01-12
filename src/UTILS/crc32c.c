@@ -45,7 +45,7 @@
 #include "common.h"
 
 // call the hardware version if possible is ~8x faster!
-#if defined (__SSE4_2__)
+#if (defined HAVE_EMMINTRIN_H) && (defined (__SSE4_2__))
 
 static uint32_t 
 crc32c( uint32_t crc, 
