@@ -2,9 +2,7 @@
    @file tetra_contractions.c
    @brief tetraquark contractions
 
-   TODO: we should speed this up! can precompute all gamma
-   multiplies. Could break up NC loops and do precomputations.
-   Can we do all the multiplies outside of the abcd loop?
+   TODO :: write some tests for this!
  */
 #include "common.h"
 
@@ -17,7 +15,7 @@ struct cc {
   double complex M[ NSNS ] ;
 } ;
 
-// this is a really out of order memory access
+// this is a really out of order memory access, should be in spinor_ops no?
 static void
 get_spinmatrix( double complex *s , 
 		const struct spinor S ,
@@ -43,7 +41,7 @@ element( const size_t a , const size_t b , const size_t c , const size_t d )
   return d + NC * ( c + NC * ( b + NC * a ) ) ;
 }
 
-// little function to determine a,b,c and d
+// little function to determine a,b,c and d. d runs fastest, a slowest
 static void
 get_abcd( size_t *a , size_t *b , size_t *c , size_t *d , const size_t abcd )
 {
@@ -55,59 +53,38 @@ get_abcd( size_t *a , size_t *b , size_t *c , size_t *d , const size_t abcd )
   *d = ( abcd % NC ) ;
 }
 
-// precomputes some spinmatrices
+// precompute a "block" is a spinmatrix
 static void
-precompute_C1C2( struct cc *C1 ,
-		 struct cc *C2 ,
-		 const struct spinor S1 ,
-		 const struct spinor S2 ,
-		 const struct spinor S3 ,
-		 const struct spinor S4 ,
-		 const struct gamma G12 ,
-		 const struct gamma G34 ,
-		 const struct gamma *GAMMAS )
+precompute_block( struct cc *C1 ,
+		  const struct spinor S1 ,
+		  const struct gamma G1 ,
+		  const struct spinor S2 ,
+		  const struct gamma G2 )
 {
-  struct spinor S1g12 = S1 , S2g12dag = S2 ;
-  const struct gamma G12dag = gt_Gdag_gt( G12 , GAMMAS ) ;
-  gamma_mul_r( &S1g12    , G12    ) ;
-  gamma_mul_r( &S2g12dag , G12dag ) ;
-
-  struct spinor S3g34 = S3 , S4g34dag = S4 ;
-  const struct gamma G34dag = gt_Gdag_gt( G34 , GAMMAS ) ;
-  gamma_mul_r( &S3g34    , G34    ) ;
-  gamma_mul_r( &S4g34dag , G34dag ) ;
-
-  double complex D1[ NSNS ] , D2[ NSNS ] , D3[ NSNS ] , D4[ NSNS ] ;
-  size_t ab , cd ;
+  struct spinor S1g1 = S1 , S2g2 = S2 ;
+  gamma_mul_r( &S1g1 , G1 ) ;
+  gamma_mul_r( &S2g2 , G2 ) ;
+  double complex D1[ NSNS ] , D2[ NSNS ] ;
+  size_t ab , cd , a , b , c , d ;
   for( ab = 0 ; ab < NCNC ; ab++ ) {
-
-    const size_t a = ab / NC ;
-    const size_t b = ab % NC ;
-
-    get_spinmatrix( D1 , S1g12    , a , b ) ;
-    get_spinmatrix( D3 , S3g34    , a , b ) ;
-
+    a = ab / NC ;
+    b = ab % NC ;
+    get_spinmatrix( D1 , S1g1 , a , b ) ;
     for( cd = 0 ; cd < NCNC ; cd++ ) {
-
-      const size_t c = cd / NC ;
-      const size_t d = cd % NC ;
-
-      get_spinmatrix( D2 , S2g12dag , c , d ) ;
-      get_spinmatrix( D4 , S4g34dag , c , d ) ;
-
+      c = cd / NC ;
+      d = cd % NC ;
+      get_spinmatrix( D2 , S2g2 , c , d ) ;
       spinmatrix_multiply( C1 -> M , D1 , D2 ) ;
-      spinmatrix_multiply( C2 -> M , D3 , D4 ) ;
-
-      C1++ , C2++ ;
+      C1++ ;
     }
   }
-
   return ;
 }
 
-// diquark-diquark contraction
-double complex
-diquark_diquark( const struct spinor U ,
+// diquark-diquark contractions, now have 4 operators
+int
+diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
+		 const struct spinor U ,
 		 const struct spinor D ,
 		 const struct spinor B , // full adjoint of B
 		 const struct gamma *GAMMAS ,
@@ -131,37 +108,82 @@ diquark_diquark( const struct spinor U ,
     goto memfree ;
   }
 
-  // temporaries are UCg5.DCg5dag and BCgmu.BCgmudag
-  precompute_C1C2( C1 , C2 , 
-		   U , D , B , B ,
-		   CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ,
-		   CGmu( GAMMAS[ mu ] , GAMMAS ) , 
-		   GAMMAS ) ;
+  const struct gamma Cg5      = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
+  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , GAMMAS )  ;
+  const struct gamma Cgi      = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
+  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , GAMMAS ) ;
 
-  // loop color indices again
-  for( abcd = 0 ; abcd < Nco ; abcd++ ) {
-    // get the color indices from linearised index abcd
-    get_abcd( &a , &b , &c , &d , abcd ) ;
-
-    // compute the sum
-    sum += 
-      // TrS[ U_{ac}.Cg5.D_{bd}.Cg5T.B_{ac}.Cgi.B_{bd}.CgiT ]
-      +trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M , 
-				C2[ element( a , c , b , d ) ].M )
-      // TrS[ U_{ac}.Cg5.D_{bd}.Cg5T.B_{ad}.Cgi.B_{bc}.CgiT ]
-      -trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M , 
-			       C2[ element( a , d , b , c ) ].M ) ;
+  // Eq.37 in note is O_1 O_1^\dagger
+  {
+    sum = 0.0 ;
+    precompute_block( C1 , U , Cg5 , D , tildeCg5 ) ;
+    precompute_block( C2 , B , Cgi , B , tildeCgi ) ;
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      sum += 
+	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
+	( spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) - 
+	  spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ) ;
+    }
+    result[0] = sum ;
+  }
+  // Eq.41 in note is O_1 O_2^\dagger
+  {
+    sum = 0.0 ;
+    precompute_block( C1 , B , Cgi , B , tildeCg5 ) ;
+    precompute_block( C2 , U , Cg5 , D , tildeCgi ) ;
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      sum += 
+	trace_prod_spinmatrices( C1[ element( c , a , d , b ) ].M ,
+				 C2[ element( a , c , b , d ) ].M ) -
+	trace_prod_spinmatrices( C1[ element( c , b , d , a ) ].M ,
+				 C2[ element( a , c , b , d ) ].M ) ;
+    }
+    result[1] = sum ;
+  }
+  // Eq.43 in note is O_2 O_1^{\dagger}
+  {
+    sum = 0.0 ;
+    precompute_block( C1 , U , Cg5 , B , tildeCgi ) ;
+    precompute_block( C2 , B , Cgi , D , tildeCg5 ) ;
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      sum += 
+	trace_prod_spinmatrices( C1[ element( a , c , d , b ) ].M ,
+				 C2[ element( c , a , b , d ) ].M ) -
+	trace_prod_spinmatrices( C1[ element( a , c , d , a ) ].M ,
+				 C2[ element( c , b , b , d ) ].M ) ;
+    }
+    result[2] = sum ;
+  }
+  // Eq.39 in note is O_2 O_2^\dagger
+  {
+    sum = 0.0 ;
+    precompute_block( C1 , U , Cg5 , B , tildeCg5 ) ;
+    precompute_block( C2 , B , Cgi , D , tildeCgi ) ;
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      sum += 
+	// block1
+	spinmatrix_trace( C1[ element( a , c , d , b ) ].M ) * 
+	spinmatrix_trace( C2[ element( c , a , b , d ) ].M ) - 
+	// block2
+	spinmatrix_trace( C1[ element( a , c , d , a ) ].M ) * 
+	spinmatrix_trace( C2[ element( c , b , b , d ) ].M ) ;
+    }
+    result[3] = sum ;
   }
 
   free( C1 ) ;
   free( C2 ) ;
-  return sum ;
+  return SUCCESS ;
 
  memfree :
   free( C1 ) ;
   free( C2 ) ;
   printf( "[TETRA] corr_malloc failure in diquark-diquark\n" ) ;
-  return sqrt(-1) ;
+  return FAILURE ;
 }
 
 // dimeson contraction
@@ -178,7 +200,7 @@ dimeson( const struct spinor U , // u prop
   // index loops
   size_t abcd , a , b , c , d ;
 
-  // temporaries are Bg5 . Ug5dag and Bgmu . Dgmudag
+  // temporaries blocks of spinmatrix data
   struct cc *C1 = NULL , *C2 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
@@ -188,32 +210,44 @@ dimeson( const struct spinor U , // u prop
   }
 
   // precompute our temporaries
-  precompute_C1C2( C1 , C2 , 
-		   B , U , B , D ,
-		   GAMMAS[ GAMMA_5 ] ,
-		   GAMMAS[ mu ] , 
-		   GAMMAS ) ;
+  const struct gamma g5      = GAMMAS[ GAMMA_5 ] ;
+  const struct gamma tildeg5 = gt_Gdag_gt( g5 , GAMMAS )  ;
+  const struct gamma gi      = GAMMAS[ mu ] ;
+  const struct gamma tildegi = gt_Gdag_gt( gi , GAMMAS )  ;
 
   register double complex sum = 0.0 ;
-  // loop colors
-  for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
-    // get the color indices from linearised index abcd
-    get_abcd( &a , &b , &c , &d , abcd ) ;
+  // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
+  {
+    precompute_block( C1 , B , g5 , U , tildegi ) ;
+    precompute_block( C2 , B , gi , D , tildeg5 ) ;
+    for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      // usual meson product
+      sum += 
+	spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
+	spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
 
-    // sum the four possible terms
-    sum += 
-      // +TrS[ B_{ac}.g5.U_{ac}.g5T.B_{bd}.gi.B_{bd}.giT ]
-      +trace_prod_spinmatrices( C1[ element( a , c , a , c ) ].M , 
-				C2[ element( b , d , b , d ) ].M ) 
-      // -TrS[ B_{ad}.g5.U_{ac}.g5T.B_{bc}.gi.B_{bd}.giT ]
-      -trace_prod_spinmatrices( C1[ element( a , d , a , c ) ].M , 
-				C2[ element( b , c , b , d ) ].M ) 
-      // -TrS[ B_{ac}.g5.U_{ad}.g5T.B_{bd}.gi.B_{bc}.giT ]
-      -trace_prod_spinmatrices( C1[ element( a , c , a , d ) ].M , 
-				C2[ element( b , d , b , c ) ].M ) 
-      // +TrS[ B_{ad}.g5.U_{ad}.g5T.B_{bc}.gi.B_{bc}.giT ]
-      +trace_prod_spinmatrices( C1[ element( a , d , a , d ) ].M , 
-				C2[ element( b , c , b , c ) ].M ) ;
+      // cross term
+      sum -= 
+	spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
+	spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
+    }
+  }
+  // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note, global minus on this one!
+  {
+    precompute_block( C1 , B , gi , D , tildeg5 ) ;
+    precompute_block( C2 , B , g5 , U , tildegi ) ;
+    for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
+      get_abcd( &a , &b , &c , &d , abcd ) ;
+      // usual meson product
+      sum -= 
+	spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
+	spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
+      // cross term
+      sum += 
+	spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
+	spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
+    }
   }
 
   free( C1 ) ;

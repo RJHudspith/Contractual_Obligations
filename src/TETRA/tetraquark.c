@@ -26,7 +26,7 @@ tetraquark( struct propagator prop1 ,
 	    const char *outfile )
 {
   // flat dirac indices
-  const int flat_dirac = 2 * ( ND-1 ) ; // is gamma_i
+  const size_t flat_dirac = TETRA_NOPS * ( B_CHANNELS ) ; // is gamma_i
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -115,15 +115,15 @@ tetraquark( struct propagator prop1 ,
 
   // allocate the zero veclist for our writing out purposes
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
+    wwlist = (struct veclist*)zero_veclist( wwNMOM , B_CHANNELS , GLU_FALSE ) ;
   }
 
   // Define our output correlators, with 2 channels and ND-1 components
-  tetra_corr = allocate_momcorrs( 2 , ND-1 , NMOM[0] ) ;
+  tetra_corr = allocate_momcorrs( TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    tetra_corrWW = allocate_momcorrs( 2 , ND-1 , NMOM[0] ) ;
+    tetra_corrWW = allocate_momcorrs( TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -149,11 +149,12 @@ tetraquark( struct propagator prop1 ,
     }
 
     // compute wall sum
-    struct spinor SUM1 , SUM2 , SUM3 ;
+    struct spinor SUM1 , SUM2 , SUM3 , SUMbwdH ;
     if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
       sumprop( &SUM1 , S1 ) ;
       sumprop( &SUM2 , S2 ) ;
       sumprop( &SUM3 , S3 ) ;
+      full_adj( &SUMbwdH , SUM2 , GAMMAS[ GAMMA_5 ] ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
@@ -193,58 +194,71 @@ tetraquark( struct propagator prop1 ,
 	struct spinor bwdH ;
 	full_adj( &bwdH , S3[ site ] , GAMMAS[ GAMMA_5 ] ) ;
 
+	// diquark-diquark tetra
+	double complex result[ TETRA_NOPS - 1 ] ;
+
 	// loop gamma source
 	size_t GSRC ;
-	for( GSRC = 0 ; GSRC < ND-1 ; GSRC++ ) {
+	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
 	  // poke in the tetra
-	  in[ GSRC ][ site ] = diquark_diquark( S1[ site ] , S2[ site ] , bwdH , 
-						GAMMAS , GSRC ) ;
-	  // poke in the dimesons
-	  in[ GSRC + ND-1 ][ site ] = 
-	    dimeson( S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC ) +
-	    dimeson( S2[ site ] , S1[ site ] , bwdH , GAMMAS , GSRC ) ;
+	  if( diquark_diquark( result , S1[ site ] , S2[ site ] , bwdH , 
+			       GAMMAS , GSRC ) == FAILURE ) {
+	    error_flag = FAILURE ;
+	  }
+	  // for each C_\gamma_i we put out all NOPS operators
+	  in[ 0 + TETRA_NOPS*GSRC ][ site ] = result[0] ; // O1 O1^\dagger
+	  in[ 1 + TETRA_NOPS*GSRC ][ site ] = result[1] ; // O1 O2^\dagger
+	  in[ 2 + TETRA_NOPS*GSRC ][ site ] = result[2] ; // O2 O1^\dagger
+	  in[ 3 + TETRA_NOPS*GSRC ][ site ] = result[3] ; // O2 O2^\dagger
+	  // poke in the dimeson part :: O3 O3^\dagger
+	  in[ 4 + TETRA_NOPS*GSRC ][ site ] = 
+	    2 * dimeson( S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC ) ;
 	}
       }
       // wall-wall contractions
-      if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-	struct spinor bwdH ;
-	full_adj( &bwdH , SUM3 , GAMMAS[ GAMMA_5 ] ) ;
+      if( prop1.source == WALL || prop2.source == WALL ) {
+	double complex result[ TETRA_NOPS - 1 ] ;
 	size_t GSRC ;
-	for( GSRC = 0 ; GSRC < ND-1 ; GSRC++ ) {
+	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
+	  // compute diquark-diquark tetra
+	  if( diquark_diquark( result , SUM1 , SUM2 , SUMbwdH , 
+			       GAMMAS , GSRC ) == FAILURE ) {
+	    error_flag = FAILURE ;
+	  }
 	  // diquark-diquark
-	  tetra_corrWW[ 0 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
-	    diquark_diquark( SUM1 , SUM2 , bwdH , GAMMAS , GSRC ) ;
+	  tetra_corrWW[ 0 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
+	  tetra_corrWW[ 1 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
+	  tetra_corrWW[ 2 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
+	  tetra_corrWW[ 3 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
 	  // meson-meson
-	  tetra_corrWW[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
-	    dimeson( SUM1 , SUM2 , bwdH , GAMMAS , GSRC ) +
-	    dimeson( SUM2 , SUM1 , bwdH , GAMMAS , GSRC ) ;
+	  tetra_corrWW[ 4 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
+	    dimeson( SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC ) +
+	    dimeson( SUM2 , SUM1 , SUMbwdH , GAMMAS , GSRC ) ;
 	}
 	///
       }
     }
 
     // momentum projection
-    size_t GSRC , p ;
+    size_t GSRC ;
     #pragma omp parallel for private(GSRC) schedule(dynamic)
-    for( GSRC = 0 ; GSRC < ND-1 ; GSRC++ ) {
-      #ifdef HAVE_FFTW3_H
-      fftw_execute( forward[ GSRC ] ) ;
-      fftw_execute( forward[ GSRC + ND-1 ] ) ;
-      for( p = 0 ; p < NMOM[0] ; p++ ) {
-	tetra_corr[ 0 ][ GSRC ].mom[ p ].C[ tshifted ] =
-	  out[ GSRC ][ list[ p ].idx ] ;
-	tetra_corr[ 1 ][ GSRC ].mom[ p ].C[ tshifted ] =
-	  out[ GSRC + ND-1 ][ list[ p ].idx ] ;
+    for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
+      size_t op , p ;
+      for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+        #ifdef HAVE_FFTW3_H
+	fftw_execute( forward[ op + TETRA_NOPS * GSRC ] ) ;
+	for( p = 0 ; p < NMOM[0] ; p++ ) {
+	  tetra_corr[ op ][ GSRC ].mom[ p ].C[ tshifted ] =
+	    out[ op + TETRA_NOPS*GSRC ][ list[ p ].idx ] ;
+	}
+        #else
+	register double complex sum = 0.0 ;
+	for( p = 0 ; p < LCU ; p++ ) {
+	  sum += in[ op + TETRA_NOPS*GSRC ][ p ] ;
+	}
+	tetra_corr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = sum ;
+        #endif
       }
-      #else
-      register double complex sum1 , sum2 ;
-      for( p = 0 ; p < LCU ; p++ ) {
-	sum1 += in[ GSRC ][ p ] ;
-	sum2 += in[ GSRC + ND - 1 ][ p ] ;
-      }
-      tetra_corr[ 0 ][ GSRC ].mom[ 0 ].C[ tshifted ] = sum1 ;
-      tetra_corr[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = sum2 ;
-      #endif
     }
 
     // if we error we leave
@@ -269,16 +283,16 @@ tetraquark( struct propagator prop1 ,
 
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)tetra_corr ,
-		 list , 2 , ND-1 , NMOM ) ;
-  free_momcorrs( tetra_corr , 2 , ND-1 , NMOM[0] ) ;
+		 list , TETRA_NOPS , B_CHANNELS , NMOM ) ;
+  free_momcorrs( tetra_corr , TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
 
   // if we have walls we use them
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
     char outstr[ 256 ] ;
     sprintf( outstr , "%s.ww" , outfile ) ;
     write_momcorr( outstr , (const struct mcorr**)tetra_corrWW ,
-		   wwlist , 2 , ND-1 , wwNMOM ) ;
-    free_momcorrs( tetra_corrWW , 2 , ND-1 , wwNMOM[0] ) ;
+		   wwlist , TETRA_NOPS , B_CHANNELS , wwNMOM ) ;
+    free_momcorrs( tetra_corrWW , TETRA_NOPS , B_CHANNELS , wwNMOM[0] ) ;
   }
 
   // free the "in" allocation
@@ -356,9 +370,9 @@ tetraquark( struct propagator prop1 ,
 
   // free our correlators
   if( NMOM != NULL ) {
-    free_momcorrs( tetra_corr , 2 , ND-1 , NMOM[0] ) ;
+    free_momcorrs( tetra_corr , TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
     if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-      free_momcorrs( tetra_corrWW , 2 , ND-1 , wwNMOM[0] ) ;
+      free_momcorrs( tetra_corrWW , TETRA_NOPS , B_CHANNELS , wwNMOM[0] ) ;
     }
   }
 

@@ -122,6 +122,12 @@
 #define SUCCESS !FAILURE
 
 /**
+   @def TETRA_NOPS
+   @brief number of tetraquark operators we consider
+ */
+#define TETRA_NOPS 5
+
+/**
    @def TWOPI
    @brief \f$ 2 \pi$ appears everywhere
  */

@@ -6,12 +6,13 @@
 #define TETRA_CONTRACTIONS_H
 
 /**
-   @fn double complex diquark_diquark( const struct spinor U , const struct spinor D , const struct spinor B , const struct gamma *GAMMAS , const size_t mu )
+   @fn int diquark_diquark( double complex result[ TETRA_NOPS-1 ] , const struct spinor U , const struct spinor D , const struct spinor B , const struct gamma *GAMMAS , const size_t mu )
    @brief compute a diquark-diquark system
-   @return the trace of the two portions
+   @return #SUCCESS or #FAILURE
  */
-double complex
-diquark_diquark( const struct spinor U ,
+int
+diquark_diquark( double complex result[ TETRA_NOPS-1 ] , 
+		 const struct spinor U ,
 		 const struct spinor D ,
 		 const struct spinor B , // full adjoint of B
 		 const struct gamma *GAMMAS ,
