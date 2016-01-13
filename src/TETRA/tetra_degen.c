@@ -208,12 +208,12 @@ tetraquark_degen( struct propagator prop1 ,
 	    error_flag = FAILURE ;
 	  }
 	  // diquark-diquark
-	  tetra_corrWW[ 0 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
-	  tetra_corrWW[ 1 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
-	  tetra_corrWW[ 2 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
-	  tetra_corrWW[ 3 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
+	  tetra_corrWW[ 0 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
+	  tetra_corrWW[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
+	  tetra_corrWW[ 2 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
+	  tetra_corrWW[ 3 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
 	  // meson-meson
-	  tetra_corrWW[ 4 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
+	  tetra_corrWW[ 4 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
 	    dimeson( SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC ) +
 	    dimeson( SUM2 , SUM1 , SUMbwdH , GAMMAS , GSRC ) ;
 	}

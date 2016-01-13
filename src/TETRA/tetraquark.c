@@ -115,7 +115,7 @@ tetraquark( struct propagator prop1 ,
 
   // allocate the zero veclist for our writing out purposes
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , B_CHANNELS , GLU_FALSE ) ;
+    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
   }
 
   // Define our output correlators, with 2 channels and ND-1 components
@@ -129,7 +129,7 @@ tetraquark( struct propagator prop1 ,
   // read in the first timeslice
   if( read_prop( prop1 , S1 ) == FAILURE || 
       read_prop( prop2 , S2 ) == FAILURE || 
-      read_prop( prop3 , S3 )  == FAILURE ) {
+      read_prop( prop3 , S3 ) == FAILURE ) {
     goto FREE_FAIL ;
   }
 
@@ -226,12 +226,12 @@ tetraquark( struct propagator prop1 ,
 	    error_flag = FAILURE ;
 	  }
 	  // diquark-diquark
-	  tetra_corrWW[ 0 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
-	  tetra_corrWW[ 1 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
-	  tetra_corrWW[ 2 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
-	  tetra_corrWW[ 3 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
+	  tetra_corrWW[ 0 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
+	  tetra_corrWW[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
+	  tetra_corrWW[ 2 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
+	  tetra_corrWW[ 3 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
 	  // meson-meson
-	  tetra_corrWW[ 4 + TETRA_NOPS*GSRC ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
+	  tetra_corrWW[ 4 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
 	    dimeson( SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC ) +
 	    dimeson( SUM2 , SUM1 , SUMbwdH , GAMMAS , GSRC ) ;
 	}
