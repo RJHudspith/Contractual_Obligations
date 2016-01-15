@@ -59,20 +59,20 @@ uint8_t
 gconj( const uint8_t ) ;
 
 /**
-   @fn struct gamma CGmu( const struct gamma G , const struct gamma *GAMMAS )
-   @brief computes \f$ \gamma_t \gamma_y G \f$
+   @fn struct gamma gt_Gconj_gt( const struct gamma G , const struct gamma gt )
+   @brief computes \f$ \gamma_t G^* \gamma_t \f$
  */
 struct gamma
 gt_Gconj_gt( const struct gamma G , 
-	     const struct gamma *GAMMAS ) ;
+	     const struct gamma gt ) ;
 
 /**
-   @fn struct gamma gt_Gdag_gt( const struct gamma Cgmu , const struct gamma *GAMMAS )
+   @fn struct gamma gt_Gdag_gt( const struct gamma G , const struct gamma gt )
    @brief computes \f$ \gamma_t G^\dagger \gamma_t \f$
  */
 struct gamma
 gt_Gdag_gt( const struct gamma G , 
-	    const struct gamma *GAMMAS ) ;
+	    const struct gamma gt ) ;
 
 /**
    @fn int make_gammas( struct gamma *GAMMA , const proptype prop )

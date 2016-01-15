@@ -82,13 +82,14 @@ precompute_block( struct cc *C1 ,
 }
 
 // diquark-diquark contractions, now have 4 operators
-int
+static int
 diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
 		 const struct spinor U ,
 		 const struct spinor D ,
-		 const struct spinor B , // full adjoint of B
-		 const struct gamma *GAMMAS ,
-		 const size_t mu )
+		 const struct spinor B ,
+		 const struct gamma gt ,
+		 const struct gamma Cgi ,
+		 const struct gamma Cg5 )
 {
   // loop of colors
   const size_t Nco = NCNC * NCNC ;
@@ -108,10 +109,9 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
     goto memfree ;
   }
 
-  const struct gamma Cg5      = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , GAMMAS )  ;
-  const struct gamma Cgi      = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
-  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , GAMMAS ) ;
+  // compute the tilded contributions
+  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , gt ) ;
+  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
 
   // Eq.37 in note is O_1 O_1^\dagger
   {
@@ -187,12 +187,13 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
 }
 
 // dimeson contraction
-double complex
+static double complex
 dimeson( const struct spinor U , // u prop
 	 const struct spinor D , // d prop
 	 const struct spinor B , // adjoint of B
-	 const struct gamma *GAMMAS ,
-	 const size_t mu )
+	 const struct gamma gt ,
+	 const struct gamma gi ,
+	 const struct gamma g5 )
 {
   // flattened number of colors we loop over
   const size_t Nco = NCNC * NCNC ;
@@ -209,11 +210,9 @@ dimeson( const struct spinor U , // u prop
     goto memfree ;
   }
 
-  // precompute our temporaries
-  const struct gamma g5      = GAMMAS[ GAMMA_5 ] ;
-  const struct gamma tildeg5 = gt_Gdag_gt( g5 , GAMMAS )  ;
-  const struct gamma gi      = GAMMAS[ mu ] ;
-  const struct gamma tildegi = gt_Gdag_gt( gi , GAMMAS )  ;
+  // precompute our tilded temporaries
+  const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt )  ;
+  const struct gamma tildegi = gt_Gdag_gt( gi , gt )  ;
 
   register double complex sum = 0.0 ;
   // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
@@ -259,4 +258,52 @@ dimeson( const struct spinor U , // u prop
   free( C2 ) ;
   printf( "[TETRA] corr_malloc failure in dimeson\n" ) ;
   return sqrt(-1) ;
+}
+
+// perform the contraction
+int
+tetras( double complex result[ TETRA_NOPS ] ,
+	const struct spinor L1 , 
+	const struct spinor L2 ,
+	const struct spinor bwdH ,
+	const struct gamma *GAMMAS ,
+	const size_t mu , 
+	const GLU_bool L1L2_degenerate )
+{
+  // rename gamma matrices to match the contractions above
+  const struct gamma gt = GAMMAS[ GAMMA_3 ] ;
+  const struct gamma gi = GAMMAS[ mu ] ;
+  const struct gamma g5 = GAMMAS[ GAMMA_5 ] ;
+  
+  // precompute Cgamma matrices
+  const struct gamma Cg5 = CGmu( g5 , GAMMAS ) ;
+  const struct gamma Cgi = CGmu( gi , GAMMAS ) ;
+
+  // poke in the first set of tetra contractions
+  if( diquark_diquark( result , L1 , L2 , bwdH , 
+		       gt , Cgi , Cg5 ) == FAILURE ) {
+    return FAILURE ;
+  }
+  // for each C_\gamma_i we put out all TETRA_NOPS operators
+  result[ 4 ] = dimeson( L1 , L2 , bwdH , gt , gi , g5 ) ;
+  if( L1L2_degenerate == GLU_FALSE ) {
+    result[ 4 ] += dimeson( L2 , L1 , bwdH , gt , gi , g5 ) ;
+  } else {
+    result[ 4 ] *= 2 ;
+  }
+
+  // here we do the Cg5 <-> Cgi interchanges
+  if( diquark_diquark( result+TETRA_NOPS/2 , L1 , L2 , bwdH , 
+		       gt , Cg5 , Cgi ) == FAILURE ) {
+    return FAILURE ;
+  }
+  // poke in the dimeson part :: O6 O6^\dagger
+  result[ 9 ] = dimeson( L1 , L2 , bwdH , gt , g5 , gi ) ;
+  if( L1L2_degenerate == GLU_FALSE ) {
+    result[ 9 ] += dimeson( L2 , L1 , bwdH , gt , g5 , gi ) ;
+  } else {
+    result[ 9 ] *= 2 ;
+  }
+
+  return SUCCESS ;
 }

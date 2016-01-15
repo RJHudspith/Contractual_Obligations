@@ -188,9 +188,9 @@ baryon_contract_walls( struct mcorr **corr ,
 {
   //
   double complex (*f)( const double complex term1 , 
-		       const double complex term2 ) ;
+		       const double complex term2 ) = uds ;
   switch( btype ) {
-  case UDS_BARYON : f = uds ; break ;
+  case UDS_BARYON : break ;
   case UUD_BARYON : f = uud ; break ;
   case UUU_BARYON : f = uuu ; break ;
   }
@@ -208,7 +208,7 @@ baryon_contract_walls( struct mcorr **corr ,
     // recompute teh Cgmus, these are basically free to calculate
     const struct gamma Cgmu  = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
     const struct gamma Cgnu  = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS ) ;
+    const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
     baryon_contract_site( term , SUM1 , SUM1 , SUM1 , Cgmu , CgnuD ) ;
     // wall contractions project to zero spatial momentum explicitly
     size_t odc ;
@@ -276,9 +276,9 @@ baryon_momentum_project( struct mcorr **corr ,
 {
   //
   double complex (*f)( const double complex term1 , 
-		       const double complex term2 ) ;
+		       const double complex term2 ) = uds ; 
   switch( btype ) {
-  case UDS_BARYON : f = uds ; break ;
+  case UDS_BARYON : break ;
   case UUD_BARYON : f = uud ; break ;
   case UUU_BARYON : f = uuu ; break ;
   }

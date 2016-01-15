@@ -157,7 +157,7 @@ gt_Gconj_gt_test( void )
   mu_assert( "[UNIT] error : gt.I.gt != I" ,
 	     !( gamma_comparison( GAMMAS[IDENTITY] ,
 				  gt_Gconj_gt( GAMMAS[IDENTITY] ,
-					       GAMMAS ) ) ) ) ;
+					       GAMMAS[GAMMA_3] ) ) ) ) ;
   return NULL ;
 }
 
@@ -176,12 +176,12 @@ gt_Gdag_gt_test( void )
     }
     mu_assert( "[UNIT] error : gt.g_mu.gt != -g_mu" ,
 	       !( gamma_comparison( res ,
-				    gt_Gdag_gt( GAMMAS[mu] ,
-						GAMMAS ) ) ) ) ;
+				    gt_Gdag_gt( GAMMAS[ mu ] ,
+						GAMMAS[ GAMMA_3 ] ) ) ) ) ;
   }
   //
   struct gamma Cg5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  struct gamma gtCg5gt = gt_Gdag_gt( Cg5 , GAMMAS ) ;
+  struct gamma gtCg5gt = gt_Gdag_gt( Cg5 , GAMMAS[ GAMMA_3 ] ) ;
   mu_assert( "[UNIT] error : gt.Cg5.gt != Cg5" ,
 	     !( gamma_comparison( Cg5 , gtCg5gt ) ) ) ;
   return NULL ;

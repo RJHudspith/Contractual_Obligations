@@ -162,12 +162,12 @@ mesons_offdiagonal( struct propagator prop1 ,
 	const int GSRC = GSGK / NSNS ;
 	const int GSNK = GSGK % NSNS ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
-						       GAMMAS ) ;
+						       GAMMAS[ GAMMA_3 ] ) ;
 	// loop spatial hypercube
 	size_t site ;
         #ifdef HAVE_FFTW3_H
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  in[ GSGK ][ site ] = meson_contract( gt_GSNKdag_gt  , S2[ site ] , 
+	  in[ GSGK ][ site ] = meson_contract( gt_GSNKdag_gt  , S2[ site ] ,
 					       GAMMAS[ GSRC ] , S1[ site ] ,
 					       GAMMAS[ GAMMA_5 ] ) ;
 	}
@@ -193,7 +193,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 	// and contract the walls
 	if( prop1.source == WALL || prop2.source == WALL ) {
 	  wwdisp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = \
-	    meson_contract( GAMMAS[ GSNK ] , SUM2 , 
+	    meson_contract( gt_GSNKdag_gt  , SUM2 ,
 			    GAMMAS[ GSRC ] , SUM1 ,
 			    GAMMAS[ GAMMA_5 ] ) ;
 	}

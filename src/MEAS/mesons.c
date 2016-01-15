@@ -137,7 +137,7 @@ mesons_diagonal( struct propagator prop ,
 	const size_t GSRC = GSGK / NSNS ;
 	const size_t GSNK = GSGK % NSNS ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
-						       GAMMAS ) ;
+						       GAMMAS[ GAMMA_3 ] ) ;
 	// loop spatial hypercube
 	size_t site ;
         #ifdef HAVE_FFTW3_H
@@ -167,7 +167,7 @@ mesons_diagonal( struct propagator prop ,
 	// correlator computed just out of the summed walls
 	if( prop.source == WALL ) {
 	  wwdisp[ GSRC ][ GSNK ].mom[0].C[ tshifted ] =	\
-	    meson_contract( GAMMAS[ GSNK ] , SUM1 , 
+	    meson_contract( gt_GSNKdag_gt  , SUM1 , 
 			    GAMMAS[ GSRC ] , SUM1 ,
 			    GAMMAS[ GAMMA_5 ] ) ;
 	}

@@ -153,22 +153,22 @@ gconj( const uint8_t g )
 // computes ( GAMMA_T . ( G )^* . GAMMA_T )
 struct gamma
 gt_Gconj_gt( const struct gamma G, 
-	     const struct gamma *GAMMAS )
+	     const struct gamma gt )
 {
   struct gamma res , tmp ;
-  gamma_mmul( &tmp , gamma_conj( G ) , GAMMAS[ GAMMA_3 ] ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+  gamma_mmul( &tmp , gamma_conj( G ) , gt ) ;
+  gamma_mmul( &res , gt , tmp ) ;
   return res ;
 }
 
 // computes ( GAMMA_T . ( G )^\dagger . GAMMA_T )
 struct gamma
 gt_Gdag_gt( const struct gamma G , 
-	    const struct gamma *GAMMAS )
+	    const struct gamma gt )
 {
   struct gamma res , tmp ;
-  gamma_mmul( &tmp , gamma_dag( G ) , GAMMAS[ GAMMA_3 ] ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+  gamma_mmul( &tmp , gamma_dag( G ) , gt) ;
+  gamma_mmul( &res , gt, tmp ) ;
   return res ;
 }
 

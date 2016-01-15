@@ -195,45 +195,32 @@ tetraquark( struct propagator prop1 ,
 	full_adj( &bwdH , S3[ site ] , GAMMAS[ GAMMA_5 ] ) ;
 
 	// diquark-diquark tetra
-	double complex result[ TETRA_NOPS - 1 ] ;
+	double complex result[ TETRA_NOPS ] ;
 
 	// loop gamma source
-	size_t GSRC ;
+	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
-	  // poke in the tetra
-	  if( diquark_diquark( result , S1[ site ] , S2[ site ] , bwdH , 
-			       GAMMAS , GSRC ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	  // perform contraction, result in result
+	  tetras( result , S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC , 
+		  GLU_FALSE ) ;
+	  // put contractions into flattend array for FFT
+	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+	    in[ op + TETRA_NOPS * GSRC ][ site ] = result[ op ] ;
 	  }
-	  // for each C_\gamma_i we put out all NOPS operators
-	  in[ 0 + TETRA_NOPS*GSRC ][ site ] = result[0] ; // O1 O1^\dagger
-	  in[ 1 + TETRA_NOPS*GSRC ][ site ] = result[1] ; // O1 O2^\dagger
-	  in[ 2 + TETRA_NOPS*GSRC ][ site ] = result[2] ; // O2 O1^\dagger
-	  in[ 3 + TETRA_NOPS*GSRC ][ site ] = result[3] ; // O2 O2^\dagger
-	  // poke in the dimeson part :: O3 O3^\dagger
-	  in[ 4 + TETRA_NOPS*GSRC ][ site ] = 
-	    2 * dimeson( S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC ) ;
 	}
       }
       // wall-wall contractions
       if( prop1.source == WALL || prop2.source == WALL ) {
-	double complex result[ TETRA_NOPS - 1 ] ;
-	size_t GSRC ;
+
+	double complex result[ TETRA_NOPS ] ;
+	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
-	  // compute diquark-diquark tetra
-	  if( diquark_diquark( result , SUM1 , SUM2 , SUMbwdH , 
-			       GAMMAS , GSRC ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	  // perform contraction, result in result
+	  tetras( result , SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC , GLU_FALSE ) ;
+	  // put contractions into final correlator object
+	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+	    tetra_corrWW[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
-	  // diquark-diquark
-	  tetra_corrWW[ 0 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[0] ;
-	  tetra_corrWW[ 1 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[1] ;
-	  tetra_corrWW[ 2 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[2] ;
-	  tetra_corrWW[ 3 ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[3] ;
-	  // meson-meson
-	  tetra_corrWW[ 4 ][ GSRC ].mom[ 0 ].C[ tshifted ] = 
-	    dimeson( SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC ) +
-	    dimeson( SUM2 , SUM1 , SUMbwdH , GAMMAS , GSRC ) ;
 	}
 	///
       }

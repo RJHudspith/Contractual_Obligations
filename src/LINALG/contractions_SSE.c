@@ -454,7 +454,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
 
 // meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
 double complex 
-meson_contract( const struct gamma GSNK ,		
+meson_contract( const struct gamma GSNK ,
 		const struct spinor bwd , 
 		const struct gamma GSRC ,
 		const struct spinor fwd ,
@@ -467,7 +467,7 @@ meson_contract( const struct gamma GSNK ,
   const register __m128d *d2 = (const __m128d*)fwd.D ;
 
   // local sum
-  register __m128d sum ;
+  register __m128d sum , sum1 , sum2 ;
 
   size_t i , j ;
   register uint8_t col2 , col1 , G5GSRC ;
@@ -487,14 +487,14 @@ meson_contract( const struct gamma GSNK ,
       // unrolled for SU(3)
       #if NC == 3
       sum = SSE2_MULCONJ( *d1 , *d2 ) ;
-      register __m128d sum1 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+1) , *(d2+1) ) ,
-						      SSE2_MULCONJ( *(d1+2) , *(d2+2) ) ) ,
-					  _mm_add_pd( SSE2_MULCONJ( *(d1+3) , *(d2+3) ) ,
-						      SSE2_MULCONJ( *(d1+4) , *(d2+4) ) ) ) ; 
-      register __m128d sum2 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+5) , *(d2+5) ) ,
-						      SSE2_MULCONJ( *(d1+6) , *(d2+6) ) ) ,
-					  _mm_add_pd( SSE2_MULCONJ( *(d1+7) , *(d2+7) ) ,
-						      SSE2_MULCONJ( *(d1+8) , *(d2+8) ) ) ) ;
+      sum1 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+1) , *(d2+1) ) ,
+				     SSE2_MULCONJ( *(d1+2) , *(d2+2) ) ) ,
+			 _mm_add_pd( SSE2_MULCONJ( *(d1+3) , *(d2+3) ) ,
+				     SSE2_MULCONJ( *(d1+4) , *(d2+4) ) ) ) ; 
+      sum2 = _mm_add_pd( _mm_add_pd( SSE2_MULCONJ( *(d1+5) , *(d2+5) ) ,
+				     SSE2_MULCONJ( *(d1+6) , *(d2+6) ) ) ,
+			 _mm_add_pd( SSE2_MULCONJ( *(d1+7) , *(d2+7) ) ,
+				     SSE2_MULCONJ( *(d1+8) , *(d2+8) ) ) ) ;
       sum = _mm_add_pd( sum , _mm_add_pd( sum1 , sum2 ) ) ; d2 += 9 ;
       #elif NC == 2
       sum = SSE2_MULCONJ( *d1 , *d2 ) ; d1 ++ ; d2 ++ ;
@@ -519,7 +519,6 @@ meson_contract( const struct gamma GSNK ,
       // and we are done
     }
   }
-
   // cast through the void
   double complex s ;
   _mm_store_pd( (void*)&s , gsum ) ;
