@@ -87,9 +87,10 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
 		 const struct spinor U ,
 		 const struct spinor D ,
 		 const struct spinor B ,
-		 const struct gamma gt ,
-		 const struct gamma Cgi ,
-		 const struct gamma Cg5 )
+		 const struct gamma Cg1 ,
+		 const struct gamma Cg2 ,
+		 const struct gamma Cg3 ,
+		 const struct gamma Cg4 )
 {
   // loop of colors
   const size_t Nco = NCNC * NCNC ;
@@ -109,15 +110,11 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
     goto memfree ;
   }
 
-  // compute the tilded contributions
-  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , gt ) ;
-  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
-
   // Eq.37 in note is O_1 O_1^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg5 , D , tildeCg5 ) ;
-    precompute_block( C2 , B , Cgi , B , tildeCgi ) ;
+    precompute_block( C1 , U , Cg1 , D , Cg2 ) ;
+    precompute_block( C2 , B , Cg3 , B , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -130,8 +127,8 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
   // Eq.41 in note is O_1 O_2^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , B , Cgi , B , tildeCg5 ) ;
-    precompute_block( C2 , U , Cg5 , D , tildeCgi ) ;
+    precompute_block( C1 , B , Cg3 , B , Cg2 ) ;
+    precompute_block( C2 , U , Cg1 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -145,8 +142,8 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
   // Eq.43 in note is O_2 O_1^{\dagger}
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg5 , B , tildeCgi ) ;
-    precompute_block( C2 , B , Cgi , D , tildeCg5 ) ;
+    precompute_block( C1 , U , Cg1 , B , Cg4 ) ;
+    precompute_block( C2 , B , Cg3 , D , Cg2 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -160,8 +157,8 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
   // Eq.39 in note is O_2 O_2^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg5 , B , tildeCg5 ) ;
-    precompute_block( C2 , B , Cgi , D , tildeCgi ) ;
+    precompute_block( C1 , U , Cg1 , B , Cg2 ) ;
+    precompute_block( C2 , B , Cg3 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -193,7 +190,8 @@ dimeson( const struct spinor U , // u prop
 	 const struct spinor B , // adjoint of B
 	 const struct gamma gt ,
 	 const struct gamma gi ,
-	 const struct gamma g5 )
+	 const struct gamma g5 , 
+	 const GLU_bool L1L2_degenerate )
 {
   // flattened number of colors we loop over
   const size_t Nco = NCNC * NCNC ;
@@ -214,7 +212,7 @@ dimeson( const struct spinor U , // u prop
   const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt )  ;
   const struct gamma tildegi = gt_Gdag_gt( gi , gt )  ;
 
-  register double complex sum = 0.0 ;
+  register double complex sum1 = 0.0 ;
   // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
   {
     precompute_block( C1 , B , g5 , U , tildegi ) ;
@@ -222,28 +220,29 @@ dimeson( const struct spinor U , // u prop
     for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
-      sum += 
+      sum1 += 
 	spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
 
       // cross term
-      sum -= 
+      sum1 -= 
 	spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
     }
   }
-  // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note, global minus on this one!
+  register double complex sum2 = 0.0 ;
+  // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note
   {
     precompute_block( C1 , B , gi , D , tildeg5 ) ;
     precompute_block( C2 , B , g5 , U , tildegi ) ;
     for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
-      sum -= 
+      sum2 += 
 	spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
       // cross term
-      sum += 
+      sum2 -= 
 	spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
     }
@@ -251,7 +250,13 @@ dimeson( const struct spinor U , // u prop
 
   free( C1 ) ;
   free( C2 ) ;
-  return sum ;
+
+  // if u and d are the same, add them
+  if( L1L2_degenerate == GLU_TRUE ) {
+    return sum1 + sum2 ;
+  } else {
+    return sum1 - sum2 ;
+  }
 
  memfree :
   free( C1 ) ;
@@ -279,30 +284,45 @@ tetras( double complex result[ TETRA_NOPS ] ,
   const struct gamma Cg5 = CGmu( g5 , GAMMAS ) ;
   const struct gamma Cgi = CGmu( gi , GAMMAS ) ;
 
-  // poke in the first set of tetra contractions
+  // compute the tilded contributions
+  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , gt ) ;
+  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
+
+  // poke in the first set of tetra contractions, top left matrix
   if( diquark_diquark( result , L1 , L2 , bwdH , 
-		       gt , Cgi , Cg5 ) == FAILURE ) {
+		       Cg5 , tildeCg5 , Cgi , tildeCgi ) == FAILURE ) {
     return FAILURE ;
-  }
-  // for each C_\gamma_i we put out all TETRA_NOPS operators
-  result[ 4 ] = dimeson( L1 , L2 , bwdH , gt , gi , g5 ) ;
-  if( L1L2_degenerate == GLU_FALSE ) {
-    result[ 4 ] += dimeson( L2 , L1 , bwdH , gt , gi , g5 ) ;
-  } else {
-    result[ 4 ] *= 2 ;
   }
 
-  // here we do the Cg5 <-> Cgi interchanges
-  if( diquark_diquark( result+TETRA_NOPS/2 , L1 , L2 , bwdH , 
-		       gt , Cg5 , Cgi ) == FAILURE ) {
+  // top right matrix is the interchange of 2 -> 4
+  if( diquark_diquark( result+4 , L1 , L2 , bwdH , 
+		       Cg5 , tildeCgi , Cgi , tildeCg5 ) == FAILURE ) {
     return FAILURE ;
   }
-  // poke in the dimeson part :: O6 O6^\dagger
-  result[ 9 ] = dimeson( L1 , L2 , bwdH , gt , g5 , gi ) ;
+
+  // bottom left matrix is the interchange of 1 -> 3
+  if( diquark_diquark( result+8 , L1 , L2 , bwdH , 
+		       Cgi , tildeCg5 , Cg5 , tildeCgi ) == FAILURE ) {
+    return FAILURE ;
+  }
+
+  // here we do the Cg5 <-> Cgi interchanges, bottom right corner of matrix
+  if( diquark_diquark( result+12 , L1 , L2 , bwdH , 
+		       Cgi , tildeCgi , Cg5 , tildeCg5 ) == FAILURE ) {
+    return FAILURE ;
+  }
+
+  // compute the meson-meson, if L1 is degenerate with L2 we have exact isospin 
+  // and need to flip a sign
+  result[ 16 ] = dimeson( L1 , L2 , bwdH , gt , gi , g5 , L1L2_degenerate ) ;
   if( L1L2_degenerate == GLU_FALSE ) {
-    result[ 9 ] += dimeson( L2 , L1 , bwdH , gt , g5 , gi ) ;
+    result[ 16 ] += dimeson( L2 , L1 , bwdH , gt , gi , g5 , L1L2_degenerate ) ;
   } else {
-    result[ 9 ] *= 2 ;
+    result[ 16 ] *= 2 ;
+  }
+  // leave if something goes wrong (malloc failure in this case) 
+  if( result[16] == sqrt(-1) ) {
+    return FAILURE ;
   }
 
   return SUCCESS ;
