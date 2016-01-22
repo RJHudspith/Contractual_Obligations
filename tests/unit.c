@@ -34,6 +34,10 @@ main( const int argc , const char *argv[] )
 
   int total = 0 ;
 
+  // have a look at utility codes
+  if( utils_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
   // have a look at the gamma operations
   if( gamma_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
@@ -60,10 +64,6 @@ main( const int argc , const char *argv[] )
 
   // have a look at baryon operations
   if( bar_ops_test_driver( ) == FAILURE ) goto failure ;
-  total += tests_run ;
-
-  // have a look at utility codes
-  if( utils_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   printf( "[UNIT] %d tests run and passed\n" , total ) ;

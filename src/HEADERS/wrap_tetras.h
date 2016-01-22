@@ -6,13 +6,13 @@
 #define WRAP_TETRAS_H
 
 /**
-   @fn int contract_tetras( struct propagator *prop , const struct tetra_info *tetras , const struct cut_info CUTINFO , const int ntetras )
+   @fn int contract_tetras( struct propagator *prop , const struct tetra_info *tetras , const struct cut_info CUTINFO , const size_t ntetras )
    @brief tetraquark logic wrapper
  */
 int
 contract_tetras( struct propagator *prop ,
 		 const struct tetra_info *tetras ,
 		 const struct cut_info CUTINFO ,
-		 const int ntetras ) ;
+		 const size_t ntetras ) ;
 
 #endif

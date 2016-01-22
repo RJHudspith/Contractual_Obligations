@@ -7,7 +7,7 @@
 #define WRAP_VPF_H
 
 /**
-   @fn int contract_VPF( struct propagator *prop , const struct site *lat , const struct VPF_info *VPF , const int nVPF , const struct cut_info CUTINFO )
+   @fn int contract_VPF( struct propagator *prop , const struct site *lat , const struct VPF_info *VPF , const size_t nVPF , const struct cut_info CUTINFO )
    @brief wrapper for performing VPF contractions
    @return #SUCCESS or #FAILURE
  */
@@ -15,7 +15,7 @@ int
 contract_VPF( struct propagator *prop ,
 	      const struct site *lat ,
 	      const struct VPF_info *VPF ,
-	      const int nVPF ,
+	      const size_t nVPF ,
 	      const struct cut_info CUTINFO ) ;
 
 #endif

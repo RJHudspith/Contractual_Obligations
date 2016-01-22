@@ -13,7 +13,7 @@
 #else
 
 /**
-   @fn double complex baryon_contract( const struct spinor DiQ , const struct spinor S , const int d0 , const int d1 , const int d2 , const int d3 )
+   @fn double complex baryon_contract( const struct spinor DiQ , const struct spinor S , const size_t d0 , const size_t d1 , const size_t d2 , const size_t d3 )
    @brief color trace a diquark with a propagator
    @return the color trace
  */
@@ -21,10 +21,10 @@
 double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
-		 const int d0 ,
-		 const int d1 ,
-		 const int d2 ,
-		 const int d3 ) ;
+		 const size_t d0 ,
+		 const size_t d1 ,
+		 const size_t d2 ,
+		 const size_t d3 ) ;
 
 /**
    @fn void cross_color_trace( struct spinor *__restrict DiQ , const struct spinor S ) 

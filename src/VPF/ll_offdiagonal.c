@@ -23,10 +23,10 @@ ll_offdiagonal( struct propagator prop1 ,
 		const char *outfile )
 {
   // vector gamma map
-  const int VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
+  const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
 
   // need to look these up
-  const int AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , GAMMA_5 + 3 , GAMMA_5 + 4 } ;
 
   // and our spinor
   struct spinor *S1 = NULL , *S1f = NULL , *S2 = NULL , *S2f = NULL ;
@@ -68,7 +68,7 @@ ll_offdiagonal( struct propagator prop1 ,
   }
 
   // loop the timeslices
-  int t , x ;
+  size_t t , x ;
   for( t = 0 ; t < LT ; t++ ) {
 
     // multiple time source support

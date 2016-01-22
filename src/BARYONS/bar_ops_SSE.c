@@ -13,10 +13,10 @@
 double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
-		 const int d0 ,
-		 const int d1 ,
-		 const int d2 ,
-		 const int d3 )
+		 const size_t d0 ,
+		 const size_t d1 ,
+		 const size_t d2 ,
+		 const size_t d3 )
 {
   const __m128d *d = (const __m128d*)DiQ.D[d0][d1].C ;
   const __m128d *s = (const __m128d*)S.D[d2][d3].C ;
@@ -40,7 +40,7 @@ baryon_contract( const struct spinor DiQ ,
   sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
 #else
   register __m128d sum = _mm_setzero_pd() ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     sum = _mm_add_pd( sum , SSE2_MUL( *d , *s ) ) ; d++ ; s++ ;
   }
@@ -55,8 +55,8 @@ static inline void
 cross_color( __m128d *__restrict a ,
 	     const __m128d *__restrict b ,
 	     const __m128d *__restrict c ,
-	     const int id1 ,
-	     const int id2 )
+	     const size_t id1 ,
+	     const size_t id2 )
 {
 #if NC == 3
   // top
@@ -126,7 +126,7 @@ cross_color_trace( struct spinor *__restrict DiQ ,
   spinor_zero_site( &T3SNK[1] ) ;
   spinor_zero_site( &T3SNK[2] ) ;
   // Sink cross color and trace, this leaves only one set of dirac indices
-  int i , j , d ;
+  size_t i , j , d ;
   for( i = 0 ; i < NS ; i++ ) {
     for( j = 0 ; j < NS ; j++ ) {
       __m128d *a0 = (__m128d*)T3SNK[0].D[i][j].C ;

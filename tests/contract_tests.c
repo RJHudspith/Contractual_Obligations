@@ -8,6 +8,7 @@
 #include "contractions.h"  // contractions
 #include "gammas.h"
 #include "minunit.h"       // minimal unit testing framework
+#include "spinor_ops.h"    // identity_spinor()
 
 #define FTOL ( NC * 1.E-14 ) 
 
@@ -45,8 +46,7 @@ static char *
 bilinear_trace_test( void )
 {
   const double complex tr = bilinear_trace( A , Id ) ;
-  const int sp = NC * NS ;
-  const double sol = 0.5 * ( sp * ( sp - 1 ) * ( sp + 1 ) ) ;
+  const double sol = NS * ( NC * ( NC - 1 ) * ( NC + 1 ) / 2 ) ;
   mu_assert("[CONTRACT UNIT] error : bilinear_trace broken", 
 	    !( fabs( creal( tr ) - sol ) > FTOL ||
 	       fabs( cimag( tr ) - sol ) > FTOL ) ) ;
@@ -70,7 +70,7 @@ full_adj_test( void )
   full_adj( &adj , Id , GAMMAS[ GAMMA_5 ] ) ;
   const double *r = (const double*)adj.D ;
   const double *s = (const double*)Id.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert("[CONTRACT UNIT] error : full_adj broken", 
 	      !( fabs( *r - *s ) > FTOL ) ) ;
@@ -83,12 +83,12 @@ full_adj_test( void )
 static char *
 gamma_mul_l_test( void )
 {
-  const int testmat = GAMMA_1 ;
+  const size_t testmat = GAMMA_1 ;
   struct spinor B = Id ;
   gamma_mul_l( &B , GAMMAS[ testmat ] ) ;
-  int d1 , c1 , c2 ;
+  size_t d1 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
-    const int col = (int)GAMMAS[ testmat ].ig[ d1 ] ;
+    const size_t col = (size_t)GAMMAS[ testmat ].ig[ d1 ] ;
     double complex comp = 1 ;
     switch( GAMMAS[ testmat ].g[ d1 ] ) {
     case 0 : comp =  1 ; break ;
@@ -121,9 +121,9 @@ gamma_mul_r_test( void )
   const int testmat = GAMMA_1 ;
   struct spinor B = Id ;
   gamma_mul_r( &B , GAMMAS[ testmat ] ) ;
-  int d1 , c1 , c2 ;
+  size_t d1 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
-    const int col = (int)GAMMAS[ testmat ].ig[ d1 ] ;
+    const size_t col = (size_t)GAMMAS[ testmat ].ig[ d1 ] ;
     double complex comp = 1 ;
     switch( GAMMAS[ testmat ].g[ col ] ) {
     case 0 : comp =  1 ; break ;
@@ -172,45 +172,81 @@ gamma_mul_lr_test( void )
   return NULL ;
 }
 
-// test the meson contraction using our brute force method
+// compute the trace of a gamma matrix
+static double complex
+gamma_trace( const struct gamma G )
+{
+  size_t i ;
+  double complex sum = 0.0 ;
+  for( i = 0 ; i < NS ; i++ ) {
+    if( G.ig[i] == i ) {
+      switch( G.g[i] ) {
+      case 0 : sum += +1 ; break ;
+      case 1 : sum += +I ; break ;
+      case 2 : sum += -1 ; break ;
+      case 3 : sum += -I ; break ;
+      }
+    }
+  }
+  return sum ;
+}
+
+// test the meson contraction using our brute force methods
+// contracts Tr[ \gamma_i ( \gamma_5 Id \gamma_5 )^\dagger \gamma_j Id
+// with Tr[ \gamma_i \gamma_j ] for all gamma combinations
 static char *
 meson_contract_test( void )
 {
-  // meson contract is
-  // Tr[ GSNK ( G5 A G5 )^{\dagger} GSRC ( A ) ]
-
-  struct gamma GSNK = GAMMAS[ GAMMA_0 ] ;
-  struct gamma GSRC = GAMMAS[ GAMMA_1 ] ;
-  struct gamma G5   = GAMMAS[ GAMMA_5 ] ;
-
-  const double complex tr1 = meson_contract( GSNK , A , 
-					     GSRC , A , G5 ) ;
-
   struct spinor adj ;
-  full_adj( &adj , A , G5 ) ;
-  gamma_mul_l( &adj , GSNK ) ;
-  gamma_mul_r( &adj , GSRC ) ;
-  const double complex tr2 = bilinear_trace( adj , A ) ;
+  const struct gamma G5 = GAMMAS[ GAMMA_5 ] ;
+  size_t G1 , G2 ;
+  for( G2 = 0 ; G2 < NSNS ; G2++ ) {
+    for( G1 = 0 ; G1 < NSNS ; G1++ ) {
 
-  mu_assert("[CONTRACT UNIT] error : meson_contract broken", 
-	    !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
-	       fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
+      // source and sink gammas
+      struct gamma GSNK = GAMMAS[ G1 ] ;
+      struct gamma GSRC = GAMMAS[ G2 ] ;
 
-  full_adj( &adj , A , G5 ) ;
-  gamma_mul_lr( &adj , GSNK , GSRC ) ;
-  const double complex tr3 = bilinear_trace( adj , A ) ;
+      // test against the product of the two inner gamma matrices
+      struct gamma res ;
+      gamma_mmul( &res , GSNK , GSRC ) ;
+      double complex test = NC * gamma_trace( res ) ;
 
-  mu_assert("[CONTRACT UNIT] error : meson_contract broken", 
-	    !( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
-	       fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
+      // meson contract is
+      // Tr[ GSNK ( G5 A G5 )^{\dagger} GSRC ( A ) ]
+      const double complex tr1 = meson_contract( GSNK , Id , 
+						 GSRC , Id , G5 ) ;
 
-  full_adj( &adj , A , G5 ) ;
-  const double complex tr4 = simple_meson_contract( GSNK , adj , 
-						    GSRC , A ) ;
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !cabs( test - tr1 ) > FTOL ) ;
 
-  mu_assert("[CONTRACT UNIT] error : meson_contract broken", 
-	    !( fabs( creal( tr1 ) - creal( tr4 ) ) > FTOL ||
-	       fabs( cimag( tr1 ) - cimag( tr4 ) ) > FTOL ) ) ;
+      full_adj( &adj , Id , G5 ) ;
+      gamma_mul_l( &adj , GSNK ) ;
+      gamma_mul_r( &adj , GSRC ) ;
+      const double complex tr2 = bilinear_trace( adj , Id ) ;
+
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
+		    fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
+
+      full_adj( &adj , Id , G5 ) ;
+      gamma_mul_lr( &adj , GSNK , GSRC ) ;
+      const double complex tr3 = bilinear_trace( adj , Id ) ;
+
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
+		    fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
+
+      full_adj( &adj , Id , G5 ) ;
+      const double complex tr4 = simple_meson_contract( GSNK , adj , 
+							GSRC , Id ) ;
+
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !( fabs( creal( tr1 ) - creal( tr4 ) ) > FTOL ||
+		    fabs( cimag( tr1 ) - cimag( tr4 ) ) > FTOL ) ) ;
+
+    }
+  }
   
   return NULL ;
 }
@@ -219,33 +255,48 @@ meson_contract_test( void )
 static char *
 simple_meson_contract_test( void )
 {
-  // source and sink gammas
-  struct gamma GSNK = GAMMAS[ GAMMA_0 ] ;
-  struct gamma GSRC = GAMMAS[ GAMMA_1 ] ;
+  struct spinor adj ;
+  struct gamma res ;
+  size_t G1 , G2 ;
+  for( G2 = 0 ; G2 < NSNS ; G2++ ) {
+    for( G1 = 0 ; G1 < NSNS ; G1++ ) {
 
-  // meson contract is
-  // Tr[ GSNK A  GSRC ( A ) ]
-  const double complex tr1 = simple_meson_contract( GSNK , A , 
-						    GSRC , A ) ;
+      // source and sink gammas
+      const struct gamma GSNK = GAMMAS[ G1 ] ;
+      const struct gamma GSRC = GAMMAS[ G2 ] ;
 
-  // left-right multiply
-  struct spinor adj = A ;
-  gamma_mul_l( &adj , GSNK ) ;
-  gamma_mul_r( &adj , GSRC ) ;
-  const double complex tr2 = bilinear_trace( adj , A ) ;
+      gamma_mmul( &res , GSNK , GSRC ) ;
+      double complex test = NC * gamma_trace( res ) ;
 
-  mu_assert("[CONTRACT UNIT] error : meson_contract broken", 
-	    !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
-	       fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
+      // meson contract is
+      // Tr[ GSNK A  GSRC ( A ) ]
+      const double complex tr1 = simple_meson_contract( GSNK , Id , 
+							GSRC , Id ) ;
 
-  // left-right multiply
-  adj = A ;
-  gamma_mul_lr( &adj , GSNK , GSRC ) ;
-  const double complex tr3 = bilinear_trace( adj , A ) ;
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !cabs( test - tr1 ) > FTOL ) ;
 
-  mu_assert("[CONTRACT UNIT] error : simple_meson_contract broken", 
-	    !( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
-	       fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
+      // left-right multiply
+      adj = Id ;
+      gamma_mul_l( &adj , GSNK ) ;
+      gamma_mul_r( &adj , GSRC ) ;
+      const double complex tr2 = bilinear_trace( adj , Id ) ;
+
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+		 !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
+		    fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
+
+      // left-right multiply
+      adj = Id ;
+      gamma_mul_lr( &adj , GSNK , GSRC ) ;
+      const double complex tr3 = bilinear_trace( adj , Id ) ;
+
+      mu_assert("[CONTRACT UNIT] error : simple_meson_contract broken", 
+		!( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
+		   fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
+
+    }
+  }
   
   return NULL ;
 }
@@ -254,31 +305,18 @@ simple_meson_contract_test( void )
 static char *
 contractions_test( void )
 {
-  // initialise A
+  // initialise A as color matrices with values as their lexicographical
+  // index
   double complex *b = (double complex*)A.D ;
-  int i ;
-  for( i = 0 ; i < NSNS * NCNC ; i++ ) {
-    *b = ( i + I * i ) , b++ ;
+  size_t i , j ;
+  for( j = 0 ; j < NSNS ; j++ ) {
+    for( i = 0 ; i < NCNC ; i++ ) {
+      *b = ( i + I * i ) , b++ ;
+    }
   }
   
   // set up an identity spinor
-  int d1 , d2 , c1 , c2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      // set spinmatrix to be lexi index
-      D[ d2 + NS * d1 ] = ( 1 + I ) * ( d2 + NS * d1 ) ;
-      // identity spinor
-      for( c1 = 0 ; c1 < NC ; c1++ ) {
-	for( c2 = 0 ; c2 < NC ; c2++ ) {
-	  if( c1 == c2 && d1 == d2 ) {
-	    Id.D[ d1 ][ d2 ].C[c1][c2] = 1.0 ;
-	  } else {
-	    Id.D[ d1 ][ d2 ].C[c1][c2] = 0.0 ;
-	  }
-	}
-      }
-    }
-  }
+  identity_spinor( &Id ) ;
 
   // test gammas again, or for the first time depending on ordering
   mu_run_test( gammas_test ) ;

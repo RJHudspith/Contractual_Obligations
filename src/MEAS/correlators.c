@@ -11,8 +11,8 @@
 // little convenience funtion
 static void
 print_convenience( const struct mcorr **corr ,
-		   const int GSRC ,
-		   const int GSNK ) 
+		   const size_t GSRC ,
+		   const size_t GSNK ) 
 {
   int t ;
   for( t = 0 ; t < LT ; t++ ) {
@@ -24,9 +24,9 @@ print_convenience( const struct mcorr **corr ,
 
 // allocation of dispersion relation correlation function
 struct mcorr **
-allocate_momcorrs( const int length1 , 
-		   const int length2 ,
-		   const int nmom )
+allocate_momcorrs( const size_t length1 , 
+		   const size_t length2 ,
+		   const size_t nmom )
 {
   struct mcorr **mcorr = malloc( length1 * sizeof( struct mcorr* ) ) ;
   size_t i , j , p ;
@@ -45,15 +45,13 @@ allocate_momcorrs( const int length1 ,
 // momcorr freer
 void
 free_momcorrs( struct mcorr **mcorr , 
-	       const int length1 ,
-	       const int length2 ,
-	       const int nmom ) 
+	       const size_t length1 ,
+	       const size_t length2 ,
+	       const size_t nmom ) 
 {
-  int i ;
+  size_t i , j , p ;
   for( i = 0 ; i < length1 ; i++ ) {
-    int j ;
     for( j = 0 ; j < length2 ; j++ ) {
-      int p ;
       for( p = 0 ; p < nmom ; p++ ) {
 	free( mcorr[ i ][ j ].mom[ p ].C ) ;
       }
@@ -144,8 +142,8 @@ void
 write_momcorr( const char *outfile ,
 	       const struct mcorr **corr ,
 	       const struct veclist *list ,
-	       const int NSRC ,
-	       const int NSNK ,
+	       const size_t NSRC ,
+	       const size_t NSNK ,
 	       const int *nmom )
 {
   printf( "[IO] writing correlation matrix to %s \n" , outfile ) ;
@@ -164,16 +162,16 @@ write_momcorr( const char *outfile ,
 
   uint32_t L0[ 1 ] = { LT } , cksuma = 0 , cksumb = 0 ;
 
-  int p ;
+  size_t p ;
   for( p = 0 ; p < nmom[0] ; p++ ) {
     
-    uint32_t NGSRC[ 1 ] = { NSRC } ;
-    uint32_t NGSNK[ 1 ] = { NSNK } ;
+    uint32_t NGSRC[ 1 ] = { (uint32_t)NSRC } ;
+    uint32_t NGSNK[ 1 ] = { (uint32_t)NSNK } ;
     
     fwrite( NGSRC , sizeof( uint32_t ) , 1 , output_file ) ;
     fwrite( NGSNK , sizeof( uint32_t ) , 1 , output_file ) ;
     
-    int GSRC , GSNK ;
+    size_t GSRC , GSNK ;
     for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
       for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {
 	fwrite( L0 , sizeof( uint32_t ) , 1 , output_file ) ;

@@ -129,9 +129,11 @@ am__v_AR_1 =
 libCORR_a_AR = $(AR) $(ARFLAGS)
 libCORR_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = ./BARYONS/baryons.$(OBJEXT) \
-	./BARYONS/baryons2.$(OBJEXT) ./BARYONS/baryons3.$(OBJEXT) \
-	./BARYONS/wrap_baryons.$(OBJEXT)
+am__objects_1 = ./BARYONS/bar_contractions.$(OBJEXT) \
+	./BARYONS/bar_projections.$(OBJEXT) \
+	./BARYONS/bar_ops.$(OBJEXT) ./BARYONS/bar_ops_SSE.$(OBJEXT) \
+	./BARYONS/baryons.$(OBJEXT) ./BARYONS/baryons2.$(OBJEXT) \
+	./BARYONS/baryons3.$(OBJEXT) ./BARYONS/wrap_baryons.$(OBJEXT)
 am__objects_2 = ./GEOM/gammas.$(OBJEXT) ./GEOM/geometry.$(OBJEXT) \
 	./GEOM/plan_ffts.$(OBJEXT)
 am__objects_3 = ./FIELD/plaqs_links.$(OBJEXT) \
@@ -144,9 +146,7 @@ am__objects_4 = ./IO/chklat_stuff.$(OBJEXT) ./IO/cut_output.$(OBJEXT) \
 	./IO/read_config.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
 	./IO/read_propheader.$(OBJEXT) ./IO/readers.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT)
-am__objects_5 = ./LINALG/bar_contractions.$(OBJEXT) \
-	./LINALG/bar_projections.$(OBJEXT) ./LINALG/bar_ops.$(OBJEXT) \
-	./LINALG/bar_ops_SSE.$(OBJEXT) ./LINALG/contractions.$(OBJEXT) \
+am__objects_5 = ./LINALG/contractions.$(OBJEXT) \
 	./LINALG/contractions_SSE.$(OBJEXT) \
 	./LINALG/matrix_ops.$(OBJEXT) \
 	./LINALG/matrix_ops_SSE.$(OBJEXT) \
@@ -343,7 +343,9 @@ TOPDIR = @top_srcdir@
 BUILDDIR = @top_builddir@
 lib_LIBRARIES = libCORR.a
 AM_CFLAGS = -I${TOPDIR}/src/HEADERS/
-BARYONFILES = ./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
+BARYONFILES = ./BARYONS/bar_contractions.c ./BARYONS/bar_projections.c \
+	./BARYONS/bar_ops.c ./BARYONS/bar_ops_SSE.c \
+	./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
 	./BARYONS/wrap_baryons.c
 
 GEOMFILES = ./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
@@ -354,9 +356,7 @@ IOFILES = ./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/read_config.c ./IO/read_headers.c ./IO/read_propheader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
-LINALGFILES = ./LINALG/bar_contractions.c \
-	./LINALG/bar_projections.c \
-	./LINALG/bar_ops.c ./LINALG/bar_ops_SSE.c \
+LINALGFILES = \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/spinor_ops.c ./LINALG/spinor_ops_SSE.c \
@@ -480,6 +480,14 @@ BARYONS/$(am__dirstamp):
 BARYONS/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./BARYONS/$(DEPDIR)
 	@: > BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/bar_contractions.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/bar_projections.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/bar_ops.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
+./BARYONS/bar_ops_SSE.$(OBJEXT): BARYONS/$(am__dirstamp) \
+	BARYONS/$(DEPDIR)/$(am__dirstamp)
 ./BARYONS/baryons.$(OBJEXT): BARYONS/$(am__dirstamp) \
 	BARYONS/$(DEPDIR)/$(am__dirstamp)
 ./BARYONS/baryons2.$(OBJEXT): BARYONS/$(am__dirstamp) \
@@ -552,14 +560,6 @@ LINALG/$(am__dirstamp):
 LINALG/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./LINALG/$(DEPDIR)
 	@: > LINALG/$(DEPDIR)/$(am__dirstamp)
-./LINALG/bar_contractions.$(OBJEXT): LINALG/$(am__dirstamp) \
-	LINALG/$(DEPDIR)/$(am__dirstamp)
-./LINALG/bar_projections.$(OBJEXT): LINALG/$(am__dirstamp) \
-	LINALG/$(DEPDIR)/$(am__dirstamp)
-./LINALG/bar_ops.$(OBJEXT): LINALG/$(am__dirstamp) \
-	LINALG/$(DEPDIR)/$(am__dirstamp)
-./LINALG/bar_ops_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
-	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/contractions.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/contractions_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
@@ -732,6 +732,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CORR-corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/bar_contractions.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/bar_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/bar_ops_SSE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/bar_projections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/baryons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/baryons2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./BARYONS/$(DEPDIR)/baryons3.Po@am__quote@
@@ -757,10 +761,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_headers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/read_propheader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/readers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/bar_contractions.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/bar_ops.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/bar_ops_SSE.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/bar_projections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/matrix_ops.Po@am__quote@

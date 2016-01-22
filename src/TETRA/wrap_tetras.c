@@ -14,12 +14,12 @@ check_origins( struct propagator p1 ,
 	       struct propagator p2 ,
 	       struct propagator p3 )
 {
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( p1.origin[mu] != p2.origin[mu] ||
 	p1.origin[mu] != p3.origin[mu] ||
 	p2.origin[mu] != p3.origin[mu] ) {
-      printf( "[TETRA] mismatched origins %d %d %d (index %d)\n" ,
+      printf( "[TETRA] mismatched origins %d %d %d (index %zu)\n" ,
 	      p1.origin[mu] , p2.origin[mu] ,
 	      p3.origin[mu] , mu ) ;
       return FAILURE ;
@@ -33,16 +33,16 @@ int
 contract_tetras( struct propagator *prop ,
 		 const struct tetra_info *tetras ,
 		 const struct cut_info CUTINFO ,
-		 const int ntetras )
+		 const size_t ntetras )
 {
-  printf( "\n[TETRA] performing %d contraction(s) \n" , ntetras ) ;
-  int measurements ;
+  printf( "\n[TETRA] performing %zu contraction(s) \n" , ntetras ) ;
+  size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < ntetras ; measurements++ ) {
     // to make it more legible
-    const int p1 = tetras[ measurements ].map[0] ;
-    const int p2 = tetras[ measurements ].map[1] ;
-    const int p3 = tetras[ measurements ].map[2] ;
+    const size_t p1 = tetras[ measurements ].map[0] ;
+    const size_t p2 = tetras[ measurements ].map[1] ;
+    const size_t p3 = tetras[ measurements ].map[2] ;
 
     // support for degenerate light content
     if( p1 == p2 && p2 != p3 ) {

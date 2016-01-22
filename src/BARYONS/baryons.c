@@ -181,7 +181,7 @@ baryons_diagonal( struct propagator prop ,
     }
 
     // copy over the propagators
-    int i ;
+    size_t i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
       memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;

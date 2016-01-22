@@ -148,7 +148,7 @@ void
 DML_checksum_accum_crc32c( uint32_t *checksuma , 
 			   uint32_t *checksumb , 
 			   const uint32_t rank , 
-			   void *buf , 
+			   const void *buf , 
 			   const size_t size )
 {
   const uint32_t rank29 = rank % 29 ;

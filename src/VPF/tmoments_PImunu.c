@@ -22,13 +22,13 @@ DFT( struct PIdata *cpAA ,
 {
   struct veclist *list = malloc( LT * sizeof( struct veclist ) ) ;
 
-  const int lt_2 = LT >> 1 ;
-  int pt = 0 ;
+  const size_t lt_2 = LT >> 1 ;
+  size_t pt = 0 ;
 #pragma omp parallel for private( pt ) 
   for( pt = 0 ; pt < LT ; pt++ ) {
  
     // set up the veclist
-    int mu , nu ;
+    size_t mu , nu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       list[ pt ].MOM[ mu ] = 0 ;
     }
@@ -38,7 +38,7 @@ DFT( struct PIdata *cpAA ,
 
     // precompute all the twiddles along the t-direction
     double complex twiddles[ LT ] ;
-    int t ;
+    size_t t ;
     double cache = 0.0 ;
     for( t = 0 ; t < LT ; t++ ) {
       cache = ( ( pt ) * t * Latt.twiddles[ ND-1 ] ) ;
@@ -70,14 +70,13 @@ spatialzero_DFT( struct mcorr **corr ,
 		 const struct PIdata *data )
 {
   // do the 0 spatial momentum sum first
-  int t ;
+  size_t t ;
 #pragma omp parallel for private(t)
   for( t = 0 ; t < LT ; t++ ) {
-    int mu , nu ;
+    size_t i , mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {
 	register double complex sum = 0.0 ;
-	int i ;
 	for( i = 0 ; i < LCU ; i++ ) {
 	  sum += data[ i + LCU * t ].PI[ mu ][ nu ] ; ;
 	}
@@ -149,7 +148,7 @@ tmoments( const struct PIdata *AA ,
   double *psq = malloc( NMOM[0] * sizeof( double ) ) ;
   double **p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NMOM[0] ; i++ ) {
     p[i] = (double*)malloc( NMOM[0] * sizeof( double ) ) ;
   }

@@ -15,7 +15,7 @@ void
 adjoint_spinor( struct spinor *__restrict adj ,
 		const struct spinor S )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       dagger_gauge( (double complex*)adj -> D[d2][d1].C ,
@@ -30,7 +30,7 @@ double complex
 bilinear_trace( const struct spinor A ,
 		const struct spinor B )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   register double complex sum = 0.0 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
@@ -59,10 +59,10 @@ gamma_mul_l( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
-  int i , j ;
+  size_t i , j ;
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
-    const int col = GAMMA.ig[i] ;
+    const size_t col = GAMMA.ig[i] ;
     double complex fac = 1.0 ;
     // switch for the phases
     switch( GAMMA.g[i] ) {
@@ -89,10 +89,10 @@ gamma_mul_r( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
-  int i , j ;
+  size_t i , j ;
   // loop columns of src
   for( j = 0 ; j < NS ; j++ ) {
-    const int col = GAMMA.ig[j] ;
+    const size_t col = GAMMA.ig[j] ;
     double complex fac = 1.0 ;
     switch( GAMMA.g[ col ] ) {
     case 0 : fac =  1 ; break ;
@@ -119,12 +119,12 @@ gamma_mul_lr( struct spinor *__restrict S ,
 {
   struct spinor tmp = *S ; // temporary space
   double complex fac = 1.0 ;
-  int i , j ;
+  size_t i , j ;
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
-    const int col1 = GLEFT.ig[ i ] ;
+    const size_t col1 = GLEFT.ig[ i ] ;
     for( j = 0 ; j < NS ; j++ ) {
-      const int col2 = GRIGHT.ig[ j ] ;
+      const size_t col2 = GRIGHT.ig[ j ] ;
       // switch for the phases
       switch( ( GLEFT.g[ i ] + GRIGHT.g[ col2 ] ) & 3 ) {
       case 0 : fac =  1 ; break ;
@@ -154,7 +154,7 @@ meson_contract( const struct gamma GSNK ,
 
   const double *d2 = (const double*)fwd.D ;
 
-  int i , j , c1 , c2 , col2 , col1 ;
+  size_t i , j , c1 , c2 , col2 , col1 ;
   for( j = 0 ; j < NS ; j++ ) {
     
     col2 = GSRC.ig[ G5.ig[ j ] ] ; 
@@ -199,15 +199,15 @@ simple_meson_contract( const struct gamma GSNK ,
 {
   register double gsumr = 0.0 , gsumi = 0.0 ;
 
-  int i , j , c1 , c2 ;
+  size_t i , j , c1 , c2 ;
   // loop columns
   for( j = 0 ; j < NS ; j++ ) {
     
-    const int col2 = GSRC.ig[ j ] ;
+    const size_t col2 = GSRC.ig[ j ] ;
     
     for( i = 0 ; i < NS ; i++ ) {
       
-      const int col1 = GSNK.ig[ i ] ;
+      const size_t col1 = GSNK.ig[ i ] ;
       
       register double sumr = 0.0 , sumi = 0.0 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {

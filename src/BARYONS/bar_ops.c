@@ -15,15 +15,15 @@
 double complex
 baryon_contract( const struct spinor DiQ ,
 		 const struct spinor S ,
-		 const int d0 ,
-		 const int d1 ,
-		 const int d2 ,
-		 const int d3 )
+		 const size_t d0 ,
+		 const size_t d1 ,
+		 const size_t d2 ,
+		 const size_t d3 )
 {
-  int c1c2 ;
   register double corrr = 0.0 , corri = 0.0 ;
   const double complex *diq = (const double complex*)DiQ.D[d0][d1].C ;
   const double complex *s = (const double complex*)S.D[d2][d3].C ;
+  size_t c1c2 ;
   for( c1c2 = 0 ; c1c2 < NCNC ; c1c2++ ) {
     corrr += creal( *diq ) * creal( *s ) - cimag( *diq ) * cimag( *s ) ;
     corri += creal( *diq ) * cimag( *s ) + cimag( *diq ) * creal( *s ) ;
@@ -38,8 +38,8 @@ static inline void
 cross_color( double complex *__restrict a ,
 	     const double complex *__restrict b ,
 	     const double complex *__restrict c ,
-	     const int id1 ,
-	     const int id2 )
+	     const size_t id1 ,
+	     const size_t id2 )
 {
 #if NC == 3
   *a += b[ id1 + 0 ] * c[ id2 + 0 ] - b[ id2 + 0 ] * c[ id1 + 0 ] ; a++ ;
@@ -57,7 +57,7 @@ cross_color( double complex *__restrict a ,
   *a += b[ id1 + 2 ] * c[ id2 + 0 ] - b[ id2 + 2 ] * c[ id1 + 0 ] ; a++ ;
   *a += b[ id1 + 2 ] * c[ id2 + 2 ] - b[ id2 + 2 ] * c[ id1 + 2 ] ; a++ ;
 #else
-  int c1 , c2 ;
+  size_t c1 , c2 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
     for( c2 = 0 ; c2 < NC ; c2++ ) {
       a[ c2 + c1 * NC ] += b[ id1 + c1 * NC ] * c[ id2 + NC * c2 ] ; 
@@ -82,7 +82,7 @@ cross_color_trace( struct spinor *__restrict DiQ ,
   spinor_zero_site( &T3SNK[ 1 ] ) ;
   spinor_zero_site( &T3SNK[ 2 ] ) ;
   // Sink cross color and trace, this leaves only one set of dirac indices
-  int i , j , d ;
+  size_t i , j , d ;
   for( i = 0 ; i < NS ; i++ ) {
     for( j = 0 ; j < NS ; j++ ) {
       double complex *a0 = (double complex*)T3SNK[0].D[i][j].C ;

@@ -15,7 +15,7 @@ void
 adjoint_spinor( struct spinor *__restrict adj ,
 		const struct spinor S )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   __m128d *res = (__m128d*)adj -> D ;
   const __m128d *s ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
@@ -37,7 +37,7 @@ adjoint_spinor( struct spinor *__restrict adj ,
       *res = SSE2_CONJ( *( s + 1 ) ) ; res++ ;
       *res = SSE2_CONJ( *( s + 3 ) ) ; res++ ;
       #else
-      int c1 , c2 ;
+      size_t c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  *res = SSE2_CONJ( s[ c1 + c2 * NC ] ) ; res++ ;
@@ -54,7 +54,7 @@ double complex
 bilinear_trace( const struct spinor A ,
 		const struct spinor B )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   const __m128d *a = (const __m128d*)A.D ;
   const __m128d *b ;
   register __m128d sum = _mm_setzero_pd() ;
@@ -89,17 +89,16 @@ gamma_mul_l( struct spinor *__restrict res ,
 	     const struct gamma GAMMA )
 {
   struct spinor tmp = *res ; // temporary space
-  int i ;
+  size_t i , j ;
   // not allowed to declare in a switch
 #if NC > 3
-  int c ;
+  size_t c ;
 #endif
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
     const int col = GAMMA.ig[i] ;
     __m128d *tp1 = (__m128d*)tmp.D[i] ;
     const __m128d *tp2 = (__m128d*)res -> D[col] ;
-    int j ;
     switch( GAMMA.g[i] ) {
     case 0 : // do nothing
       for( j = 0 ; j < NS ; j++ ) {
@@ -211,10 +210,10 @@ gamma_mul_r( struct spinor *__restrict res ,
   struct spinor tmp = *res ; // temporary space
   __m128d *tp1 ;
   const __m128d *tp2 ;
-  int i , j ;
+  size_t i , j ;
   // can't declare this in a switch
 #if NC > 3
-  int c ;
+  size_t c ;
 #endif
   // loop columns of src
   for( j = 0 ; j < NS ; j++ ) {
@@ -339,10 +338,10 @@ gamma_mul_lr( struct spinor *__restrict S ,
   struct spinor tmp = *S ; // temporary space
   __m128d *tp1 ;
   const __m128d *tp2 ;
-  int i , j , col1 , col2 ;
+  size_t i , j , col1 , col2 ;
   // not allowed to declare in a switch
 #if NC > 3
-  int c ;
+  size_t c ;
 #endif
   // loop columns
   for( i = 0 ; i < NS ; i++ ) {
@@ -570,7 +569,7 @@ simple_meson_contract( const struct gamma GSNK ,
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[1] ) ) ; bcache++ ;
       sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[3] ) ) ; bcache++ ;
       #else 
-      int c1 , c2 ;
+      size_t c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  sum = _mm_add_pd( sum , SSE2_MUL( *bcache , fcache[ c1 + c2*NC ] ) ) ; bcache++ ;

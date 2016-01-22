@@ -37,7 +37,7 @@ short int
 parallel_ffts( void ) ;
 
 /**
-   @fn void create_plans_DFT( fftw_plan *__restrict forward , fftw_plan *__restrict backward , GLU_complex *__restrict *__restrict in , GLU_complex *__restrict *__restrict out , const int ARR_SIZE , const int DIR )
+   @fn void create_plans_DFT( fftw_plan *__restrict forward , fftw_plan *__restrict backward , double complex *__restrict *__restrict in , double complex *__restrict *__restrict out , const size_t ARR_SIZE , const size_t DIR )
    @brief creates an array (size ARR_SIZE) of complex to complex FFTW plans 
    @param forward :: forward FFT
    @param backward :: backward FFT
@@ -58,33 +58,11 @@ create_plans_DFT( fftw_plan *__restrict forward ,
 		  fftw_plan *__restrict backward ,
 		  double complex *__restrict *__restrict in , 
 		  double complex *__restrict *__restrict out , 
-		  const int ARR_SIZE ,
-		  const int DIR ) ;
+		  const size_t ARR_SIZE ,
+		  const size_t DIR ) ;
 
 /**
-   @fn void create_plans_DHT( fftw_plan *__restrict plan , GLU_real *__restrict *__restrict in , GLU_real *__restrict *__restrict out , const int ARR_SIZE , const int DIR ) 
-   @brief Discrete Hartley Transform (DHT) code, used by the U(1) field generation. 
-   @param plan :: the DHT plan
-   @param in :: temporary field going in
-   @param out :: temporary field out
-   @param out :: temporary field out   
-   @param ARR_SIZE :: the size of the array being FFT'd
-   @param DIR :: number of dimensions of the transform
-   There is no backward plan as it is its own inverse.
-
-   @warning out and in must be the same size
-   <br>
-   if NOT_CONDOR_MODE is activated the functions look for wisdom in a folder called Local/Wisdom/ in the source directory
- **/
-void
-create_plans_DHT( fftw_plan *__restrict plan , 
-		  double *__restrict *__restrict in , 
-		  double *__restrict *__restrict out , 
-		  const int ARR_SIZE ,
-		  const int DIR ) ;
-
-/**
-   @fn void small_create_plans_DFT( fftw_plan *__restrict forward , fftw_plan *__restrict backward , GLU_complex *__restrict in , GLU_complex *__restrict out , const int DIR )
+   @fn void small_create_plans_DFT( fftw_plan *__restrict forward , fftw_plan *__restrict backward , double complex *__restrict in , double complex *__restrict out , const int DIR )
    @brief creates a forward and a backward complex to complex fourier transform
    @param forward :: forward FFT
    @param backward :: backward FFT
@@ -105,7 +83,7 @@ small_create_plans_DFT( fftw_plan *__restrict forward ,
 			fftw_plan *__restrict backward ,
 			double complex *__restrict in , 
 			double complex *__restrict out ,
-			const int DIR ) ;
+			const size_t DIR ) ;
 
 #endif // HAVE_FFTW_H
 

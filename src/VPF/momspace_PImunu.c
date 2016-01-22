@@ -19,10 +19,9 @@ FFT_PImunu( struct PIdata *DATA ,
 	    const fftw_plan forward ,
 	    const fftw_plan backward ) 
 {
-  int mu , nu ;
+  size_t mu , nu , i ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     for( nu = 0 ; nu < ND ; nu++ ) {
-      int i ;
       // AA
       #pragma omp parallel for private(i)
       for( i = 0 ; i < LVOLUME ; i++ ) {
@@ -77,7 +76,7 @@ momspace_PImunu( struct PIdata *AA ,
   double *psq = malloc( NMOM[0] * sizeof( double ) ) ;
   double **p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NMOM[0] ; i++ ) {
     p[i] = (double*)malloc( ND * sizeof( double ) ) ;
   }

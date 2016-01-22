@@ -30,13 +30,13 @@ projection( const struct PIdata *data ,
   double *longitudinal = malloc( NMOM[0] * sizeof( double ) ) ;
 
   const double NORM = 1.0 / (double)( ND - 1 ) ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM[0] ; i++ ) {
-    const int list_idx = list[i].idx ;
+    const size_t list_idx = list[i].idx ;
     const double spsq = ( psq[i] == 0.0 ) ? 1.0 : 1.0 / psq[i] ;
     register double sumtrans = 0.0 , sumlong = 0.0 ;
-    int mu , nu ;
+    size_t mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {
 	const double pmunu = p[i][mu] * p[i][nu] * spsq ;

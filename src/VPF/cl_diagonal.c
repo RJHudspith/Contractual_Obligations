@@ -27,10 +27,10 @@ cl_diagonal( struct propagator prop ,
 	     const char *outfile )
 {
   // vector gamma map
-  const int VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
+  const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
 
   // need to look these up
-  const int AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
+  const size_t AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
 
   // spinor memory
   struct spinor *S1f = NULL , *S1 = NULL , *S1UP = NULL , *S1END = NULL ;
@@ -77,14 +77,14 @@ cl_diagonal( struct propagator prop ,
   }
 
   // copy for the final timeslice
-  int x ;
+  size_t x ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
     equate_spinor_minus( &S1END[x] , &S1[x] ) ;
   }
 
   // loop the timeslices
-  int t ;
+  size_t t ;
   for( t = 0 ; t < ( LT-1 ) ; t++ ) {
 
     // multiple time source support
@@ -181,4 +181,3 @@ cl_diagonal( struct propagator prop ,
 
   return FAILURE ;
 }
-

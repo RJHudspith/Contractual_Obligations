@@ -191,7 +191,7 @@ merge_sort( void *list1 , void *list2 ,
 {
   // allocate two temporary lists
   char *tlist1 = malloc( size * base1 ) ;
-  char *tlist2 = malloc( size * base1 ) ;
+  char *tlist2 = malloc( size * base2 ) ;
 
   // copy into the two workspace lists
   memcpy( tlist1 , list1 , size * base1 ) ;

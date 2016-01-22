@@ -133,7 +133,7 @@ tetraquark( struct propagator prop1 ,
     goto FREE_FAIL ;
   }
 
-  int t ;
+  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 

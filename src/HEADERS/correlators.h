@@ -6,23 +6,23 @@
 #define CORRELATORS_H
 
 /**
-   @fn struct mcorr **allocate_momcorrs( const int length1 , const int length2 , const int nmom )
+   @fn struct mcorr **allocate_momcorrs( const size_t length1 , const size_t length2 , const size_t nmom )
    @brief allocate Corr[length1][length2].mom[ nmom ].C[ #LT ] correlation function
  */
 struct mcorr **
-allocate_momcorrs( const int length1 , 
-		   const int length2 ,
-		   const int nmom ) ;
+allocate_momcorrs( const size_t length1 , 
+		   const size_t length2 ,
+		   const size_t nmom ) ;
 
 /**
-   @fn void free_momcorrs( struct mcorr **mcorr , const int length1 , const int length2 , const int nmom )
+   @fn void free_momcorrs( struct mcorr **mcorr , const size_t length1 , const size_t length2 , const size_t nmom )
    @brief free the allocated mcorr struct
  */
 void
 free_momcorrs( struct mcorr **mcorr , 
-	       const int length1 ,
-	       const int length2 ,
-	       const int nmom ) ;
+	       const size_t length1 ,
+	       const size_t length2 ,
+	       const size_t nmom ) ;
 
 /**
    @fn void debug_mesons( const char *message , const struct correlator **corr )
@@ -53,15 +53,15 @@ write_baryon( struct mcorr **corr ,
 	      const char *type ) ;
 
 /**
-   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const int NSRC , const int NSNK , const int *nmom )
+   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const size_t NSRC , const size_t NSNK , const int *nmom )
    @brief write out the #ND-1 momentum-injected correlator
  */
 void
 write_momcorr( const char *outfile ,
 	       const struct mcorr **corr ,
 	       const struct veclist *list ,
-	       const int NSRC ,
-	       const int NSNK ,
+	       const size_t NSRC ,
+	       const size_t NSNK ,
 	       const int *nmom ) ;
 
 #endif

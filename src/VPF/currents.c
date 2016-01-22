@@ -16,8 +16,8 @@ CL_munu_AA( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor S2 ,       // S_2
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
 	    const struct gamma *GAMMAS ,
-	    const int mu ,
-	    const int nu )
+	    const size_t mu ,
+	    const size_t nu )
 {
   return \
     0.5 * ( meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) +
@@ -31,8 +31,8 @@ NCL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	     const struct spinor S2 ,       // S_2
 	     const struct spinor S2xpmu ,   // S_2( x + \mu )
 	     const struct gamma *GAMMAS ,
-	     const int mu ,
- 	     const int nu )
+	     const size_t mu ,
+ 	     const size_t nu )
 {
   return \
     0.5 * ( meson_contract( GAMMAS[ nu ] , S2 , GAMMAS[ mu ] , US1xpmu , GAMMAS[ GAMMA_5 ] ) +
@@ -46,8 +46,8 @@ CL_munu_VV( const struct spinor US1xpmu ,  // U S_1( x + \mu )
 	    const struct spinor S2xpmu ,   // S_2( x + \mu )
 	    const struct spinor S2 ,       // S_2
 	    const struct gamma *GAMMAS ,
-	    const int mu ,
-	    const int nu )
+	    const size_t mu ,
+	    const size_t nu )
 {
   return \
     0.5 * (
@@ -68,14 +68,14 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
 			       const struct spinor *S2 ,
 			       const struct spinor *S2UP ,
 			       const struct gamma *GAMMAS ,
-			       const int AGMAP[ ND ] ,
-			       const int VGMAP[ ND ] ,
-			       const int x ,
-			       const int t ) 
+			       const size_t AGMAP[ ND ] ,
+			       const size_t VGMAP[ ND ] ,
+			       const size_t x ,
+			       const size_t t ) 
 {
   struct spinor US1xpmu , UdS1x , S2xpmu ; // temporary storage for the gauge-multiplied
-  const int i = x + LCU * t ;
-  int mu , nu ;
+  const size_t i = x + LCU * t ;
+  size_t mu , nu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     
     // multiply through by the link matrix 
@@ -84,7 +84,7 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
       gauge_spinor( &US1xpmu , lat[i].O[mu] , S1UP[x] ) ;  // U S(x+\mu)
       S2xpmu = S2UP[x] ;
     } else {
-      const int xpmu = lat[x].neighbor[mu] ;
+      const size_t xpmu = lat[x].neighbor[mu] ;
       gauge_spinor( &US1xpmu , lat[i].O[mu] , S1[xpmu] ) ; // U S(x+\mu)
       S2xpmu = S2[xpmu] ;
     }
@@ -116,16 +116,16 @@ contract_local_local_site( struct PIdata *DATA_AA ,
 			   const struct spinor *S1 ,
 			   const struct spinor *S2 ,
 			   const struct gamma *GAMMAS ,
-			   const int AGMAP[ ND ] ,
-			   const int VGMAP[ ND ] ,
-			   const int x ,
-			   const int t ) 
+			   const size_t AGMAP[ ND ] ,
+			   const size_t VGMAP[ ND ] ,
+			   const size_t x ,
+			   const size_t t ) 
 {
-  const int i = x + LCU * t ;
-  int munu ;
+  const size_t i = x + LCU * t ;
+  size_t munu ;
   for( munu = 0 ; munu < ND*ND ; munu++ ) {
-    const int mu = munu / ND ;
-    const int nu = munu % ND ;
+    const size_t mu = munu / ND ;
+    const size_t nu = munu % ND ;
     DATA_AA[i].PI[mu][nu] =				\
       meson_contract( GAMMAS[ AGMAP[ nu ] ] , S2[ x ] , 
 		      GAMMAS[ AGMAP[ mu ] ] , S1[ x ] ,

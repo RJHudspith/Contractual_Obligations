@@ -159,8 +159,8 @@ mesons_offdiagonal( struct propagator prop1 ,
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < ( NSNS*NSNS ) ; GSGK++ ) {
-	const int GSRC = GSGK / NSNS ;
-	const int GSNK = GSGK % NSNS ;
+	const size_t GSRC = GSGK / NSNS ;
+	const size_t GSNK = GSGK % NSNS ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
 						       GAMMAS[ GAMMA_3 ] ) ;
 	// loop spatial hypercube

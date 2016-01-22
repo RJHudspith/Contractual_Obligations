@@ -15,13 +15,13 @@ check_origins( struct propagator p1 ,
 	       struct propagator p2 ,
 	       struct propagator p3 )
 {
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( ( p1.origin[ mu ] != p2.origin[ mu ] ) || 
 	( p1.origin[ mu ] != p3.origin[ mu ] ) ||
 	( p2.origin[ mu ] != p3.origin[ mu ] ) ) {
       printf( "[BARYONS] contraction of mesons with unequal origins"
-	      "%d vs %d vs. %d ( index %d ) " , 
+	      "%d vs %d vs. %d ( index %zu ) " , 
 	      p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , 
 	      mu ) ;
       return FAILURE ;
@@ -35,16 +35,16 @@ int
 contract_baryons( struct propagator *prop ,
 		  const struct baryon_info *baryons ,
 		  const struct cut_info CUTINFO ,
-		  const int nbaryons )
+		  const size_t nbaryons )
 {
-  printf( "\n[BARYONS] performing %d contraction(s) \n" , nbaryons ) ;
-  int measurements ;
+  printf( "\n[BARYONS] performing %zu contraction(s) \n" , nbaryons ) ;
+  size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nbaryons ; measurements++ ) {
     // to make it more legible
-    const int p1 = baryons[ measurements ].map[0] ;
-    const int p2 = baryons[ measurements ].map[1] ;
-    const int p3 = baryons[ measurements ].map[2] ;
+    const size_t p1 = baryons[ measurements ].map[0] ;
+    const size_t p2 = baryons[ measurements ].map[1] ;
+    const size_t p3 = baryons[ measurements ].map[2] ;
 
     // big logic block for contracting the right pieces
     if( p1 == p2 && p2 == p3 ) {

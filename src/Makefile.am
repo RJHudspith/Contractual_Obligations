@@ -7,7 +7,9 @@ lib_LIBRARIES = libCORR.a
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
 ## c files in ./BARYONS/
-BARYONFILES= ./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
+BARYONFILES= ./BARYONS/bar_contractions.c ./BARYONS/bar_projections.c \
+	./BARYONS/bar_ops.c ./BARYONS/bar_ops_SSE.c \
+	./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
 	./BARYONS/wrap_baryons.c
 
 ## c files in ./GEOM/
@@ -24,9 +26,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/io.c ./IO/input_reader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
 ## c files in ./LINALG/
-LINALGFILES=./LINALG/bar_contractions.c \
-	./LINALG/bar_projections.c \
-	./LINALG/bar_ops.c ./LINALG/bar_ops_SSE.c \
+LINALGFILES= \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/spinor_ops.c ./LINALG/spinor_ops_SSE.c \

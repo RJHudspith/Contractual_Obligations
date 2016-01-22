@@ -10,14 +10,14 @@ void
 compute_p_psq( double **p ,
 	       double *psq ,
 	       const struct veclist *list ,
-	       const int NMOM )
+	       const size_t NMOM )
 {
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM ; i++ ) {
     // compute psq and p[i]
     psq[i] = 0.0 ;
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       // lattice momentum
       p[i][mu] = 2.0 * sin( 0.5 * list[i].MOM[ mu ] * Latt.twiddles[ mu ] ) ;
@@ -33,19 +33,19 @@ void
 compute_WI( const struct PIdata *data ,
 	    const double **p ,
 	    const struct veclist *list ,
-	    const int NMOM )
+	    const size_t NMOM )
 {
   // momenta and correction
   double sum = 0.0 , sum2 = 0.0 ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i) reduction(+:sum) reduction(+:sum2)
   for( i = 0 ; i < NMOM ; i++ ) {
 
     // we just look at the momenta we are keeping
-    const int list_idx = list[ i ].idx ;
+    const size_t list_idx = list[ i ].idx ;
 
     register double complex loc_sum = 0.0 , loc_sum2 = 0.0 ;
-    int mu , nu ;
+    size_t mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {
 	// compute ward identities
@@ -71,18 +71,18 @@ void
 correct_WI( struct PIdata *data ,
 	    const correction_dir corr_dir ,
 	    const struct veclist *list ,
-	    const int NMOM )
+	    const size_t NMOM )
 {
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM ; i++ ) {
 
     // set the mapping from the momentum list
-    const int list_idx = list[ i ].idx ;
+    const size_t list_idx = list[ i ].idx ;
 
     // precompute correction factors
     double complex epi[ ND ] ;
-    int mu , nu ;
+    size_t mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       const double cache = list[ i ].MOM[ mu ] * Latt.twiddles[ mu ] ;
       epi[ mu ] = cos( cache * 0.5 ) - I * sin( cache * 0.5 ) ;
@@ -110,11 +110,11 @@ WI_configspace_bwd( const struct PIdata *data ,
 		const struct site *lat )
 {
   double sum = 0.0 ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i) reduction(+:sum) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     register double complex der = 0.0 ;
-    int mu , nu ;
+    size_t mu , nu ;
     for( nu = 0 ; nu < ND ; nu++ ) {
       for( mu = 0 ; mu < ND ; mu++ ) {
 	der += data[ i ].PI[mu][nu] - data[ lat[i].back[mu] ].PI[mu][nu] ;
@@ -133,11 +133,11 @@ WI_configspace_fwd( const struct PIdata *data ,
 		    const struct site *lat )
 {
   double sum = 0.0 ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i) reduction(+:sum) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     register double complex der = 0.0 ;
-    int mu , nu ;
+    size_t mu , nu ;
     for( nu = 0 ; nu < ND ; nu++ ) {
       for( mu = 0 ; mu < ND ; mu++ ) {
 	der += data[ lat[ i ].neighbor[ mu ] ].PI[mu][nu] - data[ i ].PI[mu][nu] ;
@@ -156,15 +156,15 @@ WI_configspace_sym( const struct PIdata *data ,
 		    const struct site *lat )
 {
   double sum = 0.0 ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i) reduction(+:sum) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    int mu , nu ;
+    size_t mu , nu ;
     for( nu = 0 ; nu < ND ; nu++ ) {
       register double complex der = 0.0 ;
       for( mu = 0 ; mu < ND ; mu++ ) {
-	const int xmmu = lat[i].back[mu] ;
-	const int xpmu = lat[i].neighbor[mu] ;
+	const size_t xmmu = lat[i].back[mu] ;
+	const size_t xpmu = lat[i].neighbor[mu] ;
 	der += ( data[ xpmu ].PI[mu][nu] - data[ xmmu ].PI[mu][nu] ) ;
       }
       sum = sum + cabs( der ) ;

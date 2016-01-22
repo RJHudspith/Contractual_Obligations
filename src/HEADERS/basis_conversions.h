@@ -2,7 +2,6 @@
    @file basis_conversions.h
    @brief prototype functions for converting between bases
  */
-
 #ifndef BASIS_CONVERSIONS_H
 #define BASIS_CONVERSIONS_H
 
