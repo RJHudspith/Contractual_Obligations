@@ -97,6 +97,28 @@ gamma_muli( struct gamma *G )
   return ;
 }
 
+// multiply by -1
+void
+gamma_mul_minus1( struct gamma *G )
+{
+  G -> g[0] = ( G -> g[0] + 2 ) & 3 ;
+  G -> g[1] = ( G -> g[1] + 2 ) & 3 ;
+  G -> g[2] = ( G -> g[2] + 2 ) & 3 ;
+  G -> g[3] = ( G -> g[3] + 2 ) & 3 ;
+  return ;
+}
+
+// multiply by -i
+void
+gamma_mul_minusi( struct gamma *G )
+{
+  G -> g[0] = ( G -> g[0] + 3 ) & 3 ;
+  G -> g[1] = ( G -> g[1] + 3 ) & 3 ;
+  G -> g[2] = ( G -> g[2] + 3 ) & 3 ;
+  G -> g[3] = ( G -> g[3] + 3 ) & 3 ;
+  return ;
+}
+
 // gamma multiply
 void
 gamma_mmul( struct gamma *__restrict a ,

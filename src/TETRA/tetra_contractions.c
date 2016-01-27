@@ -6,84 +6,14 @@
  */
 #include "common.h"
 
-#include "contractions.h"   // gamma_mul_r()
-#include "gammas.h"         // Cgmu()
-#include "spinmatrix_ops.h" // trace_prod_spinmatrices()
-
-// little storage struct
-struct cc {
-  double complex M[ NSNS ] ;
-} ;
-
-// this is a really out of order memory access, should be in spinor_ops no?
-static void
-get_spinmatrix( double complex *s , 
-		const struct spinor S ,
-		const size_t c1 , 
-		const size_t c2 )
-{
-  // pokes specific colors c1,c2 out from the spinor
-  // each spinor is 4x4x3x3 chooses a component of the 3x3
-  // color matrix and hence gives a 4x4 spinmatrix
-  const double complex *dS = (const double complex*)( S.D ) ; 
-  dS += c2 + NC * c1  ;
-  size_t d1d2 ;
-  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
-    *s = *dS ; s++ ; dS += NCNC ;
-  }
-  return ;
-}
-
-// get an element from a b c d
-static size_t
-element( const size_t a , const size_t b , const size_t c , const size_t d ) 
-{
-  return d + NC * ( c + NC * ( b + NC * a ) ) ;
-}
-
-// little function to determine a,b,c and d. d runs fastest, a slowest
-static void
-get_abcd( size_t *a , size_t *b , size_t *c , size_t *d , const size_t abcd )
-{
-  // cache this
-  const size_t NCNCNC = NCNC * NC ;
-  *a = ( abcd ) / ( NCNCNC ) ;
-  *b = ( abcd % NCNCNC ) / ( NCNC ) ;
-  *c = ( abcd % NCNC ) / ( NC ) ;
-  *d = ( abcd % NC ) ;
-}
-
-// precompute a "block" is a spinmatrix
-static void
-precompute_block( struct cc *C1 ,
-		  const struct spinor S1 ,
-		  const struct gamma G1 ,
-		  const struct spinor S2 ,
-		  const struct gamma G2 )
-{
-  struct spinor S1g1 = S1 , S2g2 = S2 ;
-  gamma_mul_r( &S1g1 , G1 ) ;
-  gamma_mul_r( &S2g2 , G2 ) ;
-  double complex D1[ NSNS ] , D2[ NSNS ] ;
-  size_t ab , cd , a , b , c , d ;
-  for( ab = 0 ; ab < NCNC ; ab++ ) {
-    a = ab / NC ;
-    b = ab % NC ;
-    get_spinmatrix( D1 , S1g1 , a , b ) ;
-    for( cd = 0 ; cd < NCNC ; cd++ ) {
-      c = cd / NC ;
-      d = cd % NC ;
-      get_spinmatrix( D2 , S2g2 , c , d ) ;
-      spinmatrix_multiply( C1 -> M , D1 , D2 ) ;
-      C1++ ;
-    }
-  }
-  return ;
-}
+#include "contractions.h"       // gamma_mul_r()
+#include "gammas.h"             // Cgmu()
+#include "spinmatrix_ops.h"     // trace_prod, get_spinmatrix()
+#include "tetra_contractions.h" // alphabetising
 
 // diquark-diquark contractions, now have 4 operators
 static int
-diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
+diquark_diquark( double complex *result ,
 		 const struct spinor U ,
 		 const struct spinor D ,
 		 const struct spinor B ,
@@ -102,11 +32,11 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
   register double complex sum = 0.0 ;
 
   // temporaries are 
-  struct cc *C1 = NULL , *C2 = NULL ;
+  struct block *C1 = NULL , *C2 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
-  if( corr_malloc( (void**)&C1 , 16 , Nco*sizeof( struct cc ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct cc ) ) != 0 ) {
+  if( corr_malloc( (void**)&C1 , 16 , Nco*sizeof( struct block ) ) != 0 || 
+      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
     goto memfree ;
   }
 
@@ -120,7 +50,8 @@ diquark_diquark( double complex result[ TETRA_NOPS-1 ] ,
       sum += 
 	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
 	( spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) - 
-	  spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ) ;
+	  spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) 
+	  ) ;
     }
     result[0] = sum ;
   }
@@ -200,11 +131,11 @@ dimeson( const struct spinor U , // u prop
   size_t abcd , a , b , c , d ;
 
   // temporaries blocks of spinmatrix data
-  struct cc *C1 = NULL , *C2 = NULL ;
+  struct block *C1 = NULL , *C2 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
-  if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct cc ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco * sizeof( struct cc ) ) != 0 ) {
+  if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct block ) ) != 0 || 
+      corr_malloc( (void**)&C2 , 16 , Nco * sizeof( struct block ) ) != 0 ) {
     goto memfree ;
   }
 
@@ -263,6 +194,54 @@ dimeson( const struct spinor U , // u prop
   free( C2 ) ;
   printf( "[TETRA] corr_malloc failure in dimeson\n" ) ;
   return sqrt(-1) ;
+}
+
+// get an element from a b c d
+size_t
+element( const size_t a , const size_t b , const size_t c , const size_t d ) 
+{
+  return d + NC * ( c + NC * ( b + NC * a ) ) ;
+}
+
+// little function to determine a,b,c and d. d runs fastest, a slowest
+void
+get_abcd( size_t *a , size_t *b , size_t *c , size_t *d , const size_t abcd )
+{
+  // cache this
+  const size_t NCNCNC = NCNC * NC ;
+  *a = ( abcd ) / ( NCNCNC ) ;
+  *b = ( abcd % NCNCNC ) / ( NCNC ) ;
+  *c = ( abcd % NCNC ) / ( NC ) ;
+  *d = ( abcd % NC ) ;
+}
+
+// precompute a "block" as an array of spinmatrices
+// with open colors a,b,c,d in a flattened array
+void
+precompute_block( struct block *C1 ,
+		  const struct spinor S1 ,
+		  const struct gamma G1 ,
+		  const struct spinor S2 ,
+		  const struct gamma G2 )
+{
+  struct spinor S1g1 = S1 , S2g2 = S2 ;
+  gamma_mul_r( &S1g1 , G1 ) ;
+  gamma_mul_r( &S2g2 , G2 ) ;
+  double complex D1[ NSNS ] , D2[ NSNS ] ;
+  size_t ab , cd , a , b , c , d ;
+  for( ab = 0 ; ab < NCNC ; ab++ ) {
+    a = ab / NC ;
+    b = ab % NC ;
+    get_spinmatrix( D1 , S1g1 , a , b ) ;
+    for( cd = 0 ; cd < NCNC ; cd++ ) {
+      c = cd / NC ;
+      d = cd % NC ;
+      get_spinmatrix( D2 , S2g2 , c , d ) ;
+      spinmatrix_multiply( C1 -> M , D1 , D2 ) ;
+      C1++ ;
+    }
+  }
+  return ;
 }
 
 // perform the contraction

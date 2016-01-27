@@ -78,10 +78,19 @@ gamma_conj_test( void )
   mu_assert( "[UNIT] error : gammas (I*).I != I" ,
 	     !( gamma_comparison( gamma_conj( GAMMAS[ IDENTITY ] ) ,
 				  GAMMAS[ IDENTITY ] ) ) ) ;
+  // test that gamma_conj is gamma dag transposed for all gammas
+  size_t mu ;
+  for( mu = 0 ; mu < GAMMA_5 ; mu++ ) {
+    mu_assert( "[UNIT] error : gamma_conj (g*) != (g^{dagger})^T" ,
+	     !( gamma_comparison( gamma_conj( GAMMAS[ mu ] ) ,
+				  gamma_transpose( gamma_dag( GAMMAS[ mu ] ) ) 
+				  ) ) ) ;
+    
+  }
   return NULL ;
 }
 
-// test that the dagger of a gamma matrix is the gamma matrix back
+// test that the dagger of a gamma matrix is the same gamma matrix
 static char*
 gamma_dag_test( void )
 {
@@ -94,17 +103,30 @@ gamma_dag_test( void )
   return NULL ;
 }
 
-// test that the transpose of the identity is the identity
+// transpose test
 static char*
 gamma_transpose_test( void )
 {
+  // test that the transpose of the identity is the identity
   struct gamma IT = gamma_transpose( GAMMAS[ IDENTITY ] ) ;
   mu_assert( "[UNIT] error : I^T != I" , 
 	     !( gamma_comparison( IT , GAMMAS[IDENTITY] ) ) ) ;
+  // test that ( gamma_i^T gamma_j^T ) = ( gamma_j gamma_i )^T
+  size_t i , j ;
+  struct gamma res1 , res2 ;
+  for( i = 0 ; i < GAMMA_5 ; i++ ) {
+    for( j = 0 ; j < GAMMA_5 ; j++ ) {
+      gamma_mmul( &res1 , gamma_transpose( GAMMAS[ i ] ) ,
+		  gamma_transpose( GAMMAS[ j ] ) ) ;
+      gamma_mmul( &res2 , GAMMAS[ j ] , GAMMAS[ i ] ) ;
+      mu_assert( "[UNIT] error : g_i^T.g_j^T != (g_2 g_1)^T" , 
+		 !( gamma_comparison( res1 , gamma_transpose( res2 ) ) ) ) ;
+    }
+  }
   return NULL ;
 }
 
-// test i^4*I
+// test i^4*I = I
 static char*
 gamma_muli_test( void )
 {
@@ -113,8 +135,37 @@ gamma_muli_test( void )
   gamma_muli( &iI ) ;
   gamma_muli( &iI ) ;
   gamma_muli( &iI ) ;
-  mu_assert( "[UNIT] error : gammas multiply by i" ,
+  mu_assert( "[UNIT] error : gamma_muli (i)^4 * I != I " ,
 	     !( gamma_comparison( iI , GAMMAS[ IDENTITY ] ) ) ) ;
+  return NULL ;
+}
+
+// test i^3*I = -i*I
+static char*
+gamma_mul_minus1_test( void )
+{
+  struct gamma iI1 = GAMMAS[ IDENTITY ] , iI2 = GAMMAS[ IDENTITY ] ;
+  gamma_mul_minusi( &iI1 ) ;
+  // i^3 = -i
+  gamma_muli( &iI2 ) ;
+  gamma_muli( &iI2 ) ;
+  gamma_muli( &iI2 ) ;
+  mu_assert( "[UNIT] error : gamma_muli (i)^3 * I != -i * I" ,
+	     !( gamma_comparison( iI1 , iI2 ) ) ) ;
+  return NULL ;
+}
+
+// test i^2*I = -I
+static char*
+gamma_mul_minusi_test( void )
+{
+  struct gamma iI1 = GAMMAS[ IDENTITY ] , iI2 = GAMMAS[ IDENTITY ] ;
+  gamma_mul_minus1( &iI1 ) ;
+  // i^3 = -i
+  gamma_muli( &iI2 ) ;
+  gamma_muli( &iI2 ) ;
+  mu_assert( "[UNIT] error : gamma_muli (i)^2 * I != -I" ,
+	     !( gamma_comparison( iI1 , iI2 ) ) ) ;
   return NULL ;
 }
 
@@ -126,13 +177,12 @@ Cgmu_test( void )
   struct gamma C = CGmu( GAMMAS[ IDENTITY ] , GAMMAS ) ;
   // C = C^{dagger} ( A.25 )
   struct gamma Cdag = gamma_dag( C ) ;
-  mu_assert( "[UNIT] error : C matrix is not own dagger" ,
+  mu_assert( "[UNIT] error : C != C^dagger" ,
 	     !( gamma_comparison( C , Cdag ) ) ) ;
   // C = -C^{T} ( A.25 )
   struct gamma Ctrans = gamma_transpose( C ) ;
-  gamma_muli( &Ctrans ) ;
-  gamma_muli( &Ctrans ) ;
-  mu_assert( "[UNIT] error : C matrix is not own dagger" ,
+  gamma_mul_minus1( &Ctrans ) ;
+  mu_assert( "[UNIT] error : C != -C^T" ,
 	     !( gamma_comparison( C , Ctrans ) ) ) ;
   // C \gamma_\mu C = -\gamma_\mu^T ( A.23 )
   size_t mu ;
@@ -141,11 +191,15 @@ Cgmu_test( void )
     gamma_mmul( &t1 , C , GAMMAS[mu] ) ;
     gamma_mmul( &t2 , t1 , C ) ;
     struct gamma t3 = gamma_transpose( GAMMAS[mu] ) ;
-    gamma_muli( &t3 ) ;
-    gamma_muli( &t3 ) ;
+    gamma_mul_minus1( &t3 ) ;
     mu_assert( "[UNIT] error : Cg_mu C != g_mu^T" ,
 	       !( gamma_comparison( t2 , t3 ) ) ) ;
   }
+  // C.C = Id
+  struct gamma CC ;
+  gamma_mmul( &CC , C , C ) ;
+  mu_assert( "[UNIT] error : C.C != I" ,
+	     !( gamma_comparison( CC , GAMMAS[ IDENTITY ] ) ) ) ;
   return NULL ;
 }
 
@@ -179,11 +233,26 @@ gt_Gdag_gt_test( void )
 				    gt_Gdag_gt( GAMMAS[ mu ] ,
 						GAMMAS[ GAMMA_3 ] ) ) ) ) ;
   }
-  //
-  struct gamma Cg5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  struct gamma gtCg5gt = gt_Gdag_gt( Cg5 , GAMMAS[ GAMMA_3 ] ) ;
-  mu_assert( "[UNIT] error : gt.Cg5.gt != Cg5" ,
-	     !( gamma_comparison( Cg5 , gtCg5gt ) ) ) ;
+  // test this identity
+  for( mu = 0 ; mu < 6 ; mu++ ) {
+    if( mu == GAMMA_1 || mu == IDENTITY ) continue ;
+    struct gamma Cgi = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
+    struct gamma gtCgigt = gt_Gdag_gt( Cgi , GAMMAS[ GAMMA_3 ] ) ;
+    mu_assert( "[UNIT] error : gt.Cgi.gt != Cgi" ,
+	       !( gamma_comparison( Cgi , gtCgigt ) ) ) ;
+  }
+  // test that gt.(C.gy)^dagger.gt = igt
+  struct gamma Cgy = CGmu( GAMMAS[ GAMMA_1 ] , GAMMAS ) ;
+  struct gamma gtCgygt = gt_Gdag_gt( Cgy , GAMMAS[ GAMMA_3 ] ) ;
+  struct gamma igt = GAMMAS[ GAMMA_3 ] ;
+  gamma_muli( &igt ) ;
+  mu_assert( "[UNIT] error : gt.Cgy.gt != igt" ,
+	     !( gamma_comparison( gtCgygt , igt ) ) ) ;
+  // test that gt.(C)^dagger.gt = -C
+  struct gamma CgI = CGmu( GAMMAS[ IDENTITY ] , GAMMAS ) ;
+  struct gamma gtCgIgt = gt_Gdag_gt( CgI , GAMMAS[ GAMMA_3 ] ) ;
+  mu_assert( "[UNIT] error : gt.CgI.gt != -C" ,
+	     !( gamma_comparison( gtCgIgt , gamma_transpose( CgI ) ) ) ) ;
   return NULL ;
 }
 
@@ -196,6 +265,8 @@ gammas_test( void )
   mu_run_test( gamma_conj_test ) ;
   mu_run_test( gamma_dag_test ) ;
   mu_run_test( gamma_muli_test ) ;
+  mu_run_test( gamma_mul_minus1_test ) ;
+  mu_run_test( gamma_mul_minusi_test ) ;
   mu_run_test( gamma_transpose_test ) ;
   
   // these rely on the above

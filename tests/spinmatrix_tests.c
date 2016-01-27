@@ -5,8 +5,9 @@
 #include "common.h"
 
 #include "gammas.h"
-#include "minunit.h"     // minimal unit testing framework
-#include "spinmatrix_ops.h"  // spinor operations
+#include "minunit.h"         // minimal unit testing framework
+#include "spinmatrix_ops.h"  // spinmatrix operations
+#include "spinor_ops.h"      // identity_spinor()
 
 static struct gamma *GAMMA = NULL ; // gamma matrix technology
 
@@ -14,6 +15,21 @@ static double complex *D = NULL ;
 static double complex *C = NULL ;
 
 #define FTOL ( NC * 1.E-14 ) 
+
+static void
+write_spinmatrix( double complex s[ NSNS ] )
+{
+  size_t d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      printf( " %1.2f %1.2f " , creal( s[d2+NS*d1] ) , 
+	      cimag( s[d2+NS*d1] ) ) ;
+    }
+    printf( "\n" ) ;
+  }
+  printf( "\n" ) ;
+  return ;
+}
 
 // add spinmatrix test
 static char*
@@ -90,6 +106,34 @@ gammaspinmatrix_trace_test( void )
 	       !( cabs( tr1 - tr2 ) > FTOL ) ) ;
   mu_assert( "[UNIT] error : spinmatrix ops gammaspinmatrix_trace broken " , 
 	       !( cabs( tr1 - tr3 ) > FTOL ) ) ;
+  return NULL ;
+}
+
+// test our routine for peeking spin indices
+static char*
+get_spinmatrix_test( void )
+{
+  struct spinor Id ;
+  double complex s[ NSNS ] ;
+  identity_spinor( &Id ) ;
+  size_t c1 , c2 , d1d2 ;
+  for( c1 = 0 ; c1 < NC ; c1++ ) {
+    for( c2 = 0 ; c2 < NC ; c2++ ) {
+      get_spinmatrix( s , Id , c1 , c2 ) ;
+      // check it is the identity
+      for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+	if( d1d2%(NS+1)==0 && c1==c2 ) {
+	  mu_assert( "[UNIT] error : spinmatrix ops get_spinmatrix broken " , 
+		     !( cabs( s[d1d2] - 1.0 ) > FTOL ) ) ;
+	} else {
+	  mu_assert( "[UNIT] error : spinmatrix ops get_spinmatrix broken " , 
+		     !( cabs( s[d1d2] ) > FTOL ) ) ;
+	}
+	//
+      }
+      //
+    }
+  }
   return NULL ;
 }
 
@@ -217,6 +261,7 @@ spinmatrices_test( void )
 
   // run spinmatrix ops tests
   mu_run_test( gamma_spinmatrix_test ) ;
+  mu_run_test( get_spinmatrix_test ) ;
   mu_run_test( identity_spinmatrix_test ) ;
   mu_run_test( atomic_add_spinmatrices_test ) ;
   mu_run_test( spinmatrix_gamma_test ) ;

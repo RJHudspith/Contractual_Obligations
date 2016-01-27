@@ -17,6 +17,14 @@ struct baryon_info {
 } ;
 
 /**
+   @struct block
+   @brief wrapper for flattened spinmatrix
+ */
+struct block {
+  double complex M[ NSNS ] ;
+} ;
+
+/**
    @struct colormatrix
    @brief color matrix
 */

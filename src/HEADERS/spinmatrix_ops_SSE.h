@@ -41,6 +41,16 @@ gammaspinmatrix_trace( const struct gamma G ,
 		       const void *spinmatrix ) ;
 
 /**
+   @fn void get_spinmatrix( void *spinmatrix , const struct spinor S , const size_t c1 , const size_t c2 )
+   @brief from our spinor struct get a matrix with only spin indices
+ */
+void
+get_spinmatrix( void *spinmatrix , 
+		const struct spinor S ,
+		const size_t c1 ,
+		const size_t c2 ) ;
+
+/**
    @fn void identity_spinmatrix( void *spinmatrix )
    @brief set spinmatrix to the identity
  */

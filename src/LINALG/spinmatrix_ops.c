@@ -93,6 +93,26 @@ gammaspinmatrix_trace( const struct gamma G ,
   return sum ;
 }
 
+// gets a spinmatrix from our propagator
+void
+get_spinmatrix( void *spinmatrix , 
+		const struct spinor S ,
+		const size_t c1 ,
+		const size_t c2 )
+{
+  // pokes specific colors c1,c2 out from the spinor
+  // each spinor is 4x4x3x3 chooses a component of the 3x3
+  // color matrix and hence gives a 4x4 spinmatrix
+  const double complex *dS = (const double complex*)( S.D ) ; 
+  double complex *s = (double complex*)spinmatrix ;
+  dS += c2 + NC * c1  ;
+  size_t d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    *s = *dS ; s++ ; dS += NCNC ;
+  }
+  return ;
+}
+
 // set the spinmatrix to the identity
 void
 identity_spinmatrix( void *spinmatrix )

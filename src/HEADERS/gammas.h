@@ -45,6 +45,20 @@ void
 gamma_muli( struct gamma *G ) ;
 
 /**
+   @fn void gamma_mul_minus1( struct gamma *G )
+   @brief multiply a gamma matrix by -1
+ */
+void
+gamma_mul_minus1( struct gamma *G ) ;
+
+/**
+   @fn void gamma_mul_minusi( struct gamma *G )
+   @brief multiply a gamma matrix by -i
+ */
+void
+gamma_mul_minusi( struct gamma *G ) ;
+
+/**
    @fn struct gamma gamma_transpose( const struct gamma G )
    @brief transpose a gamma matrix
  */

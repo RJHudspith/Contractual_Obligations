@@ -21,6 +21,6 @@ static_quark( struct spinor *S ,
  */
 double complex
 poly( const struct site *__restrict lat , 
-      int dir ) ;
+      size_t dir ) ;
 
 #endif

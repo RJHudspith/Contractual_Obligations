@@ -16,26 +16,26 @@
 static void
 fill_spinor( struct spinor *__restrict S ,
 	     void *tmp ,
-	     const int ND1 , 
-	     const int d1shift ,
-	     const int tmpsize )
+	     const size_t ND1 , 
+	     const size_t d1shift ,
+	     const size_t tmpsize )
 {
   if( tmpsize == sizeof( float complex ) ) {
     const float complex *ftmp = (const float complex*)tmp ;
-    int d1d2 ;
+    size_t d1d2 ;
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
-      const int d1 = d1d2 / ND1 + d1shift ;
-      const int d2 = d1d2 % ND1 + d1shift ;
+      const size_t d1 = d1d2 / ND1 + d1shift ;
+      const size_t d2 = d1d2 % ND1 + d1shift ;
       // unroll the matching
       colormatrix_equiv_f2d( (double complex*)S -> D[ d1 ][ d2 ].C ,
 			     ftmp + d1d2 * NCNC ) ;
     }
   } else {
     const double complex *ftmp = (const double complex*)tmp ;
-    int d1d2 ;
+    size_t d1d2 ;
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
-      const int d1 = d1d2 / ND1 + d1shift ;
-      const int d2 = d1d2 % ND1 + d1shift ;
+      const size_t d1 = d1d2 / ND1 + d1shift ;
+      const size_t d2 = d1d2 % ND1 + d1shift ;
       // unroll the matching
       colormatrix_equiv( (double complex*)S -> D[ d1 ][ d2 ].C ,
 			 ftmp + d1d2 * NCNC ) ;
@@ -49,7 +49,7 @@ int
 check_checksum( FILE *fprop )
 {
   // spinsize
-  const int spinsize = NSNS * NCNC ;
+  const size_t spinsize = NSNS * NCNC ;
 
   double *prop_buf = malloc( spinsize*2 * sizeof( double ) ) ;
 
@@ -57,7 +57,7 @@ check_checksum( FILE *fprop )
   uint32_t CRCsum29 = 0 , CRCsum31 = 0 ;
 
   // ok so this must be a geometry/dirac thing
-  int site;
+  size_t site;
   for( site = 0 ; site < LVOLUME ; site++ ) {
     if( fread( prop_buf , sizeof(double) , spinsize*2 , fprop ) != spinsize*2 ) {
       printf( "[IO] fread failure ... exiting \n" ) ;
@@ -95,7 +95,7 @@ static int
 read_chiralprop( struct propagator prop ,
 		 struct spinor *S )
 {
-  const int spinsize = NCNC * NSNS ;
+  const size_t spinsize = NCNC * NSNS ;
 
   // do we need to byte swap?
   const GLU_bool must_swap = prop.endian != WORDS_BIGENDIAN ? \
@@ -107,13 +107,13 @@ read_chiralprop( struct propagator prop ,
     ftmp = ( float complex* )malloc( spinsize * sizeof( float complex ) ) ;
   }
 
-  int i ;
+  size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
     // depending on the precision, read in the data
     if( prop.precision == SINGLE ) {
       if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure single prec (%d) \n" , i ) ;
+	printf( "[IO] chiral propagator failure single prec (%zu) \n" , i ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
@@ -124,7 +124,7 @@ read_chiralprop( struct propagator prop ,
       // Read in propagator on a timeslice elements of our struct should be byte-compatible
       if( fread( S[i].D , sizeof( double complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure double prec (%d) \n" , i ) ;
+	printf( "[IO] chiral propagator failure double prec (%zu) \n" , i ) ;
 	return FAILURE ;
       }
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
@@ -142,8 +142,9 @@ static int
 read_nrprop( struct propagator prop , 
 	     struct spinor *S )
 {
-  const int NR_NS = NS >> 1 ;
-  const int spinsize = NCNC * NR_NS * NR_NS ;
+  // non rel prop is only the top corner
+  const size_t NR_NS = NS >> 1 ;
+  const size_t spinsize = NCNC * NR_NS * NR_NS ;
 
   // read in site-by-site
   const GLU_bool must_swap = prop.endian != WORDS_BIGENDIAN ? \
@@ -161,7 +162,7 @@ read_nrprop( struct propagator prop ,
   // zeros our spinor over LCU
   spinor_zero( S ) ;
 
-  int i ;
+  size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
     // single precision read 
     if( prop.precision == SINGLE ) {

@@ -35,9 +35,8 @@
 
 // complete the full matrix
 static inline void 
-complete_NCxNC( O , uout )
-     double complex *__restrict O ; 
-     const double *__restrict uout ;
+complete_NCxNC( double complex *__restrict O ,
+		const double *__restrict uout )
 {
 #if NC == 3
   O[0] = uout[0] + I * uout[1] ; 
@@ -56,7 +55,7 @@ complete_NCxNC( O , uout )
   O[3] = uout[6] + I * uout[7] ; 
 #else
   // implementation of this is simple
-  int j ;
+  size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
     O[j] = uout[ 2 * j ] + I * uout[ 2 * j + 1 ] ;
   }
@@ -66,9 +65,8 @@ complete_NCxNC( O , uout )
 
 // recombines O from the top NC-1 rows of matrix
 static inline void 
-complete_top( O , uout )
-     double complex *__restrict O ; 
-     const double *__restrict uout ; 
+complete_top( double complex *__restrict O , 
+	      const double *__restrict uout ) 
 {
 #if NC == 3
   O[0] = uout[0] + I * uout[1] ; 
@@ -89,15 +87,14 @@ complete_top( O , uout )
   O[2] = -conj( O[1] ) ;  
   O[3] = conj( O[0] ) ; 
 #else
-  // not implemented but shouldn't be problematic will do now
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC - NC ; i++ ) {
     O[i] = uout[ 2*i ] + I * uout[ 2*i + 1 ] ;
   }
   // and complete, taken from the gramschmidt code, should consider a minors function ?
   double complex array[ ( NC - 1 ) * ( NC - 1 ) ] ;
   for( i = (NCNC-NC) ; i < NCNC ; i++ ) { // our bona-fide minor index
-    int idx = 0 , j ;
+    size_t idx = 0 , j ;
     for( j = 0 ; j < ( NCNC - NC ) ; j++ ) {
       if( ( j%NC != i%NC ) ) { // remove columns and rows
 	// pack array
@@ -119,9 +116,9 @@ complete_top( O , uout )
 
 // construct some common LOOP variables
 static int
-construct_loop_variables( LATT_LOOP , LOOP_VAR , type )
-     int *LATT_LOOP , *LOOP_VAR ;
-     const int type ;
+construct_loop_variables( size_t *LATT_LOOP , 
+			  size_t *LOOP_VAR ,
+			  const int type )
 {
   // dump it all in memory...
   switch( type ) {
@@ -147,10 +144,9 @@ construct_loop_variables( LATT_LOOP , LOOP_VAR , type )
 
 // rebuilt using the switch for the different allowd formats
 static inline void
-rebuild_lat( link , utemp , type ) 
-     double complex *__restrict link ;
-     const double *__restrict utemp ;
-     const GLU_output type ;
+rebuild_lat( double complex *__restrict link ,
+	     const double *__restrict utemp ,
+	     const GLU_output type )
 {
   // smash all the read values into lat
   switch( type ) { 
@@ -178,7 +174,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
   }
 
   // loop variables
-  int LOOP_VAR , LATT_LOOP ;
+  size_t LOOP_VAR , LATT_LOOP ;
   if( construct_loop_variables( &LATT_LOOP , &LOOP_VAR , 
 				HEAD_DATA.config_type ) == FAILURE ) {
     return FAILURE ;
@@ -198,7 +194,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
     // scidac checksum is on the RAW binary data, not the byteswapped
     if( Latt.head == ILDG_BQCD_HEADER || Latt.head == SCIDAC_HEADER ||
 	Latt.head == ILDG_SCIDAC_HEADER ) {
-      int i ;
+      size_t i ;
       for( i = 0 ; i < LVOLUME ; i++ ) {
 	DML_checksum_accum( &CRCsum29 , &CRCsum31 , 
 			    i , (char*)( uind + ( i * ND * LOOP_VAR ) ) ,
@@ -226,7 +222,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
     // BQCD checksum is just the crc of the whole thing and is kinda expensive
     if( Latt.head == ILDG_BQCD_HEADER || Latt.head == SCIDAC_HEADER ||
 	Latt.head == ILDG_SCIDAC_HEADER ) {
-      int i ;
+      size_t i ;
       for( i = 0 ; i < LVOLUME ; i++ ) {
 	DML_checksum_accum( &CRCsum29 , &CRCsum31 , 
 			    i , (char*)( uin + ( i * ND * LOOP_VAR ) ) ,
@@ -247,11 +243,11 @@ lattice_reader_suNC( struct site *__restrict lat ,
 
   // compute the crcs
   uint32_t k = 0 , sum29 = 0 , sum31 = 0 ;
-  int i ;
+  size_t i ;
   #pragma omp parallel for private(i) reduction(+:k) reduction(^:sum29) reduction(^:sum31)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     // t is the AntiHermitian_projised idx
-    int t = ND * LOOP_VAR * i ;
+    size_t t = ND * LOOP_VAR * i ;
     int rank29 = t % 29 ;
     int rank31 = t % 31 ;
     register uint32_t k_loc = 0 ;
@@ -260,7 +256,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
     // general variables ...
     double utemp[ LOOP_VAR ] ;
     uint32_t res = 0 ;
-    int mu , j , count = 0 ;
+    size_t mu , j , count = 0 ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( j = 0 ; j < LOOP_VAR ; j++ ) {
 	// should I shuffle this around ?
@@ -345,7 +341,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
   }
 
   // loop variables
-  int LOOP_VAR , LATT_LOOP ;
+  size_t LOOP_VAR , LATT_LOOP ;
   if( construct_loop_variables( &LATT_LOOP , &LOOP_VAR , 
 				HEAD_DATA.config_type ) == FAILURE ) {
     return FAILURE ;
@@ -362,7 +358,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
 
   uint32_t k = 0 , sum29 = 0 , sum31 = 0 ; // NERSC & MILC checksums ...
   uint32_t CRCsum29 = 0 , CRCsum31 = 0 ;
-  int i ;
+  size_t i ;
   // do this in serial reads in site by site
   for( i = 0 ; i < LVOLUME ; i++ ) {
 
@@ -398,16 +394,16 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
       }
       q = uin ;
     }
-    int t = 0 ;
+    size_t t = 0 ;
 
     register uint32_t k_loc = 0 , sum29_loc = 0 , sum31_loc = 0 ;
-    int rank29 = ( ND * LOOP_VAR * i ) % 29 ;
-    int rank31 = ( ND * LOOP_VAR * i ) % 31 ;
+    int rank29 = (int)( ND * LOOP_VAR * i ) % 29 ;
+    int rank31 = (int)( ND * LOOP_VAR * i ) % 31 ;
 
     // general variables ...
     double utemp[ LOOP_VAR ] ;
     uint32_t res = 0 ;
-    int mu , j ;
+    size_t mu , j ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( j = 0 ; j < LOOP_VAR ; j++ ) {
 	// should I shuffle this around ?

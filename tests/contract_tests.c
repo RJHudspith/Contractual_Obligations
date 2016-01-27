@@ -319,7 +319,10 @@ contractions_test( void )
   identity_spinor( &Id ) ;
 
   // test gammas again, or for the first time depending on ordering
+  // confusingly sets gamma matrices too!
   mu_run_test( gammas_test ) ;
+
+  // test actual operations
   mu_run_test( adjoint_test ) ;
   mu_run_test( bilinear_trace_test ) ;
   mu_run_test( gamma_mul_l_test ) ;

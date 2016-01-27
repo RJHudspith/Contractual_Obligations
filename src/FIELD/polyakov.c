@@ -9,7 +9,7 @@
 #include "spinor_ops.h"
 
 // simple matrix multiplication a = a * b
-void 
+static void 
 multab_atomic_right( double complex a[ NCNC ] , 
 		     const double complex b[ NCNC ] )
 {
@@ -35,7 +35,7 @@ multab_atomic_right( double complex a[ NCNC ] ,
   a[2] = R0 ; a[3] = R1 ;				
 #else
   // slow and stupid loopy version
-  int i , j , m ;
+  size_t i , j , m ;
   double complex R[ NC ] ; // this probably needs to be aligned
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j ++ ) {
@@ -65,7 +65,7 @@ identity( double complex poly[ NCNC ] )
   poly[0] = 1.0 ; poly[1] = 0.0 ;
   poly[2] = 0.0 ; poly[3] = 1.0 ;
 #else
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       poly[ j + i * NC ] = ( i == j ) ? 1.0 : 0.0 ;
@@ -79,10 +79,10 @@ identity( double complex poly[ NCNC ] )
 static void
 small_poly( double complex poly[ NCNC ] ,
 	    const struct site *__restrict lat ,
-	    const int site , 
-	    const int dir ,
+	    const size_t site , 
+	    const size_t dir ,
 	    const GLU_bool forward ,
-	    const int length )
+	    const size_t length )
 {
   // zero length polyakov line is just the identity
   if( length == 0 ) {
@@ -113,7 +113,7 @@ static_quark( struct spinor *S ,
   // set the spinor to 0
   spinor_zero( S ) ;
 
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
 
@@ -121,7 +121,7 @@ static_quark( struct spinor *S ,
     double complex pline[ NCNC ] ;
     small_poly( pline , lat , i , ND-1 , forward , t ) ;
 
-    int j ;
+    size_t j ;
     for( j = 0 ; j < NS ; j++ ) {
 
       // multiply by 1/2
@@ -154,20 +154,20 @@ static_quark( struct spinor *S ,
 // computes a polyakov line, looping around the dimension "dir"
 double complex
 poly( const struct site *__restrict lat , 
-      int dir )
+      size_t dir )
 {
   // if you have stupidly set the dimension to something unreasonable
   // default the direction to ND
-  if( dir > ND || dir < 0 ) { dir = ND ; }
+  if( dir > ND ) { dir = ND ; }
   double complex sum = 0.0 ;
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:sum)
   for( i = 0 ; i < LCU ; i++ ) {
     double complex poly[ NCNC ] ;
     // use the correct site for one of the hypercubes ...
     int x[ ND ] ;
     get_mom_2piBZ( x , i , dir ) ;
-    const int k = gen_site( x ) ;
+    const size_t k = gen_site( x ) ;
     small_poly( poly , lat , k , dir , GLU_TRUE , Latt.dims[dir] ) ;
     double complex s ;
     #ifdef HAVE_IMMINTRIN_H
@@ -179,4 +179,3 @@ poly( const struct site *__restrict lat ,
   }
   return sum ;
 }
-

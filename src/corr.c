@@ -55,7 +55,7 @@ main( const int argc,
   }
 
   // geometry has to come from the input file
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     Latt.dims[ mu ] = inputs.dims[ mu ] ;
   }

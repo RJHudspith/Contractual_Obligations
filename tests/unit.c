@@ -13,6 +13,7 @@
 #include "matops_tests.h"
 #include "spinmatrix_tests.h"
 #include "spinor_tests.h"
+#include "tetra_contractions_tests.h"
 #include "utils_tests.h" 
 
 struct latt_info Latt ;
@@ -64,6 +65,10 @@ main( const int argc , const char *argv[] )
 
   // have a look at baryon operations
   if( bar_ops_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
+  // have a look at baryon operations
+  if( tetra_contractions_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   printf( "[UNIT] %d tests run and passed\n" , total ) ;

@@ -39,17 +39,16 @@ static void
 speed_trace_Re( double *__restrict res ,
 		const double complex U[ NCNC ] ) 
 {
-#if NC == 3
-  *res = (double)creal( U[0] ) + (double)creal( U[4] ) + 
-         (double)creal( U[8] ) ; 
-#elif NC == 2
-  *res = (double)creal( U[0] ) + (double)creal( U[3] ) ;
-#else
-  int i ;
   const double *pU = (const double*)U ;
+#if NC == 3
+  *res = pU[0] + pU[8] + pU[16] ;
+#elif NC == 2
+  *res = pU[0] + pU[6] ;
+#else
+  size_t i ;
   register double sumr = 0.0 ;
   for( i = 0 ; i < NC ; i++ ) { 
-    sumr += (double)( *(pU) ) ;
+    sumr += *(pU) ;
     pU += 2*( NC + 1 ) ;
   }
   *res = sumr ;
@@ -59,9 +58,10 @@ speed_trace_Re( double *__restrict res ,
 
 //// My plaquette code, uses expressions for the trace of four matrices 
 static double
-complete_plaquette( a , b , c , d )
-     const double complex *__restrict a , *__restrict b ;
-     const double complex *__restrict c , *__restrict d ;
+complete_plaquette( const double complex *__restrict a , 
+		    const double complex *__restrict b ,
+		    const double complex *__restrict c , 
+		    const double complex *__restrict d )
 {
 #if NC == 3
   register double complex tra1 = (a[0]*b[0]+a[1]*b[3]+a[2]*b[6]) ;
@@ -133,11 +133,11 @@ all_plaquettes( const struct site *__restrict lat ,
 		double *__restrict t_plaq )
 {
   double spplaq = 0. , tplaq = 0.0 ;
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:spplaq) reduction(+:tplaq) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. , face ;
-    int mu , nu , s , t ;
+    size_t mu , nu , s , t ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       t = lat[i].neighbor[mu] ; 
       for( nu = 0 ; nu < mu ; nu++ ) {
@@ -169,16 +169,15 @@ double
 av_plaquette( const struct site *__restrict lat )
 {
   double plaq = 0. ;
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:plaq) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. ;
-    int mu ;
+    size_t mu , nu , t , s ;
     for( mu = 0 ; mu < ND ; mu++ ) {
-      register const int t = lat[i].neighbor[mu] ; 
-      int nu ;
+      t = lat[i].neighbor[mu] ; 
       for( nu = 0 ; nu < mu ; nu++ ) {
-	register const int s = lat[i].neighbor[nu] ;
+	s = lat[i].neighbor[nu] ;
 	const double face = complete_plaquette( lat[ i ].O[mu] , 
 						lat[ t ].O[nu] , 
 						lat[ s ].O[mu] , 
@@ -196,16 +195,15 @@ double
 s_plaq( const struct site *__restrict lat )
 {
   double plaq = 0. ;
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:plaq) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. ;
-    int mu ;
+    size_t mu , nu , t , s ;
     for( mu = 0 ; mu < ND - 1 ; mu++ ) {
-      register const int t = lat[i].neighbor[mu] ; 
-      int nu ;
+      t = lat[i].neighbor[mu] ; 
       for( nu = 0 ; nu < mu ; nu++ ) {
-	register const int s = lat[i].neighbor[nu] ;
+	s = lat[i].neighbor[nu] ;
 	const double face = complete_plaquette( lat[ i ].O[mu] , 
 						lat[ t ].O[nu] , 
 						lat[ s ].O[mu] , 
@@ -223,15 +221,14 @@ double
 t_plaq( const struct site *__restrict lat )
 {
   double plaq = 0. ;
-  int i ; 
-  const int mu = ND - 1 ;
+  size_t i , mu = ND-1 ; 
 #pragma omp parallel for private(i) reduction(+:plaq) 
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. ;
-    register const int t = lat[i].neighbor[mu] ; 
-    int nu ;
+    size_t nu , t , s ;
+    t = lat[i].neighbor[mu] ; 
     for( nu = 0 ; nu < mu ; nu++ ) {
-      register const int s = lat[i].neighbor[nu] ;
+      s = lat[i].neighbor[nu] ;
       const double face = complete_plaquette( lat[ i ].O[mu] , 
 					      lat[ t ].O[nu] , 
 					      lat[ s ].O[mu] , 
@@ -252,11 +249,11 @@ all_links( const struct site *__restrict lat ,
 	   double *__restrict t_link )
 {
   double splink = 0.0 , tlink = 0.0 ; 
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:splink) reduction(+:tlink)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. , res ;
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       speed_trace_Re( &res , lat[i].O[mu] ) ; 
       p = p + (double)res ; 
@@ -277,7 +274,7 @@ indivlinks( const struct site *__restrict lat , double *max )
 {
   double link = 0.0 ;
   *max = 0.0 ;
-  int i ; 
+  size_t i ; 
   #ifdef GLU_OMP_MEAS
   omp_lock_t writelock ;
   omp_init_lock( &writelock ) ;
@@ -286,7 +283,7 @@ indivlinks( const struct site *__restrict lat , double *max )
 #pragma omp parallel for private(i) reduction(+:link)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double loc_link = 0. , res ;
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       speed_trace_Re( &res , lat[i].O[mu] ) ;
       loc_link += res ; 
@@ -315,11 +312,11 @@ double
 links( const struct site *__restrict lat )
 {
   double link = 0.0 ; 
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:link)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. , res ;
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       speed_trace_Re( &res , lat[i].O[mu] ) ; 
       p = p + (double)res ; 
@@ -334,11 +331,11 @@ double
 s_links( const struct site *__restrict lat )
 {
   double link = 0.0 ; 
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:link)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double p = 0. , res ;
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND - 1 ; mu++ ) {
       speed_trace_Re( &res , lat[i].O[mu] ) ; 
       p += (double)res ; 
@@ -353,7 +350,7 @@ double
 t_links( const struct site *__restrict lat )
 {    
   double link = 0.0 ; 
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i) reduction(+:link)
   for( i = 0 ; i < LVOLUME ; i++ ) { 
     double res = 0. ; 

@@ -38,6 +38,16 @@ gamma_spinmatrix( void *spinmatrix ,
 		  const struct gamma G ) ;
 
 /**
+   @fn void get_spinmatrix( void *spinmatrix , const struct spinor S , const size_t c1 , const size_t c2 )
+   @brief from our spinor struct get a matrix with only spin indices
+ */
+void
+get_spinmatrix( void *spinmatrix , 
+		const struct spinor S ,
+		const size_t c1 ,
+		const size_t c2 ) ;
+
+/**
    @fn double complex gammaspinmatrix_trace( const struct gamma G , const void *spinmatrix )
    @brief performs the spin trace of \f$ \gamma_i * spinmatrix \f$
  */
