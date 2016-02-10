@@ -19,7 +19,7 @@ static int
 usage( void )
 {
   return printf( "[BARYON] usage :: ./BARYONS {correlator file} "
-		 " BASIS SPIN PARITY Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
+		 " BASIS SPIN PARITY TFLIP Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
 }
 
 // provide a help function
@@ -33,6 +33,7 @@ help( void )
   printf( "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NONREL' \n" ) ;
   printf( "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
   printf( "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
+  printf( "TFLIP :: {time axis flip} true|false" ) ;
   return printf( "\n" ) ;
 }
 
@@ -42,7 +43,7 @@ are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str
 
 // enum for the options
 typedef enum {
-  INFILE = 1 , GAMMA_BASIS = 2 , SPIN_PROJ = 3 , PARITY_PROJ = 4 , DIMENSIONS = 5 , OUTFILE = 6 
+  INFILE = 1 , GAMMA_BASIS = 2 , SPIN_PROJ = 3 , PARITY_PROJ = 4 , TIME_FLIP = 5 , DIMENSIONS = 6 , OUTFILE = 7 
 } command_line_options ;
 
 // little code for accessing elements of our baryon correlator files
@@ -51,7 +52,7 @@ main( const int argc ,
       const char *argv[] )
 {
   // have a help function now to avoid confusion
-  if( argc != 7 ) {
+  if( argc != 8 ) {
     if( argc == 1 ) {
       return usage( ) ;
     } else if( are_equal( argv[ INFILE ] , "--help" ) ) {
@@ -135,6 +136,12 @@ main( const int argc ,
     goto memfree ;
   }
 
+  // are we flipping the time direction?
+  GLU_bool time_flip = GLU_FALSE ;
+  if( are_equal( argv[ TIME_FLIP ] , "true" ) ) {
+    time_flip = GLU_TRUE ;
+  }
+
   // get the dimensions
   int mu ;
   char *tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
@@ -190,8 +197,14 @@ main( const int argc ,
       
       // poke into proj_corr
       size_t t ;
-      for( t = 0 ; t < LT ; t++ ) {
-	proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = C[ t ] ;
+      if( time_flip == GLU_TRUE ) {
+	for( t = 0 ; t < LT ; t++ ) {
+	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ LT-t-1 ] = C[ t ] ;
+	}
+      } else {
+	for( t = 0 ; t < LT ; t++ ) {
+	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = C[ t ] ;
+	}
       }
     
       free( (void*)C ) ;

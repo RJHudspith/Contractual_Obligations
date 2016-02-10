@@ -1,6 +1,6 @@
 /**
-   @file bar_ops_tests.c
-   @brief baryon operations and projections tests
+   @file tetra_contractions_tests.c
+   @brief tetraquark contraction tests
  */
 #include "common.h"
 

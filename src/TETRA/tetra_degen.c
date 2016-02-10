@@ -172,7 +172,8 @@ tetraquark_degen( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	// precompute backward bottom propagator
+	// precompute backward bottom propagator using 
+	// gamma_5 hermiticity
 	struct spinor bwdH ;
 	full_adj( &bwdH , S2[ site ] , GAMMAS[ GAMMA_5 ] ) ;
 

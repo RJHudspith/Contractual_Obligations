@@ -49,8 +49,8 @@ diquark_diquark( double complex *result ,
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
 	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-	( spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) - 
-	  spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) 
+	( spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) -
+	  spinmatrix_trace( C2[ element( b , c , a , d ) ].M ) 
 	  ) ;
     }
     result[0] = sum ;
@@ -146,9 +146,9 @@ dimeson( const struct spinor U , // u prop
   register double complex sum1 = 0.0 ;
   // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
   {
-    precompute_block( C1 , B , g5 , U , tildegi ) ;
-    precompute_block( C2 , B , gi , D , tildeg5 ) ;
-    for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
+    precompute_block( C1 , B , g5 , U , tildeg5 ) ;
+    precompute_block( C2 , B , gi , D , tildegi ) ;
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
       sum1 += 
@@ -166,7 +166,7 @@ dimeson( const struct spinor U , // u prop
   {
     precompute_block( C1 , B , gi , D , tildeg5 ) ;
     precompute_block( C2 , B , g5 , U , tildegi ) ;
-    for( abcd = 0 ; abcd < NCNC * NCNC ; abcd++ ) {
+    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
       sum2 += 
@@ -299,6 +299,7 @@ tetras( double complex result[ TETRA_NOPS ] ,
   } else {
     result[ 16 ] *= 2 ;
   }
+
   // leave if something goes wrong (malloc failure in this case) 
   if( result[16] == sqrt(-1) ) {
     return FAILURE ;

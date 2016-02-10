@@ -253,6 +253,17 @@ gt_Gdag_gt_test( void )
   struct gamma gtCgIgt = gt_Gdag_gt( CgI , GAMMAS[ GAMMA_3 ] ) ;
   mu_assert( "[UNIT] error : gt.CgI.gt != -C" ,
 	     !( gamma_comparison( gtCgIgt , gamma_transpose( CgI ) ) ) ) ;
+  // test that gt (C.gamma)^\dagger gt = gt gamma.C gt ?
+  for( mu = 0 ; mu < 6 ; mu++ ) {
+    struct gamma gt_Cgmudag_gt = gt_Gdag_gt( CGmu( GAMMAS[ mu ] , GAMMAS ) , 
+					     GAMMAS[ GAMMA_3 ] ) ;
+    struct gamma tmp , res ;
+    gamma_mmul( &res , CgI , GAMMAS[ GAMMA_3 ] ) ;
+    gamma_mmul( &tmp , GAMMAS[ mu ] , res ) ;
+    gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+    mu_assert( "[UNIT] error : gt.(C.gmu)^dagger.gt != gt.(gmu.C).gt \n" ,
+	       !( gamma_comparison( res , gt_Cgmudag_gt ) ) ) ;
+  }
   return NULL ;
 }
 
