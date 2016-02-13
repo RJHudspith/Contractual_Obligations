@@ -19,9 +19,8 @@ check_origins( struct propagator p1 ,
     if( p1.origin[mu] != p2.origin[mu] ||
 	p1.origin[mu] != p3.origin[mu] ||
 	p2.origin[mu] != p3.origin[mu] ) {
-      printf( "[TETRA] mismatched origins %d %d %d (index %zu)\n" ,
-	      p1.origin[mu] , p2.origin[mu] ,
-	      p3.origin[mu] , mu ) ;
+      printf( "[TETRA] mismatched origins %zu %zu %zu (index %zu)\n" ,
+	      p1.origin[mu] , p2.origin[mu] , p3.origin[mu] , mu ) ;
       return FAILURE ;
     }
   }

@@ -12,7 +12,7 @@
    @param outfile :: output file name
  */
 struct baryon_info {
-  int map[ 3 ] ;
+  size_t map[ 3 ] ;
   char outfile[ 256 ] ;
 } ;
 
@@ -54,7 +54,7 @@ struct correlator{
  */
 struct cut_info{
   momentum_cut_def type ; // enumerated cutting type
-  int max_mom ; // maximum momentum allowed for the cut
+  size_t max_mom ; // maximum momentum allowed for the cut
   double cyl_width ; // cylinder with
 } ;
 
@@ -93,19 +93,19 @@ struct head_data{
    @brief input data struct 
  */
 struct input_info {
-  int nprops ;
+  size_t nprops ;
   struct baryon_info *baryons ;
-  int nbaryons ;
+  size_t nbaryons ;
   struct meson_info *mesons ;
-  int nmesons ;
+  size_t nmesons ;
   struct tetra_info *tetras ;
-  int ntetras ;
+  size_t ntetras ;
   struct VPF_info *VPF ;
-  int nVPF ;
+  size_t nVPF ;
   struct WME_info *wme ;
-  int nWME ;
+  size_t nWME ;
   struct cut_info CUTINFO ;
-  int dims[ ND ] ;
+  size_t dims[ ND ] ;
 } ;
 
 /**
@@ -131,11 +131,11 @@ struct inputs {
    @param Seed :: the seed we use for our RNG 
  */
 struct latt_info{
-  int dims[ ND ] ; // dimensions in x,y,z,t order opposite to FFTW
-  int Lsq ; // dims[0] * dims[1] x,y plane
-  int Lcu ; // dims[2] * Lsq x,y,z cubic volume
-  int Volume ; // lattice Volume
-  int flow ; // config number , gets passed around a bit
+  size_t dims[ ND ] ; // dimensions in x,y,z,t order opposite to FFTW
+  size_t Lsq ; // dims[0] * dims[1] x,y plane
+  size_t Lcu ; // dims[2] * Lsq x,y,z cubic volume
+  size_t Volume ; // lattice Volume
+  size_t flow ; // config number , gets passed around a bit
   header_mode head ;// Which header type are we using
   double twiddles[ ND ] ; // fourier transform twiddles
 } ;
@@ -147,7 +147,7 @@ struct latt_info{
    @param outfile :: output file name
  */
 struct meson_info {
-  int map[2] ;
+  size_t map[2] ;
   char outfile[ 256 ] ;
 } ;
 
@@ -178,7 +178,7 @@ struct propagator {
   FILE *file ;
   proptype basis ;
   sourcetype source ;
-  int origin[ ND ] ;
+  size_t origin[ ND ] ;
   fp_precision precision ;
   endianness endian ;
   size_t t ;
@@ -229,7 +229,7 @@ struct spinor{
    @param outfile :: output file name
  */
 struct tetra_info {
-  int map[3] ;
+  size_t map[3] ;
   char outfile[ 256 ] ;
 } ;
 
@@ -251,7 +251,7 @@ struct veclist {
    @param outfile :: output file name
  */
 struct VPF_info {
-  int map[2] ;
+  size_t map[2] ;
   current_type current ;
   char outfile[ 256 ] ;
 } ;
@@ -267,7 +267,7 @@ struct VPF_info {
    @param outfile :: output file name
  */
 struct WME_info {
-  int map[4] ;
+  size_t map[4] ;
   proptype proptype1 ;
   proptype proptype2 ;
   proptype proptype3 ;

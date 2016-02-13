@@ -49,8 +49,26 @@ diquark_diquark( double complex *result ,
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
 	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-	( spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) -
-	  spinmatrix_trace( C2[ element( b , c , a , d ) ].M ) 
+	(
+	 /*
+	 // normal1 -> +aa
+	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
+	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
+	 // cross1  -> -ab
+	 -spinmatrix_trace( C2[ element( d , a , c , b ) ].M )
+	 +spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
+	 // cross2  -> -ba
+	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
+	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
+	 // normal2 -> +bb
+	 +spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
+	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) 
+	 */
+	 // factorises to below, can remove 2* in a bit
+	 +2*spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
+	 -2*spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
+	 -2*spinmatrix_trace( C2[ element( d , a , c , b ) ].M )
+	 +2*spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
 	  ) ;
     }
     result[0] = sum ;

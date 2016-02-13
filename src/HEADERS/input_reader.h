@@ -18,21 +18,21 @@ void
 free_inputs( struct input_info inputs ) ;
 
 /**
-   @fn void free_props( struct propagator *prop , const int nprops )
+   @fn void free_props( struct propagator *prop , const size_t nprops )
    @brief free the propagator storage
  */
 void
 free_props( struct propagator *prop , 
-	    const int nprops ) ;
+	    const size_t nprops ) ;
 
 /**
-   @fn int get_contraction_map( int *map , const char *token , const int nprops ) 
+   @fn int get_contraction_map( int *map , const char *token , const size_t nprops ) 
    @brief contraction map for our propagators
  */
 int
-get_contraction_map( int *map ,
+get_contraction_map( size_t *map ,
 		     const char *token ,
-		     const int nprops ) ;
+		     const size_t nprops ) ;
 
 /**
    @fn int get_input_data( struct propagator **prop , struct input_info *inputs , const char *file_name )

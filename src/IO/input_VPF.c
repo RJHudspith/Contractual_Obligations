@@ -14,7 +14,7 @@ are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str
 static int
 get_current_type( current_type *current ,
 		  const char *token ,
-		  const int meas ) 
+		  const size_t meas ) 
 {
   if( are_equal( token , "LOCAL_LOCAL" ) ) {
     *current = LOCAL_LOCAL ;
@@ -24,7 +24,8 @@ get_current_type( current_type *current ,
     printf( "[IO] I don't understand VPF type %s\n" , token ) ;
     return FAILURE ;
   }
-  printf( "[IO] VPF_%d :: We are performing %s contractions \n" , meas , token ) ;
+  printf( "[IO] VPF_%zu :: We are performing %s contractions \n" , 
+	  meas , token ) ;
   return SUCCESS ;
 }
 
@@ -32,8 +33,8 @@ get_current_type( current_type *current ,
 static int
 VPF_tokens( struct VPF_info *VPF ,
 	    const char *VPF_str ,
-	    const int nprops ,
-	    const int meas_idx ) 
+	    const size_t nprops ,
+	    const size_t meas_idx ) 
 {
   printf( "\n" ) ;
 
@@ -46,7 +47,7 @@ VPF_tokens( struct VPF_info *VPF ,
   if( get_contraction_map( &( VPF -> map[1] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] VPF_%d :: Contracting prop %d with prop %d \n" , 
+  printf( "[IO] VPF_%zu :: Contracting prop %zu with prop %zu \n" , 
 	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
 
   // check for current
@@ -56,11 +57,11 @@ VPF_tokens( struct VPF_info *VPF ,
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( VPF -> outfile , "%s" , token ) ;
-  printf( "[IO] VPF_%d :: Contraction file in %s \n" , meas_idx , token ) ;
+  printf( "[IO] VPF_%zu :: Contraction file in %s \n" , meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] VPF_%d :: Unexpected extra contraction info %s \n" ,
+    printf( "[IO] VPF_%zu :: Unexpected extra contraction info %s \n" ,
 	    meas_idx , token ) ;
   }
   return SUCCESS ;
@@ -69,15 +70,15 @@ VPF_tokens( struct VPF_info *VPF ,
 // meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
 int
 VPF_contractions( struct VPF_info *VPF , 
-		  int *nVPF ,
+		  size_t *nVPF ,
 		  const struct inputs *INPUT ,
-		  const int nprops ,
+		  const size_t nprops ,
 		  const GLU_bool first_pass ) 
 {
   *nVPF = 0 ;
   char str[ 32 ] ;
   while( *nVPF < MAX_CONTRACTIONS ) {
-    sprintf( str , "VPF%d" , *nVPF ) ;
+    sprintf( str , "VPF%zu" , *nVPF ) ;
     const int VPF_idx = tag_search( str ) ;
     if( VPF_idx == FAILURE ) return SUCCESS ;
     if( first_pass == GLU_FALSE ) {

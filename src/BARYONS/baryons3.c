@@ -49,36 +49,32 @@ baryons_3fdiagonal( struct propagator prop1 ,
 #else  
   int *forward = NULL , *backward = NULL ;
 #endif
+  
+  // loop counters
+  size_t i , t ;
+
+  // error code
+  int error_code = SUCCESS ;
 
   // allocations
-  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S3 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S3f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
+  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S3  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S3f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( prop1.basis == NREL || prop2.basis == NREL || prop3.basis == NREL ) { 
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      goto FREE_FAIL ;
+      error_code = FAILURE ; goto memfree ;
     }
   } else {
     if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      goto FREE_FAIL ;
+      error_code = FAILURE ; goto memfree ;
     }
   }
 
@@ -87,7 +83,6 @@ baryons_3fdiagonal( struct propagator prop1 ,
   wwNMOM = malloc( sizeof( int ) ) ;
 
   in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  size_t i ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
   }
@@ -130,10 +125,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
   if( read_prop( prop1 , S1 ) == FAILURE ||
       read_prop( prop2 , S2 ) == FAILURE || 
       read_prop( prop3 , S3 ) == FAILURE ) {
-    goto FREE_FAIL ;
+    error_code = FAILURE ; goto memfree ;
   }
 
-  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
     
@@ -161,26 +155,25 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
     // strange memory access pattern threads better than what was here before
     size_t site ;
-    int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       if( t < ( LT - 1 ) ) {
          #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
 	  if( read_prop( prop2 , S2f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
 	  if( read_prop( prop3 , S3f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -214,8 +207,8 @@ baryons_3fdiagonal( struct propagator prop1 ,
       }
       // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
-	baryon_contract_walls( Buds_corrWW , SUM1 , SUM2 , SUM3 , GAMMAS , tshifted ,
-			       UDS_BARYON ) ;
+	baryon_contract_walls( Buds_corrWW , SUM1 , SUM2 , SUM3 , GAMMAS , 
+			       tshifted , UDS_BARYON ) ;
       }
     }
 
@@ -224,12 +217,11 @@ baryons_3fdiagonal( struct propagator prop1 ,
 			     list , NMOM , tshifted , UDS_BARYON ) ;
 
     // if we error we leave
-    if( error_flag == FAILURE ) {
-      goto FREE_FAIL ;
+    if( error_code == FAILURE ) {
+      goto memfree ;
     }
 
     // copy over the propagators
-    size_t i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
       memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
@@ -250,56 +242,15 @@ baryons_3fdiagonal( struct propagator prop1 ,
     write_baryon( Buds_corrWW , wwlist , wwNMOM , GLU_TRUE , outfile , "uds" ) ;
   }
 
+ memfree :
+
   // free our momentum correlators
-  free_momcorrs( Buds_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-
-  if( prop1.source == WALL ) {
-    free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+  if( NMOM != NULL ) {
+    free_momcorrs( Buds_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    if( prop1.source == WALL ) {
+      free_momcorrs( Buds_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    }
   }
-
-  // free the "in" allocation
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    free( in[ i ] ) ;
-  }
-  free( in ) ;
-
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
-  }
-  free( forward )  ; free( backward ) ; 
-  fftw_free( out ) ; 
-  fftw_cleanup( ) ; 
-#endif
-
-  // free momentum stuff
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free stuff
-  free( S1 ) ; free( S1f ) ;
-  free( S2 ) ; free( S2f ) ;
-  free( S3 ) ; free( S3f ) ;
-
-  // free the gammas
-  free( GAMMAS ) ;
-
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
-  rewind( prop3.file ) ; read_propheader( &prop3 ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
-
-  return SUCCESS ;
-
-  // failure sink
- FREE_FAIL :
 
   // free the "in" allocation
   if( in != NULL ) {
@@ -351,6 +302,14 @@ baryons_3fdiagonal( struct propagator prop1 ,
   // free the gammas
   free( GAMMAS ) ;
 
-  return FAILURE ;
+  // rewind file and read header again
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
+  rewind( prop3.file ) ; read_propheader( &prop3 ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
+
+  return error_code ;
 }
 

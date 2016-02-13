@@ -47,32 +47,30 @@ mesons_offdiagonal( struct propagator prop1 ,
   // structure containing dispersion relation stuff
   struct mcorr **disp = NULL , **wwdisp = NULL ;
 
+  // error code
+  int error_code = SUCCESS ;
+
+  // loop counters
+  size_t i , t ;
+
   // and our spinor
-  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
+  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
 		   NREL : prop1.basis ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
   // compute the momentum list for the specified cut
   NMOM = (int*)malloc( sizeof( int ) ) ;
   wwNMOM = (int*)malloc( sizeof( int ) ) ;
-
-  size_t i ;
 
 #ifdef HAVE_FFTW3_H
 
@@ -112,10 +110,9 @@ mesons_offdiagonal( struct propagator prop1 ,
   // read in the files
   if( read_prop( prop1 , S1 ) == FAILURE ||
       read_prop( prop2 , S2 ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
-  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -137,8 +134,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     const size_t tshifted = ( t - prop1.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT in parallel
-    size_t GSGK = 0 ;
-    int error_flag = SUCCESS ;
+    size_t GSGK ;
     #pragma omp parallel
     {
      // two threads for IO
@@ -146,13 +142,13 @@ mesons_offdiagonal( struct propagator prop1 ,
         #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
 	  if( read_prop( prop2 , S2f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -201,8 +197,8 @@ mesons_offdiagonal( struct propagator prop1 ,
     }
 
     // to err is human
-    if( error_flag == FAILURE ) {
-      goto free_failure ;
+    if( error_code == FAILURE ) {
+      goto memfree ;
     }
 
     // copy S1f into S1
@@ -234,41 +230,8 @@ mesons_offdiagonal( struct propagator prop1 ,
     free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
   }
 
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
-    fftw_free( in[i] ) ;
-  }
-  free( forward )  ; free( backward ) ; 
-  fftw_free( out ) ; fftw_free( in ) ; 
-  fftw_cleanup( ) ; 
-#endif
-
-  // free momentum lists
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free our GAMMAS
-  free( GAMMAS ) ;
-
-  // free our spinors
-  free( S1 ) ;  free( S1f ) ;
-  free( S2 ) ;  free( S2f ) ;
-
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
-
-  return SUCCESS ;
-
- free_failure :
+  // memory freeing part
+ memfree :
 
 #ifdef HAVE_FFTW3_H
   if( in != NULL ) {
@@ -315,5 +278,12 @@ mesons_offdiagonal( struct propagator prop1 ,
   free( S1 ) ;  free( S1f ) ;
   free( S2 ) ;  free( S2f ) ;
 
-  return FAILURE ;
+  // rewind file and read header again
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
+
+  return error_code ;
 }

@@ -135,7 +135,7 @@ tmoments( const struct PIdata *AA ,
 				    (const struct mcorr**)ctAA , 
 				    (const struct mcorr**)ctVV ) ;
 
-  const int NMOM[ 1 ] = { LT } ;
+  const int NMOM[ 1 ] = { (int)LT } ;
 
   // free the temporal correlators now
   free_momcorrs( ctAA , ND , ND , tNMOM[0] ) ;
@@ -144,9 +144,16 @@ tmoments( const struct PIdata *AA ,
   // free the temporal ones
   free( tNMOM ) ; free( (void*)tlist ) ;
 
+  double *psq = NULL , **p = NULL ;
+
   // allocate momenta
-  double *psq = malloc( NMOM[0] * sizeof( double ) ) ;
-  double **p = malloc( NMOM[0] * sizeof( double* ) ) ;
+  if( NMOM[0] == 0 ) {
+    printf( "[VPF] NMOM is zero \n" ) ;
+    goto memfree ;
+  }
+
+  psq = malloc( NMOM[0] * sizeof( double ) ) ;
+  p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
   size_t i ;
   for( i = 0 ; i < NMOM[0] ; i++ ) {
@@ -165,6 +172,8 @@ tmoments( const struct PIdata *AA ,
 
   momspace_data( cpVV , (const double **)p , psq , list , 
 		 NMOM , str , current , VECTOR ) ;
+
+ memfree :
 
   // free the momentum list
   free( (void*)list ) ;

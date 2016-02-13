@@ -6,14 +6,14 @@
 #define INPUT_VPF_H
 
 /**
-   @fn int VPF_contractions( struct VPF_info *VPF , int *nVPF , const struct inputs *INPUT , const int nprops , const GLU_bool first_pass ) 
+   @fn int VPF_contractions( struct VPF_info *VPF , size_t *nVPF , const struct inputs *INPUT , const size_t nprops , const GLU_bool first_pass ) 
    @brief VPF contraction logic
  */
 int
 VPF_contractions( struct VPF_info *VPF , 
-		  int *nVPF ,
+		  size_t *nVPF ,
 		  const struct inputs *INPUT ,
-		  const int nprops ,
+		  const size_t nprops ,
 		  const GLU_bool first_pass ) ;
 
 #endif

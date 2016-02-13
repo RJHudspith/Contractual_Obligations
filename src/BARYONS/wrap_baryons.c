@@ -20,8 +20,8 @@ check_origins( struct propagator p1 ,
     if( ( p1.origin[ mu ] != p2.origin[ mu ] ) || 
 	( p1.origin[ mu ] != p3.origin[ mu ] ) ||
 	( p2.origin[ mu ] != p3.origin[ mu ] ) ) {
-      printf( "[BARYONS] contraction of mesons with unequal origins"
-	      "%d vs %d vs. %d ( index %zu ) " , 
+      printf( "[BARYONS] contraction of baryons with unequal origins"
+	      "%zu vs %zu vs. %zu ( index %zu ) " , 
 	      p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , 
 	      mu ) ;
       return FAILURE ;

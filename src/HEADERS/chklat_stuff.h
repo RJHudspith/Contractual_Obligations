@@ -79,6 +79,21 @@ get_int( char *s ,
 	 int *q ) ;
 
 /**
+   @fn get_size_t( char *s , struct QCDheader *hdr , size_t *q )
+   @brief Gets an size_t from the header 
+
+   @param s :: The string tag we are looking for
+   @param hdr :: the NERSC header we have read in
+   @param q :: the size_t being returned
+
+   @return #SUCCESS or #FAILURE
+ */
+int 
+get_size_t( char *s , 
+	    struct QCDheader *hdr ,
+	    size_t *q ) ;
+
+/**
    @fn get_float( char *s , struct QCDheader *hdr , float *q ) ;
    @brief Gets a float from the header 
 

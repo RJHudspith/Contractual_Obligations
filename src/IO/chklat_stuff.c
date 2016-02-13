@@ -76,6 +76,20 @@ get_int( char *s ,
   return SUCCESS ;
 }
 
+int 
+get_size_t( char *s , 
+	    struct QCDheader *hdr ,
+	    size_t *q ) 
+{
+  char *p ;
+  get_string( s , hdr , &p ) ;
+  if( p == NULL ) {
+    return ( FAILURE ) ;
+  }
+  sscanf( p , "%zu" , q ) ;
+  return SUCCESS ;
+}
+
 // get_header: read from stream, parsing tokens 
 struct QCDheader * 
 get_header( FILE *__restrict in )

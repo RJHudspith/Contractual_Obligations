@@ -12,15 +12,15 @@ int
 contract_mesons( struct propagator *prop ,
 		 const struct meson_info *mesons ,
 		 const struct cut_info CUTINFO ,
-		 const int nmesons )
+		 const size_t nmesons )
 {
-  printf( "\n[MESONS] performing %d contraction(s) \n" , nmesons ) ;
-  int measurements ;
+  printf( "\n[MESONS] performing %zu contraction(s) \n" , nmesons ) ;
+  size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {
     // to make it more legible
-    const int p1 = mesons[ measurements ].map[0] ;
-    const int p2 = mesons[ measurements ].map[1] ;
+    const size_t p1 = mesons[ measurements ].map[0] ;
+    const size_t p2 = mesons[ measurements ].map[1] ;
 
     if( p1 == p2 ) {
       if( mesons_diagonal( prop[ p1 ] , CUTINFO , 
@@ -35,11 +35,11 @@ contract_mesons( struct propagator *prop ,
 	return FAILURE ;
       }
       // check that the two props have the same origin?
-      int mu ;
+      size_t mu ;
       for( mu = 0 ; mu < ND ; mu++ ) {
 	if( prop[ p1 ].origin[ mu ] != prop[ p2 ].origin[ mu ] ) {
 	  printf( "[MESONS] contraction of mesons with unequal origins"
-		  "%d vs %d ( index %d ) " , prop[ p1 ].origin[ mu ] ,
+		  "%zu vs %zu ( index %zu ) " , prop[ p1 ].origin[ mu ] ,
 		  prop[ p2 ].origin[ mu ] , mu ) ;
 	  return FAILURE ;
 	}

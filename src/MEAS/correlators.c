@@ -28,6 +28,12 @@ allocate_momcorrs( const size_t length1 ,
 		   const size_t length2 ,
 		   const size_t nmom )
 {
+  // check if stuff is non-zero
+  if( length1 == 0 || length2 == 0 || nmom == 0 ) {
+    printf( "[IO] corr lengths are 0 :: ( %zu , %zu , %zu ) \n" ,
+	    length1 , length2 , nmom ) ;
+    return NULL ;
+  }
   struct mcorr **mcorr = malloc( length1 * sizeof( struct mcorr* ) ) ;
   size_t i , j , p ;
   for( i = 0 ; i < length1 ; i++ ) {

@@ -75,7 +75,7 @@ read_momcorr( struct mcorr **corr ,
 	uint32_t L0[1] ;
 	if( FREAD32( L0 , 1 , infile ) == FAILURE ) return FAILURE ;
 	if( (int)L0[0] != LT ) { 
-	  printf( "[IO] LT Read failure %d %d \n" , (int)L0[0] , LT ) ; 
+	  printf( "[IO] LT Read failure %d %zu \n" , (int)L0[0] , LT ) ; 
 	  return FAILURE ; 
 	}
       }

@@ -51,7 +51,8 @@ get_header_data_HIREP( FILE *__restrict CONFIG ,
   
   if( NAV[ 0 ] != NC ) {
     printf( "[IO] NC mismatch! We are compiled for NC = %d \n\
-The file we are trying to read is NC = %d \nLeaving in abject disgust .. \n" , NC , NAV[ 0 ] ) ;
+The file we are trying to read is NC = %d \nLeaving in abject disgust .. \n" , 
+	    NC , NAV[ 0 ] ) ;
     return FAILURE ; 
   } else {
     if( VERB == GLU_TRUE ) {
@@ -60,7 +61,7 @@ The file we are trying to read is NC = %d \nLeaving in abject disgust .. \n" , N
   }
 
   // convert to my dimensions , they have the time dim first, I have it last
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND - 1 ; mu++ ) {
     Latt.dims[ mu ] = NAV[ mu + 2 ] ;
   }
@@ -110,7 +111,8 @@ get_header_data_MILC( FILE *__restrict in ,
   if( magic[0] != 20103 && magic[0] != 20104 ) {
     bswap_32( 1 , magic ) ;
     if( magic[0] != 20103 && magic[0] != 20104 ) {
-      printf( "[IO] Magic %d not understood in either endianness .. leaving \n" , magic[0] ) ;
+      printf( "[IO] Magic %d not understood in either endianness .. leaving \n" , 
+	      magic[0] ) ;
       return FAILURE ;
     }
     need_swap = GLU_TRUE ;
@@ -187,23 +189,23 @@ get_header_data_NERSC( FILE *__restrict CONFIG ,
   get_string( "ENSEMBLE_ID" , hdr , &str ) ; 
   if (str == NULL) { str = "(not specified)" ; }
 
-  int i = get_int( "SEQUENCE_NUMBER" , hdr , &Latt.flow ) ; 
-  // Should be able to rip out a Latt.flow-value from the config ... ? TODO //
+  // get the trajectory number
+  int i = get_size_t( "SEQUENCE_NUMBER" , hdr , &Latt.flow ) ; 
   if ( i == FAILURE || Latt.flow == 0 ) {
     printf( "[IO] Unknown sequence number.... \n" ) ; 
   }
 
   if( VERB == GLU_TRUE ) {
-    printf( "[IO] Configuration number :: %d \n" , Latt.flow ) ; 
+    printf( "[IO] Configuration number :: %zu \n" , Latt.flow ) ; 
   }
 
-  /* Get dimensions */
-  int mu ;
+  // Get dimensions 
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     char str[ 64 ] ;
-    sprintf( str , "DIMENSION_%d" , mu + 1 ) ; 
-    if ( get_int( str , hdr , Latt.dims+mu ) == FAILURE ) {
-      printf( "[IO] DIMENSION_%d not present\n" , mu ) ; 
+    sprintf( str , "DIMENSION_%zu" , mu + 1 ) ; 
+    if ( get_size_t( str , hdr , Latt.dims+mu ) == FAILURE ) {
+      printf( "[IO] DIMENSION_%zu not present\n" , mu ) ; 
       return FAILURE ;
     }
   }

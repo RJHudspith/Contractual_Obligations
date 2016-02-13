@@ -14,22 +14,22 @@ int
 confno( const struct inputs *INPUT ) ;
 
 /**
-   @fn int get_dims( int *dims , const struct inputs *INPUT )
+   @fn int get_dims( size_t *dims , const struct inputs *INPUT )
    @brief read the lattice dimensions from the input file to compare with the propagator read
    @return #SUCCESS or #FAILURE
  */
 int
-get_dims( int *dims , 
+get_dims( size_t *dims , 
 	  const struct inputs *INPUT ) ;
 
 /**
-   @fn int get_props( struct propagator *props , int *nprops , const struct inputs *INPUT , const GLU_bool first_pass )
+   @fn int get_props( struct propagator *props , size_t *nprops , const struct inputs *INPUT , const GLU_bool first_pass )
    @brief get the list of propagators we will be using in this run
    @return #SUCCESS or #FAILURE
  */
 int
 get_props( struct propagator *props ,
-	   int *nprops ,
+	   size_t *nprops ,
 	   const struct inputs *INPUT ,
 	   const GLU_bool first_pass ) ;
 

@@ -48,29 +48,29 @@ baryons_2fdiagonal( struct propagator prop1 ,
   int *forward = NULL , *backward = NULL ;
 #endif
 
+  // loops
+  size_t i , t ;
+
+  // error code
+  int error_code = SUCCESS ;
+
   // allocations
-  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
-  }
-  if( corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto FREE_FAIL ;
+  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 || 
+      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( prop1.basis == NREL || prop2.basis == NREL ) {
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      goto FREE_FAIL ;
+      error_code = FAILURE ; goto memfree ;
     }
   } else {
    if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      goto FREE_FAIL ;
+     error_code = FAILURE ; goto memfree ;
     }
   }
 
@@ -78,7 +78,6 @@ baryons_2fdiagonal( struct propagator prop1 ,
   wwNMOM = malloc( sizeof( int ) ) ;
 
   in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  size_t i ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
   }
@@ -120,10 +119,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
   // read in the first timeslice
   if( read_prop( prop1 , S1 ) == FAILURE ||
       read_prop( prop2 , S2 ) == FAILURE ) {
-    goto FREE_FAIL ;
+    error_code = FAILURE ; goto memfree ;
   }
 
-  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -147,14 +145,13 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
     // strange memory access pattern threads better than what was here before
     size_t site ;
-    int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       #pragma omp master
       {
 	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -162,7 +159,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       {
 	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop2 , S2f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -196,8 +193,8 @@ baryons_2fdiagonal( struct propagator prop1 ,
       }
       // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
-	baryon_contract_walls( Buud_corrWW , SUM1 , SUM1 , SUM2 , GAMMAS , tshifted ,
-			       UUD_BARYON ) ;
+	baryon_contract_walls( Buud_corrWW , SUM1 , SUM1 , SUM2 , GAMMAS , 
+			       tshifted , UUD_BARYON ) ;
       }
     }
 
@@ -206,12 +203,11 @@ baryons_2fdiagonal( struct propagator prop1 ,
 			     list , NMOM , tshifted , UUD_BARYON ) ;
 
     // if we error we leave
-    if( error_flag == FAILURE ) {
-      goto FREE_FAIL ;
+    if( error_code == FAILURE ) {
+      goto memfree ;
     }
 
     // copy over the propagators
-    size_t i ;
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
       memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
@@ -231,54 +227,16 @@ baryons_2fdiagonal( struct propagator prop1 ,
     write_baryon( Buud_corrWW , wwlist , wwNMOM , GLU_TRUE , outfile , "uud" ) ;
   }
 
-  // free our momentum correlators
-  free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-
-  if( prop1.source == WALL ) {
-    free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-  }
-
-  // free the "in" allocation
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    free( in[ i ] ) ;
-  }
-  free( in ) ;
-
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
-  }
-  free( forward )  ; free( backward ) ; 
-  fftw_free( out ) ; 
-  fftw_cleanup( ) ; 
-#endif
-
-  // free momentum stuff
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free stuff
-  free( S1 ) ; free( S1f ) ;
-  free( S2 ) ; free( S2f ) ;
-
-  // free the gammas
-  free( GAMMAS ) ;
-
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
-
-  return SUCCESS ;
-
   // failure sink
- FREE_FAIL :
+ memfree :
+
+  // free our momentum correlators
+  if( NMOM != NULL ) {
+    free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    if( prop1.source == WALL ) {
+      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    }
+  }
 
   // free the "in" allocation
   if( in != NULL ) {
@@ -310,14 +268,6 @@ baryons_2fdiagonal( struct propagator prop1 ,
   fftw_cleanup( ) ; 
 #endif
 
-  // free our momentum correlators
-  if( NMOM != NULL ) {
-    free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
-    if( prop1.source == WALL ) {
-      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
-    }
-  }
-
   // free spinors
   free( S1 ) ; free( S1f ) ;
   free( S2 ) ; free( S2f ) ;
@@ -329,6 +279,13 @@ baryons_2fdiagonal( struct propagator prop1 ,
   // free the gammas
   free( GAMMAS ) ;
 
-  return FAILURE ;
+  // rewind file and read header again
+  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
+  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
+
+  return error_code ;
 }
 

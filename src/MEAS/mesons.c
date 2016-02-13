@@ -44,20 +44,22 @@ mesons_diagonal( struct propagator prop ,
   // structure containing dispersion relation stuff
   struct mcorr **disp = NULL , **wwdisp = NULL ;
 
-  size_t i ;
+  // loop counters
+  size_t i , t ;
+
+  // set a flag we return
+  int error_code = SUCCESS ;
 
   // and our spinor
-  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
+  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 || 
+      corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
   // compute the momentum list for the specified cut
@@ -102,10 +104,9 @@ mesons_diagonal( struct propagator prop ,
 
   // initially read in a timeslice
   if( read_prop( prop , S1 ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
-  size_t t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -120,14 +121,13 @@ mesons_diagonal( struct propagator prop ,
 
     // master-slave the IO and perform each FFT (if available) in parallel
     size_t GSGK = 0 ;
-    int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       #pragma omp master
       {
 	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop , S1f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -175,8 +175,8 @@ mesons_diagonal( struct propagator prop ,
     }
 
     // to err is human
-    if( error_flag == FAILURE ) {
-      goto free_failure ;
+    if( error_code == FAILURE ) {
+      goto memfree ;
     }
 
     // copy S1f into S1
@@ -206,42 +206,8 @@ mesons_diagonal( struct propagator prop ,
 		   wwlist , NSNS , NSNS , wwNMOM ) ;
     free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
   }
-  
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-    fftw_destroy_plan( forward[i] ) ;
-    fftw_destroy_plan( backward[i] ) ;
-    fftw_free( out[i] ) ;
-    fftw_free( in[i] ) ;
-  }
-  free( forward ) ; 
-  free( backward ) ; 
-  fftw_free( out ) ; 
-  fftw_free( in ) ; 
-  fftw_cleanup( ) ; 
-#endif
 
-  // free number of possible momenta and the momentum list
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free our GAMMAS
-  free( GAMMAS ) ;
-
-  // free our spinor(s)
-  free( S1 ) ; free( S1f ) ;
-
-  // rewind file and read header again
-  rewind( prop.file ) ; read_propheader( &prop ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
-
-  return SUCCESS ;
-
- free_failure :
+ memfree :
 
 #ifdef HAVE_FFTW3_H
   if( in != NULL ) {
@@ -287,5 +253,11 @@ mesons_diagonal( struct propagator prop ,
   // free our spinor(s)
   free( S1 ) ; free( S1f ) ;
 
-  return FAILURE ;
+  // rewind file and read header again
+  rewind( prop.file ) ; read_propheader( &prop ) ;
+
+  // tell us how long it all took
+  print_time( ) ;
+
+  return error_code ;
 }

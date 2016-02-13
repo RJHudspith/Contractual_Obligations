@@ -12,16 +12,16 @@ static int
 are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str_2 ) ; }
 
 // quickly get the configuration number from the input file
-int
+size_t
 confno( const struct inputs *INPUT )
 {
   errno = 0 ;
   char *endptr ;
   const int conf_idx = tag_search( "CONFNO" ) ;
-  const int num = (int)strtol( INPUT[conf_idx].VALUE , 
-			       &endptr , 10 ) ; 
+  const size_t num = (size_t)strtol( INPUT[conf_idx].VALUE , 
+				     &endptr , 10 ) ; 
   if( endptr == INPUT[conf_idx].VALUE || errno == ERANGE ) {
-    return FAILURE ;
+    return 0 ;
   }
   // should also check that it is a sensible int as we do a cast ...
   return num ;
@@ -29,22 +29,22 @@ confno( const struct inputs *INPUT )
 
 // get the lattice dimensions from the input_file
 int
-get_dims( int *dims , 
+get_dims( size_t *dims , 
 	  const struct inputs *INPUT )
 {
   errno = 0 ;
   char *endptr , str[ 32 ] ;
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
-    sprintf( str , "DIMS%d" , mu ) ;
+    sprintf( str , "DIMS%zu" , mu ) ;
     const int dims_idx = tag_search( str ) ;
     if( dims_idx == FAILURE ) { 
       return tag_failure( str ) ; 
     }
-    dims[ mu ] = (int)strtol( INPUT[ dims_idx ].VALUE , &endptr , 10 ) ;
+    dims[ mu ] = (size_t)strtol( INPUT[ dims_idx ].VALUE , &endptr , 10 ) ;
     if( dims[ mu ] < 0 || INPUT[ dims_idx ].VALUE == endptr ||
 	errno == ERANGE ) {
-      printf( "[IO] non-sensical dimension value %d \n" , dims[ mu ] ) ;
+      printf( "[IO] non-sensical dimension value %zu \n" , dims[ mu ] ) ;
       return FAILURE ;
     }
   }
@@ -54,14 +54,14 @@ get_dims( int *dims ,
 // get prop tags
 int
 get_props( struct propagator *props ,
-	   int *nprops ,
+	   size_t *nprops ,
 	   const struct inputs *INPUT ,
 	   const GLU_bool first_pass )
 {
   *nprops = 0 ;
   char str[ 32 ] ;
   while( *nprops < MAX_CONTRACTIONS ) {
-    sprintf( str , "PROP%d" , *nprops ) ;
+    sprintf( str , "PROP%zu" , *nprops ) ;
     const int prop_idx = tag_search( str ) ;
     if( prop_idx == FAILURE ) break ;
     if( first_pass == GLU_FALSE ) {
@@ -95,33 +95,33 @@ header_type( const struct inputs *INPUT )
     return NERSC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "HIREP" ) ) {
     printf( "[IO] Attempting to read a HIREP file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     return HIREP_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "MILC" ) ) {
     printf( "[IO] Attempting to read a MILC file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     return MILC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "SCIDAC" ) ) {
     printf( "[IO] Attempting to read a SCIDAC file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     return SCIDAC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "LIME" ) ) {
     printf( "[IO] Attempting to read an LIME file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     printf( "[IO] WARNING!! NOT CHECKING ANY CHECKSUMS!! \n" ) ;
     return LIME_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "ILDG_SCIDAC" ) ) {
     printf( "[IO] Attempting to read an ILDG (Scidac) file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     return ILDG_SCIDAC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "ILDG_BQCD" ) ) {
     printf( "[IO] Attempting to read an ILDG (BQCD) file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %d \n" ,
+    printf( "[IO] Using sequence number from input file :: %zu \n" ,
 	    Latt.flow = confno( INPUT ) ) ;
     return ILDG_BQCD_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "UNIT" ) ) {
@@ -160,7 +160,7 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   CUTINFO -> max_mom = (int)strtol( INPUT[maxmom_idx].VALUE , &endptr , 10 ) ;
   if( endptr == INPUT[maxmom_idx].VALUE || errno == ERANGE || 
       CUTINFO -> max_mom < 1 ) {
-    printf( "[IO] non-sensical maximum momentum %d \n" , CUTINFO -> max_mom ) ;
+    printf( "[IO] non-sensical maximum momentum %zu \n" , CUTINFO -> max_mom ) ;
     return FAILURE ;
   }  
   const int cyl_idx = tag_search( "CYL_WIDTH" ) ;

@@ -6,15 +6,15 @@
 #define INPUT_WME_H
 
 /**
-   @fn int matrix_element_contractions( struct WME_info *wme , int *nWME , const struct inputs *INPUT , const int nprops , const GLU_bool first_pass ) 
+   @fn int matrix_element_contractions( struct WME_info *wme , size_t *nWME , const struct inputs *INPUT , const size_t nprops , const GLU_bool first_pass ) 
    @brief WME contractions
    @return #SUCCESS or #FAILURE
  */
 int
 matrix_element_contractions( struct WME_info *wme , 
-			     int *nWME ,
+			     size_t *nWME ,
 			     const struct inputs *INPUT ,
-			     const int nprops ,
+			     const size_t nprops ,
 			     const GLU_bool first_pass ) ;
 
 #endif

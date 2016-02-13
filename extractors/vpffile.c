@@ -25,7 +25,7 @@ read_data( double *PIdata ,
   }
   if( must_swap ) bswap_64( NMOM , PIdata ) ;
   uint32_t cksuma = 0 , cksumb = 0 ;
-  int p ;
+  size_t p ;
   for( p = 0 ; p < NMOM ; p++ ) {
     DML_checksum_accum_crc32c( &cksuma , &cksumb , p , 
 			       PIdata + p , sizeof( double ) ) ;
@@ -47,7 +47,7 @@ read_data( double *PIdata ,
 
 // quick little accessor
 static int
-FREAD32( uint32_t *data , const int size , FILE *infile ) {
+FREAD32( uint32_t *data , const size_t size , FILE *infile ) {
   if( fread( data , sizeof( uint32_t ) , size , infile ) != size ) {
     printf( "[IO] FREAD32 failure \n" ) ;
     return FAILURE ;
@@ -60,15 +60,15 @@ FREAD32( uint32_t *data , const int size , FILE *infile ) {
 static void
 write_PIdata( const int **momentum ,
 	      const double *PIdata ,
-	      const int NMOM ,
-	      const int DIMS )
+	      const size_t NMOM ,
+	      const size_t DIMS )
 {
-  int p ;
-  printf( "\n[MOMS] outputting available %d-momenta ... \n\n" , DIMS ) ;
+  size_t p ;
+  printf( "\n[MOMS] outputting available %zu-momenta ... \n\n" , DIMS ) ;
   for( p = 0 ; p < NMOM ; p++ ) {
     register double p2 = 0.0 ;
-    int mu ;
-    printf( "[MOMS] %d :: (" , p ) ;
+    size_t mu ;
+    printf( "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       const double cache = 2.0 * sin( 0.5 * momentum[ p ][ mu ] * TWOPI / (double)Latt.dims[ mu ] ) ;
       p2 += cache * cache ;
@@ -99,20 +99,11 @@ main( const int argc ,
   // set up lattice geometry
   {
     char *tok1 = strtok( (char*)argv[2] , "," ) ;
-    Latt.dims[0] = (int)atoi( tok1 ) ;
-    if( Latt.dims[ 0 ] < 1 ) {
-      printf( "Non-sensical lattice dimension L_%d :: %d \n" , 
-	      0 , Latt.dims[ 0 ] ) ;
-      return FAILURE ;
-    }
+    Latt.dims[0] = (size_t)atoi( tok1 ) ;
+
     int mu = 1 ;
     while( ( tok1 = strtok( NULL , "," ) ) != NULL ) {
-      Latt.dims[ mu ] = (int)atoi( tok1 ) ;
-      if( Latt.dims[ mu ] < 1 ) {
-	printf( "Non-sensical lattice dimension L_%d :: %d \n" , 
-		mu , Latt.dims[ mu ] ) ;
-	return FAILURE ;
-      }
+      Latt.dims[ mu ] = (size_t)atoi( tok1 ) ;
       mu++ ;
     }
     if( mu < ND || mu > ND ) {

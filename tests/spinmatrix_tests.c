@@ -16,21 +16,6 @@ static double complex *C = NULL ;
 
 #define FTOL ( NC * 1.E-14 ) 
 
-static void
-write_spinmatrix( double complex s[ NSNS ] )
-{
-  size_t d1 , d2 ;
-  for( d1 = 0 ; d1 < NS ; d1++ ) {
-    for( d2 = 0 ; d2 < NS ; d2++ ) {
-      printf( " %1.2f %1.2f " , creal( s[d2+NS*d1] ) , 
-	      cimag( s[d2+NS*d1] ) ) ;
-    }
-    printf( "\n" ) ;
-  }
-  printf( "\n" ) ;
-  return ;
-}
-
 // add spinmatrix test
 static char*
 atomic_add_spinmatrices_test( void )

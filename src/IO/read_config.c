@@ -184,7 +184,7 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 struct site*
 read_gauge_file( struct head_data *HEAD_DATA , 
 		 const char *config_in ,
-		 const int refdims[ ND ] )
+		 const size_t refdims[ ND ] )
 {
   /// here we include the usual stuff look at header for global stuff
   // open our configuration
@@ -206,11 +206,11 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   init_geom( ) ;
 
   // read_gauge_file overwrites Latt.dims, check against input file
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( Latt.dims[ mu ] != refdims[ mu ] ) {
-      printf( "[IO] %d %d \n" , Latt.dims[ mu ] , refdims[ mu ] ) ;
-      printf( "[IO] gauge_field and input file dimensions mismatch %d != %d \n" 
+      printf( "[IO] %zu %zu \n" , Latt.dims[ mu ] , refdims[ mu ] ) ;
+      printf( "[IO] gauge_field and input file dimensions mismatch %zu != %zu \n" 
 	      , Latt.dims[ mu ] , refdims[ mu ] ) ;
       fclose( infile ) ;
       return NULL ;

@@ -9,7 +9,7 @@
    @def B_CHANNELS
    @brief number of baryon channels we look at
  */
-#define B_CHANNELS 6
+#define B_CHANNELS (6)
 
 /**
    @def CONDOR_MODE
@@ -41,38 +41,38 @@
    @def LCU
    @brief spatial volume
  */
-#define LCU VOL3
+#define LCU (VOL3)
 
 /**
    @def MAX_CONTRACTIONS
    @brief break for the while loops in contraction logic
 */
-#define MAX_CONTRACTIONS 20
+#define MAX_CONTRACTIONS (20)
 
 /**
    @def MAX_LINE_LENGTH
    @brief maximun NERSC header token length
  */
-#define MAX_LINE_LENGTH 64
+#define MAX_LINE_LENGTH (64)
 
 /**
    @def MAX_TOKENS
    @brief maximum number of NERSC header values
  */
-#define MAX_TOKENS 32
+#define MAX_TOKENS (32)
 
 /**
    @def LVOLUME
    @brief lattice volume
  */
-#define LVOLUME VOL4
+#define LVOLUME (VOL4)
 
 /**
    @def NC
    @brief number of colors in our theory
  */
 #ifndef NC
-  #define NC 3
+  #define NC (3)
 #endif
 
 /**
@@ -86,7 +86,7 @@
    @brief number of dimensions of our theory
  */
 #ifndef ND
-  #define ND 4
+  #define ND (4)
 #endif
 
 /**
@@ -94,7 +94,7 @@
    @brief number of spins in our theory
  */
 #ifndef NS
-  #define NS 4
+  #define NS (4)
 #endif
 
 /**
@@ -107,7 +107,7 @@
    @def PLAQ_AND_TRACE_TOL
    @brief used to check the correctness of the NERSC configuration
  */
-#define PLAQ_AND_TRACE_TOL 1E-6
+#define PLAQ_AND_TRACE_TOL (1E-6)
 
 /**
    @def PREC_TOL
@@ -125,31 +125,31 @@
    @def TETRA_NOPS
    @brief number of tetraquark operators we consider
  */
-#define TETRA_NOPS 17
+#define TETRA_NOPS (17)
 
 /**
    @def TWOPI
    @brief \f$ 2 \pi$ appears everywhere
  */
-#define TWOPI 6.283185307179586
+#define TWOPI (6.283185307179586)
 
 /**
    @def VOL3 
    @brief spatial hypercube size
  */
-#define VOL3 Latt.Lcu
+#define VOL3 (Latt.Lcu)
 
 /**
    @def VOL4
    @brief full lattice volume
  */
-#define VOL4 Latt.Volume
+#define VOL4 (Latt.Volume)
 
 /**
    @def VPF_MAGIC
    @brief magic number for this library's data
    spells VPF in ASCII
  */
-#define VPF_MAGIC 717685
+#define VPF_MAGIC (717685)
 
 #endif

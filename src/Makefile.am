@@ -71,7 +71,7 @@ libCORR_a_SOURCES = \
 ## pattern substitute in the headers
 include_HEADERS = \
 	$(BARYONFILES:./BARYONS/%.c=./HEADERS/%.h) \
-	$(GEOMFILES:./GEOMETRY/%.c=./HEADERS/%.h) \
+	$(GEOMFILES:./GEOM/%.c=./HEADERS/%.h) \
 	$(FIELDFILES:./FIELD/%.c=./HEADERS/%.h) \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(LINALGFILES:./LINALG/%.c=./HEADERS/%.h) \

@@ -40,21 +40,21 @@ get_tag( char line[ MAX_LINE_LENGTH ] )
 
 // get the propagator dims
 static int
-get_propdims( int *dims ) 
+get_propdims( size_t *dims ) 
 {
   char *endptr , *token ;
-  int N = 0 ;
+  size_t N = 0 ;
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    dims[ N ] = (int)strtol( token , &endptr , 10 ) ;
+    dims[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
     if( token == endptr || errno == ERANGE || dims[ N ] < 0 ) {
-      printf( "[IO] propheader dims[%d] misread %d \n" , N , dims[ N ] ) ;
+      printf( "[IO] propheader dims[%zu] misread %zu \n" , N , dims[ N ] ) ;
       return FAILURE ;
     }
     // check against global lattice data struct
     if( dims[ N ] != Latt.dims[ N ] ) {
       printf( "[IO] propheader and global lattice dims mismatch!\n"
-	      "[IO] %d vs %d ( index %d ) \n" , dims[ N ] ,
+	      "[IO] %zu vs %zu ( index %zu ) \n" , dims[ N ] ,
 	      Latt.dims[ N ] , N ) ;
       return FAILURE ;
     }
@@ -66,16 +66,17 @@ get_propdims( int *dims )
 
 // get the initial source position
 static int
-get_propsrc( int *origin ) 
+get_propsrc( size_t *origin ) 
 {
   char *endptr , *token ;
-  int N = 0 ;
+  size_t N = 0 ;
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    origin[ N ] = (int)strtol( token , &endptr , 10 ) ;
+    origin[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
     if( token == endptr || errno == ERANGE || 
 	origin[ N ] < 0 || origin[ N ] > Latt.dims[ N ] ) {
-      printf( "[IO] propheader SrcPos:[%d] misread %d \n" , N , origin[ N ] ) ;
+      printf( "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
+	      N , origin[ N ] ) ;
       return FAILURE ;
     }
     if( ++N == ND ) return SUCCESS ;
@@ -202,7 +203,7 @@ int
 read_propheader( struct propagator *prop )
 {
   // dimensions in the file
-  int dims[ ND ] ;
+  size_t dims[ ND ] ;
   const int MAX_HEADER_LINES = 32 ;
   char line[ MAX_LINE_LENGTH ] ;
 
@@ -282,7 +283,7 @@ read_propheader( struct propagator *prop )
   // the NRQCD code counts from 1 instead of zero, shift to c-counting
   // instead of Fortran counting
   if( prop -> basis == NREL ) {
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       prop -> origin[ mu ] -= 1 ;
     }
@@ -297,7 +298,7 @@ int
 read_propheaders( struct propagator *prop ,
 		  const struct input_info inputs )
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < inputs.nprops ; i++ ) {
     // read and check 'em
     if( read_propheader( &prop[ i ] ) == FAILURE ) {

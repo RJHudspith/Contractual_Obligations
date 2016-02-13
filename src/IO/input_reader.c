@@ -38,7 +38,7 @@
 static struct inputs *INPUT = NULL ;
 
 // counter for the number of tags
-static int NTAGS = 0 ;
+static size_t NTAGS = 0 ;
 
 // strcmp defaults to 0 if they are equal which is contrary to standard if statements
 static int
@@ -74,7 +74,7 @@ tag_failure( const char *tag )
 int
 tag_search( const char *tag ) 
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NTAGS ; i++ ) {
     if( are_equal( INPUT[i].TOKEN , tag ) ) return i ;
   }
@@ -91,19 +91,19 @@ unexpected_NULL( void )
 
 // get the map for our props
 int
-get_contraction_map( int *map ,
+get_contraction_map( size_t *map ,
 		     const char *token ,
-		     const int nprops ) 
+		     const size_t nprops ) 
 {
   errno = 0 ;
   char *endptr ;
-  *map = (int)strtol( token , &endptr , 10 ) ;
+  *map = (size_t)strtol( token , &endptr , 10 ) ;
   if( token == endptr ) {
     printf( "[IO] contraction mapping expects an integer \n" ) ;
     return FAILURE ;
   }
-  if( *map < 0 || *map >= nprops || errno == ERANGE ) {
-    printf( "[IO] non-sensical contraction index %d \n" , *map ) ;
+  if( *map >= nprops || errno == ERANGE ) {
+    printf( "[IO] non-sensical contraction index %zu \n" , *map ) ;
     return FAILURE ;
   }
   return SUCCESS ;
@@ -124,9 +124,9 @@ free_inputs( struct input_info inputs )
 // free the propagators, another structure that might get quite big
 void
 free_props( struct propagator *props , 
-	    const int nprops )
+	    const size_t nprops )
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < nprops ; i++ ) {
     fclose( props[i].file ) ;
   }

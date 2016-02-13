@@ -80,18 +80,18 @@ WME( struct propagator s0 ,
   // flag for whether we switch basis
   GLU_bool NREL_FLAG = GLU_FALSE ;
 
+  // loop counters
+  size_t t ;
+
+  // error code
+  int error_code = SUCCESS ;
+
   // allocate our four spinors expecting them to be at 0 and L/2
-  if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&DWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
+  if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&DWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
@@ -99,12 +99,12 @@ WME( struct propagator s0 ,
   if( s0.basis == NREL || d0.basis == NREL ||
       s1.basis == NREL || d1.basis == NREL ) {
     if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      goto free_failure ;
+      error_code = FAILURE ; goto memfree ;
     }
     NREL_FLAG = GLU_TRUE ;
   } else {
     if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      goto free_failure ;
+      error_code = FAILURE ; goto memfree ;
     }
   }
 
@@ -118,7 +118,6 @@ WME( struct propagator s0 ,
   // allocate our corrs
   corr = allocate_momcorrs( NSNS , NSNS , NMOM[0] ) ;
 
-  int t ;
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
@@ -127,7 +126,7 @@ WME( struct propagator s0 ,
 	read_prop( d0 , DWALL_0 ) == FAILURE ||
 	read_prop( s1 , SWALL_L_2 ) == FAILURE ||
 	read_prop( d1 , DWALL_L_2 ) == FAILURE ) {
-      goto free_failure ;
+      error_code = FAILURE ; goto memfree ;
     }
 
     // if any of these are a mix of chiral && nrel we rotate all to NREL
@@ -138,17 +137,17 @@ WME( struct propagator s0 ,
       if( d1.basis == CHIRAL ) nrel_rotate_slice( DWALL_L_2 ) ;
     }
 
-    int GSGK ;
+    size_t GSGK ;
     // parallelise the furthest out loop
     #pragma omp parallel for private(GSGK)
     for( GSGK = 0 ; GSGK < ( NSNS * NSNS ); GSGK++ ) {
 
-      const int GSRC = GSGK / ( NSNS ) ;
-      const int GSNK = GSGK % ( NSNS ) ;
+      const size_t GSRC = GSGK / ( NSNS ) ;
+      const size_t GSNK = GSGK % ( NSNS ) ;
       register double complex trtr = 0.0 ;
       register double complex tr = 0.0 ;
       
-      int site ;
+      size_t site ;
       for( site = 0 ; site < LCU ; site++ ) {
 	// trace-trace component is simple this is projected onto external "PROJ" state
 	trtr += ( meson_contract( PROJ , DWALL_0[ site ] ,
@@ -176,35 +175,14 @@ WME( struct propagator s0 ,
   debug_mesons( "[WME]" , (const struct correlator**)corr ) ;
 #endif
 
-  // and write out a file
-  write_momcorr( outfile , (const struct mcorr**)corr ,
-		 list , NSNS , NSNS , NMOM ) ;
+  // memory deallocation
+ memfree :
 
-  // free our correlator measurement
-  free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
-
-  // free our gamma matrices
-  free( GAMMAS ) ;
-
-  // free momentum list stuff
-  free( NMOM ) ; free( (void*)list ) ;
-
-  // free the space
-  free( DWALL_0 ) ; free( DWALL_L_2 ) ;
-  free( SWALL_0 ) ; free( SWALL_L_2 ) ;
-
-  // reread headers 
-  rewind( s0.file ) ; read_propheader( &s0 ) ;
-  rewind( d0.file ) ; read_propheader( &d0 ) ;
-  rewind( s1.file ) ; read_propheader( &s1 ) ;
-  rewind( d1.file ) ; read_propheader( &d1 ) ;
-
-  // tell us how long it all took, my guess is a long time
-  print_time( ) ;
-
-  return SUCCESS ;
-
- free_failure :
+  if( error_code != FAILURE ) {
+    // and write out a file
+    write_momcorr( outfile , (const struct mcorr**)corr ,
+		   list , NSNS , NSNS , NMOM ) ;
+  }
 
   // free our correlator measurement
   if( NMOM != NULL ) {
@@ -221,6 +199,12 @@ WME( struct propagator s0 ,
   free( DWALL_0 ) ; free( DWALL_L_2 ) ;
   free( SWALL_0 ) ; free( SWALL_L_2 ) ;
 
-  return FAILURE ;
+  // reread headers 
+  rewind( s0.file ) ; read_propheader( &s0 ) ;
+  rewind( d0.file ) ; read_propheader( &d0 ) ;
+  rewind( s1.file ) ; read_propheader( &s1 ) ;
+  rewind( d1.file ) ; read_propheader( &d1 ) ;
+
+  return error_code ;
 }
      

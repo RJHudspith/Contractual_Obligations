@@ -143,12 +143,12 @@ main( const int argc ,
   }
 
   // get the dimensions
-  int mu ;
+  size_t mu ;
   char *tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
   Latt.dims[ 0 ] = (int)atoi( tok ) ;
   if( Latt.dims[ 0 ] < 1 ) {
-    printf( "[INPUTS] non-sensical lattice dimension %d %d \n" , 
-	    0 , Latt.dims[0] ) ;
+    printf( "[INPUTS] non-sensical lattice dimension 0 %zu \n" , 
+	    Latt.dims[0] ) ;
     goto memfree ;
   }
   for( mu = 1 ; mu < ND ; mu++ ) {
@@ -156,7 +156,7 @@ main( const int argc ,
     if( ptok == NULL ) break ;
     Latt.dims[ mu ] = (int)atoi( ptok ) ;
     if( Latt.dims[mu] < 1 ) {
-      printf( "[INPUTS] non-sensical lattice dimension %d %d \n" , 
+      printf( "[INPUTS] non-sensical lattice dimension %zu %zu \n" , 
 	      mu , Latt.dims[mu] ) ;
       goto memfree ;
     }
