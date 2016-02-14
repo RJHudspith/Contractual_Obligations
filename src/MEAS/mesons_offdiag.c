@@ -218,21 +218,26 @@ mesons_offdiagonal( struct propagator prop1 ,
   write_momcorr( outfile , (const struct mcorr**)disp , list , 
 		 NSNS , NSNS , NMOM ) ;
 
-  // free wall-local momenta
-  free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
-
   // and do the walls as they are basically free
   if( prop1.source == WALL || prop2.source == WALL ) {
     char outstr[ 256 ] ;
     sprintf( outstr , "%s.ww" , outfile ) ;
     write_momcorr( outstr , (const struct mcorr**)wwdisp ,
 		   wwlist , NSNS , NSNS , wwNMOM ) ;
-    free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
   }
 
   // memory freeing part
  memfree :
 
+  // free correlators and momentum list
+  if( NMOM != NULL ) {
+    free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
+    if( prop1.source == WALL ) {
+      free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
+    }
+  }
+
+  // free the fftd stuff
 #ifdef HAVE_FFTW3_H
   if( in != NULL ) {
     for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
@@ -258,14 +263,6 @@ mesons_offdiagonal( struct propagator prop1 ,
   fftw_free( out ) ; fftw_free( in ) ; 
   fftw_cleanup( ) ; 
 #endif
-
-  // free correlators and momentum list
-  if( NMOM != NULL ) {
-    free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
-    if( prop1.source == WALL ) {
-      free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
-    }
-  }
 
   // free momenta lists
   free( NMOM ) ; free( (void*)list ) ;

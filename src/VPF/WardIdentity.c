@@ -20,7 +20,7 @@ compute_p_psq( double **p ,
     size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       // lattice momentum
-      p[i][mu] = 2.0 * sin( 0.5 * list[i].MOM[ mu ] * Latt.twiddles[ mu ] ) ;
+      p[i][mu] = 2.0 * sin( 0.5 * Latt.twiddles[ mu ] * list[i].MOM[ mu ] ) ;
       psq[i] += p[i][mu] * p[i][mu] ;
     }
   }
@@ -84,8 +84,8 @@ correct_WI( struct PIdata *data ,
     double complex epi[ ND ] ;
     size_t mu , nu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
-      const double cache = list[ i ].MOM[ mu ] * Latt.twiddles[ mu ] ;
-      epi[ mu ] = cos( cache * 0.5 ) - I * sin( cache * 0.5 ) ;
+      const double cache = 0.5 * list[ i ].MOM[ mu ] * Latt.twiddles[ mu ] ;
+      epi[ mu ] = cos( cache ) - I * sin( cache ) ;
     }
     
     // loop directions
@@ -107,7 +107,7 @@ correct_WI( struct PIdata *data ,
 // computes V( x ) - V( x - \mu )
 void
 WI_configspace_bwd( const struct PIdata *data ,
-		const struct site *lat )
+		    const struct site *lat )
 {
   double sum = 0.0 ;
   size_t i ;

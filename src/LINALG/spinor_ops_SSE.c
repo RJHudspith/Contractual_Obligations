@@ -146,7 +146,7 @@ equate_spinor_minus( void *mS ,
 {
   __m128d *s = (__m128d*)mS ;
   const __m128d *s2 = (const __m128d*)S ;
-  int i ;
+  size_t i ;
 #if NC == 3 
   for( i = 0 ; i < NSNS ; i++ ) {
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;

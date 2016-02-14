@@ -82,11 +82,11 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
     // if we are in the t-direction we use the "UP" space
     if( mu == ND-1 ) {
       gauge_spinor( &US1xpmu , lat[i].O[mu] , S1UP[x] ) ;  // U S(x+\mu)
-      S2xpmu = S2UP[x] ;
+      S2xpmu = S2UP[ x ] ;
     } else {
       const size_t xpmu = lat[x].neighbor[mu] ;
       gauge_spinor( &US1xpmu , lat[i].O[mu] , S1[xpmu] ) ; // U S(x+\mu)
-      S2xpmu = S2[xpmu] ;
+      S2xpmu = S2[ xpmu ] ;
     }
     gaugedag_spinor( &UdS1x , lat[i].O[mu] , S1[x] ) ;       // U^{\dagger} S(x)
 
@@ -94,15 +94,15 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
 
       // I need to think about the axial
       DATA_AA[i].PI[mu][nu] = CL_munu_AA( US1xpmu , UdS1x , 
-					  S2xpmu , S2[x] , 
+					  S2xpmu , S2[ x ] , 
 					  GAMMAS , 
 					  AGMAP[ mu ] , AGMAP[ nu ] ) ;
 	
       // vectors 
       DATA_VV[i].PI[mu][nu] = CL_munu_VV( US1xpmu , UdS1x , 
-					  S2xpmu , S2[x] ,
+					  S2xpmu , S2[ x ] ,
 					  GAMMAS ,
-					  VGMAP[mu] , VGMAP[ nu ] ) ;
+					  VGMAP[ mu ] , VGMAP[ nu ] ) ;
     }
   }
 

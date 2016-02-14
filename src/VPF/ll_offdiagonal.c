@@ -26,7 +26,8 @@ ll_offdiagonal( struct propagator prop1 ,
   const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
 
   // need to look these up
-  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
+			       GAMMA_5 + 3 , GAMMA_5 + 4 } ;
 
   // and our spinor
   struct spinor *S1 = NULL , *S1f = NULL , *S2 = NULL , *S2f = NULL ;
@@ -37,24 +38,24 @@ ll_offdiagonal( struct propagator prop1 ,
   // over the whole volume is not as expensive as you may think
   struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
 
+  // loop counters
+  size_t x , t ;
+
+  // error code
+  int error_code = SUCCESS ;
+
   // allocate spinors 
-  if( corr_malloc( (void**)&S1 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
-  }
-  if( corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    goto free_failure ;
+  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( make_gammas( GAMMAS , prop1.basis ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
   // over the whole volume is not as expensive as you may think
@@ -64,31 +65,29 @@ ll_offdiagonal( struct propagator prop1 ,
   // initially read a timeslice
   if( read_prop( prop1 , S1 ) == FAILURE ||
       read_prop( prop2 , S2 ) == FAILURE ) {
-    goto free_failure ;
+    error_code = FAILURE ; goto memfree ;
   }
 
   // loop the timeslices
-  size_t t , x ;
   for( t = 0 ; t < LT ; t++ ) {
 
     // multiple time source support
     const size_t tshifted = ( t + LT - prop1.origin[ ND-1 ] ) % LT ;
 
     // do the conserved-local contractions
-    int error_flag = SUCCESS ;
     #pragma omp parallel
     {
       if( t < LT-1 ) {
       #pragma omp master
 	{
 	  if( read_prop( prop1 , S1f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       #pragma omp single nowait
 	{
 	  if( read_prop( prop2 , S2f ) == FAILURE ) {
-	    error_flag = FAILURE ;
+	    error_code = FAILURE ;
 	  }
 	}
       }
@@ -102,8 +101,8 @@ ll_offdiagonal( struct propagator prop1 ,
     }
 
     // to err is human
-    if( error_flag == FAILURE ) {
-      goto free_failure ;
+    if( error_code == FAILURE ) {
+      goto memfree ;
     }
 
     // copy over
@@ -120,6 +119,9 @@ ll_offdiagonal( struct propagator prop1 ,
   }
   printf( "\n" ) ;
 
+  // deallocs
+ memfree :
+
   // free our spinor(s)
   free( S1 ) ; free( S1f ) ;
   free( S2 ) ; free( S2f ) ;
@@ -127,18 +129,18 @@ ll_offdiagonal( struct propagator prop1 ,
   // free our gamma matrices
   free( GAMMAS ) ;
 
-  // temporal data too
-  tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
-
-  // do all the momspace stuff away from the contractions
-  if( prop1.source == POINT ) {
-    momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
-		     LOCAL_LOCAL ) ;
+  if( error_code != FAILURE ) {
+    // temporal data too
+    tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
+    
+    // do all the momspace stuff away from the contractions
+    if( prop1.source == POINT ) {
+      momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
+		       LOCAL_LOCAL ) ;
+    }
   }
-
   print_time( ) ;
 
-  // free the AA & VV data
   free( DATA_AA ) ;
   free( DATA_VV ) ;
 
@@ -146,20 +148,5 @@ ll_offdiagonal( struct propagator prop1 ,
   rewind( prop1.file ) ; read_propheader( &prop1 ) ;
   rewind( prop2.file ) ; read_propheader( &prop2 ) ;
 
-  return SUCCESS ;
-
- free_failure :
-
-  // free our spinor(s)
-  free( S1 ) ; free( S1f ) ;
-  free( S2 ) ; free( S2f ) ;
-
-  // free our gamma matrices
-  free( GAMMAS ) ;
-
-  // free the AA & VV data
-  free( DATA_AA ) ;
-  free( DATA_VV ) ;
-
-  return FAILURE ;
+  return error_code ;
 }

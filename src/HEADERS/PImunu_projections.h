@@ -36,11 +36,12 @@ projection( const struct PIdata *data ,
 	    const char *outfile ) ;
 
 /**
-   @fn void subtract_zeromom( struct PIdata *__restrict data , const int NMOM[1] )
+   @fn void subtract_zeromom( struct PIdata *__restrict data , const double *psq , const int NMOM[1] )
    @brief subtracts the sum of the correlator from the data
  */
 void
 subtract_zeromom( struct PIdata *__restrict data ,
+		  const double *psq ,
 		  const int NMOM[1] ) ;
 
 #endif

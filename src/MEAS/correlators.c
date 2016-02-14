@@ -176,7 +176,7 @@ write_momcorr( const char *outfile ,
     
     fwrite( NGSRC , sizeof( uint32_t ) , 1 , output_file ) ;
     fwrite( NGSNK , sizeof( uint32_t ) , 1 , output_file ) ;
-    
+
     size_t GSRC , GSNK ;
     for( GSRC = 0 ; GSRC < NSRC ; GSRC++ ) {
       for( GSNK = 0 ; GSNK < NSNK ; GSNK++ ) {

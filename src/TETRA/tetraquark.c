@@ -298,18 +298,19 @@ tetraquark( struct propagator prop1 ,
       free( out[ i ] ) ;
     }
   }
+  free( out ) ; 
   if( forward != NULL ) {
     for( i = 0 ; i < flat_dirac ; i++ ) {
       fftw_destroy_plan( forward[ i ] ) ;
     }
   }
+  free( forward )  ; 
   if( backward != NULL ) {
     for( i = 0 ; i < flat_dirac ; i++ ) {
-      fftw_destroy_plan( forward[ i ] ) ;
+      fftw_destroy_plan( backward[ i ] ) ;
     }
   }
-  free( forward )  ; free( backward ) ; 
-  fftw_free( out ) ; 
+  free( backward ) ; 
   fftw_cleanup( ) ; 
 #endif
 

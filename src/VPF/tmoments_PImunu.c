@@ -163,6 +163,11 @@ tmoments( const struct PIdata *AA ,
   // precompute momenta
   compute_p_psq( p , psq , list , NMOM[0] ) ;
 
+#if 0
+  subtract_zeromom( cpAA , psq , NMOM ) ;
+  subtract_zeromom( cpVV , psq , NMOM ) ;
+#endif
+
   // change the output
   char str[ 256 ] ;
   sprintf( str , "%s.ptonly" , outfile ) ;

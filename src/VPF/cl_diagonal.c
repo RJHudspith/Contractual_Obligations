@@ -1,7 +1,6 @@
 /**
    @file cl_diagonal.c
    @brief conserved-local Wilson currents
-
    At the moment I treat the NREL like the chiral which is
    probably wrong, but we cross that bridge when we get to it
  */
@@ -49,9 +48,9 @@ cl_diagonal( struct propagator prop ,
   int error_code = SUCCESS ;
 
   // and our spinor(s)
-  if( corr_malloc( (void**)&S1f  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1   , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1UP , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+  if( corr_malloc( (void**)&S1f   , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1    , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
+      corr_malloc( (void**)&S1UP  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
       corr_malloc( (void**)&S1END , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
     error_code = FAILURE ; goto memfree ;
   }
@@ -63,8 +62,8 @@ cl_diagonal( struct propagator prop ,
   }
 
   // over the whole volume is not as expensive as you may think
-  DATA_AA = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
-  DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
+  DATA_AA = calloc( LVOLUME , sizeof( struct PIdata ) ) ;
+  DATA_VV = calloc( LVOLUME , sizeof( struct PIdata ) ) ;
 
   // I think this is for the vector  
   if( read_prop( prop , S1 ) == FAILURE ) {
@@ -150,7 +149,7 @@ cl_diagonal( struct propagator prop ,
 
     // compute the time moments
     tmoments( DATA_AA , DATA_VV , outfile , CONSERVED_LOCAL ) ;
-    
+
     // do all the momspace stuff away from the contractions
     if( prop.source == POINT ) { 
       momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,

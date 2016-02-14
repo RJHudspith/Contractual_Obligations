@@ -57,15 +57,15 @@ int
 contract_VPF( struct propagator *prop ,
 	      const struct site *lat ,
 	      const struct VPF_info *VPF ,
-	      const int nVPF ,
+	      const size_t nVPF ,
 	      const struct cut_info CUTINFO )
 {
-  printf( "\n[VPF] performing %d contraction(s) \n" , nVPF ) ;
-  int measurements ;
+  printf( "\n[VPF] performing %zu contraction(s) \n" , nVPF ) ;
+  size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {
-    const int p1 = VPF[ measurements ].map[0] ;
-    const int p2 = VPF[ measurements ].map[1] ;
+    const size_t p1 = VPF[ measurements ].map[0] ;
+    const size_t p2 = VPF[ measurements ].map[1] ;
 
     if( p1 == p2 ) {
       select_callback_single( VPF[ measurements ].current ) ;
