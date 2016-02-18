@@ -173,6 +173,7 @@ struct PIdata {
    @param prop :: propagator file
    @param basis :: is it chiral or nrel?
    @param origin :: source position, not used yet
+   @param t :: what timeslice are we reading?
  */
 struct propagator {
   FILE *file ;

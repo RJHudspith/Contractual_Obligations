@@ -11,6 +11,7 @@
 #include "gamma_tests.h"
 #include "geometry.h"        // init_geom()
 #include "matops_tests.h"
+#include "SSE_tests.h"
 #include "spinmatrix_tests.h"
 #include "spinor_tests.h"
 #include "tetra_contractions_tests.h"
@@ -69,6 +70,9 @@ main( const int argc , const char *argv[] )
 
   // have a look at baryon operations
   if( tetra_contractions_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+
+  if( SSE_OPS_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   printf( "[UNIT] %d tests run and passed\n" , total ) ;

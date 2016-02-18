@@ -18,6 +18,7 @@ fill_spinor( struct spinor *__restrict S ,
 	     void *tmp ,
 	     const size_t ND1 , 
 	     const size_t d1shift ,
+	     const size_t d2shift ,
 	     const size_t tmpsize )
 {
   if( tmpsize == sizeof( float complex ) ) {
@@ -25,7 +26,7 @@ fill_spinor( struct spinor *__restrict S ,
     size_t d1d2 ;
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const size_t d1 = d1d2 / ND1 + d1shift ;
-      const size_t d2 = d1d2 % ND1 + d1shift ;
+      const size_t d2 = d1d2 % ND1 + d2shift ;
       // unroll the matching
       colormatrix_equiv_f2d( (double complex*)S -> D[ d1 ][ d2 ].C ,
 			     ftmp + d1d2 * NCNC ) ;
@@ -35,7 +36,7 @@ fill_spinor( struct spinor *__restrict S ,
     size_t d1d2 ;
     for( d1d2 = 0 ; d1d2 < ( ND1 * ND1 ) ; d1d2++ ) {
       const size_t d1 = d1d2 / ND1 + d1shift ;
-      const size_t d2 = d1d2 % ND1 + d1shift ;
+      const size_t d2 = d1d2 % ND1 + d2shift ;
       // unroll the matching
       colormatrix_equiv( (double complex*)S -> D[ d1 ][ d2 ].C ,
 			 ftmp + d1d2 * NCNC ) ;
@@ -119,7 +120,7 @@ read_chiralprop( struct propagator prop ,
       }
       if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
       // cast our ftmp to double complex spinor
-      fill_spinor( &S[i] , ftmp , NS , 0 , sizeof( float complex ) ) ;
+      fill_spinor( &S[i] , ftmp , NS , 0 , 0 , sizeof( float complex ) ) ;
     } else {
       // Read in propagator on a timeslice elements of our struct should be byte-compatible
       if( fread( S[i].D , sizeof( double complex ) , spinsize , prop.file ) != 
@@ -176,7 +177,7 @@ read_nrprop( struct propagator prop ,
       if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
 
       // fill the lower indices ( for example 4D :: 2,2 2,3 3,2 3,3 ) of propagator
-      fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , sizeof(float complex) ) ;
+      fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(float complex) ) ;
     } else {
       // Read in tslice 
       if( fread( tmp , sizeof(double complex) , spinsize , prop.file ) != 
@@ -187,8 +188,15 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_64( 2 * spinsize , tmp ) ;
 
+      // various poking-in of spinors
+      // top left
+      //fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
+      // top right
+      //fill_spinor( &S[i] , tmp , NR_NS , 0 , NR_NS , sizeof(double complex) ) ;
+      // bottom left
+      //fill_spinor( &S[i] , tmp , NR_NS , NR_NS , 0 , sizeof(double complex) ) ;
       // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
-      fill_spinor( &S[i] , tmp , NR_NS , NR_NS , sizeof(double complex) ) ;
+      fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
     }
   }
 
