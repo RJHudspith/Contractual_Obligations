@@ -114,6 +114,7 @@ void
 free_inputs( struct input_info inputs ) 
 {
   free( inputs.baryons ) ;
+  free( inputs.diquarks ) ;
   free( inputs.mesons ) ;
   free( inputs.tetras ) ;
   free( inputs.VPF ) ;
@@ -169,6 +170,7 @@ get_input_data( struct propagator **prop ,
 
   // initialise
   inputs -> baryons = NULL ;
+  inputs -> diquarks = NULL ;
   inputs -> mesons = NULL ;
   inputs -> tetras = NULL ;
   inputs -> VPF = NULL ;
@@ -187,6 +189,14 @@ get_input_data( struct propagator **prop ,
   inputs -> baryons = (struct baryon_info*)malloc( ( inputs -> nbaryons ) * sizeof( struct baryon_info ) ) ;
   if( baryon_contractions( inputs -> baryons , &( inputs -> nbaryons ) , INPUT ,
 			   inputs -> nprops , GLU_FALSE ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
+
+  // diquark contractions
+  diquark_contractions( inputs -> diquarks , &( inputs -> ndiquarks ) , INPUT , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> diquarks = (struct meson_info*)malloc( ( inputs -> ndiquarks ) * sizeof( struct meson_info ) ) ;
+  if( diquark_contractions( inputs -> diquarks , &( inputs -> ndiquarks ) , INPUT ,
+			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 

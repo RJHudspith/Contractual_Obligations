@@ -42,7 +42,32 @@ twopoint_tokens( struct meson_info *mesons ,
   return SUCCESS ;
 }
 
-// meson contractions of the form prop_idx1,prop_idx2,proptype,outfile
+// diquark contractions of the form prop_idx1,prop_idx2,outfile
+int
+diquark_contractions( struct meson_info *diquarks , 
+		      size_t *ndiquarks ,
+		      const struct inputs *INPUT ,
+		      const size_t nprops ,
+		      const GLU_bool first_pass ) 
+{
+  *ndiquarks = 0 ;
+  char str[ 32 ] ;
+  while( *ndiquarks < MAX_CONTRACTIONS ) {
+    sprintf( str , "DIQUARK%zu" , *ndiquarks ) ;
+    const int diquark_idx = tag_search( str ) ;
+    if( diquark_idx == FAILURE ) return SUCCESS ;
+    if( first_pass == GLU_FALSE ) {
+      if( twopoint_tokens( &diquarks[ *ndiquarks ] , 
+			   INPUT[ diquark_idx ].VALUE , 
+			   nprops , *ndiquarks , "Diquark" ) 
+	  == FAILURE ) return FAILURE ;
+    }
+    *ndiquarks = *ndiquarks + 1 ;
+  }
+  return SUCCESS ;
+}
+
+// meson contractions of the form prop_idx1,prop_idx2,outfile
 int
 meson_contractions( struct meson_info *mesons , 
 		    size_t *nmesons ,
@@ -66,4 +91,3 @@ meson_contractions( struct meson_info *mesons ,
   }
   return SUCCESS ;
 }
-

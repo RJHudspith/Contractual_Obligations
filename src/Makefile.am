@@ -7,10 +7,14 @@ lib_LIBRARIES = libCORR.a
 AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 
 ## c files in ./BARYONS/
-BARYONFILES= ./BARYONS/bar_contractions.c ./BARYONS/bar_projections.c \
+BARYONFILES=./BARYONS/bar_contractions.c ./BARYONS/bar_projections.c \
 	./BARYONS/bar_ops.c ./BARYONS/bar_ops_SSE.c \
 	./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
 	./BARYONS/wrap_baryons.c
+
+## c files in ./DIQUARKS/
+DIQUARKFILES=./DIQUARKS/diquark.c ./DIQUARKS/diquark_degen.c \
+	./DIQUARKS/wrap_diquarks.c ./DIQUARKS/diquark_contraction.c
 
 ## c files in ./GEOM/
 GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
@@ -58,6 +62,7 @@ WMEFILES=./WME/WME.c ./WME/wrap_WME.c
 ## c file sources for the library 
 libCORR_a_SOURCES = \
 	${BARYONFILES} \
+	${DIQUARKFILES} \
 	${GEOMFILES} \
 	${FIELDFILES} \
 	${IOFILES} \
@@ -71,6 +76,7 @@ libCORR_a_SOURCES = \
 ## pattern substitute in the headers
 include_HEADERS = \
 	$(BARYONFILES:./BARYONS/%.c=./HEADERS/%.h) \
+	$(DIQUARKFILES:./DIQUARKS/%.c=./HEADERS/%.h) \
 	$(GEOMFILES:./GEOM/%.c=./HEADERS/%.h) \
 	$(FIELDFILES:./FIELD/%.c=./HEADERS/%.h) \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \

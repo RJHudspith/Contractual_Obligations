@@ -12,6 +12,7 @@
 #include "bar_projections.h"
 
 #include "wrap_baryons.h"    // Baryon contraction wrapper
+#include "wrap_diquarks.h"   // Diquark contraction wrapper
 #include "wrap_mesons.h"     // Meson contraction wrapper
 #include "wrap_tetras.h"     // Tetraquark contraction wrapper
 #include "wrap_VPF.h"        // VPF contraction wrapper
@@ -87,6 +88,12 @@ main( const int argc,
   if( contract_baryons( prop , inputs.baryons , inputs.CUTINFO ,
 			inputs.nbaryons ) 
       == FAILURE ) {
+    goto FREES ; // do not pass GO, do not collect £200
+  }
+
+  // diquark-diquark contraction, props have to be wall source
+  if( contract_diquarks( prop , inputs.diquarks , inputs.CUTINFO , 
+			 inputs.ndiquarks ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }
 

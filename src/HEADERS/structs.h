@@ -96,6 +96,8 @@ struct input_info {
   size_t nprops ;
   struct baryon_info *baryons ;
   size_t nbaryons ;
+  struct meson_info *diquarks ;
+  size_t ndiquarks ;
   struct meson_info *mesons ;
   size_t nmesons ;
   struct tetra_info *tetras ;
