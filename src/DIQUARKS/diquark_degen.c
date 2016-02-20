@@ -68,6 +68,18 @@ diquark_degen( struct propagator prop1 ,
     error_code = FAILURE ; goto memfree ;
   }
 
+  // create a look up table for the gammas, these are square 
+  // so we only do the first NSNS
+  struct gamma *GAM1 = malloc( stride1 * sizeof( struct gamma ) ) ;
+  struct gamma *GAM2 = malloc( stride2 * sizeof( struct gamma ) ) ; 
+  for( i = 0 ; i < stride1 ; i++ ) {
+    GAM1[ i ]= CGmu( GAMMAS[ i ] , GAMMAS ) ;
+  }
+  for( i = 0 ; i < stride2 ; i++ ) {
+    GAM2[ i ]= gt_Gdag_gt( CGmu( GAMMAS[ i ] , GAMMAS ) , 
+			   GAMMAS[ GAMMA_3 ] ) ;
+  }
+
   // allocate result array
   in = malloc( flat_dirac * sizeof( double complex* ) ) ;
   for( i = 0 ; i < flat_dirac ; i++ ) {
@@ -141,21 +153,23 @@ diquark_degen( struct propagator prop1 ,
 	  // separate the gamma combinations
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
-
-	  // is the un-tilded one
-	  const struct gamma C_GSRC = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
-	  // is the tilded c-gamma
-	  const struct gamma C_GSNK = gt_Gdag_gt( CGmu( GAMMAS[ GSNK ] , GAMMAS ) , 
-						  GAMMAS[ GAMMA_3 ] ) ;
-
 	  // perform contraction, result in result
-	  in[ GSNK + stride2*GSRC ][ site ] = -2 * diquark( S1[ site ] , S1[ site ] , 
-							    C_GSRC , C_GSNK ) ;
+	  in[ GSNK + stride2*GSRC ][ site ] = 
+	    -2 * diquark( S1[ site ] , S1[ site ] , 
+			  GAM1[ GSRC ] , GAM2[ GSNK ] ) ;
 	}
       }
       // wall-wall contractions
       if( prop1.source == WALL ) {
-	printf( "Walls Not done yet! \n" ) ;
+	// loop gamma source
+	size_t GSGK ;
+	for( GSGK = 0 ; GSGK < stride1*stride2 ; GSGK++ ) {
+	  // separate the gamma combinations
+	  const size_t GSRC = GSGK / stride1 ;
+	  const size_t GSNK = GSGK % stride2 ;
+	  diquark_corrWW[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
+	    diquark( SUM1 , SUM1 , GAM1[ GSRC ] , GAM2[ GSNK ] ) ;
+	}
       }
       // end of walls
     }
@@ -215,7 +229,7 @@ diquark_degen( struct propagator prop1 ,
   free( wwNMOM ) ; free( (void*)wwlist ) ;
 
   // free the gammas
-  free( GAMMAS ) ;
+  free( GAMMAS ) ; free( GAM1 ) ; free( GAM2 ) ;
 
   // rewind file and read header again, this should be in the 
   // wrapper no?

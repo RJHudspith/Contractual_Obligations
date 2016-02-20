@@ -29,8 +29,12 @@ contract_diquarks( struct propagator *prop ,
 	return FAILURE ;
       }
     } else {
-      if( diquark( prop[ p1 ] , prop[ p1 ] , CUTINFO , 
-		   diquarks[ measurements ].outfile ) == FAILURE ) {
+      if( prop[p1].source != prop[p2].source ) {
+	printf( "[DIQUARK] unequal source types for the two diquarks" ) ;
+	return FAILURE ;
+      }
+      if( diquark_offdiag( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
+			   diquarks[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
     }
