@@ -49,19 +49,19 @@ diquark_diquark( double complex *result ,
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
-	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
+	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
 	(
 	 // factorises to below, can remove 2* in a bit
 	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
 	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
 	  ) ;
     }
-    result[0] = 4 * sum ;
+    result[0] = 4*sum ;
   }
   // Eq.41 in note is O_1 O_2^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , B , Cg3 , transpose_spinor( B ) , Cg2 ) ;
+    precompute_block( C1 , transpose_spinor( B ) , Cg3 , B , Cg2 ) ;
     precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
@@ -71,14 +71,13 @@ diquark_diquark( double complex *result ,
 	trace_prod_spinmatrices( C1[ element( c , b , d , a ) ].M ,
 				 C2[ element( a , c , b , d ) ].M ) ;
     }
-    result[1] = 4* sum ;
+    result[1] = 4*sum ;
   }
   // Eq.43 in note is O_2 O_1^{\dagger}
   {
     sum = 0.0 ;
-    precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
-		           transpose_spinor( B ) , Cg4 ) ;
-    precompute_block( C2 , B , Cg3 , D , Cg2 ) ;
+    precompute_block( C1 , transpose_spinor( U ) , Cg1 , B , Cg4 ) ;
+    precompute_block( C2 , transpose_spinor( B ) , Cg3 , D , Cg2 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -93,8 +92,8 @@ diquark_diquark( double complex *result ,
   {
     sum = 0.0 ;
     precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
-		           transpose_spinor( B ) , Cg2 ) ;
-    precompute_block( C2 , B , Cg3 , D , Cg4 ) ;
+		           transpose_spinor( B ) , Cg3 ) ;
+    precompute_block( C2 , B , Cg2 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -251,7 +250,7 @@ precompute_block( struct block *C1 ,
 
 // perform the contraction
 int
-tetras( double complex result[ TETRA_NOPS ] ,
+tetras( double complex *result ,
 	const struct spinor L1 , 
 	const struct spinor L2 ,
 	const struct spinor bwdH ,
@@ -273,25 +272,25 @@ tetras( double complex result[ TETRA_NOPS ] ,
   const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
 
   // poke in the first set of tetra contractions, top left matrix
-  if( diquark_diquark( result , L1 , L2 , bwdH , 
+  if( diquark_diquark( result+0x0 , L1 , L2 , bwdH , 
 		       Cg5 , tildeCg5 , Cgi , tildeCgi ) == FAILURE ) {
     return FAILURE ;
   }
 
   // top right matrix is the interchange of 2 -> 4
-  if( diquark_diquark( result+4 , L1 , L2 , bwdH , 
+  if( diquark_diquark( result+0x4 , L1 , L2 , bwdH , 
 		       Cg5 , tildeCgi , Cgi , tildeCg5 ) == FAILURE ) {
     return FAILURE ;
   }
 
   // bottom left matrix is the interchange of 1 -> 3
-  if( diquark_diquark( result+8 , L1 , L2 , bwdH , 
+  if( diquark_diquark( result+0x8 , L1 , L2 , bwdH , 
 		       Cgi , tildeCg5 , Cg5 , tildeCgi ) == FAILURE ) {
     return FAILURE ;
   }
 
   // here we do the Cg5 <-> Cgi interchanges, bottom right corner of matrix
-  if( diquark_diquark( result+12 , L1 , L2 , bwdH , 
+  if( diquark_diquark( result+0xc , L1 , L2 , bwdH , 
 		       Cgi , tildeCgi , Cg5 , tildeCg5 ) == FAILURE ) {
     return FAILURE ;
   }

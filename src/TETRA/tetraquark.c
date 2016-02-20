@@ -189,11 +189,11 @@ tetraquark( struct propagator prop1 ,
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC , 
-		  GLU_FALSE ) ;
+	  tetras( result , S1[ site ] , S2[ site ] , bwdH , 
+		  GAMMAS , GSRC , GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
-	    in[ op + TETRA_NOPS * GSRC ][ site ] = result[ op ] ;
+	    in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
 	  }
 	}
       }

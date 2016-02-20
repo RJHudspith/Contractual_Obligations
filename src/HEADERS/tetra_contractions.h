@@ -38,12 +38,12 @@ precompute_block( struct block *C1 ,
 		  const struct gamma G2 ) ;
 
 /**
-   @fn int tetras( double complex result[ TETRA_NOPS ] , const struct spinor L1 , const struct spinor L2 , const struct spinor bwdH , const struct gamma *GAMMAS , const size_t mu , const GLU_bool L1L2_degenerate )
+   @fn int tetras( double complex *result , const struct spinor L1 , const struct spinor L2 , const struct spinor bwdH , const struct gamma *GAMMAS , const size_t mu , const GLU_bool L1L2_degenerate )
    @brief perform all tetraquark contractions
    @return #SUCCES or #FAILURE
  */
 int
-tetras( double complex result[ TETRA_NOPS ] ,
+tetras( double complex *result ,
 	const struct spinor L1 , 
 	const struct spinor L2 ,
 	const struct spinor bwdH ,

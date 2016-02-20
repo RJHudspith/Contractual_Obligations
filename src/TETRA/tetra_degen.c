@@ -169,17 +169,17 @@ tetraquark_degen( struct propagator prop1 ,
 	full_adj( &bwdH , S2[ site ] , GAMMAS[ GAMMA_5 ] ) ;
 
 	// diquark-diquark tetra
-	double complex result[ TETRA_NOPS ] ;
+	double complex result[ stride1 ] ;
 
 	// loop gamma source
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , S1[ site ] , S1[ site ] , bwdH , GAMMAS , GSRC , 
-		  GLU_TRUE ) ;
+	  tetras( result , S1[ site ] , S1[ site ] , bwdH , 
+		  GAMMAS , GSRC , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
-	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
-	    in[ op + TETRA_NOPS * GSRC ][ site ] = result[ op ] ;
+	  for( op = 0 ; op < stride1 ; op++ ) {
+	    in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
 	  }
 	}
       }
@@ -191,7 +191,7 @@ tetraquark_degen( struct propagator prop1 ,
 	  // perform contraction, result in result
 	  tetras( result , SUM1 , SUM1 , SUMbwdH , GAMMAS , GSRC , GLU_TRUE ) ;
 	  // put contractions into final correlator object
-	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+	  for( op = 0 ; op < stride1 ; op++ ) {
 	    tetra_corrWW[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
 	}
