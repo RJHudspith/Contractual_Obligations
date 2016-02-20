@@ -15,12 +15,12 @@ static double complex *D ;
 
 #define FTOL ( NC * 1.E-14 ) 
 
-static char
-*colortrace_spinor_test( void )
+static char*
+colortrace_spinor_test( void )
 {
   // take the color trace
   colortrace_spinor( C , A.D ) ;
-  int j ;
+  size_t j ;
   for( j = 0 ; j < NSNS ; j++ ) {
     // result is an identity
     const size_t res = NC * ( NCNC - 1 ) / 2 + j * NC * ( NCNC ) ;
@@ -30,17 +30,29 @@ static char
 		  fabs( cimag( C[j] ) - res ) > FTOL 
 		  ) ) ;
   }
+
+  colortrace_spinor( C , A.D ) ;
+  for( j = 0 ; j < NSNS ; j++ ) {
+    // result is an identity
+    const size_t res = NC * ( NCNC - 1 ) / 2 + j * NC * ( NCNC ) ;
+    mu_assert( "[UNIT] error : spinor ops colortrace_spinor broken " , 
+	       !( fabs( creal( C[j] ) - res ) > FTOL 
+		  ||
+		  fabs( cimag( C[j] ) - res ) > FTOL 
+		  ) ) ;
+  }
+
   return NULL ;
 }
 
-static char 
-*equate_minus_test( void )
+static char* 
+equate_minus_test( void )
 {
   struct spinor B ;
   equate_spinor_minus( &B , (const void*)A.D ) ;
   const double *a = (const double*)A.D ;
   const double *b = (const double*)B.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert( "[UNIT] error : spinor ops equate minus broken " , 
 	       !(*a != -*b) ) ;
@@ -49,14 +61,14 @@ static char
   return NULL ;
 }
 
-static char
-*flipsign_test( void )
+static char*
+flipsign_test( void )
 {
   struct spinor B = A ;
   flipsign_spinor( &B ) ;
   const double *a = (const double*)A.D ;
   const double *b = (const double*)B.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert( "[UNIT] error : spinor ops equate minus broken " , 
 	       !(*a != -*b) ) ;
@@ -66,11 +78,11 @@ static char
 }
 
 // multiplies spinor by identity matrix and compares
-static char
-*gauge_test( void )
+static char*
+gauge_test( void )
 {
   double complex Id[ NCNC ] ;
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       Id[ j + i * NC ] = ( j != i ) ? 0.0 : 1.0 ;
@@ -89,11 +101,11 @@ static char
 }
 
 // multiply by (-I)^{\dagger}
-static char
-*gaugedag_test( void )
+static char*
+gaugedag_test( void )
 {
   double complex mI[ NCNC ] ;
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       mI[ j + i * NC ] = ( j != i ) ? 0.0 : -I ;
@@ -112,11 +124,11 @@ static char
 }
 
 // Id * ( A )^{\dagger} where the dagger is JUST OVER COLOR INDICES!
-static char
-*gauge_spinordag_test( void )
+static char*
+gauge_spinordag_test( void )
 {
   double complex Id[ NCNC ] ;
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       Id[ j + i * NC ] = ( j != i ) ? 0.0 : 1.0 ;
@@ -125,12 +137,11 @@ static char
   struct spinor B ;
   gauge_spinordag( &B , Id , A ) ;
   // B should be the conjugate of the full 12x12 spinor matrix
-  int d1 , d2 ;
+  size_t d1 , d2 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       const double complex *a = (const double complex*)A.D[d1][d2].C ;
       const double complex *b = (const double complex*)B.D[d1][d2].C ;
-      int c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {			     
 	  mu_assert( "[UNIT] error : gauge_spinordag broken " , 
@@ -172,11 +183,11 @@ identity_spinor_test( void )
 }
 
 // compute B = A * Id, where Id is a color matrix, A & B are spinors
-static char
-*spinor_gauge_test( void )
+static char*
+spinor_gauge_test( void )
 {
   double complex Id[ NCNC ] ;
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       Id[ j + i * NC ] = ( j != i ) ? 0.0 : 1.0 ;
@@ -195,11 +206,11 @@ static char
 }
 
 // computes B = ( A )^{\dagger} Id, product over color indices
-static char
-*spinordag_gauge_test( void )
+static char*
+spinordag_gauge_test( void )
 {
   double complex Id[ NCNC ] ;
-  int i , j ; 
+  size_t i , j ; 
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       Id[ j + i * NC ] = ( j != i ) ? 0.0 : 1.0 ;
@@ -207,12 +218,11 @@ static char
   }
   struct spinor B ;
   spinordag_gauge( &B , A , Id ) ;
-  int d1 , d2 ;
+  size_t d1 , d2 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       const double complex *a = (const double complex*)A.D[d1][d2].C ;
       const double complex *b = (const double complex*)B.D[d1][d2].C ;
-      int c1 , c2 ;
       for( c1 = 0 ; c1 < NC ; c1++ ) {
 	for( c2 = 0 ; c2 < NC ; c2++ ) {
 	  mu_assert( "[UNIT] error : spinordag_gauge broken " , 
@@ -226,11 +236,11 @@ static char
 }
 
 // computes B = A * ( -I )^{\dagger}, product over color indices
-static char
-*spinor_gaugedag_test( void )
+static char*
+spinor_gaugedag_test( void )
 {
   double complex Id[ NCNC ] ;
-  int i , j ; 
+  size_t i , j ; 
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       Id[ j + i * NC ] = ( j != i ) ? 0.0 : -I ;
@@ -249,14 +259,14 @@ static char
 }
 
 // sum of a timeslice test
-static char
-*sumprop_test( void )
+static char*
+sumprop_test( void )
 {
   struct spinor SUM ;
   sumprop( &SUM , S ) ;
   const double *a = (double*)A.D ;
   const double *sum = (const double*)SUM.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2 * NSNS * NCNC ; i++ ) {
     mu_assert( "[UNIT] error : sum_prop broken " , 
 	       !( fabs( LCU * a[i] - sum[i] ) > FTOL ) ) ;
@@ -265,13 +275,13 @@ static char
 }
 
 // compute Id = ( Id * A ) using full spinor multiply
-static char
-*spinmul_atomic_left_test( void )
+static char*
+spinmul_atomic_left_test( void )
 {
   struct spinor Id ;
   spinor_zero_site( &Id ) ; // this MUST get tested befor this function call
   // maybe we should have this as identity spinor?
-  int d1d2 , c1c2 ;
+  size_t d1d2 , c1c2 ;
   for( d1d2 = 0 ; d1d2 < NS ; d1d2++ ) {
     for( c1c2 = 0 ; c1c2 < NC ; c1c2++ ) {
       Id.D[d1d2][d1d2].C[c1c2][c1c2] = 1.0 ;
@@ -280,7 +290,7 @@ static char
   spinmul_atomic_left( &Id , A ) ;
   const double *id = (const double *)Id.D ;
   const double *a = (const double *)A.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert( "[UNIT] error : spinmul_atomic_left broken " , 
 	       !( fabs( *a - *id ) > FTOL ) ) ; 
@@ -290,12 +300,12 @@ static char
 }
 
 // test for the whole spinor being zero
-static char
-*spinor_zero_test( void )
+static char*
+spinor_zero_test( void )
 {
   spinor_zero( S ) ;
   const double *a = (const double *)S ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < LCU*2*NSNS*NCNC ; i++ ) {
     mu_assert( "[UNIT] error : spinor_zero broken " , 
 	       !( fabs( *a ) > FTOL ) ) ; 
@@ -304,11 +314,12 @@ static char
   return NULL ;
 }
 
-static char
-*spintrace_test( void )
+// test we can take a trace
+static char*
+spintrace_test( void )
 {
   spintrace( D , A.D ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     const size_t res = ( NCNC * ( NSNS - 1 ) * NS ) / 2 + i * NS ;
     mu_assert( "[UNIT] error : spinor ops spintrace broken " , 
@@ -320,13 +331,34 @@ static char
   return NULL ;
 }
 
+// test we can take a transpose of only the dirac indices!!
+static char*
+transpose_spinor_test( void )
+{
+  struct spinor ST = transpose_spinor( A ) ;
+  size_t d1 , d2 , c1 , c2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  size_t check = c2 + NC * ( c1 + NC * ( d1 + NS*d2 ) ) ;				   
+	  mu_assert( "[UNIT] error : spinor ops transpose_spinor broken " , 
+		     !( fabs( creal( ST.D[d1][d2].C[c1][c2] ) - check ) > FTOL ||
+			fabs( cimag( ST.D[d1][d2].C[c1][c2] ) - check ) > FTOL ) ) ;
+	}
+      }
+    }
+  }
+  return NULL ;
+}
+
 // spinor tests
 static char *
 spinops_test( void )
 {
   // initialise A
   double complex *b = (double complex*)A.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS * NCNC ; i++ ) {
     *b = ( i + I * i ) , b++ ;
   }
@@ -351,6 +383,7 @@ spinops_test( void )
   mu_run_test( spinmul_atomic_left_test ) ;
   mu_run_test( spinor_zero_test ) ;
   mu_run_test( spintrace_test ) ;
+  mu_run_test( transpose_spinor_test ) ;
 
   return NULL ;
 }

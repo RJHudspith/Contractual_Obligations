@@ -6,13 +6,13 @@
 
 #include "basis_conversions.h"    // nrel_rotate_slice()
 #include "correlators.h"          // allocate_corrs() && free_corrs()
-#include "cut_routines.h"         // veclist
 #include "diquark_contraction.h"  // diquark()
 #include "gammas.h"               // make_gammas() && gamma_mmul*
 #include "GLU_timer.h"            // print_time()
 #include "io.h"                   // for read_prop()
 #include "plan_ffts.h"            // create_plans_DFT() 
 #include "read_propheader.h"      // for read_propheader()
+#include "setup.h"                // compute_correlator() ..
 #include "spinor_ops.h"           // sumprop()
 
 // degenerate diquarks
@@ -22,11 +22,11 @@ diquark_degen( struct propagator prop1 ,
 	       const char *outfile )
 {
   // counters
-  const size_t Nco = ( NCNC * NCNC ) ;
-  const size_t Ngm = ( B_CHANNELS * B_CHANNELS ) ;
+  const size_t stride1 = NSNS ;
+  const size_t stride2 = NSNS ;
 
   // flat dirac indices are all colors and all single gamma combinations
-  const size_t flat_dirac = Ngm * Nco ;
+  const size_t flat_dirac = stride1*stride2 ;
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -68,9 +68,7 @@ diquark_degen( struct propagator prop1 ,
     error_code = FAILURE ; goto memfree ;
   }
 
-  NMOM = malloc( sizeof( int ) ) ;
-  wwNMOM = malloc( sizeof( int ) ) ;
-
+  // allocate result array
   in = malloc( flat_dirac * sizeof( double complex* ) ) ;
   for( i = 0 ; i < flat_dirac ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
@@ -89,25 +87,18 @@ diquark_degen( struct propagator prop1 ,
   // create spatial volume fftw plans
   create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
 
-  list = (struct veclist*)compute_veclist( NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
-
-#else
-
-  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
-
 #endif
 
-  // allocate the zero veclist for our writing out purposes
-  if( prop1.source == WALL ) {
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
-  }
+  // initialise momentum lists
+  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
+	     prop1.source == WALL ? GLU_TRUE : GLU_FALSE ) ;
 
-  // Output with TETRA_OPS channels and B_CHANNELS 
-  diquark_corr = allocate_momcorrs( Ngm , Nco , NMOM[0] ) ;
+  // Output with stride1*stride2 size correlators
+  diquark_corr = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
 
-  // allocate the walls if we are using wall source propagators
+  // allocate the wall correlators if we are using wall source propagators
   if( prop1.source == WALL ) {
-    diquark_corrWW = allocate_momcorrs( Ngm , Nco , NMOM[0] ) ;
+    diquark_corrWW = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -144,29 +135,22 @@ diquark_degen( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	// diquark-diquark tetra
-	double complex result[ NCNC*NCNC ] ;
-
 	// loop gamma source
-	size_t GSGK , op ;
-	for( GSGK = 0 ; GSGK < Ngm ; GSGK++ ) {
+	size_t GSGK ;
+	for( GSGK = 0 ; GSGK < stride1*stride2 ; GSGK++ ) {
 	  // separate the gamma combinations
-	  const size_t GSRC = GSGK / B_CHANNELS ;
-	  const size_t GSNK = GSGK % B_CHANNELS ;
+	  const size_t GSRC = GSGK / stride1 ;
+	  const size_t GSNK = GSGK % stride2 ;
 
 	  // is the un-tilded one
 	  const struct gamma C_GSRC = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	  // is the tilded c-gamma
 	  const struct gamma C_GSNK = gt_Gdag_gt( CGmu( GAMMAS[ GSNK ] , GAMMAS ) , 
-						  GAMMAS[ IDENTITY ] ) ;
+						  GAMMAS[ GAMMA_3 ] ) ;
 
 	  // perform contraction, result in result
-	  diquark( result , S1[ site ] , S1[ site ] , C_GSRC , C_GSNK ) ;
-
-	  // put contractions into flattend array for FFT
-	  for( op = 0 ; op < Nco ; op++ ) {
-	    in[ op + Nco * GSGK ][ site ] = result[ op ] ;
-	  }
+	  in[ GSNK + stride2*GSRC ][ site ] = -2 * diquark( S1[ site ] , S1[ site ] , 
+							    C_GSRC , C_GSNK ) ;
 	}
       }
       // wall-wall contractions
@@ -176,27 +160,12 @@ diquark_degen( struct propagator prop1 ,
       // end of walls
     }
 
-    // momentum projection
-    size_t GSGK ;
-    #pragma omp parallel for private(GSGK) schedule(dynamic)
-    for( GSGK = 0 ; GSGK < Ngm ; GSGK++ ) {
-      size_t op , p ;
-      for( op = 0 ; op < Nco ; op++ ) {
-        #ifdef HAVE_FFTW3_H
-	fftw_execute( forward[ op + NCNC*NCNC*GSGK ] ) ;
-	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  diquark_corr[ GSGK ][ op ].mom[ p ].C[ tshifted ] =
-	    out[ op + Nco*GSGK ][ list[ p ].idx ] ;
-	}
-        #else
-	register double complex sum = 0.0 ;
-	for( p = 0 ; p < LCU ; p++ ) {
-	  sum += in[ op + Nco*GSGK ][ p ] ;
-	}
-	diquark_corr[ GSGK ][ op ].mom[ 0 ].C[ tshifted ] = sum ;
-        #endif
-      }
-    }
+    // function computes the correlator, fftw-ing if available
+    compute_correlator( diquark_corr , 
+			(const double complex**)in , 
+			(const double complex**)out , 
+			list , NMOM , forward , stride1 , stride2 , 
+			tshifted ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {
@@ -217,7 +186,7 @@ diquark_degen( struct propagator prop1 ,
 
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)diquark_corr ,
-		 list , Ngm , Nco , NMOM ) ;
+		 list , stride1 , stride2 , NMOM ) ;
 
   // if we have walls we use them
   if( prop1.source == WALL ) {
@@ -229,42 +198,14 @@ diquark_degen( struct propagator prop1 ,
 
   // free our correlators
   if( NMOM != NULL ) {
-    free_momcorrs( diquark_corr , Ngm , Nco , NMOM[0] ) ;
+    free_momcorrs( diquark_corr , stride1 , stride2 , NMOM[0] ) ;
     if( prop1.source == WALL ) {
-      free_momcorrs( diquark_corrWW , Ngm , Nco , wwNMOM[0] ) ;
+      free_momcorrs( diquark_corrWW , stride1 , stride2 , wwNMOM[0] ) ;
     }
   }
 
-  // free the "in" allocation
-  if( in != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( in[ i ] ) ;
-    }
-  }
-  free( in ) ;
-
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  if( out != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( out[ i ] ) ;
-    }
-  }
-  free( out ) ; 
-  if( forward != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      fftw_destroy_plan( forward[ i ] ) ;
-    }
-  }
-  free( forward )  ; 
-  if( backward != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      fftw_destroy_plan( backward[ i ] ) ;
-    }
-  }
-  free( backward ) ; 
-  fftw_cleanup( ) ; 
-#endif
+  // free our ffts
+  free_ffts( in , out , forward , backward , flat_dirac ) ;
 
   // free spinors
   free( S1f ) ; free( S1 ) ; 
@@ -276,7 +217,8 @@ diquark_degen( struct propagator prop1 ,
   // free the gammas
   free( GAMMAS ) ;
 
-  // rewind file and read header again
+  // rewind file and read header again, this should be in the 
+  // wrapper no?
   rewind( prop1.file ) ; read_propheader( &prop1 ) ;
 
   // tell us how long it all took

@@ -8,12 +8,12 @@
 #include "basis_conversions.h" // nrel_rotate_slice()
 #include "contractions.h"      // gamma_mul_lr()
 #include "correlators.h"       // allocate_corrs() && free_corrs()
-#include "cut_routines.h"      // veclist
 #include "gammas.h"            // make_gammas() && gamma_mmul*
 #include "GLU_timer.h"         // print_time()
 #include "io.h"                // for read_prop()
 #include "plan_ffts.h"         // create_plans_DFT() 
 #include "read_propheader.h"   // for read_propheader()
+#include "setup.h"             // free_ffts() ...
 #include "spinor_ops.h"        // sumprop()
 
 // 2-flavour degenerate baryon contraction
@@ -23,8 +23,12 @@ baryons_2fdiagonal( struct propagator prop1 ,
 		    struct cut_info CUTINFO ,
 		    const char *outfile )
 {
-  // flat dirac indices
-  const size_t flat_dirac = ( B_CHANNELS * B_CHANNELS ) * NSNS ;
+  // counters
+  const size_t stride1 = B_CHANNELS * B_CHANNELS ;
+  const size_t stride2 = NSNS ;
+
+  // flat dirac indices are all colors and all single gamma combinations
+  const size_t flat_dirac = stride1*stride2 ;
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -74,9 +78,6 @@ baryons_2fdiagonal( struct propagator prop1 ,
     }
   }
 
-  NMOM = malloc( sizeof( int ) ) ;
-  wwNMOM = malloc( sizeof( int ) ) ;
-
   in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
   for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
@@ -95,25 +96,18 @@ baryons_2fdiagonal( struct propagator prop1 ,
   // create spatial volume fftw plans
   create_plans_DFT( forward , backward , in , out , 2 * flat_dirac , ND-1 ) ;
 
-  list = (struct veclist*)compute_veclist( NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
-
-#else
-
-  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
-
 #endif
 
-  // allocate the zero veclist for our writing out purposes
-  if( prop1.source == WALL ) {
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
-  }
+  // initialise momentum lists
+  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
+	     prop1.source == WALL ? GLU_TRUE : GLU_FALSE ) ;
 
   // Define our output correlators, with B_CHANNELS channels and NSNS components
-  Buud_corr = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+  Buud_corr = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL ) {
-    Buud_corrWW = allocate_momcorrs( B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+    Buud_corrWW = allocate_momcorrs( stride1 , stride2 , wwNMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -168,7 +162,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       for( site = 0 ; site < LCU ; site++ ) {
 	
 	size_t GSGK ;
-	for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
+	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {
 	  
 	  const size_t GSRC = GSGK / B_CHANNELS ;
 	  const size_t GSNK = GSGK % B_CHANNELS ;
@@ -232,42 +226,14 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
   // free our momentum correlators
   if( NMOM != NULL ) {
-    free_momcorrs( Buud_corr , B_CHANNELS * B_CHANNELS , NSNS , NMOM[0] ) ;
+    free_momcorrs( Buud_corr , stride1 , stride2 , NMOM[0] ) ;
     if( prop1.source == WALL ) {
-      free_momcorrs( Buud_corrWW , B_CHANNELS * B_CHANNELS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( Buud_corrWW , stride1 , stride2 , wwNMOM[0] ) ;
     }
   }
 
-  // free the "in" allocation
-  if( in != NULL ) {
-    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-      free( in[ i ] ) ;
-    }
-  }
-  free( in ) ;
-
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  if( out != NULL ) {
-    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-      free( out[ i ] ) ;
-    }
-  }
-  free( out ) ; 
-  if( forward != NULL ) {
-    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-      fftw_destroy_plan( forward[i] ) ;
-    }
-  }
-  free( forward ) ;
-  if( backward != NULL ) {
-    for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
-      fftw_destroy_plan( backward[i] ) ;
-    }
-  }
-  free( backward ) ; 
-  fftw_cleanup( ) ; 
-#endif
+  // free our ffts
+  free_ffts( in , out , forward , backward , 2*flat_dirac ) ;
 
   // free spinors
   free( S1 ) ; free( S1f ) ;

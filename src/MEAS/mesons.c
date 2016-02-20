@@ -7,12 +7,12 @@
 #include "basis_conversions.h" // chiral->nrel
 #include "contractions.h"      // meson contract
 #include "correlators.h"       // for allocate_corrs and free_corrs
-#include "cut_routines.h"      // momentum list and stuff
 #include "gammas.h"            // gamma matrices
 #include "GLU_timer.h"         // print_time() 
 #include "io.h"                // read_prop
 #include "plan_ffts.h"         // ND-1 FFTS
 #include "read_propheader.h"   // (re)read the propagator header
+#include "setup.h"             // free_ffts() ..
 #include "spinor_ops.h"        // sumprop()
 
 // computes flavour-diagonal correlators
@@ -21,6 +21,13 @@ mesons_diagonal( struct propagator prop ,
 		 const struct cut_info CUTINFO ,
 		 const char *outfile )
 {
+  // counters
+  const size_t stride1 = NSNS ;
+  const size_t stride2 = NSNS ;
+
+  // flat dirac indices are all colors and all single gamma combinations
+  const size_t flat_dirac = stride1*stride2 ;
+
   // spinors, S1f is the forward one
   struct spinor *S1 = NULL , *S1f = NULL ;
 
@@ -62,16 +69,13 @@ mesons_diagonal( struct propagator prop ,
     error_code = FAILURE ; goto memfree ;
   }
 
-  // compute the momentum list for the specified cut
-  NMOM = (int*)malloc( sizeof( int ) ) ;
-
 #ifdef HAVE_FFTW3_H
 
-  in  = (double complex**)malloc( ( NSNS*NSNS ) * sizeof( double complex* ) ) ;
-  out = (double complex**)malloc( ( NSNS*NSNS ) * sizeof( double complex* ) ) ;
+  in  = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
+  out = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
 
-  forward  = ( fftw_plan* )malloc( ( NSNS*NSNS ) * sizeof( fftw_plan ) ) ; 
-  backward = ( fftw_plan* )malloc( ( NSNS*NSNS ) * sizeof( fftw_plan ) ) ; 
+  forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
+  backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
 
   // allocate FFTW storage
   #pragma omp parallel for private(i)
@@ -81,25 +85,20 @@ mesons_diagonal( struct propagator prop ,
   }
 
   // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , ( NSNS*NSNS ) , ND-1 ) ;
-
-  list = (struct veclist*)compute_veclist( NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
-
-#else
-
-  // create a ( 0 , 0 , 0 ) vector list
-  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
+  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
 
 #endif
 
+  // initialise momentum lists
+  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
+	     prop.source == WALL ? GLU_TRUE : GLU_FALSE ) ;
+
   // compute the dispersion correlator
-  disp = allocate_momcorrs( NSNS , NSNS , NMOM[0] ) ;
+  disp = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
 
   // wall-wall is already zero-projected
   if( prop.source == WALL ) {
-    wwNMOM = (int*)malloc( sizeof( int ) ) ;
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
-    wwdisp = allocate_momcorrs( NSNS , NSNS , wwNMOM[0] ) ;
+    wwdisp = allocate_momcorrs( stride1 , stride2 , wwNMOM[0] ) ;
   }
 
   // initially read in a timeslice
@@ -133,9 +132,9 @@ mesons_diagonal( struct propagator prop ,
       }
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)
-      for( GSGK = 0 ; GSGK < ( NSNS*NSNS ) ; GSGK++ ) {
-	const size_t GSRC = GSGK / NSNS ;
-	const size_t GSNK = GSGK % NSNS ;
+      for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
+	const size_t GSRC = GSGK / stride1 ;
+	const size_t GSNK = GSGK % stride2 ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
 						       GAMMAS[ GAMMA_3 ] ) ;
 	// loop spatial hypercube
@@ -151,7 +150,8 @@ mesons_diagonal( struct propagator prop ,
 	// pack our struct
 	size_t p ;
 	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  disp[ GSRC ][ GSNK ].mom[ p ].C[ tshifted ] = out[ GSGK ][ list[ p ].idx ] ;
+	  disp[ GSRC ][ GSNK ].mom[ p ].C[ tshifted ] = 
+	    out[ GSGK ][ list[ p ].idx ] ;
 	}
 	#else
 	// non - fftw version falls back to the usual zero-momentum sum
@@ -192,53 +192,29 @@ mesons_diagonal( struct propagator prop ,
   printf( "\n" ) ;
 
   // write out the ND-1 momentum-injected correlator
-  write_momcorr( outfile , (const struct mcorr**)disp , list , 
-		 NSNS , NSNS , NMOM ) ;
+  write_momcorr( outfile , (const struct mcorr**)disp , 
+		 list , stride1 , stride2 , NMOM ) ;
 
   // write the wall-wall correlator
   if( prop.source == WALL ) {
     char outstr[ 256 ] ;
     sprintf( outstr , "%s.ww" , outfile ) ;
     write_momcorr( outstr , (const struct mcorr**)wwdisp ,
-		   wwlist , NSNS , NSNS , wwNMOM ) ;
+		   wwlist , stride1 , stride2 , wwNMOM ) ;
   }
 
  memfree :
 
   // free correlators and momentum list
   if( NMOM != NULL ) {
-    free_momcorrs( disp , NSNS , NSNS , NMOM[0] ) ;
+    free_momcorrs( disp , stride1 , stride2 , NMOM[0] ) ;
     if( prop.source == WALL ) {
-      free_momcorrs( wwdisp , NSNS , NSNS , wwNMOM[0] ) ;
+      free_momcorrs( wwdisp , stride1 , stride2 , wwNMOM[0] ) ;
     }
   }
 
-  // free fftd stuff
-#ifdef HAVE_FFTW3_H
-  if( in != NULL ) {
-    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-      free( in[i] ) ;
-    }
-  }
-  if( out != NULL ) {
-    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-      free( out[i] ) ;
-    }
-  }
-  if( forward != NULL ) {
-    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-      fftw_destroy_plan( forward[i] ) ;
-    }
-  }
-  if( backward != NULL ) {
-    for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-      fftw_destroy_plan( backward[i] ) ;
-    }
-  }
-  free( forward )  ; free( backward ) ; 
-  fftw_free( out ) ; fftw_free( in ) ; 
-  fftw_cleanup( ) ; 
-#endif
+  // free our ffts
+  free_ffts( in , out , forward , backward , flat_dirac ) ;
 
   // free momenta lists
   free( NMOM ) ; free( (void*)list ) ;

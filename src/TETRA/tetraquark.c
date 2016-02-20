@@ -14,6 +14,7 @@
 #include "io.h"                 // for read_prop()
 #include "plan_ffts.h"          // create_plans_DFT() 
 #include "read_propheader.h"    // for read_propheader()
+#include "setup.h"              // compute_correlator() ..
 #include "spinor_ops.h"         // sumprop()
 #include "tetra_contractions.h" // diquark_diquark()
 
@@ -25,8 +26,12 @@ tetraquark( struct propagator prop1 ,
 	    struct cut_info CUTINFO ,
 	    const char *outfile )
 {
-  // flat dirac indices
-  const size_t flat_dirac = TETRA_NOPS * ( B_CHANNELS ) ; // is gamma_i
+  // counters
+  const size_t stride1 = TETRA_NOPS ;
+  const size_t stride2 = B_CHANNELS ;
+
+  // flat dirac indices are all colors and all single gamma combinations
+  const size_t flat_dirac = stride1*stride2 ;
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -79,9 +84,6 @@ tetraquark( struct propagator prop1 ,
     }
   }
 
-  NMOM = malloc( sizeof( int ) ) ;
-  wwNMOM = malloc( sizeof( int ) ) ;
-
   in = malloc( flat_dirac * sizeof( double complex* ) ) ;
   for( i = 0 ; i < flat_dirac ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
@@ -98,27 +100,20 @@ tetraquark( struct propagator prop1 ,
   backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ;
 
   // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
-
-  list = (struct veclist*)compute_veclist( NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
-
-#else
-
-  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
+  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;;
 
 #endif
 
-  // allocate the zero veclist for our writing out purposes
-  if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    wwlist = (struct veclist*)zero_veclist( wwNMOM , ND-1 , GLU_FALSE ) ;
-  }
+  // initialise momentum lists
+  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
+	     prop1.source == WALL ? GLU_TRUE : GLU_FALSE ) ;
 
   // Define our output correlators, with 2 channels and ND-1 components
-  tetra_corr = allocate_momcorrs( TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
+  tetra_corr = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
 
   // allocate the walls if we are using wall source propagators
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    tetra_corrWW = allocate_momcorrs( TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
+    tetra_corrWW = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
   }
 
   // read in the first timeslice
@@ -188,30 +183,29 @@ tetraquark( struct propagator prop1 ,
 	full_adj( &bwdH , S3[ site ] , GAMMAS[ GAMMA_5 ] ) ;
 
 	// diquark-diquark tetra
-	double complex result[ TETRA_NOPS ] ;
+	double complex result[ stride1 ] ;
 
 	// loop gamma source
 	size_t GSRC , op ;
-	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
+	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
 	  tetras( result , S1[ site ] , S2[ site ] , bwdH , GAMMAS , GSRC , 
 		  GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
-	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+	  for( op = 0 ; op < stride1 ; op++ ) {
 	    in[ op + TETRA_NOPS * GSRC ][ site ] = result[ op ] ;
 	  }
 	}
       }
       // wall-wall contractions
       if( prop1.source == WALL || prop2.source == WALL ) {
-
-	double complex result[ TETRA_NOPS ] ;
+	double complex result[ stride1 ] ;
 	size_t GSRC , op ;
-	for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
+	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
 	  tetras( result , SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC , GLU_FALSE ) ;
 	  // put contractions into final correlator object
-	  for( op = 0 ; op < TETRA_NOPS ; op++ ) {
+	  for( op = 0 ; op < stride1 ; op++ ) {
 	    tetra_corrWW[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
 	}
@@ -219,27 +213,12 @@ tetraquark( struct propagator prop1 ,
       }
     }
 
-    // momentum projection
-    size_t GSRC ;
-    #pragma omp parallel for private(GSRC) schedule(dynamic)
-    for( GSRC = 0 ; GSRC < B_CHANNELS ; GSRC++ ) {
-      size_t op , p ;
-      for( op = 0 ; op < TETRA_NOPS ; op++ ) {
-        #ifdef HAVE_FFTW3_H
-	fftw_execute( forward[ op + TETRA_NOPS * GSRC ] ) ;
-	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  tetra_corr[ op ][ GSRC ].mom[ p ].C[ tshifted ] =
-	    out[ op + TETRA_NOPS*GSRC ][ list[ p ].idx ] ;
-	}
-        #else
-	register double complex sum = 0.0 ;
-	for( p = 0 ; p < LCU ; p++ ) {
-	  sum += in[ op + TETRA_NOPS*GSRC ][ p ] ;
-	}
-	tetra_corr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = sum ;
-        #endif
-      }
-    }
+    // function computes the correlator, fftw-ing if available
+    compute_correlator( tetra_corr , 
+			(const double complex**)in , 
+			(const double complex**)out , 
+			list , NMOM , forward , stride1 , stride2 , 
+			tshifted ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {
@@ -262,14 +241,14 @@ tetraquark( struct propagator prop1 ,
 
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)tetra_corr ,
-		 list , TETRA_NOPS , B_CHANNELS , NMOM ) ;
+		 list , stride1 , stride2 , NMOM ) ;
 
   // if we have walls we use them
   if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
     char outstr[ 256 ] ;
     sprintf( outstr , "%s.ww" , outfile ) ;
     write_momcorr( outstr , (const struct mcorr**)tetra_corrWW ,
-		   wwlist , TETRA_NOPS , B_CHANNELS , wwNMOM ) ;
+		   wwlist , stride1 , stride2 , wwNMOM ) ;
   }  
 
   // failure sink
@@ -277,42 +256,14 @@ tetraquark( struct propagator prop1 ,
 
   // free our correlators
   if( NMOM != NULL ) {
-    free_momcorrs( tetra_corr , TETRA_NOPS , B_CHANNELS , NMOM[0] ) ;
+    free_momcorrs( tetra_corr , stride1 , stride2 , NMOM[0] ) ;
     if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-      free_momcorrs( tetra_corrWW , TETRA_NOPS , B_CHANNELS , wwNMOM[0] ) ;
+      free_momcorrs( tetra_corrWW , stride1 , stride2 , wwNMOM[0] ) ;
     }
   }
 
-  // free the "in" allocation
-  if( in != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( in[ i ] ) ;
-    }
-  }
-  free( in ) ;
-
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
-  if( out != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( out[ i ] ) ;
-    }
-  }
-  free( out ) ; 
-  if( forward != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      fftw_destroy_plan( forward[ i ] ) ;
-    }
-  }
-  free( forward )  ; 
-  if( backward != NULL ) {
-    for( i = 0 ; i < flat_dirac ; i++ ) {
-      fftw_destroy_plan( backward[ i ] ) ;
-    }
-  }
-  free( backward ) ; 
-  fftw_cleanup( ) ; 
-#endif
+  // free our ffts
+  free_ffts( in , out , forward , backward , flat_dirac ) ;
 
   // free spinors
   free( S1f ) ; free( S1 ) ; 

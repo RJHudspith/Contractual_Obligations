@@ -57,7 +57,7 @@ gamma_conj( const struct gamma G )
   res.g[ 2 ] = gconj( G.g[ 2 ] ) ; res.ig[ 2 ] = G.ig[ 2 ] ; 
   res.g[ 3 ] = gconj( G.g[ 3 ] ) ; res.ig[ 3 ] = G.ig[ 3 ] ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
     res.ig[ i ] = G.ig[ i ] ;
     res.g[ i ] = gconj( G.g[ i ] ) ;
@@ -77,7 +77,7 @@ gamma_dag( const struct gamma G )
   res.g[ 2 ] = gconj( G.g[ G.ig[ 2 ] ] ) ; res.ig[ G.ig[ 2 ] ] = 2 ;
   res.g[ 3 ] = gconj( G.g[ G.ig[ 3 ] ] ) ; res.ig[ G.ig[ 3 ] ] = 3 ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
     res.ig[ G.ig[ i ] ] = i ;
     res.g[ i ] = gconj( G.g[ G.ig[ i ] ] ) ;
@@ -135,9 +135,9 @@ gamma_mmul( struct gamma *__restrict a ,
   a -> ig[3] = c.ig[ b.ig[3] ] ;
   a ->  g[3] = ( b.g[3] + c.g[ b.ig[3] ] ) & 3 ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
-    const int j = b.ig[i] ; // non-zero column
+    const size_t j = b.ig[i] ; // non-zero column
     a -> ig[i] = c.ig[j] ;
     a -> g[i] = ( b.g[i] + c.g[j] ) & 3 ;
   }
@@ -156,7 +156,7 @@ gamma_transpose( const struct gamma G )
   res.g[ 2 ] = G.g[ G.ig[ 2 ] ] ; res.ig[ G.ig[ 2 ] ] = 2 ;
   res.g[ 3 ] = G.g[ G.ig[ 3 ] ] ; res.ig[ G.ig[ 3 ] ] = 3 ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
     res.ig[ G.ig[ i ] ] = i ;
     res.g[ i ] = G.g[ G.ig[ i ] ] ;

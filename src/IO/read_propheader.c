@@ -47,7 +47,7 @@ get_propdims( size_t *dims )
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     dims[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
-    if( token == endptr || errno == ERANGE || dims[ N ] < 0 ) {
+    if( token == endptr || errno == ERANGE ) {
       printf( "[IO] propheader dims[%zu] misread %zu \n" , N , dims[ N ] ) ;
       return FAILURE ;
     }
@@ -74,7 +74,7 @@ get_propsrc( size_t *origin )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     origin[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
     if( token == endptr || errno == ERANGE || 
-	origin[ N ] < 0 || origin[ N ] > Latt.dims[ N ] ) {
+	origin[ N ] > Latt.dims[ N ] ) {
       printf( "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
 	      N , origin[ N ] ) ;
       return FAILURE ;

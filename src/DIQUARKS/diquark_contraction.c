@@ -4,48 +4,34 @@
  */
 #include "common.h"
 
+#include "contractions.h"
+#include "matrix_ops.h"
 #include "spinmatrix_ops.h"
-#include "tetra_contractions.h"
+#include "spinor_ops.h"
 
-// diquark is ( \psi^T C_GSRC \chi )
+// diquark is epsilon_{eab}( \psi_a^T C_GSRC \chi_b )
 // contraction reads
 // 
-// Tr_S( P_ac C_GSRC C_bd C_GSNK )
+// Tr_S( P_aa C_GSRC C_bb C_GSNK ) - Tr_S( P_ab C_GSRC C_ba C_GSNK )
 // where C_GSNK is tilded
-int
-diquark( double complex *result , 
-	 struct spinor S1 , 
-	 struct spinor S2 ,
+double complex
+diquark( const struct spinor S1 , 
+	 const struct spinor S2 ,
 	 const struct gamma C_GSRC , 
 	 const struct gamma C_GSNK ) 
 {
-  // flattened number of colors we loop over
-  const size_t Nco = NCNC * NCNC ;
+  struct spinor ST = transpose_spinor( S1 ) ;
 
-  // index loops
-  size_t abcd ;
+  double complex D1[ NSNS ] , D2[ NSNS ] ;
 
-  // temporaries blocks of spinmatrix data
-  struct block *C1 = NULL ;
+  // trace out the color indices into spinmatrices
+  colortrace_spinor( D1 , &ST ) ;
+  colortrace_spinor( D2 , &S2 ) ;
 
-  // make everything a NaN if we fail to allocate memory
-  if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct block ) ) != 0 ) {
-    goto memfree ;
-  }
-
-  // precompute usual spinor  block
-  precompute_block( C1 , S1 , C_GSRC , S2 , C_GSNK ) ;
-
-  // loop all possible color combinations
-  for( abcd = 0 ; abcd < Nco ; abcd++ ) {
-    result[ abcd ] = spinmatrix_trace( C1[ abcd ].M ) ;
-  }
-
-  free( C1 ) ;
-
-  return SUCCESS ;
-
- memfree :
-  free( C1 ) ;
-  return sqrt(-1) ;
+  // multiply on the right with the gammas
+  spinmatrix_gamma( D1 , C_GSRC ) ;
+  spinmatrix_gamma( D2 , C_GSNK ) ;
+  
+  return trace_prod_spinmatrices( D2 , D1 ) - 
+    simple_meson_contract( C_GSNK , ST , C_GSRC , S2 ) ;
 }

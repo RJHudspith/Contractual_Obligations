@@ -14,7 +14,7 @@ static void
 add_spinors( __m128d *SUM ,
 	     const __m128d *S )
 {
-  int i ;
+  size_t i ;
 #if NC == 3 
   for( i = 0 ; i < NSNS ; i++ ) {
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
@@ -47,7 +47,7 @@ static void
 zero_spinor( __m128d *S )
 {
   register const __m128d zero = _mm_setzero_pd( ) ;
-  int i ;
+  size_t i ;
 #if NC == 3 
   for( i = 0 ; i < NSNS ; i++ ) {
     *S = zero ; S++ ;
@@ -81,7 +81,7 @@ colortrace_spinor( void *S1 ,
 {
   __m128d *s = (__m128d*)S1 ;
   const __m128d *s2 = (const __m128d*)S2 ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
     *s = _mm_setzero_pd( ) ;
     #if NC == 3
@@ -92,7 +92,7 @@ colortrace_spinor( void *S1 ,
     *s = _mm_add_pd( *s , *( s2 + 0 ) ) ; 
     *s = _mm_add_pd( *s , *( s2 + 3 ) ) ; 
     #else
-    int c ;
+    size_t c ;
     for( c = 0 ; c < NC ; c++ ) {
       *s = _mm_add_pd( *s , *( s2 + c * ( NC + 1 ) ) ) ; 
     }
@@ -111,7 +111,7 @@ equate_spinor( void *S ,
   __m128d *s = (__m128d*)S ;
   const __m128d *s2 = (const __m128d*)S2 ;
   // probably be better calling out to memcpy ....
-  int i ;
+  size_t i ;
 #if NC == 3 
   for( i = 0 ; i < NSNS ; i++ ) {
     *s = *s2 ; s++ ; s2++ ;
@@ -178,7 +178,7 @@ equate_spinor_minus( void *mS ,
 void
 flipsign_spinor( void *S ) 
 {
-  int i ;
+  size_t i ;
   __m128d *s = (__m128d*)S ;
 #if NC == 3
   for( i = 0 ; i < NSNS ; i++ ) {
@@ -216,7 +216,7 @@ gauge_spinor( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multab( r , l , s ) ;
     r += NCNC ; s += NCNC ;
@@ -233,7 +233,7 @@ gaugedag_spinor( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multabdag( r , l , s ) ;
     r += NCNC ; s += NCNC ;
@@ -250,7 +250,7 @@ gauge_spinordag( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multab_dag( r , l , s ) ;
     r += NCNC ; s += NCNC ;
@@ -289,7 +289,7 @@ spinor_gauge( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multab( r , s , l ) ;
     r += NCNC ; s += NCNC ;
@@ -306,7 +306,7 @@ spinordag_gauge( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multabdag( r , s , l ) ;
     r += NCNC ; s += NCNC ;
@@ -323,7 +323,7 @@ spinor_gaugedag( struct spinor *__restrict res ,
   __m128d *r = (__m128d*)res -> D ;
   const __m128d *l = (const __m128d*)link ;
   const __m128d *s = (const __m128d*)S.D ;
-  int d1d2 ;
+  size_t d1d2 ;
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     multab_dag( r , s , l ) ;
     r += NCNC ; s += NCNC ;
@@ -336,7 +336,7 @@ void
 spinor_zero( void *S )
 {
   __m128d *s = (__m128d*)S ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     zero_spinor( s + i * ( NSNS * NCNC ) ) ;
@@ -357,7 +357,7 @@ spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B )
 {
   struct spinor tmp = *A ;
-  int d1 , d2 , d3 ;
+  size_t d1 , d2 , d3 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       __m128d link[ NCNC ] , sum[ NCNC ] ;
@@ -387,7 +387,7 @@ sumprop( void *SUM ,
   __m128d *tSUM = (__m128d*)SUM ;
   zero_spinor( tSUM ) ;
   const __m128d *tS = (const __m128d*)S ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < VOL3 ; i++ ) {
     add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
   }
@@ -401,7 +401,7 @@ spintrace( void *S ,
 {
   __m128d *s = (__m128d*)S ;
   const __m128d *s2 = (const __m128d*)S2 ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     #if NS == 4
     *s = *( s2 ) ;
@@ -409,7 +409,7 @@ spintrace( void *S ,
     *s = _mm_add_pd( *s , *( s2 + 2 * NCNC * ( NS + 1 ) ) ) ;
     *s = _mm_add_pd( *s , *( s2 + 3 * NCNC * ( NS + 1 ) ) ) ;
     #else
-    int j ;
+    size_t j ;
     *s = _mm_setzero_pd( ) ;
     for( j = 0 ; j < NS ; j++ ) {
       *s = _mm_add_pd( *s , *( s2 + j * NCNC * ( NS + 1 ) ) ) ;
@@ -418,6 +418,21 @@ spintrace( void *S ,
     s++ ;
     s2 ++ ;
   }
+}
+
+// dirac transpose a spinor, returns S^T on stack
+struct spinor
+transpose_spinor( const struct spinor S )
+{
+  struct spinor ST ;
+  size_t d1d2 ;
+  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+    const size_t d1 = d1d2 / NS ;
+    const size_t d2 = d1d2 % NS ;
+    colormatrix_equiv( (double complex*)ST.D[d2][d1].C ,
+		       (const double complex*)S.D[d1][d2].C ) ;
+  }
+  return ST ;
 }
 
 #endif

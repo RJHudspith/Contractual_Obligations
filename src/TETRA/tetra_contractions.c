@@ -9,6 +9,7 @@
 #include "contractions.h"       // gamma_mul_r()
 #include "gammas.h"             // Cgmu()
 #include "spinmatrix_ops.h"     // trace_prod, get_spinmatrix()
+#include "spinor_ops.h"         // transpose_spinor()
 #include "tetra_contractions.h" // alphabetising
 
 // diquark-diquark contractions, now have 4 operators
@@ -43,41 +44,25 @@ diquark_diquark( double complex *result ,
   // Eq.37 in note is O_1 O_1^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg1 , D , Cg2 ) ;
-    precompute_block( C2 , B , Cg3 , B , Cg4 ) ;
+    precompute_block( C1 , transpose_spinor( U ) , Cg1 , D , Cg2 ) ;
+    precompute_block( C2 , B , Cg3 , transpose_spinor( B ) , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
 	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
 	(
-	 /*
-	 // normal1 -> +aa
-	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
-	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
-	 // cross1  -> -ab
-	 -spinmatrix_trace( C2[ element( d , a , c , b ) ].M )
-	 +spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
-	 // cross2  -> -ba
-	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
-	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
-	 // normal2 -> +bb
-	 +spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
-	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) 
-	 */
 	 // factorises to below, can remove 2* in a bit
-	 +2*spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
-	 -2*spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
-	 -2*spinmatrix_trace( C2[ element( d , a , c , b ) ].M )
-	 +2*spinmatrix_trace( C2[ element( d , b , c , a ) ].M )
+	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
+	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
 	  ) ;
     }
-    result[0] = sum ;
+    result[0] = 4 * sum ;
   }
   // Eq.41 in note is O_1 O_2^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , B , Cg3 , B , Cg2 ) ;
-    precompute_block( C2 , U , Cg1 , D , Cg4 ) ;
+    precompute_block( C1 , B , Cg3 , transpose_spinor( B ) , Cg2 ) ;
+    precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       sum += 
@@ -86,12 +71,13 @@ diquark_diquark( double complex *result ,
 	trace_prod_spinmatrices( C1[ element( c , b , d , a ) ].M ,
 				 C2[ element( a , c , b , d ) ].M ) ;
     }
-    result[1] = sum ;
+    result[1] = 4* sum ;
   }
   // Eq.43 in note is O_2 O_1^{\dagger}
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg1 , B , Cg4 ) ;
+    precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
+		           transpose_spinor( B ) , Cg4 ) ;
     precompute_block( C2 , B , Cg3 , D , Cg2 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
@@ -101,12 +87,13 @@ diquark_diquark( double complex *result ,
 	trace_prod_spinmatrices( C1[ element( a , c , d , a ) ].M ,
 				 C2[ element( c , b , b , d ) ].M ) ;
     }
-    result[2] = sum ;
+    result[2] = 4*sum ;
   }
   // Eq.39 in note is O_2 O_2^\dagger
   {
     sum = 0.0 ;
-    precompute_block( C1 , U , Cg1 , B , Cg2 ) ;
+    precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
+		           transpose_spinor( B ) , Cg2 ) ;
     precompute_block( C2 , B , Cg3 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
@@ -118,7 +105,7 @@ diquark_diquark( double complex *result ,
 	spinmatrix_trace( C1[ element( a , c , d , a ) ].M ) * 
 	spinmatrix_trace( C2[ element( c , b , b , d ) ].M ) ;
     }
-    result[3] = sum ;
+    result[3] = 4*sum ;
   }
 
   free( C1 ) ;

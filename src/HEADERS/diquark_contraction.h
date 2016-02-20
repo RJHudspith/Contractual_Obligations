@@ -6,12 +6,11 @@
 #define DIQUARK_CONTRACTION_H
 
 /**
-   @fn int diquark( double complex *result , struct spinor S1 , struct spinor S2 , const struct gamma C_GSRC , const struct gamma C_GSNK ) 
+   @fn double complex diquark( struct spinor S1 , struct spinor S2 , const struct gamma C_GSRC , const struct gamma C_GSNK ) 
    @brief contract two diquarks
  */
-int
-diquark( double complex *result , 
-	 struct spinor S1 , 
+double complex
+diquark( struct spinor S1 , 
 	 struct spinor S2 ,
 	 const struct gamma C_GSRC , 
 	 const struct gamma C_GSNK ) ;

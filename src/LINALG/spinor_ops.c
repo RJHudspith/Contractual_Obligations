@@ -25,7 +25,7 @@ add_spinors( double complex *SUM ,
 static void
 zero_spinor( double complex *S ) 
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
     *S = 0.0 ; S++ ;
   }
@@ -39,11 +39,10 @@ colortrace_spinor( void *S1 ,
 {
   double complex *s1 = (double complex*)S1 ;
   const struct spinor *s2 = (const struct spinor*)S2 ;
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NS ; i++ ) {
     for( j = 0 ; j < NS ; j++ ) {
-      *s1 = colortrace( (double complex*)s2->D[i][j].C ) ;
-      s1++ ;
+      s1[ j + i*NS ] = colortrace( (double complex*)s2->D[i][j].C ) ;
     }
   }
   return ;
@@ -284,6 +283,21 @@ sumprop( void *SUM ,
     add_spinors( sum , s ) ; s += NSNS*NCNC ;
   }
   return ;
+}
+
+// dirac transpose a spinor, returns S^T on stack
+struct spinor
+transpose_spinor( const struct spinor S )
+{
+  struct spinor ST ;
+  size_t d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      colormatrix_equiv( (double complex*)ST.D[d2][d1].C ,
+			 (const double complex*)S.D[d1][d2].C ) ;
+    }
+  }
+  return ST ;
 }
 
 #endif

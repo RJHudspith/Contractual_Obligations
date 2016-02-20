@@ -190,13 +190,13 @@ read_nrprop( struct propagator prop ,
 
       // various poking-in of spinors
       // top left
-      //fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
+      fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
       // top right
       //fill_spinor( &S[i] , tmp , NR_NS , 0 , NR_NS , sizeof(double complex) ) ;
       // bottom left
       //fill_spinor( &S[i] , tmp , NR_NS , NR_NS , 0 , sizeof(double complex) ) ;
       // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
-      fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
+      //fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
     }
   }
 

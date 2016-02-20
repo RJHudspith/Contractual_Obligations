@@ -42,7 +42,7 @@ get_dims( size_t *dims ,
       return tag_failure( str ) ; 
     }
     dims[ mu ] = (size_t)strtol( INPUT[ dims_idx ].VALUE , &endptr , 10 ) ;
-    if( dims[ mu ] < 0 || INPUT[ dims_idx ].VALUE == endptr ||
+    if( INPUT[ dims_idx ].VALUE == endptr ||
 	errno == ERANGE ) {
       printf( "[IO] non-sensical dimension value %zu \n" , dims[ mu ] ) ;
       return FAILURE ;

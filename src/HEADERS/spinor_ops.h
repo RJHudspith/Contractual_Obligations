@@ -147,6 +147,14 @@ void
 sumprop( void *SUM ,
 	 const void *S ) ;
 
+/**
+   @fn struct spinor transpose_spinor( const struct spinor S )
+   @brief transpose a spinor @S
+   #return the transpose of S
+ */
+struct spinor
+transpose_spinor( const struct spinor S ) ;
+
 #endif
 
 #endif
