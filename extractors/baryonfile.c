@@ -70,13 +70,22 @@ main( const int argc ,
   }
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
+  // usual allocations
   struct gamma *GAMMAS = NULL ;     // Gamma matrices
   struct mcorr **corr = NULL ;      // read-in correlator
   struct veclist *momentum = NULL ; // momentum list
   struct mcorr **proj_corr = NULL ; // projected correlator
 
-  // set the basis
+  // enums
   proptype basis = CHIRAL ;
+  spinhalf spin_proj = NONE ;
+  bprojection parity_proj = L0 ;
+  GLU_bool time_flip = GLU_FALSE ;
+
+  size_t mu , GSGK ;
+  char *tok = NULL ;
+
+  // set the basis
   if( are_equal( argv[ GAMMA_BASIS ] , "NREL" ) ) {
     basis = NREL ;
   } else if( are_equal( argv[ GAMMA_BASIS ] , "STATIC" ) ) {
@@ -90,7 +99,6 @@ main( const int argc ,
   }
 
   // set the spin projection
-  spinhalf spin_proj = NONE ;
   if( are_equal( argv[ SPIN_PROJ ] , "1/2_11" ) ) {
     printf( "[SPIN] Performing the 11 spin-1/2 projection\n" ) ;
     spin_proj = OneHalf_11 ;
@@ -111,7 +119,6 @@ main( const int argc ,
   }
 
   // set the parity projection
-  bprojection parity_proj = L0 ;
   if( are_equal( argv[ PARITY_PROJ ] , "L0" ) ) {
     printf( "[PARITY] Performing an L0 projection\n" ) ;
     parity_proj = L0 ;
@@ -137,14 +144,12 @@ main( const int argc ,
   }
 
   // are we flipping the time direction?
-  GLU_bool time_flip = GLU_FALSE ;
   if( are_equal( argv[ TIME_FLIP ] , "true" ) ) {
     time_flip = GLU_TRUE ;
   }
 
   // get the dimensions
-  size_t mu ;
-  char *tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
+  tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
   Latt.dims[ 0 ] = (int)atoi( tok ) ;
   if( Latt.dims[ 0 ] < 1 ) {
     printf( "[INPUTS] non-sensical lattice dimension 0 %zu \n" , 
@@ -177,7 +182,6 @@ main( const int argc ,
   if( corr == NULL || proj_corr == NULL ) goto memfree ;
 
   // do the projection
-  size_t GSGK ;
 #pragma omp parallel for private( GSGK )
   for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
 

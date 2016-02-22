@@ -69,6 +69,7 @@ WME( struct propagator s0 ,
 
   // allocate the basis
   struct gamma *GAMMAS = NULL ;
+  struct gamma PROJ ;
 
   // momentum list stuff
   int *NMOM = NULL ;
@@ -109,7 +110,7 @@ WME( struct propagator s0 ,
   }
 
   // pseudoscalar projection state
-  const struct gamma PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
+  PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
 
   // create a ( 0 , 0 , 0 ) vector list
   NMOM = malloc( sizeof( int ) ) ;

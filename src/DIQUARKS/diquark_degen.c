@@ -30,6 +30,7 @@ diquark_degen( struct propagator prop1 ,
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
+  struct gamma *GAM1 = NULL , *GAM2 = NULL ;
 
   // and our spinors
   struct spinor *S1 = NULL , *S1f = NULL ;
@@ -70,8 +71,8 @@ diquark_degen( struct propagator prop1 ,
 
   // create a look up table for the gammas, these are square 
   // so we only do the first NSNS
-  struct gamma *GAM1 = malloc( stride1 * sizeof( struct gamma ) ) ;
-  struct gamma *GAM2 = malloc( stride2 * sizeof( struct gamma ) ) ; 
+  GAM1 = malloc( stride1 * sizeof( struct gamma ) ) ;
+  GAM2 = malloc( stride2 * sizeof( struct gamma ) ) ; 
   for( i = 0 ; i < stride1 ; i++ ) {
     GAM1[ i ]= CGmu( GAMMAS[ i ] , GAMMAS ) ;
   }

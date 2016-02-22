@@ -160,13 +160,12 @@ cl_offdiagonal( struct propagator prop1 ,
   }
 
   // and contract the final timeslice
-  const size_t tshifted = ( t + LT - prop1.origin[ ND-1 ] ) % LT ;
 #pragma omp for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
     contract_conserved_local_site( DATA_AA , DATA_VV , 
 				   lat , S1 , S1END , S2 , S2END ,
 				   GAMMAS , AGMAP , VGMAP , x , 
-				   tshifted ) ;
+				   ( t + LT - prop1.origin[ ND-1 ] ) % LT ) ;
   }
   printf("\r[VPF] cl-flavour off diagonal done 100%% \n" ) ; 
 

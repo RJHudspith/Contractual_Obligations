@@ -127,13 +127,12 @@ cl_diagonal( struct propagator prop ,
   }
 
   // and contract the final timeslice
-  const size_t tshifted = ( t + LT - prop.origin[ ND-1 ] ) % LT ;
 #pragma omp parallel for private(x)
   for( x = 0 ; x < LCU ; x++ ) {
     contract_conserved_local_site( DATA_AA , DATA_VV , 
 				   lat , S1 , S1END , S1 , S1END ,
 				   GAMMAS , AGMAP , VGMAP , x , 
-				   tshifted ) ;
+				   ( t + LT - prop.origin[ ND-1 ] ) % LT  ) ;
   }
   printf("\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
 

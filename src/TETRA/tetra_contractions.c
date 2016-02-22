@@ -61,6 +61,9 @@ diquark_diquark( double complex *result ,
   // Eq.41 in note is O_1 O_2^\dagger
   {
     sum = 0.0 ;
+    // note:
+    //precompute_block( C1 , B , Cg3 , transpose_spinor( B ) , Cg2 ) ;
+    //precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
     precompute_block( C1 , transpose_spinor( B ) , Cg3 , B , Cg2 ) ;
     precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
@@ -76,6 +79,10 @@ diquark_diquark( double complex *result ,
   // Eq.43 in note is O_2 O_1^{\dagger}
   {
     sum = 0.0 ;
+    // note:
+    //precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
+    //                       transpose_spinor( B ) , Cg4 ) ;
+    //precompute_block( C2 , B , Cg3 , D , Cg2 ) ;
     precompute_block( C1 , transpose_spinor( U ) , Cg1 , B , Cg4 ) ;
     precompute_block( C2 , transpose_spinor( B ) , Cg3 , D , Cg2 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
@@ -137,17 +144,20 @@ dimeson( const struct spinor U , // u prop
   // temporaries blocks of spinmatrix data
   struct block *C1 = NULL , *C2 = NULL ;
 
+  // precompute our tilded temporaries
+  const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt )  ;
+  const struct gamma tildegi = gt_Gdag_gt( gi , gt )  ;
+
+  // sums
+  register double complex sum1 = 0.0 ;
+  register double complex sum2 = 0.0 ;
+
   // make everything a NaN if we fail to allocate memory
   if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct block ) ) != 0 || 
       corr_malloc( (void**)&C2 , 16 , Nco * sizeof( struct block ) ) != 0 ) {
     goto memfree ;
   }
 
-  // precompute our tilded temporaries
-  const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt )  ;
-  const struct gamma tildegi = gt_Gdag_gt( gi , gt )  ;
-
-  register double complex sum1 = 0.0 ;
   // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
   {
     precompute_block( C1 , B , g5 , U , tildeg5 ) ;
@@ -165,7 +175,6 @@ dimeson( const struct spinor U , // u prop
 	spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
     }
   }
-  register double complex sum2 = 0.0 ;
   // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note
   {
     precompute_block( C1 , B , gi , D , tildeg5 ) ;
