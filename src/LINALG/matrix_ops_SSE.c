@@ -29,7 +29,7 @@ add_mat( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     *a += *b ; a++ ; b++ ;
   }
@@ -42,16 +42,7 @@ void
 colormatrix_equiv( double complex *__restrict a ,
 		   const double complex *__restrict b )
 {
-#if NC == 3
-  a[0] = b[0] ; a[1] = b[1] ; a[2] = b[2] ; 
-  a[3] = b[3] ; a[4] = b[4] ; a[5] = b[5] ; 
-  a[6] = b[6] ; a[7] = b[7] ; a[8] = b[8] ; 
-#else
-  int i ;
-  for( i = 0 ; i < NCNC ; i++ ) {
-    a[ i ] = b[i] ;
-  }
-#endif
+  memcpy( a , b , NCNC*sizeof( double complex ) ) ;
   return ;
 }
 
@@ -68,7 +59,7 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   a[0] = (double complex)b[0] ; a[1] = (double complex)b[1] ;
   a[2] = (double complex)b[2] ; a[3] = (double complex)b[3] ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     a[ i ] = (double complex)b[i] ;
   }
@@ -84,7 +75,7 @@ colortrace( const __m128d *a )
   return _mm_add_pd( _mm_add_pd( a[ 0 ] , a[ 4 ] ) , a[8] ) ; 
 #else
   register __m128d sum = _mm_setzero_pd( ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NC ; i++ ) {
     sum = _mm_add_pd( sum , a[ i*( NC + 1 ) ] ) ;
   }
@@ -108,9 +99,8 @@ colortrace_prod( const __m128d *a ,
   return _mm_add_pd( sum , _mm_add_pd( SSE2_MUL( a[2] , b[1] ) , SSE2_MUL( a[3] , b[3] ) ) ) ;
 #else
   register __m128d sum = _mm_setzero_pd( ) ;
-  int i ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
-    int j ;
     for( j = 0 ; j < NC ; j++ ) {
       sum = _mm_add_pd( sum , SSE2_MUL( a[j+i*NC] , b[i+j*NC] ) ) ;
     }
@@ -133,7 +123,7 @@ constant_mul_gauge( double complex *__restrict res ,
   res[0] = constant * U[0] ; res[1] = constant * U[1] ; 
   res[2] = constant * U[2] ; res[3] = constant * U[3] ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     res[ i ] = constant * U[ i ] ;
   }
@@ -162,7 +152,7 @@ dagger_gauge( __m128d *__restrict res ,
   *res = SSE2_CONJ( *( U + 1 ) ) ; res++ ; 
   *res = SSE2_CONJ( *( U + 3 ) ) ; res++ ; 
 #else
-  int i , j ;
+  size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       *res = SSE2_CONJ( U[ i + j * NC ] ) ; res++ ;

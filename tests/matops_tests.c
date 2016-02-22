@@ -14,7 +14,8 @@ typedef __m128d dcomplex ;
 typedef double complex dcomplex ;
 #endif
 
-static double complex *U ; // is a color matrix
+static double complex *U  ; // is a color matrix
+static double complex *V  ; // is a color matrix
 static double complex *Id ; // is a color matrix
 static dcomplex *res ;
 
@@ -37,10 +38,9 @@ dcast( dcomplex a )
 static char *
 add_mat_test( void )
 {
-  double complex V[ NCNC ] ;
   colormatrix_equiv( V , U ) ;
   add_mat( (dcomplex*)V , (const dcomplex*)U ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     mu_assert( "[MATOPS UNIT] error : add_mat broken" , 
 	       !( fabs( creal( V[i] ) - 2.0 * creal( U[i] ) ) ||
@@ -55,7 +55,7 @@ colormatrix_equiv_test( void )
 {
   double complex V[ NCNC ] ;
   colormatrix_equiv( V , U ) ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     mu_assert( "[MATOPS UNIT] error : colormatrix_equiv broken" , 
 	       !( fabs( creal( V[i] ) - creal( U[i] ) ) > FTOL ||
@@ -68,13 +68,13 @@ colormatrix_equiv_test( void )
 static char *
 colormatrix_equiv_f2d_test( void )
 {
-  float complex V[ NCNC ] ;
-  int i ;
+  float complex v[ NCNC ] ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
-    V[ i ] = (float complex)U[ i ] ;
+    v[ i ] = (float complex)U[ i ] ;
   }
   double complex W[ NCNC ] ;
-  colormatrix_equiv_f2d( W , V ) ;
+  colormatrix_equiv_f2d( W , v ) ;
   for( i = 0 ; i < NCNC ; i++ ) {
     mu_assert( "[MATOPS UNIT] error : colormatrix_equiv broken" , 
 	       !( fabs( creal( W[i] ) - creal( U[i] ) ) > 1E-6 ||
@@ -233,9 +233,10 @@ int
 matops_test_driver( void )
 {
   // temporary storage
-  corr_malloc( (void**)&U , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&U   , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&V   , 16 , NCNC * sizeof( double complex ) ) ;
   corr_malloc( (void**)&res , 16 , NCNC * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&Id , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&Id  , 16 , NCNC * sizeof( double complex ) ) ;
 
   // initialise the test counters
   tests_run = tests_fail = 0 ;
@@ -245,6 +246,7 @@ matops_test_driver( void )
 
   // and free the memory
   free( U ) ;
+  free( V ) ;
   free( res ) ;
   free( Id ) ;
 

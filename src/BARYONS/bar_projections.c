@@ -30,14 +30,19 @@ momentum_factor_left( double complex *proj ,
 		      const size_t i ,
 		      const size_t j )
 {
-  double complex tmp2[ NSNS ] , tmp1[ NSNS ] ;
-  size_t d1  ;
+  // temporary space
+  double complex *tmp1 = NULL , *tmp2 = NULL ;
+  if( corr_malloc( (void**)&tmp1 , 16 , NSNS*sizeof( double complex ) ) != 0 ||
+      corr_malloc( (void**)&tmp2 , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+    goto memfree ;
+  }
   // set proj to zero
   zero_spinmatrix( proj ) ;
   // no use in adding zeros
   if( fabs( p[ j ] ) > 0 ) {
     // set tmp1 to be diagonal with p[ j ]
     zero_spinmatrix( tmp1 ) ;
+    size_t d1  ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       tmp1[ d1 * ( NS + 1 ) ] = p[ j ] ;
     }
@@ -48,6 +53,8 @@ momentum_factor_left( double complex *proj ,
     // add into D
     atomic_add_spinmatrices( proj , tmp2 ) ;
   }
+ memfree :
+  free( tmp1 ) ; free( tmp2 ) ;
   return ;
 }
 
@@ -60,14 +67,19 @@ momentum_factor_right( double complex *proj ,
 		       const size_t i ,
 		       const size_t j )
 {
-  double complex tmp2[ NSNS ] , tmp1[ NSNS ] ;
-  size_t d1 ;
+  // temporary space
+  double complex *tmp1 = NULL , *tmp2 = NULL ;
+  if( corr_malloc( (void**)&tmp1 , 16 , NSNS*sizeof( double complex ) ) != 0 ||
+      corr_malloc( (void**)&tmp2 , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+    goto memfree ;
+  }
   // set proj to zero
   zero_spinmatrix( proj ) ;
   // no use in adding zeros
   if( fabs( p[ i ] ) > 0 ) {
     // set tmp1 to be diagonal with p[ i ]
     zero_spinmatrix( tmp1 ) ;
+    size_t d1 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       tmp1[ d1 * ( NS + 1 ) ] = p[ i ] ;
     }
@@ -78,6 +90,8 @@ momentum_factor_right( double complex *proj ,
     // add into D
     atomic_add_spinmatrices( proj , tmp2 ) ;
   }
+ memfree :
+  free( tmp1 ) ; free( tmp2 ) ;
   return ;
 }
 
@@ -118,13 +132,18 @@ P11( double complex *proj ,
 
   // add the momentum factors
   if( p2 > 0 ) {
-    // subtract on the diagonal
+    double complex *left = NULL , *right = NULL , *pslash = NULL ;
     size_t d ;
+    if( corr_malloc( (void**)&left , 16 , NSNS*sizeof( double complex ) ) != 0 ||
+	corr_malloc( (void**)&right , 16 , NSNS*sizeof( double complex ) ) != 0 || 
+	corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0  ) {
+      goto memfree ;
+    }
+    // subtract on the diagonal
     for( d = 0 ; d < NS ; d++ ) {
       proj[ d*( NS+1 ) ] -= ( p[ i ] * p[ j ] ) / p2 ;
     }
     // add the left hand side and right hand side
-    double complex left[ NSNS ] , right[ NSNS ] , pslash[ NSNS ] ;
     compute_pslash( pslash , GAMMA , p ) ;
     // compute left and right hand side
     momentum_factor_left( left , pslash , GAMMA , p , i , j ) ;
@@ -133,6 +152,8 @@ P11( double complex *proj ,
     spinmatrix_mulconst( left , 1.0 / ( p2 * ( ND - 1 ) ) ) ;
     // and add it back in
     atomic_add_spinmatrices( proj , left ) ;
+  memfree:
+    free( left ) ; free( right ) ; free( pslash ) ;
   }
   return ;
 }
@@ -154,8 +175,10 @@ P12( double complex *proj ,
   compute_p_psq( p , &p2 , momentum[ pidx ] ) ;
 
   if( p2 > 0 ) {
-    // compute pslash
-    double complex pslash[ NSNS ] ;
+    double complex *pslash = NULL ;
+    if( corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+      goto memfree ;
+    }
     compute_pslash( pslash , GAMMA , p ) ;
     // compute pslash.\gamma_i p_j
     momentum_factor_left( proj , pslash , GAMMA , p , i , j ) ;
@@ -166,6 +189,8 @@ P12( double complex *proj ,
     }
     // multiply by -1 / ( sqrt(3) * p^2 )
     spinmatrix_mulconst( proj , -1.0 / ( sqrt( 3 ) * p2 ) ) ;
+  memfree : 
+    free( pslash ) ;
   }
   return ;
 }
@@ -188,7 +213,10 @@ P21( double complex *proj ,
 
   if( p2 > 0 ) {
     // compute pslash
-    double complex pslash[ NSNS ] ;
+    double complex *pslash = NULL ;
+    if( corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+      goto memfree ;
+    }
     compute_pslash( pslash , GAMMA , p ) ;
     // compute pslash.\gamma_j.p_i
     momentum_factor_left( proj , pslash , GAMMA , p , j , i ) ;
@@ -199,6 +227,8 @@ P21( double complex *proj ,
     }
     // multiply by -1 / ( sqrt(3) * p^2 )
     spinmatrix_mulconst( proj , 1.0 / ( sqrt( 3 ) * p2 ) ) ;
+  memfree :
+    free( pslash ) ;
   }
   return ;
 }
@@ -253,7 +283,12 @@ P32( double complex *proj ,
   // add the momentum factors
   if( p2 > 0 ) {
     // add the left hand side and right hand side
-    double complex left[ NSNS ] , right[ NSNS ] , pslash[ NSNS ] ;
+    double complex *left = NULL , *right = NULL , *pslash = NULL ;
+    if( corr_malloc( (void**)&left , 16 , NSNS*sizeof( double complex ) ) != 0 ||
+	corr_malloc( (void**)&right , 16 , NSNS*sizeof( double complex ) ) != 0 || 
+	corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0  ) {
+      goto memfree ;
+    }
     compute_pslash( pslash , GAMMA , p ) ;
     // compute left and right hand side
     momentum_factor_left( left , pslash , GAMMA , p , i , j ) ;
@@ -262,6 +297,8 @@ P32( double complex *proj ,
     spinmatrix_mulconst( left , -1.0 / ( p2 * ( ND - 1 ) ) ) ;
     // and add it back in
     atomic_add_spinmatrices( proj , left ) ;
+  memfree : 
+    free( left ) ; free( right ) ; free( pslash ) ; 
   }
 
   // delta function g_ij
@@ -320,7 +357,7 @@ spinproj( double complex *Gik ,
   zero_spinmatrix( Gik ) ;
 
   // absolute value of momenta
-  size_t mu , sum = 0 ;
+  size_t mu , sum = 0 , j ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     sum += abs( momentum[ pidx ].MOM[ mu ] ) ;
   }
@@ -344,7 +381,6 @@ spinproj( double complex *Gik ,
   }
 
   // perform contraction
-  size_t j ;
   for( j = 0 ; j < ND ; j++ ) {
     set_Gik( Gjk , corr , j , k , pidx , t ) ;
     p( pij , i , j , GAMMA , momentum , pidx ) ;

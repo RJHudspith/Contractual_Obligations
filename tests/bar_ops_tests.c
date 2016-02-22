@@ -51,6 +51,10 @@ baryon_contract_site_test( void )
   term[0] = malloc( NSNS * sizeof( double complex ) ) ;
   term[1] = malloc( NSNS * sizeof( double complex ) ) ;
 
+  // temporary space
+  double complex T[ NSNS ] __attribute__((aligned(16))) ;
+
+  // loop possible gammas
   size_t GSGK ;
   for( GSGK = 0 ; GSGK < (B_CHANNELS*B_CHANNELS) ; GSGK++ ) {
 
@@ -63,11 +67,10 @@ baryon_contract_site_test( void )
     const size_t GSNK = GSGK % B_CHANNELS ;
     const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
     const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuT = gt_Gconj_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
+    const struct gamma CgnuT = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
     baryon_contract_site( term , a ,  b , c , Cgmu , CgnuT ) ;
 
     // compute product T = ( Cgnu^T Cgmu )
-    double complex T[ NSNS ] ;
     identity_spinmatrix( T ) ;
     gamma_spinmatrix( T , CgnuT ) ;
     spinmatrix_gamma( T , Cgmu ) ;
@@ -147,7 +150,8 @@ bar_ops_test( void )
   // initialise spinors
   double complex *a = (double complex*)S1.D ;
   double complex *b = (double complex*)S2.D ;
-  double complex c[ NCNC ] ; // special color matrix det(c) = 0!
+  // special color matrix det(c) = 0!
+  double complex c[ NCNC ] __attribute__((aligned(16))) ;
   size_t i , j ;
   // init the color matrix
   for( i = 0 ; i < NC ; i++ ) {
