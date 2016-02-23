@@ -25,7 +25,7 @@ cl_offdiagonal( struct propagator prop1 ,
 		const char *outfile )
 {
   // vector gamma map -> x,y,z,t
-  const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
+  const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
   const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
@@ -61,8 +61,7 @@ cl_offdiagonal( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
-		   NREL : prop1.basis ) == FAILURE ) {
+  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -77,11 +76,7 @@ cl_offdiagonal( struct propagator prop1 ,
   }
 
   // if we are doing nonrel-chiral mesons we switch chiral to nrel
-  if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
-    nrel_rotate_slice( S1 ) ;
-  } else if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
-    nrel_rotate_slice( S2 ) ;
-  }
+  rotate_offdiag_2( S1 , prop1.basis , S2 , prop2.basis ) ;
 
   // read the first couple of slices
   if( read_prop( prop1 , S1UP ) == FAILURE || 
@@ -112,7 +107,8 @@ cl_offdiagonal( struct propagator prop1 ,
 	    error_code = FAILURE ;
 	  }
 	  // rotate as necessary
-	  if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
+	  if( prop1.basis == CHIRAL && ( prop2.basis == NREL_FWD || 
+					 prop2.basis == NREL_BWD ) ) {
 	    nrel_rotate_slice( S1UP ) ;
 	  }
 	}
@@ -124,7 +120,8 @@ cl_offdiagonal( struct propagator prop1 ,
 	    error_code = FAILURE ;
 	  }
 	  // rotate as necessary
-	  if( prop1.basis == NREL && prop2.basis == CHIRAL ) {
+	  if( prop2.basis == CHIRAL && ( prop1.basis == NREL_FWD || 
+					 prop1.basis == NREL_BWD ) ) {
 	    nrel_rotate_slice( S2f ) ;
 	  }
 	}

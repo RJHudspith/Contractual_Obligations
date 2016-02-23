@@ -471,35 +471,35 @@ baryon_project( const struct mcorr **corr ,
     switch( parity_proj ) {
     case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) - 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) - 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) -
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
       result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) +
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
 			     I * gammaspinmatrix_trace( g0g5 , D ) + 
 			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L4 : // does 1/2 ( g_I + g_3 )
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
       break ;
     case L5 : // does 1/2 ( g_I - g_3 )
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ) ;
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
       break ;
     }
   }

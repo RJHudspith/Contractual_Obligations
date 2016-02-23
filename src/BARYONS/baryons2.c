@@ -28,7 +28,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
   const size_t stride2 = NSNS ;
 
   // flat dirac indices are all colors and all single gamma combinations
-  const size_t flat_dirac = stride1*stride2 ;
+  const size_t flat_dirac = 2*stride1*stride2 ;
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -68,33 +68,28 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( prop1.basis == NREL || prop2.basis == NREL ) {
-    if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
-  } else {
-   if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-     error_code = FAILURE ; goto memfree ;
-    }
+  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
-  in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+  // allocate results matrix
+  in = malloc( ( flat_dirac ) * sizeof( double complex* ) ) ;
+  for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
   }
 
 #ifdef HAVE_FFTW3_H
 
-  out = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+  out = malloc( ( flat_dirac ) * sizeof( double complex* ) ) ;
+  for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
     out[ i ] = fftw_malloc( LCU * sizeof( double complex ) ) ;
   }
 
-  forward = ( fftw_plan* )malloc( ( 2 * flat_dirac ) * sizeof( fftw_plan ) ) ; 
-  backward = ( fftw_plan* )malloc( ( 2 * flat_dirac ) * sizeof( fftw_plan ) ) ;
+  forward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
+  backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ;
 
   // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , 2 * flat_dirac , ND-1 ) ;
+  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
 
 #endif
 
@@ -119,13 +114,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
-    // rotato
-    if( prop1.basis == CHIRAL && prop2.basis == NREL ) {
-      nrel_rotate_slice( S1 ) ;
-    }
-    if( prop2.basis == CHIRAL && prop1.basis == NREL ) {
-      nrel_rotate_slice( S2 ) ;
-    }
+    // if we are doing nonrel-chiral hadrons we switch chiral to nrel
+    rotate_offdiag_2( S1 , prop1.basis , 
+		      S2 , prop2.basis ) ;
 
     // accumulate wall sum expects both to be walls
     struct spinor SUM1 , SUM2 ;
@@ -178,7 +169,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
 	  const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	  // precompute \gamma_t ( Cg_\mu )^{dagger} \gamma_t 
           const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-          const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
+          const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_T ] ) ;
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( in , S1[ site ] , S1[ site ] , S2[ site ] , 
@@ -233,7 +224,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
   }
 
   // free our ffts
-  free_ffts( in , out , forward , backward , 2*flat_dirac ) ;
+  free_ffts( in , out , forward , backward , flat_dirac ) ;
 
   // free spinors
   free( S1 ) ; free( S1f ) ;

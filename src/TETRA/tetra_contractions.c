@@ -268,7 +268,7 @@ tetras( double complex *result ,
 	const GLU_bool L1L2_degenerate )
 {
   // rename gamma matrices to match the contractions above
-  const struct gamma gt = GAMMAS[ GAMMA_3 ] ;
+  const struct gamma gt = GAMMAS[ GAMMA_T ] ;
   const struct gamma gi = GAMMAS[ mu ] ;
   const struct gamma g5 = GAMMAS[ GAMMA_5 ] ;
   

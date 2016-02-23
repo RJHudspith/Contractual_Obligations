@@ -34,16 +34,16 @@ gamma_mmul_test( void )
 	       !gamma_comparison( res , GAMMAS[ mu ] ) ) ;
   }
   // check the gammas square to the identity
-  gamma_mmul( &res , GAMMAS[ GAMMA_0 ] , GAMMAS[ GAMMA_0 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_X ] , GAMMAS[ GAMMA_X ] ) ;
   mu_assert( "[UNIT] error : gammas gamma_mmul broken g0.g0 != 1" ,
 	     !gamma_comparison( res , GAMMAS[ IDENTITY ] ) ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_1 ] , GAMMAS[ GAMMA_1 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_Y ] , GAMMAS[ GAMMA_Y ] ) ;
   mu_assert( "[UNIT] error : gammas gamma_mmul broken g1.g1 != 1" ,
 	     !gamma_comparison( res , GAMMAS[ IDENTITY ] ) ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_2 ] , GAMMAS[ GAMMA_2 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_Z ] , GAMMAS[ GAMMA_Z ] ) ;
   mu_assert( "[UNIT] error : gammas gamma_mmul broken g2.g2 != 1" ,
 	     !gamma_comparison( res , GAMMAS[ IDENTITY ] ) ) ;
-  gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &res , GAMMAS[ GAMMA_T ] , GAMMAS[ GAMMA_T ] ) ;
   mu_assert( "[UNIT] error : gammas gamma_mmul broken g3.g3 != 1" ,
 	     !gamma_comparison( res , GAMMAS[ IDENTITY ] ) ) ;
   gamma_mmul( &res , GAMMAS[ GAMMA_5 ] , GAMMAS[ GAMMA_5 ] ) ;
@@ -52,8 +52,8 @@ gamma_mmul_test( void )
 
   // compute gamma_0.gamma_1.gamma_2.gamma_3 = gamma_5 and compare
   struct gamma t1 , t2 ;
-  gamma_mmul( &t1 , GAMMAS[ GAMMA_0 ] , GAMMAS[ GAMMA_1 ] ) ;
-  gamma_mmul( &t2 , GAMMAS[ GAMMA_2 ] , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &t1 , GAMMAS[ GAMMA_X ] , GAMMAS[ GAMMA_Y ] ) ;
+  gamma_mmul( &t2 , GAMMAS[ GAMMA_Z ] , GAMMAS[ GAMMA_T ] ) ;
   gamma_mmul( &res , t1 , t2 ) ;
   mu_assert( "[UNIT] error : g0.g1.g2.g3 != g5" ,
 	     !gamma_comparison( res , GAMMAS[ GAMMA_5 ] ) ) ;
@@ -211,7 +211,7 @@ gt_Gconj_gt_test( void )
   mu_assert( "[UNIT] error : gt.I.gt != I" ,
 	     !( gamma_comparison( GAMMAS[IDENTITY] ,
 				  gt_Gconj_gt( GAMMAS[IDENTITY] ,
-					       GAMMAS[GAMMA_3] ) ) ) ) ;
+					       GAMMAS[GAMMA_T] ) ) ) ) ;
   return NULL ;
 }
 
@@ -223,44 +223,44 @@ gt_Gdag_gt_test( void )
   size_t mu ;
   for( mu = 0 ; mu < 6 ; mu++ ) {
     struct gamma res = GAMMAS[mu] ;
-    // these two commute with gamma_3
-    if( mu != GAMMA_3 && mu != IDENTITY) {
+    // these two commute with gamma_t
+    if( mu != GAMMA_T && mu != IDENTITY) {
       gamma_muli( &res ) ;
       gamma_muli( &res ) ;
     }
     mu_assert( "[UNIT] error : gt.g_mu.gt != -g_mu" ,
 	       !( gamma_comparison( res ,
 				    gt_Gdag_gt( GAMMAS[ mu ] ,
-						GAMMAS[ GAMMA_3 ] ) ) ) ) ;
+						GAMMAS[ GAMMA_T ] ) ) ) ) ;
   }
   // test this identity
   for( mu = 0 ; mu < 6 ; mu++ ) {
-    if( mu == GAMMA_1 || mu == IDENTITY ) continue ;
+    if( mu == GAMMA_Y || mu == IDENTITY ) continue ;
     struct gamma Cgi = CGmu( GAMMAS[ mu ] , GAMMAS ) ;
-    struct gamma gtCgigt = gt_Gdag_gt( Cgi , GAMMAS[ GAMMA_3 ] ) ;
+    struct gamma gtCgigt = gt_Gdag_gt( Cgi , GAMMAS[ GAMMA_T ] ) ;
     mu_assert( "[UNIT] error : gt.Cgi.gt != Cgi" ,
 	       !( gamma_comparison( Cgi , gtCgigt ) ) ) ;
   }
   // test that gt.(C.gy)^dagger.gt = igt
-  struct gamma Cgy = CGmu( GAMMAS[ GAMMA_1 ] , GAMMAS ) ;
-  struct gamma gtCgygt = gt_Gdag_gt( Cgy , GAMMAS[ GAMMA_3 ] ) ;
-  struct gamma igt = GAMMAS[ GAMMA_3 ] ;
+  struct gamma Cgy = CGmu( GAMMAS[ GAMMA_Y ] , GAMMAS ) ;
+  struct gamma gtCgygt = gt_Gdag_gt( Cgy , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma igt = GAMMAS[ GAMMA_T ] ;
   gamma_muli( &igt ) ;
   mu_assert( "[UNIT] error : gt.Cgy.gt != igt" ,
 	     !( gamma_comparison( gtCgygt , igt ) ) ) ;
   // test that gt.(C)^dagger.gt = -C
   struct gamma CgI = CGmu( GAMMAS[ IDENTITY ] , GAMMAS ) ;
-  struct gamma gtCgIgt = gt_Gdag_gt( CgI , GAMMAS[ GAMMA_3 ] ) ;
+  struct gamma gtCgIgt = gt_Gdag_gt( CgI , GAMMAS[ GAMMA_T ] ) ;
   mu_assert( "[UNIT] error : gt.CgI.gt != -C" ,
 	     !( gamma_comparison( gtCgIgt , gamma_transpose( CgI ) ) ) ) ;
   // test that gt (C.gamma)^\dagger gt = gt gamma.C gt ?
   for( mu = 0 ; mu < 6 ; mu++ ) {
     struct gamma gt_Cgmudag_gt = gt_Gdag_gt( CGmu( GAMMAS[ mu ] , GAMMAS ) , 
-					     GAMMAS[ GAMMA_3 ] ) ;
+					     GAMMAS[ GAMMA_T ] ) ;
     struct gamma tmp , res ;
-    gamma_mmul( &res , CgI , GAMMAS[ GAMMA_3 ] ) ;
+    gamma_mmul( &res , CgI , GAMMAS[ GAMMA_T ] ) ;
     gamma_mmul( &tmp , GAMMAS[ mu ] , res ) ;
-    gamma_mmul( &res , GAMMAS[ GAMMA_3 ] , tmp ) ;
+    gamma_mmul( &res , GAMMAS[ GAMMA_T ] , tmp ) ;
     mu_assert( "[UNIT] error : gt.(C.gmu)^dagger.gt != gt.(gmu.C).gt \n" ,
 	       !( gamma_comparison( res , gt_Cgmudag_gt ) ) ) ;
   }
@@ -309,7 +309,7 @@ gamma_test_driver( void )
     return FAILURE ;
   }
 
-  make_gammas( GAMMAS , NREL ) ;
+  make_gammas( GAMMAS , NREL_FWD ) ;
 
   gammares = gammas_test( ) ;
 

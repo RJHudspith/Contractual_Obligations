@@ -1,6 +1,8 @@
 /**
    @file ll_offdiagonal.c
    @brief flavour off-diagonal local_local current contractions
+
+   TODO :: nrel rotation?
  */
 #include "common.h"
 
@@ -23,7 +25,7 @@ ll_offdiagonal( struct propagator prop1 ,
 		const char *outfile )
 {
   // vector gamma map
-  const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
+  const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
   const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
@@ -54,7 +56,7 @@ ll_offdiagonal( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( make_gammas( GAMMAS , prop1.basis ) == FAILURE ) {
+  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 

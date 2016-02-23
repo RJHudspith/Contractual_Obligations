@@ -74,16 +74,12 @@ tetraquark( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( prop1.basis == NREL || prop2.basis == NREL || prop3.basis == NREL ) { 
-    if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
-  } else {
-    if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
+  if( setup_gamma_3( GAMMAS , prop1.basis , prop2.basis , prop3.basis ) 
+      == FAILURE ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
+  // allocate result array
   in = malloc( flat_dirac * sizeof( double complex* ) ) ;
   for( i = 0 ; i < flat_dirac ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
@@ -127,15 +123,8 @@ tetraquark( struct propagator prop1 ,
   for( t = 0 ; t < LT ; t++ ) {
 
     // if we are doing nonrel-chiral hadrons we switch chiral to nrel
-    if( prop1.basis == CHIRAL && ( prop2.basis == NREL || prop3.basis == NREL ) ) {
-      nrel_rotate_slice( S1 ) ;
-    } 
-    if( prop2.basis == CHIRAL && ( prop1.basis == NREL || prop3.basis == NREL ) ) {
-      nrel_rotate_slice( S2 ) ;
-    } 
-    if( prop3.basis == CHIRAL && ( prop1.basis == NREL || prop2.basis == NREL ) ) {
-      nrel_rotate_slice( S3 ) ;
-    }
+    rotate_offdiag_3( S1 , prop1.basis , S2 ,prop2.basis , 
+		      S3 , prop3.basis ) ;
 
     // compute wall sum
     struct spinor SUM1 , SUM2 , SUM3 , SUMbwdH ;

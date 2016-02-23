@@ -83,10 +83,10 @@ typedef enum
    @brief different conventions have different labelling
 */
 typedef enum {
-  GAMMA_0  = 0 ,
-  GAMMA_1  = 1 ,
-  GAMMA_2  = 2 ,
-  GAMMA_3  = 3 ,
+  GAMMA_X  = 0 ,
+  GAMMA_Y  = 1 ,
+  GAMMA_Z  = 2 ,
+  GAMMA_T  = 3 ,
   IDENTITY = 4 ,
   GAMMA_5  = 5 } gamma_labels ;
 
@@ -164,7 +164,8 @@ typedef enum {
  */
 typedef enum {
   CHIRAL ,
-  NREL ,
+  NREL_FWD ,
+  NREL_BWD ,
   STATIC } proptype ;
 
 /**

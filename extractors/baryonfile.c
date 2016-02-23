@@ -87,7 +87,7 @@ main( const int argc ,
 
   // set the basis
   if( are_equal( argv[ GAMMA_BASIS ] , "NREL" ) ) {
-    basis = NREL ;
+    basis = NREL_FWD ;
   } else if( are_equal( argv[ GAMMA_BASIS ] , "STATIC" ) ) {
     basis = STATIC ;
   } else if( are_equal( argv[ GAMMA_BASIS ] , "CHIRAL" ) ) {

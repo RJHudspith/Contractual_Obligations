@@ -103,7 +103,7 @@ precompute_block_test( void )
       // G2 == tilde{C}_gamma_5
       struct gamma Cgi = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
       struct gamma Cgj = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-      struct gamma tildeCgj = gt_Gdag_gt( Cgj , GAMMAS[ GAMMA_3 ] ) ;
+      struct gamma tildeCgj = gt_Gdag_gt( Cgj , GAMMAS[ GAMMA_T] ) ;
 
       precompute_block( C1 , S1 , Cgi , S2 , tildeCgj ) ;
   
@@ -149,7 +149,7 @@ spincolor_trace_test( void )
       // G2 == tilde{C}_gamma_5
       struct gamma Cgi = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
       struct gamma Cgj = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-      struct gamma tildeCgj = gt_Gdag_gt( Cgj , GAMMAS[ GAMMA_3 ] ) ;
+      struct gamma tildeCgj = gt_Gdag_gt( Cgj , GAMMAS[ GAMMA_T ] ) ;
       precompute_block( C1 , S1 , Cgi , S2 , tildeCgj ) ;
 
       // product of gamma matrices

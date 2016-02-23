@@ -83,7 +83,7 @@ full_adj_test( void )
 static char *
 gamma_mul_l_test( void )
 {
-  const size_t testmat = GAMMA_1 ;
+  const size_t testmat = GAMMA_Y ;
   struct spinor B = Id ;
   gamma_mul_l( &B , GAMMAS[ testmat ] ) ;
   size_t d1 , c1 , c2 ;
@@ -118,7 +118,7 @@ gamma_mul_l_test( void )
 static char *
 gamma_mul_r_test( void )
 {
-  const int testmat = GAMMA_1 ;
+  const int testmat = GAMMA_Y ;
   struct spinor B = Id ;
   gamma_mul_r( &B , GAMMAS[ testmat ] ) ;
   size_t d1 , c1 , c2 ;
@@ -155,11 +155,11 @@ static char *
 gamma_mul_lr_test( void )
 {
   struct spinor B = A ;
-  gamma_mul_lr( &B , GAMMAS[ GAMMA_0 ] , GAMMAS[ GAMMA_1 ] ) ;
+  gamma_mul_lr( &B , GAMMAS[ GAMMA_X ] , GAMMAS[ GAMMA_Y ] ) ;
 
   struct spinor C = A ;
-  gamma_mul_l( &C , GAMMAS[ GAMMA_0 ] ) ;
-  gamma_mul_r( &C , GAMMAS[ GAMMA_1 ] ) ;
+  gamma_mul_l( &C , GAMMAS[ GAMMA_X ] ) ;
+  gamma_mul_r( &C , GAMMAS[ GAMMA_Y ] ) ;
 
   const double *r = (const double*)B.D ;
   const double *s = (const double*)C.D ;

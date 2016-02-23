@@ -67,7 +67,7 @@ baryon_contract_site_test( void )
     const size_t GSNK = GSGK % B_CHANNELS ;
     const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
     const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuT = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
+    const struct gamma CgnuT = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_T ] ) ;
     baryon_contract_site( term , a ,  b , c , Cgmu , CgnuT ) ;
 
     // compute product T = ( Cgnu^T Cgmu )

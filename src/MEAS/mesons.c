@@ -136,7 +136,7 @@ mesons_diagonal( struct propagator prop ,
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
-						       GAMMAS[ GAMMA_3 ] ) ;
+						       GAMMAS[ GAMMA_T ] ) ;
 	// loop spatial hypercube
 	size_t site ;
         #ifdef HAVE_FFTW3_H

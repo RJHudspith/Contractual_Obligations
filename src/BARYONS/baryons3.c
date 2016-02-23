@@ -73,14 +73,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( prop1.basis == NREL || prop2.basis == NREL || prop3.basis == NREL ) { 
-    if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
-  } else {
-    if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
+  if( setup_gamma_3( GAMMAS , prop1.basis , prop2.basis , prop3.basis ) == 
+      FAILURE ) {
+    error_code = FAILURE ; goto memfree ;
   }
 
   in = malloc( flat_dirac * sizeof( double complex* ) ) ;
@@ -126,15 +121,9 @@ baryons_3fdiagonal( struct propagator prop1 ,
   for( t = 0 ; t < LT ; t++ ) {
     
     // if we are doing nonrel-chiral hadrons we switch chiral to nrel
-    if( prop1.basis == CHIRAL && ( prop2.basis == NREL || prop3.basis == NREL ) ) {
-      nrel_rotate_slice( S1 ) ;
-    } 
-    if( prop2.basis == CHIRAL && ( prop1.basis == NREL || prop3.basis == NREL ) ) {
-      nrel_rotate_slice( S2 ) ;
-    } 
-    if( prop3.basis == CHIRAL && ( prop1.basis == NREL || prop2.basis == NREL ) ) {
-      nrel_rotate_slice( S3 ) ;
-    }
+    rotate_offdiag_3( S1 , prop1.basis , 
+		      S2 , prop2.basis ,
+		      S3 , prop3.basis ) ;
 
     // accumulate wall sum expects both to be walls
     struct spinor SUM1 , SUM2 , SUM3 ;
@@ -192,7 +181,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 	  const struct gamma Cgmu = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	  // precompute \gamma_t ( Cg_\mu )^{dagger} \gamma_t 
           const struct gamma Cgnu = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-          const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_3 ] ) ;
+          const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_T ] ) ;
 
 	  // Wall-Local
 	  baryon_contract_site_mom( in , S1[ site ] , S2[ site ] , S3[ site ] , 

@@ -70,8 +70,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
-		   NREL : prop1.basis ) == FAILURE ) {
+  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -118,11 +117,7 @@ mesons_offdiagonal( struct propagator prop1 ,
   for( t = 0 ; t < LT ; t++ ) {
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    if( prop1.basis == CHIRAL && ( prop2.basis == NREL ) ) {
-      nrel_rotate_slice( S1 ) ;
-    } else if( ( prop1.basis == NREL ) && prop2.basis == CHIRAL ) {
-      nrel_rotate_slice( S2 ) ;
-    }
+    rotate_offdiag_2( S1 , prop1.basis , S2 , prop2.basis ) ;
 
     // prop sums
     struct spinor SUM1 , SUM2 ;
@@ -159,7 +154,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
-						       GAMMAS[ GAMMA_3 ] ) ;
+						       GAMMAS[ GAMMA_T ] ) ;
 	// loop spatial hypercube
 	size_t site ;
         #ifdef HAVE_FFTW3_H

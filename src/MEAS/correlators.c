@@ -78,16 +78,16 @@ debug_mesons( const char *message ,
   print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
 
   printf( "%s 00\n" , message ) ;
-  print_convenience( corr , GAMMA_0 , GAMMA_0 ) ;
+  print_convenience( corr , GAMMA_X , GAMMA_X ) ;
 
   printf( "%s 11\n" , message ) ;
-  print_convenience( corr , GAMMA_1 , GAMMA_1 ) ;
+  print_convenience( corr , GAMMA_Y , GAMMA_Y ) ;
 
   printf( "%s 22\n" , message ) ;
-  print_convenience( corr , GAMMA_2 , GAMMA_2 ) ;
+  print_convenience( corr , GAMMA_Z , GAMMA_Z ) ;
 
   printf( "%s 33\n" , message ) ;
-  print_convenience( corr , GAMMA_3 , GAMMA_3 ) ;
+  print_convenience( corr , GAMMA_T , GAMMA_T ) ;
 
   printf( "%s 1010\n" , message ) ;
   print_convenience( corr , 10 , 10 ) ;

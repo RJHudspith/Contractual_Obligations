@@ -78,7 +78,7 @@ diquark_degen( struct propagator prop1 ,
   }
   for( i = 0 ; i < stride2 ; i++ ) {
     GAM2[ i ]= gt_Gdag_gt( CGmu( GAMMAS[ i ] , GAMMAS ) , 
-			   GAMMAS[ GAMMA_3 ] ) ;
+			   GAMMAS[ GAMMA_T ] ) ;
   }
 
   // allocate result array

@@ -159,19 +159,16 @@ get_proptype( proptype *basis )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // nonrelativistic basis, this may need to become
     // Nrel_fwd and Nrel_bwd 
-    if( are_equal( token , "Nrel\n" ) || 
-	are_equal( token , "Nrel_fwd\n" ) ||
-	are_equal( token , "Nrel_bwd\n" ) ) {
-      *basis = NREL ;
+    if( are_equal( token , "Nrel_fwd\n" ) ) {
+      *basis = NREL_FWD ;
       return SUCCESS ;
-    }
-    // relativistic chiral basis
-    if( are_equal( token , "Static\n" ) ) {
+    } else if( are_equal( token , "Nrel_bwd\n" ) ) {
+      *basis = NREL_BWD ;
+      return SUCCESS ;
+    } else if( are_equal( token , "Static\n" ) ) {
       *basis = STATIC ;
       return SUCCESS ;
-    }
-    // relativistic chiral basis
-    if( are_equal( token , "Chiral\n" ) ) {
+    } else if( are_equal( token , "Chiral\n" ) ) {
       *basis = CHIRAL ;
       return SUCCESS ;
     }
@@ -282,7 +279,7 @@ read_propheader( struct propagator *prop )
 
   // the NRQCD code counts from 1 instead of zero, shift to c-counting
   // instead of Fortran counting
-  if( prop -> basis == NREL ) {
+  if( prop -> basis == NREL_FWD || prop -> basis == NREL_BWD ) {
     size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       prop -> origin[ mu ] -= 1 ;

@@ -97,9 +97,11 @@ WME( struct propagator s0 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( s0.basis == NREL || d0.basis == NREL ||
-      s1.basis == NREL || d1.basis == NREL ) {
-    if( make_gammas( GAMMAS , NREL ) == FAILURE ) {
+  if( s0.basis == NREL_FWD || s0.basis == NREL_BWD || 
+      d0.basis == NREL_FWD || d0.basis == NREL_BWD ||
+      s1.basis == NREL_FWD || s1.basis == NREL_BWD ||
+      d1.basis == NREL_FWD || d1.basis == NREL_FWD ) {
+    if( make_gammas( GAMMAS , NREL_FWD ) == FAILURE ) {
       error_code = FAILURE ; goto memfree ;
     }
     NREL_FLAG = GLU_TRUE ;

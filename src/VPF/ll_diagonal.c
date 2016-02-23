@@ -23,7 +23,7 @@ ll_diagonal( struct propagator prop ,
 	     const char *outfile )
 {
   // vector gamma map
-  const size_t VGMAP[ ND ] = { GAMMA_0 , GAMMA_1 , GAMMA_2 , GAMMA_3 } ;
+  const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
   const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 

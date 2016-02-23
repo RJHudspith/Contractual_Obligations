@@ -81,11 +81,11 @@ gammaspinmatrix_trace_test( void )
 {
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
   // direct trace of the product
-  const double complex tr1 = gammaspinmatrix_trace( GAMMA[ GAMMA_3 ] , D ) ;
-  gamma_spinmatrix( C , GAMMA[ GAMMA_3 ] ) ;
+  const double complex tr1 = gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ;
+  gamma_spinmatrix( C , GAMMA[ GAMMA_T ] ) ;
   const double complex tr2 = spinmatrix_trace( C ) ; // trace( mul() )
   memcpy( C , D , NSNS * sizeof( double complex ) ) ;
-  spinmatrix_gamma( C , GAMMA[ GAMMA_3 ] ) ;
+  spinmatrix_gamma( C , GAMMA[ GAMMA_T ] ) ;
   const double complex tr3 = spinmatrix_trace( C ) ; // cyclicity
   mu_assert( "[UNIT] error : spinmatrix ops gammaspinmatrix_trace broken " , 
 	       !( cabs( tr1 - tr2 ) > FTOL ) ) ;

@@ -61,7 +61,7 @@ chiral_to_nrel( struct spinor *S )
 
   }
   return ;
-}
+}  
 
 // rotate a timeslice
 void
@@ -71,6 +71,48 @@ nrel_rotate_slice( struct spinor *S )
 #pragma omp parallel for private(site) 
   for( site = 0 ; site < LCU ; site++ ) {
     chiral_to_nrel( &S[ site ] ) ;
+  }
+  return ;
+}
+
+// rotate depending on proptype
+void
+rotate_offdiag_2( struct spinor *S1 ,
+		  const proptype basis1 ,
+		  struct spinor *S2 ,
+		  const proptype basis2 )
+{
+  // if we are doing nonrel-chiral mesons we switch chiral to nrel
+  if( basis1 == CHIRAL && ( basis2 == NREL_FWD || 
+			    basis2 == NREL_BWD ) ) {
+    nrel_rotate_slice( S1 ) ;
+  } else if( basis2 == CHIRAL && ( basis1 == NREL_FWD || 
+				   basis1 == NREL_BWD ) ) {
+    nrel_rotate_slice( S2 ) ;
+  }
+  return ;
+}
+
+// rotate depending on proptype
+void
+rotate_offdiag_3( struct spinor *S1 ,
+		  const proptype basis1 ,
+		  struct spinor *S2 ,
+		  const proptype basis2 , 
+		  struct spinor *S3 ,
+		  const proptype basis3 )
+{
+  if( basis1 == CHIRAL && ( basis2 == NREL_FWD || basis2 == NREL_BWD || 
+			    basis3 == NREL_FWD || basis3 == NREL_BWD ) ) {
+    nrel_rotate_slice( S1 ) ;
+  } 
+  if( basis2 == CHIRAL && ( basis1 == NREL_FWD || basis1 == NREL_BWD || 
+			    basis3 == NREL_FWD || basis3 == NREL_BWD ) ) {
+    nrel_rotate_slice( S2 ) ;
+  } 
+  if( basis3 == CHIRAL && ( basis1 == NREL_FWD || basis1 == NREL_BWD ||
+			    basis2 == NREL_FWD || basis2 == NREL_BWD ) ) {
+    nrel_rotate_slice( S3 ) ;
   }
   return ;
 }

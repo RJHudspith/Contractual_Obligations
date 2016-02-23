@@ -33,14 +33,14 @@
 
 #include "gammas.h"
 
-// computes i GAMMA_Y . GAMMA_Y . GAMMA_\mu // gattringer & lang
+// computes i GAMMA_Y . GAMMA_T . GAMMA_\mu // gattringer & lang
 struct gamma
 CGmu( const struct gamma G , 
       const struct gamma *GAMMAS )
 {
   struct gamma res , C ;
   // res  =  i .  gamma_y . gamma_t
-  gamma_mmul( &C , GAMMAS[ GAMMA_1 ] , GAMMAS[ GAMMA_3 ] ) ;
+  gamma_mmul( &C , GAMMAS[ GAMMA_Y ] , GAMMAS[ GAMMA_T ] ) ;
   gamma_muli( &C ) ;
   gamma_mmul( &res , C , G ) ;
   return res ;
@@ -200,7 +200,8 @@ make_gammas( struct gamma *GAMMA ,
 	     const proptype prop )
 {
   switch( prop ) {
-  case NREL :
+  case NREL_FWD :
+  case NREL_BWD :
     // gamma_0 -- x direction
     GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] = 3 ;
     GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] = 3 ;
@@ -335,4 +336,35 @@ picture_gamma( const struct gamma G )
   }
   printf( "\n" ) ;
   return ;
+}
+
+// initialisation for the gammas where we have 2 different props
+int
+setup_gamma_2( struct gamma *GAMMAS ,
+	       const proptype basis1 ,
+	       const proptype basis2 )
+{
+  return make_gammas( GAMMAS , ( basis1 == NREL_FWD ||	\
+				 basis1 == NREL_BWD ||	\
+				 basis2 == NREL_FWD ||	\
+				 basis2 == NREL_BWD ) ?	\
+		      NREL_FWD : CHIRAL ) ;
+}
+
+// initialisation for the gammas where we have 2 different props
+int
+setup_gamma_3( struct gamma *GAMMAS ,
+	       const proptype basis1 ,
+	       const proptype basis2 ,
+	       const proptype basis3 )
+{
+  if( basis1 == NREL_FWD || basis1 == NREL_BWD ) {
+    return make_gammas( GAMMAS , NREL_FWD ) ;
+  } else if( basis2 == NREL_FWD || basis2 == NREL_BWD ) {
+    return make_gammas( GAMMAS , NREL_FWD ) ;
+  } else if( basis3 == NREL_FWD || basis3 == NREL_BWD ) {
+    return make_gammas( GAMMAS , NREL_FWD ) ;
+  } else {
+    return make_gammas( GAMMAS , CHIRAL ) ;
+  }
 }

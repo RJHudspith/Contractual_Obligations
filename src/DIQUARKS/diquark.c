@@ -67,8 +67,7 @@ diquark_offdiag( struct propagator prop1 ,
 
   // precompute the gamma basis
   GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( make_gammas( GAMMAS , ( prop1.basis == NREL || prop2.basis == NREL ) ? \
-		   NREL : prop1.basis ) == FAILURE ) {
+  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -81,7 +80,7 @@ diquark_offdiag( struct propagator prop1 ,
   }
   for( i = 0 ; i < stride2 ; i++ ) {
     GAM2[ i ]= gt_Gdag_gt( CGmu( GAMMAS[ i ] , GAMMAS ) , 
-			   GAMMAS[ GAMMA_3 ] ) ;
+			   GAMMAS[ GAMMA_T ] ) ;
   }
 
   // allocate result array
@@ -126,6 +125,9 @@ diquark_offdiag( struct propagator prop1 ,
 
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
+
+    // rotate if we have to
+    rotate_offdiag_2( S1 , prop1.basis , S2 , prop2.basis ) ;
 
     // compute wall sum
     struct spinor SUM1 , SUM2 ;

@@ -27,7 +27,7 @@ baryons_diagonal( struct propagator prop ,
   const size_t stride2 = NSNS ;
 
   // flat dirac indices are all colors and all single gamma combinations
-  const size_t flat_dirac = stride1*stride2 ;
+  const size_t flat_dirac = 2*stride1*stride2 ;
 
   // gamma matrices
   struct gamma *GAMMAS = NULL ;
@@ -69,23 +69,24 @@ baryons_diagonal( struct propagator prop ,
     error_code = FAILURE ; goto memfree ;
   }
 
-  in = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+  // allocate result matrix
+  in = malloc( flat_dirac * sizeof( double complex* ) ) ;
+  for( i = 0 ; i < flat_dirac ; i++ ) {
     in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
   }
 
 #ifdef HAVE_FFTW3_H
 
-  out = malloc( ( 2 * flat_dirac ) * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < ( 2 * flat_dirac ) ; i++ ) {
+  out = malloc( flat_dirac * sizeof( double complex* ) ) ;
+  for( i = 0 ; i < flat_dirac ; i++ ) {
     out[ i ] = malloc( LCU * sizeof( double complex ) ) ;
   }
 
-  forward  = ( fftw_plan* )malloc( ( 2 * flat_dirac ) * sizeof( fftw_plan ) ) ; 
-  backward = ( fftw_plan* )malloc( ( 2 * flat_dirac ) * sizeof( fftw_plan ) ) ;
+  forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
+  backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ;
 
   // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , 2 * flat_dirac , ND-1 ) ;
+  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
 
 #endif
 
@@ -152,7 +153,7 @@ baryons_diagonal( struct propagator prop ,
 	  const struct gamma Cgmu  = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
 	  // precompute \gamma_t ( Cg_\mu )^{dagger} \gamma_t 
 	  const struct gamma Cgnu  = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-	  const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS [ GAMMA_3 ] ) ;
+	  const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS [ GAMMA_T ] ) ;
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( in , S1[ site ] , S1[ site ] , S1[ site ] , 
@@ -206,7 +207,7 @@ baryons_diagonal( struct propagator prop ,
   }
 
   // free our ffts
-  free_ffts( in , out , forward , backward , 2*flat_dirac ) ;
+  free_ffts( in , out , forward , backward , flat_dirac ) ;
 
   // free spinors
   free( S1f ) ; free( S1 ) ;

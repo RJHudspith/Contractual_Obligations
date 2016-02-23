@@ -141,7 +141,8 @@ read_chiralprop( struct propagator prop ,
 // Read NRQCD propagator time slice 
 static int 
 read_nrprop( struct propagator prop , 
-	     struct spinor *S )
+	     struct spinor *S , 
+	     const proptype basis )
 {
   // non rel prop is only the top corner
   const size_t NR_NS = NS >> 1 ;
@@ -176,8 +177,13 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
 
-      // fill the lower indices ( for example 4D :: 2,2 2,3 3,2 3,3 ) of propagator
-      fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(float complex) ) ;
+      // convention dictates that forward is the top left and backward is bottom right
+      if( basis == NREL_FWD ) {
+	fill_spinor( &S[i] , ftmp , NR_NS , 0 , 0 , sizeof(float complex) ) ;
+      } else {
+	fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(float complex) ) ;
+      }
+      //
     } else {
       // Read in tslice 
       if( fread( tmp , sizeof(double complex) , spinsize , prop.file ) != 
@@ -188,15 +194,13 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_64( 2 * spinsize , tmp ) ;
 
-      // various poking-in of spinors
-      // top left
-      fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
-      // top right
-      //fill_spinor( &S[i] , tmp , NR_NS , 0 , NR_NS , sizeof(double complex) ) ;
-      // bottom left
-      //fill_spinor( &S[i] , tmp , NR_NS , NR_NS , 0 , sizeof(double complex) ) ;
-      // fill the lower indices 2,2 2,3 3,2 3,3 of propagator
-      //fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
+      // convention dictates that forward is the top left and backward is bottom right
+      if( basis == NREL_FWD ) {
+	fill_spinor( &S[i] , ftmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
+      } else {
+	fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
+      }
+      // can also hack in whatever you would like here
     }
   }
 
@@ -226,7 +230,7 @@ read_staticprop( struct propagator prop ,
   make_gammas( GAMMAS , CHIRAL ) ;
 
   // poke into struct S
-  static_quark( S , GAMMAS[ GAMMA_3 ] , T , GLU_TRUE ) ;
+  static_quark( S , GAMMAS[ GAMMA_T ] , T , GLU_TRUE ) ;
   free( GAMMAS ) ;
 
   // increment our timeslice counter
@@ -243,8 +247,9 @@ read_prop( struct propagator prop ,
   switch( prop.basis ) {
   case CHIRAL :
     return read_chiralprop( prop , S ) ;
-  case NREL :
-    return read_nrprop( prop , S ) ;
+  case NREL_FWD :
+  case NREL_BWD :
+    return read_nrprop( prop , S , prop.basis ) ;
   case STATIC :
     return read_staticprop( prop , S ) ;
   }
