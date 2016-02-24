@@ -9,7 +9,7 @@
 #include "cl_offdiagonal.h"   // conserved-local flavour off diagonal
 #include "ll_diagonal.h"      // local-local currents
 #include "ll_offdiagonal.h"   // flavour off diagonal local-local
-
+#include "read_propheader.h"  // read_propheader()
 
 static int 
 ( *single_callback ) ( struct propagator prop ,

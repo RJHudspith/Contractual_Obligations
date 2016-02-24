@@ -13,11 +13,14 @@
 #include "matrix_ops.h"        // constant_mul_gauge
 #include "momspace_PImunu.h"   // momentum space VPF
 #include "tmoments_PImunu.h"   // time moments calculations
-#include "read_propheader.h"   // read_propheader()
+#include "setup.h"             // initialising and stuff
+
+// number of propagators
+#define Nprops (1)
 
 // compute the conserved local for a correlator
 int
-ll_diagonal( struct propagator prop ,
+ll_diagonal( struct propagator prop1 ,
 	     const struct site *lat ,
 	     const struct cut_info CUTINFO ,
 	     const char *outfile )
@@ -26,17 +29,14 @@ ll_diagonal( struct propagator prop ,
   const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
-  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
-			       GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const size_t AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
 
-  // and our spinor
-  struct spinor *S1 = NULL , *S1f = NULL ;
+  // counters
+  const size_t stride1 = ND ;
+  const size_t stride2 = ND ;
 
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = NULL ;
-
-  // over the whole volume is not as expensive as you may think
-  struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
+  // flat dirac indices are all colors and all single gamma combinations
+  const size_t flat_dirac = stride1 * stride2 ;
 
   // loop counters
   size_t t , x ;
@@ -44,15 +44,14 @@ ll_diagonal( struct propagator prop ,
   // error code
   int error_code = SUCCESS ;
 
-  // allocate spinors 
-  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
-    error_code = FAILURE ; goto memfree ;
-  }
+  // over the whole volume is not as expensive as you may think
+  struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
 
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( make_gammas( GAMMAS , prop.basis ) == FAILURE ) {
+  // initialise our measurement struct
+  const struct propagator prop[ Nprops ] = { prop1 } ;
+  struct measurements M ;
+  if( init_measurements( &M , prop , Nprops , CUTINFO ,
+			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -61,7 +60,7 @@ ll_diagonal( struct propagator prop ,
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
   // initially read a timeslice
-  if( read_prop( prop , S1 ) == FAILURE ) {
+  if( read_prop( prop1 , M.S[0] ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -69,7 +68,7 @@ ll_diagonal( struct propagator prop ,
   for( t = 0 ; t < LT ; t++ ) {
 
     // multiple time source support
-    const size_t tshifted = ( t + LT - prop.origin[ ND-1 ] ) % LT ;
+    const size_t tshifted = ( t + LT - prop1.origin[ ND-1 ] ) % LT ;
 
     // do the conserved-local contractions
     #pragma omp parallel
@@ -77,15 +76,15 @@ ll_diagonal( struct propagator prop ,
       #pragma omp master
       {
 	if( t < LT-1 ) {
-	  if( read_prop( prop , S1f ) == FAILURE ) {
+	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
       }
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {
-	contract_local_local_site( DATA_AA , DATA_VV , S1 , S1 , 
-				   GAMMAS , AGMAP , VGMAP , x , 
+	contract_local_local_site( DATA_AA , DATA_VV , M.S[0] , M.S[0] , 
+				   M.GAMMAS , AGMAP , VGMAP , x , 
 				   tshifted ) ;
       }
     }
@@ -98,7 +97,7 @@ ll_diagonal( struct propagator prop ,
     // copy over
     #pragma omp parallel for private(x)
     for( x = 0 ; x < LCU ; x++ ) {
-      memcpy( &S1[x] , &S1f[x] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[0][x] , &M.Sf[0][x] , sizeof( struct spinor ) ) ;
     }
 
     // status
@@ -110,18 +109,15 @@ ll_diagonal( struct propagator prop ,
 
  memfree :
 
-  // free our spinor(s)
-  free( S1 ) ; free( S1f ) ;
-
-  // free our gamma matrices
-  free( GAMMAS ) ;
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
   if( error_code != FAILURE ) {
     // temporal data too
     tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
     
     // do all the momspace stuff away from the contractions
-    if( prop.source == POINT ) {
+    if( prop1.source == POINT ) {
       momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
 		       LOCAL_LOCAL ) ;
     }
@@ -132,8 +128,8 @@ ll_diagonal( struct propagator prop ,
   free( DATA_AA ) ;
   free( DATA_VV ) ;
 
-  // rewind file and read header again
-  rewind( prop.file ) ; read_propheader( &prop ) ;
-
   return error_code ;
 }
+
+// clean up number of props
+#undef Nprops

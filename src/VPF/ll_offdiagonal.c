@@ -14,7 +14,10 @@
 #include "matrix_ops.h"        // constant_mul_gauge
 #include "momspace_PImunu.h"   // momentum space VPF
 #include "tmoments_PImunu.h"   // time moments calculations
-#include "read_propheader.h"   // read_propheader()
+#include "setup.h"             // init_measurements()
+
+// number of propagators
+#define Nprops (2)
 
 // do the local-local for different fermion props
 int
@@ -28,17 +31,14 @@ ll_offdiagonal( struct propagator prop1 ,
   const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
-  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
-			       GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const size_t AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
 
-  // and our spinor
-  struct spinor *S1 = NULL , *S1f = NULL , *S2 = NULL , *S2f = NULL ;
+  // counters
+  const size_t stride1 = ND ;
+  const size_t stride2 = ND ;
 
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = NULL ;
-
-  // over the whole volume is not as expensive as you may think
-  struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
+  // flat dirac indices are all colors and all single gamma combinations
+  const size_t flat_dirac = stride1 * stride2 ;
 
   // loop counters
   size_t x , t ;
@@ -46,32 +46,32 @@ ll_offdiagonal( struct propagator prop1 ,
   // error code
   int error_code = SUCCESS ;
 
-  // allocate spinors 
-  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  // over the whole volume is not as expensive as you may think
+  struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
+
+  // initialise our measurement struct
+  const struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  struct measurements M ;
+  if( init_measurements( &M , prop , Nprops , CUTINFO ,
+			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
-
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
-  }
-
+ 
   // over the whole volume is not as expensive as you may think
   DATA_AA = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
   // initially read a timeslice
-  if( read_prop( prop1 , S1 ) == FAILURE ||
-      read_prop( prop2 , S2 ) == FAILURE ) {
+  if( read_prop( prop1 , M.S[0] ) == FAILURE ||
+      read_prop( prop2 , M.S[1] ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
   // loop the timeslices
   for( t = 0 ; t < LT ; t++ ) {
+
+    // rotate if we must
+    rotate_offdiag( M.S , prop , Nprops ) ;
 
     // multiple time source support
     const size_t tshifted = ( t + LT - prop1.origin[ ND-1 ] ) % LT ;
@@ -82,13 +82,13 @@ ll_offdiagonal( struct propagator prop1 ,
       if( t < LT-1 ) {
       #pragma omp master
 	{
-	  if( read_prop( prop1 , S1f ) == FAILURE ) {
+	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
       #pragma omp single nowait
 	{
-	  if( read_prop( prop2 , S2f ) == FAILURE ) {
+	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
@@ -96,8 +96,9 @@ ll_offdiagonal( struct propagator prop1 ,
       // loop spatial volume
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {
-	contract_local_local_site( DATA_AA , DATA_VV , S1 , S2 , 
-				   GAMMAS , AGMAP , VGMAP , x , 
+	contract_local_local_site( DATA_AA , DATA_VV , 
+				   M.S[0] , M.S[1] , 
+				   M.GAMMAS , AGMAP , VGMAP , x , 
 				   tshifted ) ;
       }
     }
@@ -110,8 +111,8 @@ ll_offdiagonal( struct propagator prop1 ,
     // copy over
     #pragma omp parallel for private(x)
     for( x = 0 ; x < LCU ; x++ ) {
-      memcpy( &S1[x] , &S1f[x] , sizeof( struct spinor ) ) ;
-      memcpy( &S2[x] , &S2f[x] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[0][x] , &M.Sf[0][x] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[1][x] , &M.Sf[1][x] , sizeof( struct spinor ) ) ;
     }
 
     // status
@@ -124,12 +125,8 @@ ll_offdiagonal( struct propagator prop1 ,
   // deallocs
  memfree :
 
-  // free our spinor(s)
-  free( S1 ) ; free( S1f ) ;
-  free( S2 ) ; free( S2f ) ;
-
-  // free our gamma matrices
-  free( GAMMAS ) ;
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
   if( error_code != FAILURE ) {
     // temporal data too
@@ -146,9 +143,8 @@ ll_offdiagonal( struct propagator prop1 ,
   free( DATA_AA ) ;
   free( DATA_VV ) ;
 
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
-
   return error_code ;
 }
+
+// clean up the number of props
+#undef Nprops

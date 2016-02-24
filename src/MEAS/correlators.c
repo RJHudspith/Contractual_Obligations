@@ -132,7 +132,11 @@ write_momcorr( const char *outfile ,
 {
   // write out the correlator
   char outstr[ 256 ] ;
-  sprintf( outstr , "%s.%s" , outfile , type ) ;
+  if( !strcmp( type , "" ) ) { 
+    sprintf( outstr , "%s" , outfile ) ;
+  } else {
+    sprintf( outstr , "%s.%s" , outfile , type ) ;
+  }
 
   printf( "[IO] writing correlation matrix to %s \n" , outstr ) ;
 
