@@ -42,7 +42,7 @@ baryons_diagonal( struct propagator prop1 ,
   struct gamma *Cgnu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
 
   // initialise our measurement struct
-  const struct propagator prop[ Nprops ] = { prop1 } ;
+  struct propagator prop[ Nprops ] = { prop1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -56,7 +56,7 @@ baryons_diagonal( struct propagator prop1 ,
   }
 
   // read in the first timeslice
-  if( read_prop( prop1 , M.S[0] ) == FAILURE ) {
+  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -76,13 +76,8 @@ baryons_diagonal( struct propagator prop1 ,
     size_t site ;
     #pragma omp parallel
     {
-      #pragma omp master
-      {
-	if( t < ( LT - 1 ) ) {
-	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	}
+      if( t < ( LT - 1 ) ) {
+	error_code = read_ahead( prop , M.Sf , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

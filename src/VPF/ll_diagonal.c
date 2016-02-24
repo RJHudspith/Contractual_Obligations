@@ -48,7 +48,7 @@ ll_diagonal( struct propagator prop1 ,
   struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
 
   // initialise our measurement struct
-  const struct propagator prop[ Nprops ] = { prop1 } ;
+  struct propagator prop[ Nprops ] = { prop1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -60,7 +60,7 @@ ll_diagonal( struct propagator prop1 ,
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
   // initially read a timeslice
-  if( read_prop( prop1 , M.S[0] ) == FAILURE ) {
+  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -73,13 +73,8 @@ ll_diagonal( struct propagator prop1 ,
     // do the conserved-local contractions
     #pragma omp parallel
     {
-      #pragma omp master
-      {
-	if( t < LT-1 ) {
-	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	}
+      if( t < LT-1 ) {
+	error_code = read_ahead( prop , M.Sf , Nprops ) ;
       }
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {

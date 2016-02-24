@@ -388,7 +388,7 @@ sumprop( void *SUM ,
   zero_spinor( tSUM ) ;
   const __m128d *tS = (const __m128d*)S ;
   size_t i ;
-  for( i = 0 ; i < VOL3 ; i++ ) {
+  for( i = 0 ; i < LCU ; i++ ) {
     add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
   }
   return ;

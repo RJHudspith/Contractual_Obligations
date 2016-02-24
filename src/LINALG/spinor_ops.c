@@ -14,7 +14,7 @@ static void
 add_spinors( double complex *SUM ,
 	     const double complex *S ) 
 {
-  int i ;
+  size_t i ;
   for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
     *SUM += *S ; SUM++ ; S++ ;
   }
@@ -65,7 +65,7 @@ equate_spinor_minus( void *mS ,
 {
   double complex *m = (double complex*)mS ;
   const double complex *s = (double complex*)S ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS * NCNC ; i++ ) {
     *m = -*s ; m++ ; s++ ;
   }
@@ -77,7 +77,7 @@ void
 flipsign_spinor( void *S ) 
 {
   double complex *s = (double complex*)S ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NSNS * NCNC ; i++ ) {
     *s = -*s ; s++ ;
   }
@@ -90,7 +90,7 @@ gauge_spinor( struct spinor *__restrict res ,
 	      const double complex link[ NCNC ] ,
 	      const struct spinor S )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       // computes S1 = link * S1
@@ -108,7 +108,7 @@ gaugedag_spinor( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       // computes S1 = link^{\dagger} * S1
@@ -126,7 +126,7 @@ gauge_spinordag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ,
 		 const struct spinor S )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       // computes S1 = link^{\dagger} * S1
@@ -158,7 +158,7 @@ spinor_gauge( struct spinor *__restrict res ,
 	      const struct spinor S ,
 	      const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       multab( (double complex*)res -> D[d1][d2].C , 
@@ -175,7 +175,7 @@ spinordag_gauge( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       multabdag( (double complex*)res -> D[d1][d2].C , 
@@ -192,7 +192,7 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		 const struct spinor S ,
 		 const double complex link[ NCNC ] )
 {
-  int d1 , d2 ;
+  size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       multab_dag( (double complex*)res -> D[d1][d2].C , 
@@ -209,7 +209,7 @@ spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B )
 {
   struct spinor tmp = *A ;
-  int d1 , d2 , d3 ;
+  size_t d1 , d2 , d3 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       double complex link[ NCNC ] , sum[ NCNC ] ;
@@ -233,7 +233,7 @@ void
 spinor_zero( void *S )
 {
   struct spinor *s = (struct spinor*)S ;
-  int i ;
+  size_t i ;
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     zero_spinor( (double complex*)s[i].D ) ;
@@ -256,7 +256,7 @@ spintrace( void *S ,
 {
   double complex *s = (double complex*)S ;
   const struct spinor *s2 = (const struct spinor*)S2 ;
-  int i , j , d ;
+  size_t i , j , d ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
       ///
@@ -278,7 +278,7 @@ sumprop( void *SUM ,
   double complex *sum = (double complex*)SUM ;
   zero_spinor( sum ) ;
   const double complex *s = (const double complex*)S ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
     add_spinors( sum , s ) ; s += NSNS*NCNC ;
   }

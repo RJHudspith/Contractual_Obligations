@@ -8,6 +8,7 @@
 #include "crc32.h"        // checksum calc
 #include "gammas.h"       // gamma matrix technology
 #include "GLU_bswap.h"    // byteswaps
+#include "io.h"           // alphabetising
 #include "matrix_ops.h"   // matrix equivs
 #include "polyakov.h"     // static quark computation
 #include "spinor_ops.h"   // zero the spinor
@@ -236,6 +237,31 @@ read_staticprop( struct propagator prop ,
   T++ ;
 
   return SUCCESS ;
+}
+
+// read timeslice above of Nprops
+int
+read_ahead( struct propagator *prop ,
+	    struct spinor **S , 
+	    const size_t Nprops )
+{
+  int error_code = SUCCESS ;
+#pragma omp master
+  {
+    if( read_prop( prop[0] , S[0] ) == FAILURE ) {
+      error_code = FAILURE ;
+    }
+  }
+  size_t mu ;
+  for( mu = 1 ; mu < Nprops ; mu++ ) {
+#pragma omp single nowait
+    {
+      if( read_prop( prop[mu] , S[mu] ) == FAILURE ) {
+	error_code = FAILURE ;
+      }
+    }
+  }
+  return error_code ;
 }
 
 // thin wrapper for propagator reading

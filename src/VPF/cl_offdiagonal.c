@@ -52,7 +52,7 @@ cl_offdiagonal( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // initialise our measurement struct
-  const struct propagator prop[ Nprops ] = { prop1 , prop2 , prop1 , prop2 } ;
+  struct propagator prop[ Nprops ] = { prop1 , prop2 , prop1 , prop2 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -64,8 +64,7 @@ cl_offdiagonal( struct propagator prop1 ,
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
   // free everything if the read fails
-  if( read_prop( prop1 , M.S[0] ) == FAILURE || 
-      read_prop( prop2 , M.S[1] ) == FAILURE ) {
+  if( read_ahead( prop , M.S , 2 ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -73,8 +72,7 @@ cl_offdiagonal( struct propagator prop1 ,
   rotate_offdiag( M.S, prop , 2 ) ;
 
   // read the first couple of slices
-  if( read_prop( prop1 , M.S[2] ) == FAILURE || 
-      read_prop( prop2 , M.S[3] ) == FAILURE ) {
+  if( read_ahead( prop , M.S+2 , 2 ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -102,31 +100,9 @@ cl_offdiagonal( struct propagator prop1 ,
     // parallel loop with an error flag
     #pragma omp parallel
     {
-      #pragma omp master
-      {
-	if( t < LT-2 ) {
-	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	  // rotate as necessary
-	  if( prop1.basis == CHIRAL && ( prop2.basis == NREL_FWD || 
-					 prop2.basis == NREL_BWD ) ) {
-	    nrel_rotate_slice( M.Sf[0] ) ;
-	  }
-	}
-      }
-      #pragma omp single nowait
-      {
-	if( t < LT-2 ) {
-	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	  // rotate as necessary
-	  if( prop2.basis == CHIRAL && ( prop1.basis == NREL_FWD || 
-					 prop1.basis == NREL_BWD ) ) {
-	    nrel_rotate_slice( M.Sf[1] ) ;
-	  }
-	}
+      if( t < LT-2 ) {
+	read_ahead( prop , M.Sf , 2 ) ;
+	rotate_offdiag( M.Sf , prop , 2 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
       for( x = 0 ; x < LCU ; x++ ) {

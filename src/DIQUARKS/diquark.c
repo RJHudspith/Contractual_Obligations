@@ -42,7 +42,7 @@ diquark_offdiag( struct propagator prop1 ,
   struct gamma *Cgnu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
 
   // initialise our measurement struct
-  const struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -56,8 +56,7 @@ diquark_offdiag( struct propagator prop1 ,
   }
 
   // read in the first timeslice
-  if( read_prop( prop1 , M.S[0] ) == FAILURE ||
-      read_prop( prop2 , M.S[1] ) == FAILURE ) {
+  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -82,18 +81,7 @@ diquark_offdiag( struct propagator prop1 ,
     {
       // read on the master and one slave
       if( t < LT-1 ) {
-        #pragma omp master
-	{
-	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	}
-        #pragma omp single nowait
-	{
-	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	}
+	error_code = read_ahead( prop , M.Sf , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

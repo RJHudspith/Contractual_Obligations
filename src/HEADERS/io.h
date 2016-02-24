@@ -14,6 +14,16 @@ int
 check_checksum( FILE *fprop ) ;
 
 /**
+   @fn int read_ahead( struct propagator *prop , struct spinor *S , const size_t Nprops )
+   @brief read the timeslice above
+   @warning should be called in an OMP parallel region
+ */
+int
+read_ahead( struct propagator *prop ,
+	    struct spinor **S , 
+	    const size_t Nprops ) ;
+
+/**
    @fn int read_prop( struct propagator prop , struct spinor *S )
    @brief read the propagator for a timeslice
    @param prop :: propagator file

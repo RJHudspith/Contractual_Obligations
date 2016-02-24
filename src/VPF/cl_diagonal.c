@@ -54,7 +54,7 @@ cl_diagonal( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // initialise our measurement struct
-  const struct propagator prop[ Nprops ] = { prop1 , prop1 } ;
+  struct propagator prop[ Nprops ] = { prop1 , prop1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -66,8 +66,7 @@ cl_diagonal( struct propagator prop1 ,
   DATA_VV = calloc( LVOLUME , sizeof( struct PIdata ) ) ;
 
   // Read first timeslice and the one above it
-  if( read_prop( prop1 , M.S[0] ) == FAILURE ||
-      read_prop( prop1 , M.S[1] ) == FAILURE ) {
+  if( read_ahead( prop , M.S , 1 ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -91,13 +90,8 @@ cl_diagonal( struct propagator prop1 ,
     // parallel loop with an error flag
     #pragma omp parallel
     {
-      #pragma omp master
-      {
-	if( t < ( LT-2 ) ) {
-	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
-	    error_code = FAILURE ;
-	  }
-	}
+      if( t < ( LT-2 ) ) {
+	error_code = read_ahead( prop , M.Sf , 1 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
       for( x = 0 ; x < LCU ; x++ ) {
