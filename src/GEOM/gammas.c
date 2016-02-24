@@ -245,18 +245,6 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[2].ig[1] = 3 ; GAMMA[2].g[1] = 1 ;
     GAMMA[2].ig[2] = 0 ; GAMMA[2].g[2] = 1 ;
     GAMMA[2].ig[3] = 1 ; GAMMA[2].g[3] = 3 ;
-    /*
-    // gamma_3
-    GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 0 ;
-    GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 0 ;
-    GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 0 ;
-    GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 0 ;
-    // gamma_5 gets flipped no?
-    GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 0 ;
-    GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 0 ;
-    GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 2 ;
-    GAMMA[5].ig[3] = 3 ; GAMMA[5].g[3] = 2 ;
-    */
     // gamma_3
     GAMMA[3].ig[0] = 2 ; GAMMA[3].g[0] = 2 ;
     GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 2 ;
