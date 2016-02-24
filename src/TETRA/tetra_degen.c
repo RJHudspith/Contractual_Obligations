@@ -117,7 +117,7 @@ tetraquark_degen( struct propagator prop1 ,
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
 	size_t GSRC ;
-        #pragma omp parallel for prinvate(GSRC)
+        #pragma omp parallel for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  double complex result[ stride1 ] ;
 	  // perform contraction, result in result
