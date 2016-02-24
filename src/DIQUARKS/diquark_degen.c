@@ -1,6 +1,6 @@
 /**
-   @file diquark.c
-   @brief diquark-diquark contraction
+   @file diquark_degen.c
+   @brief diquark-diquark contraction for degenerate props
  */
 #include "common.h"
 

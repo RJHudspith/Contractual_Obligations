@@ -6,7 +6,7 @@
 #define CORR_SETUP_H
 
 /**
-   @fn int compute_correlator2( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t tshifted )
+   @fn int compute_correlator( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t tshifted )
    @brief compute the momentum-projected correlation function in @M.corr
  */
 int
@@ -26,19 +26,6 @@ free_ffts( double complex **in ,
 	   void *forward ,
 	   void *backward ,
 	   const size_t flat_dirac ) ;
-
-/**
-   @fn int init_moms( int **NMOM , int **wwNMOM , struct veclist **list , struct veclist **wwlist , const struct cut_info CUTINFO , const GLU_bool is_wall )
-   @brief initialise and allocate momentum lists
-   @return #SUCCESS or #FAILURE
- */
-int
-init_moms( int **NMOM , 
-	   int **wwNMOM ,
-	   struct veclist **list ,
-	   struct veclist **wwlist ,
-	   const struct cut_info CUTINFO , 
-	   const GLU_bool is_wall ) ;
 
 /**
    @fn void free_measurements( struct measurements *M , const size_t Nprops , const size_t stride1 , const size_t stride2 , const size_t flat_dirac )
@@ -64,5 +51,18 @@ init_measurements( struct measurements *M ,
 		   const size_t stride1 ,
 		   const size_t stride2 ,
 		   const size_t flat_dirac ) ;
+
+/**
+   @fn int init_moms( int **NMOM , int **wwNMOM , struct veclist **list , struct veclist **wwlist , const struct cut_info CUTINFO , const GLU_bool is_wall )
+   @brief initialise and allocate momentum lists
+   @return #SUCCESS or #FAILURE
+ */
+int
+init_moms( int **NMOM , 
+	   int **wwNMOM ,
+	   struct veclist **list ,
+	   struct veclist **wwlist ,
+	   const struct cut_info CUTINFO , 
+	   const GLU_bool is_wall ) ;
 
 #endif

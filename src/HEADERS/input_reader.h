@@ -26,7 +26,7 @@ free_props( struct propagator *prop ,
 	    const size_t nprops ) ;
 
 /**
-   @fn int get_contraction_map( int *map , const char *token , const size_t nprops ) 
+   @fn int get_contraction_map( size_t *map , const char *token , const size_t nprops ) 
    @brief contraction map for our propagators
  */
 int

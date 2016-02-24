@@ -25,7 +25,7 @@ free_momcorrs( struct mcorr **mcorr ,
 	       const size_t nmom ) ;
 
 /**
-   @fn void debug_mesons( const char *message , const struct correlator **corr )
+   @fn void debug_mesons( const char *message , const struct mcorr **corr )
    @brief print to stdout some correlator information
  */
 void
@@ -33,7 +33,7 @@ debug_mesons( const char *message ,
 	      const struct mcorr **corr ) ;
 
 /**
-   @fn void debug_baryons( const char *message , const struct correlator **corr )
+   @fn void debug_baryons( const char *message , const struct mcorr **corr )
    @brief print to stdout some (baryon) correlator information
  */
 void

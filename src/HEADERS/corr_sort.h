@@ -33,7 +33,7 @@ lt_int( const void *a ,
 
 /**
    @fn int merge_sort( void *list1 , void *list2 , const size_t base1 , const size_t base2 , const size_t size , int(*compare)( const void *a , const void *b ) )
-   @brief merge sort list1 swapping list2 accordingly
+   @brief merge sort @list1 swapping @list2 accordingly
  */
 int
 merge_sort( void *list1 , void *list2 ,

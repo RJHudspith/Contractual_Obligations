@@ -1,12 +1,13 @@
 /**
-   @file wrap_diquark.h
+   @file wrap_diquarks.h
    @brief prototype declarations for diquark wrapper
  */
-#ifndef WRAP_DIQUARK_H
-#define WRAP_DIQUARK_H
+#ifndef WRAP_DIQUARKS_H
+#define WRAP_DIQUARKS_H
 
 /**
    @fn int contract_diquarks( struct propagator *prop , const struct meson_info *diquarks , const struct cut_info CUTINFO , const size_t ndiquarks )
+   @brief driver for diquark contractions
  */
 int
 contract_diquarks( struct propagator *prop ,

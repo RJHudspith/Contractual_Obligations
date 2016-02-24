@@ -4,22 +4,9 @@
  */
 #include "common.h"
 
-#include "gammas.h"             // gamma_mmul()
-#include "spinmatrix_ops.h"     // matrix operations
-
-// compute psq
-void
-compute_p_psq( double p[ ND ] ,
-	       double *p2 ,
-	       const struct veclist momentum )
-{
-  size_t mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    p[ mu ] = sin( momentum.MOM[ mu ] * Latt.twiddles[ mu ] ) ;
-    *p2 += p[ mu ] * p[ mu ] ;
-  }
-  return ;
-}
+#include "bar_projections.h" // alphabetising
+#include "gammas.h"          // gamma_mmul()
+#include "spinmatrix_ops.h"  // matrix operations
 
 // is the factor proj = ( pslash \gamma_i p_j )
 static void
@@ -92,6 +79,155 @@ momentum_factor_right( double complex *proj ,
   }
  memfree :
   free( tmp1 ) ; free( tmp2 ) ;
+  return ;
+}
+
+// select matrix G_{ik} with dirac indices i (row) k (cols)
+static void
+set_Gik( double complex *Gik , 
+	 const struct mcorr **corr ,
+	 const size_t i ,
+	 const size_t k ,
+	 const size_t pidx ,
+	 const size_t t )
+{
+  size_t d ;
+#if NS == 4
+  for( d = 0 ; d < NS ; d++ ) {
+    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] ;
+  }
+#else
+  for( d = 0 ; d < NSNS ; d++ ) {
+    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] ;
+  }
+#endif
+}
+
+// project out a specific spin
+static void
+spin_project( double complex *Gik , 
+	      const struct mcorr **corr ,
+	      const struct gamma *GAMMA ,
+	      const struct veclist *momentum ,
+	      const size_t i ,
+	      const size_t k ,
+	      const size_t p ,
+	      const size_t t ,
+	      const spinhalf projection ) 
+{
+  // spin projections are for spatial indices only!!
+  if( i > ( ND-2 ) || k > ( ND-2 ) ) {
+    set_Gik( Gik , corr , i , k , p , t ) ;
+    return ;
+  }
+  // do the spin projections
+  switch( projection ) {
+  case OneHalf_11 :
+    spinproj( Gik , P11 , corr , i , k , t , GAMMA , momentum , p ) ;
+    break ;
+  case OneHalf_12 :
+    spinproj( Gik , P12 , corr , i , k , t , GAMMA , momentum , p ) ;
+    break ;
+  case OneHalf_21 :
+    spinproj( Gik , P21 , corr , i , k , t , GAMMA , momentum , p ) ;
+    break ;
+  case OneHalf_22 :
+    spinproj( Gik , P22 , corr , i , k , t , GAMMA , momentum , p ) ;
+    break ;
+  case ThreeHalf :
+    spinproj( Gik , P32 , corr , i , k , t , GAMMA , momentum , p ) ;
+    break ;
+  case NONE :
+    set_Gik( Gik , corr , i , k , p , t ) ;
+    break ;
+  }
+  return ;
+}
+
+// returns the correlator at some momentum
+double complex*
+baryon_project( const struct mcorr **corr ,
+		const struct gamma *GAMMA ,
+		const struct veclist *momentum ,
+		const size_t GSRC ,
+		const size_t GSNK ,
+		const size_t p ,
+		const bprojection parity_proj , 
+		const spinhalf spin_proj ) 
+{
+  // D is a temporary spinmatrix
+  double complex *D = NULL , *result = NULL ;
+
+  // allocate temporaries
+  corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&result , 16 , LT * sizeof( double complex ) ) ;
+
+  // build these just in case
+  struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
+  struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ 3 ] , g0g5 ) ;
+
+  // loop times 
+  size_t t ;
+  for( t = 0 ; t < LT ; t++ ) {
+
+    // set open dirac matrix doing the spin projection if desired
+    spin_project( D , corr , GAMMA , momentum , 
+		  GSRC , GSNK , p , t , spin_proj ) ; 
+
+    switch( parity_proj ) {
+    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
+			     I * gammaspinmatrix_trace( g0g5 , D ) - 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      break ;
+    case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
+			     I * gammaspinmatrix_trace( g0g5 , D ) - 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      break ;
+    case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
+			     I * gammaspinmatrix_trace( g0g5 , D ) + 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      break ;
+    case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
+      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
+			     I * gammaspinmatrix_trace( g0g5 , D ) + 
+			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      break ;
+    case L4 : // does 1/2 ( g_I + g_3 )
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
+      break ;
+    case L5 : // does 1/2 ( g_I - g_3 )
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
+      break ;
+    }
+  }
+
+  free( D ) ;
+  return result ;
+}
+
+// compute psq
+void
+compute_p_psq( double p[ ND ] ,
+	       double *p2 ,
+	       const struct veclist momentum )
+{
+  size_t mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    p[ mu ] = sin( momentum.MOM[ mu ] * Latt.twiddles[ mu ] ) ;
+    *p2 += p[ mu ] * p[ mu ] ;
+  }
   return ;
 }
 
@@ -311,30 +447,6 @@ P32( double complex *proj ,
   return ;
 }
 
-// select matrix G_{ik} with dirac indices i (row) k (cols)
-static void
-set_Gik( double complex *Gik , 
-	 const struct mcorr **corr ,
-	 const size_t i ,
-	 const size_t k ,
-	 const size_t pidx ,
-	 const size_t t )
-{
-  size_t d ;
-#if NS == 4
-  for( d = 0 ; d < NS ; d++ ) {
-    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] ;
-  }
-#else
-  for( d = 0 ; d < NSNS ; d++ ) {
-    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] ;
-  }
-#endif
-}
-
 // project out a spinmatrix into D
 // performs G_{ik} = P_{ij} G_{jk}
 int
@@ -395,115 +507,4 @@ spinproj( double complex *Gik ,
   free( Gjk ) ;
 
   return flag ;
-}
-
-// project out a specific spin
-static void
-spin_project( double complex *Gik , 
-	      const struct mcorr **corr ,
-	      const struct gamma *GAMMA ,
-	      const struct veclist *momentum ,
-	      const size_t i ,
-	      const size_t k ,
-	      const size_t p ,
-	      const size_t t ,
-	      const spinhalf projection ) 
-{
-  // spin projections are for spatial indices only!!
-  if( i > ( ND-2 ) || k > ( ND-2 ) ) {
-    set_Gik( Gik , corr , i , k , p , t ) ;
-    return ;
-  }
-  // do the spin projections
-  switch( projection ) {
-  case OneHalf_11 :
-    spinproj( Gik , P11 , corr , i , k , t , GAMMA , momentum , p ) ;
-    break ;
-  case OneHalf_12 :
-    spinproj( Gik , P12 , corr , i , k , t , GAMMA , momentum , p ) ;
-    break ;
-  case OneHalf_21 :
-    spinproj( Gik , P21 , corr , i , k , t , GAMMA , momentum , p ) ;
-    break ;
-  case OneHalf_22 :
-    spinproj( Gik , P22 , corr , i , k , t , GAMMA , momentum , p ) ;
-    break ;
-  case ThreeHalf :
-    spinproj( Gik , P32 , corr , i , k , t , GAMMA , momentum , p ) ;
-    break ;
-  case NONE :
-    set_Gik( Gik , corr , i , k , p , t ) ;
-    break ;
-  }
-  return ;
-}
-
-// returns the correlator at some momentum
-double complex*
-baryon_project( const struct mcorr **corr ,
-		const struct gamma *GAMMA ,
-		const struct veclist *momentum ,
-		const size_t GSRC ,
-		const size_t GSNK ,
-		const size_t p ,
-		const bprojection parity_proj , 
-		const spinhalf spin_proj ) 
-{
-  // D is a temporary spinmatrix
-  double complex *D = NULL , *result = NULL ;
-
-  // allocate temporaries
-  corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&result , 16 , LT * sizeof( double complex ) ) ;
-
-  // build these just in case
-  struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
-  struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ 3 ] , g0g5 ) ;
-
-  // loop times 
-  size_t t ;
-  for( t = 0 ; t < LT ; t++ ) {
-
-    // set open dirac matrix doing the spin projection if desired
-    spin_project( D , corr , GAMMA , momentum , 
-		  GSRC , GSNK , p , t , spin_proj ) ; 
-
-    switch( parity_proj ) {
-    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
-			     I * gammaspinmatrix_trace( g0g5 , D ) - 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			     I * gammaspinmatrix_trace( g0g5 , D ) - 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
-			     I * gammaspinmatrix_trace( g0g5 , D ) + 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			     I * gammaspinmatrix_trace( g0g5 , D ) + 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
-      break ;
-    case L4 : // does 1/2 ( g_I + g_3 )
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
-      break ;
-    case L5 : // does 1/2 ( g_I - g_3 )
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
-      break ;
-    }
-  }
-
-  free( D ) ;
-  return result ;
 }

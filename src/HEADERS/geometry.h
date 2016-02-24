@@ -91,7 +91,7 @@ get_mom_2piBZ_hirep2( int x[ ND ] ,
 		      const size_t i ) ;
 
 /**
-   @fn void compute_p( double p[ ND ] , const int n[ ND ] , const int DIMS )
+   @fn void compute_p( double p[ ND ] , const int n[ ND ] , const size_t DIMS )
    @brief computes the lattice momentum from the integer n[mu]'s
    @param p :: lattice momentum
    @param n :: Fourier mode
@@ -144,7 +144,7 @@ gen_get_p( double p[ ND ] ,
 	   const size_t DIMS ) ;
 
 /**
-   @fn void get_vec_from_origin( int n[ ND ] , const int i , const int DIMS )
+   @fn void get_vec_from_origin( int n[ ND ] , const int i , const size_t DIMS )
    @brief gives the vector from the lattice origin (0,0,0,0)
    @param n :: Fourier mode vector
    @param i :: lexicographical site index
@@ -167,7 +167,7 @@ compute_rsq( const size_t site ,
 	     const size_t dir ) ;
 
 /**
-   @fn int compute_spacing( const int separation[ ND ] , const int k , const int DIMS )
+   @fn int compute_spacing( const int separation[ ND ] , const size_t k , const size_t DIMS )
    @brief computes the index after a shift by the vectory separation
    @param separation :: shifting vector
    @param k :: starting index
@@ -190,7 +190,7 @@ gen_shift( const size_t i ,
 	   const int dir ) ;
 
 /**
-   @fn void TwoPI_mpipi_momconv( int MOM[ ND ] , const int i , const int DIR )
+   @fn void TwoPI_mpipi_momconv( int MOM[ ND ] , const size_t i , const size_t DIR )
    @brief short function to convert momenta from the \f$ 0\rightarrow 2\pi \f$ BZ into the conventional (at least for lattice) \f$-\pi \rightarrow \pi \f$ BZ
    @param MOM :: vector of integer represented momentum that will be changed
    @param i :: lattice index for the \f$ 0\rightarrow 2\pi \f$ BZ

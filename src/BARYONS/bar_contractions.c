@@ -262,70 +262,13 @@ baryon_contract_omega_site( double complex **term ,
   return ;
 }
 
-// baryonic momentum project
+// momentum projection
 void
-baryon_momentum_project( struct mcorr **corr ,
-			 double complex **in ,
-			 double complex **out ,
-			 const void *forward ,
-			 const void *backward ,
-			 const struct veclist *list ,
-			 const int NMOM[ 1 ] ,
+baryon_momentum_project( struct measurements *M ,
+			 const size_t stride1 , 
+			 const size_t stride2 ,
 			 const size_t t ,
 			 const baryon_type btype )
-{
-  //
-  double complex (*f)( const double complex term1 , 
-		       const double complex term2 ) = uds ; 
-  switch( btype ) {
-  case UDS_BARYON : break ;
-  case UUD_BARYON : f = uud ; break ;
-  case UUU_BARYON : f = uuu ; break ;
-  }
-  // loop over flatteded open dirac indices
-  size_t GSodc ;
-#ifdef HAVE_FFTW3_H
-  const fftw_plan *forw = ( const fftw_plan* )forward ;
-  // perform the FFTS separately here
-  #pragma omp parallel for private(GSodc)
-  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
-    const size_t GSGK = GSodc / NSNS ;
-    const size_t odc = GSodc % NSNS ;
-    const size_t idx = 2 * GSodc ;
-    fftw_execute( forw[ 0 + idx ] ) ;
-    fftw_execute( forw[ 1 + idx ] ) ;
-    const double complex *sum1 = out[ 0 + idx ] ;
-    const double complex *sum2 = out[ 1 + idx ] ;
-    size_t p ;
-    for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
-      const size_t lid = list[ p ].idx ;
-      corr[ GSGK ][ odc ].mom[ p ].C[ t ] = f( sum1[ lid ] , sum2[ lid ] ) ;
-    }
-  }
-#else
-  #pragma omp parallel for private(GSodc)
-  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
-    const size_t GSGK = GSodc / NSNS ;
-    const size_t odc = GSodc % NSNS ;
-    const size_t idx = 2 * GSodc ;
-    register double complex sum1 = 0.0 , sum2 = 0.0 ;
-    size_t site ;
-    for( site = 0 ; site < LCU ; site++ ) {
-      sum1 += in[ 0 + idx ][ site ] ;
-      sum2 += in[ 1 + idx ][ site ] ;
-    }
-    corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
-  }
-#endif
-  return ;
-}
-
-void
-baryon_momentum_project2( struct measurements *M ,
-			  const size_t stride1 , 
-			  const size_t stride2 ,
-			  const size_t t ,
-			  const baryon_type btype )
 {
   //
   double complex (*f)( const double complex term1 , 

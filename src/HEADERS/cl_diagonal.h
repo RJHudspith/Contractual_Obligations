@@ -1,9 +1,9 @@
 /**
-   @file conserved_local.h
+   @file cl_diagonal.h
    @brief prototype functions for the conserved-local contractions
  */
-#ifndef CONSERVED_LOCAL_H
-#define CONSERVED_LOCAL_H
+#ifndef CL_DIAGONAL_H
+#define CL_DIAGONAL_H
 
 /**
    @fn int cl_diagonal( struct propagator prop , const struct site *lat , const struct cut_info CUTINFO , const char *outfile )

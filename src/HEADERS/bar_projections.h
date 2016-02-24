@@ -6,6 +6,20 @@
 #define BAR_PROJECTIONS_H
 
 /**
+   @fn double complex* baryon_project( const struct mcorr **corr , const struct gamma *GAMMA , const struct veclist *momentum , const size_t GSRC , const size_t GSNK , const size_t p , const bprojection parity_proj , const spinhalf spin_proj ) 
+   @brief project out the open dirac indices
+ */
+double complex*
+baryon_project( const struct mcorr **corr ,
+		const struct gamma *GAMMA ,
+		const struct veclist *momentum ,
+		const size_t GSRC ,
+		const size_t GSNK ,
+		const size_t p ,
+		const bprojection parity_proj , 
+		const spinhalf spin_proj ) ;
+
+/**
    @fn void compute_p_psq( double p[ ND ] , double *p2 , const struct veclist momentum )
    @brief compute momenta and psq
  */
@@ -87,17 +101,23 @@ P00( double complex *proj ,
      const size_t pidx ) ;
 
 /**
-   @fn double complex* baryon_project( const struct mcorr **corr , const struct gamma *GAMMA , const struct veclist *momentum , const size_t GSRC , const size_t GSNK , const size_t p , const bprojection parity_proj , const spinhalf spin_proj ) 
-   @brief project out the open dirac indices
+   @fn int spinproj( double complex *Gik , void (*p)( double complex *proj , const size_t i , const size_t j , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx ) , const struct mcorr **corr , const size_t i , const size_t k , const size_t t , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx )
+   @brief spin project a baryon correlation function
  */
-double complex*
-baryon_project( const struct mcorr **corr ,
-		const struct gamma *GAMMA ,
-		const struct veclist *momentum ,
-		const size_t GSRC ,
-		const size_t GSNK ,
-		const size_t p ,
-		const bprojection parity_proj , 
-		const spinhalf spin_proj ) ;
+int
+spinproj( double complex *Gik ,
+	  void (*p)( double complex *proj ,
+		     const size_t i ,
+		     const size_t j ,
+		     const struct gamma *GAMMA ,
+		     const struct veclist *momentum ,
+		     const size_t pidx ) ,
+	  const struct mcorr **corr ,
+	  const size_t i ,
+	  const size_t k ,
+	  const size_t t ,
+	  const struct gamma *GAMMA ,
+	  const struct veclist *momentum ,
+	  const size_t pidx ) ;
 
 #endif

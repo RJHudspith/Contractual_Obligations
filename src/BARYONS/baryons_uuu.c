@@ -1,5 +1,5 @@
 /**
-   @file baryons.c
+   @file baryons_uuu.c
    @brief baryon contraction code
 */
 #include "common.h"
@@ -109,7 +109,7 @@ baryons_diagonal( struct propagator prop1 ,
     }
 
     // momentum projection 
-    baryon_momentum_project2( &M , stride1 , stride2 , tshifted , UUU_BARYON ) ;
+    baryon_momentum_project( &M , stride1 , stride2 , tshifted , UUU_BARYON ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {

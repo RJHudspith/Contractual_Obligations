@@ -133,7 +133,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     }
 
     // momentum projection 
-    baryon_momentum_project2( &M , stride1 , stride2 , tshifted , UDS_BARYON ) ;
+    baryon_momentum_project( &M , stride1 , stride2 , tshifted , UDS_BARYON ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {

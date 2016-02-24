@@ -40,7 +40,7 @@ gen_site( const int x[ ND ] )
 // defined in the 0 -> 2pi BZ.
 size_t
 get_site_2piBZ( int x[ ND ] , 
-		const int DIMS )
+		const size_t DIMS )
 {
   int temp[ND] , mu , L_2 = 1 ;
   for( mu = 0 ; mu < ND ; mu ++ ) {

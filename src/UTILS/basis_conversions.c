@@ -55,7 +55,7 @@ nrel_rotate_slice( struct spinor *S )
 // rotate if we need to
 void 
 rotate_offdiag( struct spinor **S ,
-		struct propagator *prop ,
+		const struct propagator *prop ,
 		const size_t Nprops )
 {
   // loop all props looking to see if any are non-relativistic

@@ -1,5 +1,5 @@
 /**
-   @file wrap_diquark.c
+   @file wrap_diquarks.c
    @brief wrapper for the diquark contractions
  */
 #include "common.h"

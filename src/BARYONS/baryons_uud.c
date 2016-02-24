@@ -123,7 +123,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       }
     }
 
-    baryon_momentum_project2( &M , stride1 , stride2 , tshifted , UUD_BARYON ) ;
+    baryon_momentum_project( &M , stride1 , stride2 , tshifted , UUD_BARYON ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {
