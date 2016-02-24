@@ -24,6 +24,48 @@ uuu( const double complex term1 , const double complex term2 ) {
   return 2*term1 + 4*term2 ;
 }
 
+// baryon contraction for the omega
+void
+baryon_contract_omega_site( double complex **term ,
+			    const struct spinor S1 , 
+			    const struct spinor S2 , 
+			    const struct spinor S3 , 
+			    const struct gamma Cgmu ,
+			    const struct gamma GgmuD )
+{
+  // get diquark
+  struct spinor DiQ = S1 , CgS51 = S1 , CgS52 = S1 ;
+  gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
+  gamma_mul_l( &CgS51 , GgmuD ) ;
+  gamma_mul_r( &CgS52 , Cgmu ) ;
+
+  // Cross color product and sink Dirac trace back into DiQ
+  struct spinor DiQ51 = CgS51 , DiQ52 = CgS52 ;
+  cross_color_trace( &DiQ , S2 ) ;
+  cross_color_trace( &DiQ51 , CgS52 ) ;
+  cross_color_trace( &DiQ52 , S2 ) ;
+
+  // loop over open dirac indices
+  size_t odc , OD1 , OD2 ;
+  for( odc = 0 ; odc < NSNS ; odc++ ) {
+    // open dirac index for source and sink
+    OD1 = odc / NS ;
+    OD2 = odc % NS ;
+    // Contract with the final propagator and trace out the source Dirac indices
+    // A polarization must still be picked for the two open Dirac indices offline
+    size_t dirac ;
+    for( dirac = 0 ; dirac < NS ; dirac++ ){
+      term[0][odc] += baryon_contract( DiQ , S3 , dirac , dirac , OD1 , OD2 ) ;
+      term[1][odc] += baryon_contract( DiQ , S3 , OD1 , dirac , dirac , OD2 ) ;
+      term[2][odc] += baryon_contract( DiQ51 , S3 , dirac , dirac , OD1 , OD2 ) ;
+      term[3][odc] += baryon_contract( DiQ52 , CgS52, OD1 , dirac , dirac , OD2 ) ;
+      term[4][odc] += baryon_contract( DiQ52 , CgS52, dirac , OD1 , dirac , OD2 ) ;
+      term[5][odc] += baryon_contract( DiQ51 , S3 , dirac , OD1 , dirac , OD2 ) ;
+    }
+  }
+  return ;
+}
+
 // baryon contraction of ( \Gamma_mu^T S1 Gamma_\mu S2 ) S3
 // NOTES ::
 //
@@ -216,48 +258,6 @@ baryon_contract_walls( struct mcorr **corr ,
       corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( term[0][odc] , term[1][odc] ) ;
     }
     free( term[0] ) ; free( term[1] ) ; free( term ) ;
-  }
-  return ;
-}
-
-// baryon contraction for the omega
-void
-baryon_contract_omega_site( double complex **term ,
-			    const struct spinor S1 , 
-			    const struct spinor S2 , 
-			    const struct spinor S3 , 
-			    const struct gamma Cgmu ,
-			    const struct gamma GgmuD )
-{
-  // get diquark
-  struct spinor DiQ = S1 , CgS51 = S1 , CgS52 = S1 ;
-  gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
-  gamma_mul_l( &CgS51 , GgmuD ) ;
-  gamma_mul_r( &CgS52 , Cgmu ) ;
-
-  // Cross color product and sink Dirac trace back into DiQ
-  struct spinor DiQ51 = CgS51 , DiQ52 = CgS52 ;
-  cross_color_trace( &DiQ , S2 ) ;
-  cross_color_trace( &DiQ51 , CgS52 ) ;
-  cross_color_trace( &DiQ52 , S2 ) ;
-
-  // loop over open dirac indices
-  size_t odc , OD1 , OD2 ;
-  for( odc = 0 ; odc < NSNS ; odc++ ) {
-    // open dirac index for source and sink
-    OD1 = odc / NS ;
-    OD2 = odc % NS ;
-    // Contract with the final propagator and trace out the source Dirac indices
-    // A polarization must still be picked for the two open Dirac indices offline
-    size_t dirac ;
-    for( dirac = 0 ; dirac < NS ; dirac++ ){
-      term[0][odc] += baryon_contract( DiQ , S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[1][odc] += baryon_contract( DiQ , S3 , OD1 , dirac , dirac , OD2 ) ;
-      term[2][odc] += baryon_contract( DiQ51 , S3 , dirac , dirac , OD1 , OD2 ) ;
-      term[3][odc] += baryon_contract( DiQ52 , CgS52, OD1 , dirac , dirac , OD2 ) ;
-      term[4][odc] += baryon_contract( DiQ52 , CgS52, dirac , OD1 , dirac , OD2 ) ;
-      term[5][odc] += baryon_contract( DiQ51 , S3 , dirac , OD1 , dirac , OD2 ) ;
-    }
   }
   return ;
 }
