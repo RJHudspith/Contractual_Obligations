@@ -153,8 +153,7 @@ read_nrprop( struct propagator prop ,
     GLU_TRUE : GLU_FALSE ;
 
   // temporaries depending on prop precision
-  double complex *tmp = NULL ;
-  float complex *ftmp = NULL ;
+  double complex *tmp = NULL , *ftmp = NULL ;
   if( prop.precision == SINGLE ) {
     ftmp = malloc( spinsize * sizeof( float complex ) ) ;
   } else {
@@ -196,9 +195,9 @@ read_nrprop( struct propagator prop ,
 
       // convention dictates that forward is the top left and backward is bottom right
       if( basis == NREL_FWD ) {
-	fill_spinor( &S[i] , ftmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
+	fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
       } else {
-	fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
+	fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
       }
       // can also hack in whatever you would like here
     }
