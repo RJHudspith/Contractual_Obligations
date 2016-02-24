@@ -1,16 +1,21 @@
+/**
+   @file gamma_tests.c
+   @brief gamma matrix tests for functions in gammas.c
+ */
 #include "common.h"
 
-#include "gammas.h"
-#include "minunit.h"
+#include "gammas.h"  // gamma matrix prototype declarations
+#include "minunit.h" // minimal unit testing framework
 
-static struct gamma *GAMMAS = NULL ; // gamma matrix technology
+// gamma matrix global
+static struct gamma *GAMMAS = NULL ;
 
 // gamma matrix comparison
 static int
 gamma_comparison( const struct gamma G1 , 
 		  const struct gamma G2 )
 {
-  int j ;
+  size_t j ;
   for( j = 0 ; j < NS ; j++ ) {
     if( G1.ig[j] != G2.ig[j] || G1.g[j] != G2.g[j] ) {
       return 1 ;
@@ -24,7 +29,7 @@ static char *
 gamma_mmul_test( void )
 {
   struct gamma res ;
-  int mu ;
+  size_t mu ;
   for( mu = 0 ; mu < NSNS ; mu++ ) {
     gamma_mmul( &res , GAMMAS[ IDENTITY ] , GAMMAS[ mu ] ) ;
     mu_assert( "[UNIT] error : gammas gamma_mmul broken on identity multiply1" ,

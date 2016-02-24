@@ -1,12 +1,12 @@
 /**
-   @file matops_tests.c
+   @file contract_tests.c
    @brief matrix operations tests
 */
 
 #include "common.h"
 
 #include "contractions.h"  // contractions
-#include "gammas.h"
+#include "gammas.h"        // gamma matrices
 #include "minunit.h"       // minimal unit testing framework
 #include "spinor_ops.h"    // identity_spinor()
 
@@ -24,7 +24,7 @@ static char
 {
   struct spinor B ;
   adjoint_spinor( &B , A ) ;
-  int d1 , d2 , c1 , c2 ;
+  size_t d1 , d2 , c1 , c2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       for( c1 = 0 ; c1 < NC ; c1++ ) {
@@ -163,7 +163,7 @@ gamma_mul_lr_test( void )
 
   const double *r = (const double*)B.D ;
   const double *s = (const double*)C.D ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert("[CONTRACT UNIT] error : gamma_mul_lr broken", 
 	      !( fabs( *r - *s ) > FTOL ) ) ;
