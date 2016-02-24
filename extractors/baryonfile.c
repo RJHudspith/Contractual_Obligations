@@ -2,7 +2,7 @@
    @file baryonfile.c
    @brief little correlation file reader
    
-   TODO :: momentum projections for spin 1/2, 3/2?
+   @warning This code has hard-coded values of B_CHANNELS everywhere!
  */
 #include "common.h"
 
@@ -217,7 +217,7 @@ main( const int argc ,
 
   // write out the correlator
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)proj_corr , 
-		 momentum , B_CHANNELS , B_CHANNELS , (const int*)NMOM ) ;
+		 momentum , B_CHANNELS , B_CHANNELS , (const int*)NMOM , "" ) ;
 
  memfree :
 

@@ -121,9 +121,9 @@ tmoments( const struct PIdata *AA ,
 
   // write out the t-correlators
   write_momcorr( strAA , (const struct mcorr**)ctAA , 
-		 tlist , ND , ND , tNMOM ) ;
+		 tlist , ND , ND , tNMOM , "" ) ;
   write_momcorr( strVV , (const struct mcorr**)ctVV ,
-		 tlist , ND , ND , tNMOM ) ;
+		 tlist , ND , ND , tNMOM , "" ) ;
 
   // storage for the momentum-space data
   struct PIdata *cpAA = malloc( LT * sizeof( struct PIdata ) ) ;

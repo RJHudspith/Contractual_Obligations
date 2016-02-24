@@ -120,29 +120,6 @@ debug_baryons( const char *message ,
   return ;
 }
 
-// baryon writers
-void
-write_baryon( struct mcorr **corr , 
-	      const struct veclist *list ,
-	      const int NMOM[ 1 ] ,
-	      const GLU_bool is_wall ,
-	      const char *outfile ,
-	      const char *type )
-{
-  // write out the correlator
-  char outstr[ 256 ] , wall[ 8 ] = "" ;
-  if( is_wall == GLU_TRUE ) {
-    sprintf( wall , ".WW" ) ;
-  } 
-
-  // write out whatever type we are using
-  sprintf( outstr , "%s.%s%s" , outfile , type , wall ) ;
-  write_momcorr( outstr , (const struct mcorr**)corr , 
-		 list , B_CHANNELS * B_CHANNELS , NSNS , NMOM ) ;
-
-  return ;
-}
-
 // write the full correlator matrix
 void
 write_momcorr( const char *outfile ,
@@ -150,11 +127,16 @@ write_momcorr( const char *outfile ,
 	       const struct veclist *list ,
 	       const size_t NSRC ,
 	       const size_t NSNK ,
-	       const int *nmom )
+	       const int *nmom , 
+	       const char *type )
 {
-  printf( "[IO] writing correlation matrix to %s \n" , outfile ) ;
+  // write out the correlator
+  char outstr[ 256 ] ;
+  sprintf( outstr , "%s.%s" , outfile , type ) ;
 
-  FILE *output_file = fopen( outfile , "wb" ) ;
+  printf( "[IO] writing correlation matrix to %s \n" , outstr ) ;
+
+  FILE *output_file = fopen( outstr , "wb" ) ;
 
   uint32_t magic[ 1 ] = { 67798233 } ; // THIS SPELLS COR! in ascii
 

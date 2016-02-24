@@ -9,8 +9,8 @@ AM_CFLAGS=-I${TOPDIR}/src/HEADERS/
 ## c files in ./BARYONS/
 BARYONFILES=./BARYONS/bar_contractions.c ./BARYONS/bar_projections.c \
 	./BARYONS/bar_ops.c ./BARYONS/bar_ops_SSE.c \
-	./BARYONS/baryons.c ./BARYONS/baryons2.c ./BARYONS/baryons3.c \
-	./BARYONS/wrap_baryons.c
+	./BARYONS/baryons_uuu.c ./BARYONS/baryons_uud.c \
+	./BARYONS/baryons_uds.c ./BARYONS/wrap_baryons.c
 
 ## c files in ./DIQUARKS/
 DIQUARKFILES=./DIQUARKS/diquark.c ./DIQUARKS/diquark_degen.c \

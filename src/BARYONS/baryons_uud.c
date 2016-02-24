@@ -1,41 +1,43 @@
 /**
-   @file diquark.c
-   @brief diquark-diquark contraction
- */
+   @file baryons_uud.c
+   @brief two flavour baryon contraction code
+*/
 #include "common.h"
 
-#include "basis_conversions.h"    // nrel_rotate_slice()
-#include "correlators.h"          // allocate_corrs() && free_corrs()
-#include "diquark_contraction.h"  // diquark()
-#include "gammas.h"               // make_gammas() && gamma_mmul*
-#include "GLU_timer.h"            // print_time()
-#include "io.h"                   // for read_prop()
-#include "plan_ffts.h"            // create_plans_DFT() 
-#include "read_propheader.h"      // for read_propheader()
-#include "setup.h"                // compute_correlator() ..
-#include "spinor_ops.h"           // sumprop()
+#include "bar_contractions.h"  // baryon_contract_site_mom()
+#include "basis_conversions.h" // nrel_rotate_slice()
+#include "contractions.h"      // gamma_mul_lr()
+#include "correlators.h"       // allocate_corrs() && free_corrs()
+#include "gammas.h"            // make_gammas() && gamma_mmul*
+#include "GLU_timer.h"         // print_time()
+#include "io.h"                // for read_prop()
+#include "plan_ffts.h"         // create_plans_DFT() 
+#include "read_propheader.h"   // for read_propheader()
+#include "setup.h"             // free_ffts() ...
+#include "spinor_ops.h"        // sumprop()
 
-// number of propagators for this code
+// number of propagators
 #define Nprops (2)
 
+// 2-flavour degenerate baryon contraction
 int
-diquark_offdiag( struct propagator prop1 ,
-		 struct propagator prop2 ,
-		 const struct cut_info CUTINFO , 
-		 const char *outfile )
+baryons_2fdiagonal( struct propagator prop1 ,
+		    struct propagator prop2 ,
+		    struct cut_info CUTINFO ,
+		    const char *outfile )
 {
   // counters
-  const size_t stride1 = NSNS ;
+  const size_t stride1 = B_CHANNELS * B_CHANNELS ;
   const size_t stride2 = NSNS ;
 
   // flat dirac indices are all colors and all single gamma combinations
-  const size_t flat_dirac = stride1 * stride2 ;
+  const size_t flat_dirac = 2 * stride1 * stride2 ;
 
-  // error flag for if the code messes up
+  // error flag
   int error_code = SUCCESS ;
 
   // loop counters
-  size_t i , t , site ;
+  size_t i , t ;
 
   // gamma LUT
   struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
@@ -67,29 +69,31 @@ diquark_offdiag( struct propagator prop1 ,
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     rotate_offdiag( M.S , prop , Nprops ) ;
 
-    // compute wall sum
+    // accumulate wall sum expects both to be walls
     struct spinor SUM1 , SUM2 ;
     if( prop1.source == WALL ) {
       sumprop( &SUM1 , M.S[0] ) ;
       sumprop( &SUM2 , M.S[1] ) ;
     }
 
-    // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
+    // multiple time source support
+    const size_t tshifted = ( t + LT - prop1.origin[ND-1] ) % LT ;
 
     // strange memory access pattern threads better than what was here before
+    size_t site ;
     #pragma omp parallel
     {
-      // read on the master and one slave
-      if( t < LT-1 ) {
-        #pragma omp master
-	{
+      #pragma omp master
+      {
+	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
-        #pragma omp single nowait
-	{
+      }
+      #pragma omp single nowait
+      {
+	if( t < ( LT - 1 ) ) {
 	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
@@ -98,36 +102,28 @@ diquark_offdiag( struct propagator prop1 ,
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
-
-	// loop gammas
+	
 	size_t GSGK ;
-	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
-	  // separate the gamma combinations
-	  const size_t GSRC = GSGK / stride1 ;
-	  const size_t GSNK = GSGK % stride2 ;
-	  // perform contraction, result in result
-	  M.in[ GSNK + stride2*GSRC ][ site ] = 
-	    diquark( M.S[0][ site ] , M.S[1][ site ] , 
-		     Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
+	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {
+	  
+	  const size_t GSRC = GSGK / B_CHANNELS ;
+	  const size_t GSNK = GSGK % B_CHANNELS ;
+	  
+	  // Wall-Local
+	  baryon_contract_site_mom( M.in , M.S[0][ site ] , M.S[0][ site ] , 
+				    M.S[1][ site ] , Cgmu[ GSRC ] , 
+				    Cgnu[ GSNK ] , GSGK , site ) ;
 	}
       }
-      // wall-wall contractions
+      // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
-	// loop gamma source
-	size_t GSGK ;
-	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
-	  // separate the gamma combinations
-	  const size_t GSRC = GSGK / stride1 ;
-	  const size_t GSNK = GSGK % stride2 ;
-	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( SUM1 , SUM2 , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
-	}
+	baryon_contract_walls( M.wwcorr , SUM1 , SUM1 , 
+			       SUM2 , M.GAMMAS , 
+			       tshifted , UUD_BARYON ) ;
       }
-      // end of walls
     }
 
-    // compute the contracted correlator
-    compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+    baryon_momentum_project2( &M , stride1 , stride2 , tshifted , UUD_BARYON ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {
@@ -142,19 +138,17 @@ diquark_offdiag( struct propagator prop1 ,
     }
 
     // status of the computation
-    printf( "\r[DIQUARK] done %.f %%", (t+1)/((LT)/100.) ) ; 
+    printf("\r[BARYONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;
 
-  // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr ,
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
-
-  // if we have walls we use them
+  // write out the baryons wall-local and maybe wall-wall
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
+		 stride1 , stride2 , M.nmom , "uuu" ) ;
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
+		   stride1 , stride2 , M.wwnmom , "uuu.ww" ) ;
   }
 
   // failure sink
@@ -163,7 +157,7 @@ diquark_offdiag( struct propagator prop1 ,
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
-  // free C-gammas
+  // free our LUT
   free( Cgmu ) ; free( Cgnu ) ;
 
   // tell us how long it all took
@@ -172,5 +166,6 @@ diquark_offdiag( struct propagator prop1 ,
   return error_code ;
 }
 
-// clean up the number of propagators
+// undefine the number of props
 #undef Nprops
+

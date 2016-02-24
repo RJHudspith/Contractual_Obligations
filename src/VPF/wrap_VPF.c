@@ -10,6 +10,7 @@
 #include "ll_diagonal.h"      // local-local currents
 #include "ll_offdiagonal.h"   // flavour off diagonal local-local
 
+
 static int 
 ( *single_callback ) ( struct propagator prop ,
 		       const struct site *lat ,
@@ -74,6 +75,8 @@ contract_VPF( struct propagator *prop ,
 			   VPF[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
+      // rewind file and read header again
+      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
       if( prop[ p1 ].source != prop[ p2 ].source ) {
 	printf( "[VPF] thwarted attempt contracting different sources \n" ) ;
@@ -84,6 +87,9 @@ contract_VPF( struct propagator *prop ,
 			   VPF[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
+      // rewind file and read header again
+      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
     }
     // end of measurement loop
   }

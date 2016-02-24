@@ -184,7 +184,7 @@ WME( struct propagator s0 ,
   if( error_code != FAILURE ) {
     // and write out a file
     write_momcorr( outfile , (const struct mcorr**)corr ,
-		   list , NSNS , NSNS , NMOM ) ;
+		   list , NSNS , NSNS , NMOM , "" ) ;
   }
 
   // free our correlator measurement

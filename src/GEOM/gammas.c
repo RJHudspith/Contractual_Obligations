@@ -338,33 +338,28 @@ picture_gamma( const struct gamma G )
   return ;
 }
 
-// initialisation for the gammas where we have 2 different props
+// setup our gamma matrices
 int
-setup_gamma_2( struct gamma *GAMMAS ,
-	       const proptype basis1 ,
-	       const proptype basis2 )
+setup_gamma( struct gamma *GAMMAS , 
+	     const struct propagator *prop , 
+	     const size_t Nprops )
 {
-  return make_gammas( GAMMAS , ( basis1 == NREL_FWD ||	\
-				 basis1 == NREL_BWD ||	\
-				 basis2 == NREL_FWD ||	\
-				 basis2 == NREL_BWD ) ?	\
-		      NREL_FWD : CHIRAL ) ;
-}
-
-// initialisation for the gammas where we have 2 different props
-int
-setup_gamma_3( struct gamma *GAMMAS ,
-	       const proptype basis1 ,
-	       const proptype basis2 ,
-	       const proptype basis3 )
-{
-  if( basis1 == NREL_FWD || basis1 == NREL_BWD ) {
-    return make_gammas( GAMMAS , NREL_FWD ) ;
-  } else if( basis2 == NREL_FWD || basis2 == NREL_BWD ) {
-    return make_gammas( GAMMAS , NREL_FWD ) ;
-  } else if( basis3 == NREL_FWD || basis3 == NREL_BWD ) {
-    return make_gammas( GAMMAS , NREL_FWD ) ;
-  } else {
-    return make_gammas( GAMMAS , CHIRAL ) ;
+  // catch this nonsense
+  if( Nprops == 0 ) {
+    return FAILURE ;
   }
+
+  // fall through if chiral
+  proptype basis = CHIRAL ;
+
+  size_t mu ;
+  for( mu = 0 ; mu < Nprops ; mu++ ) {
+    // if we hit a single NREL prop we set gamma basis to NREL
+    if( prop[mu].basis == NREL_FWD || prop[mu].basis == NREL_BWD ) {
+      basis = NREL_FWD ;
+      break ;
+    }
+  }
+
+  return make_gammas( GAMMAS , basis ) ;
 }

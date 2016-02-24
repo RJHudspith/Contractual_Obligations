@@ -6,6 +6,7 @@
 
 #include "mesons.h"          // flavour diagonal meson contractions
 #include "mesons_offdiag.h"  // flavour off-diagonal meson contractions
+#include "read_propheader.h" // (re)read the propagator header
 
 // meson contraction driver
 int
@@ -27,6 +28,7 @@ contract_mesons( struct propagator *prop ,
 			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
+      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
     } else {
       // I can't think of a time when this would be legitimate
       if( prop[ p1 ].source != prop[ p2 ].source ) {
@@ -49,6 +51,8 @@ contract_mesons( struct propagator *prop ,
 			      mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
+      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
     }
     // loop on measurements
   }

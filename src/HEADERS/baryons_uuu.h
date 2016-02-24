@@ -1,9 +1,9 @@
 /**
-   @file baryons.h
-   @brief baryon contraction code prototype functions
+   @file baryons_uuu.h
+   @brief (uuu) baryon contraction code prototype functions
  */
-#ifndef BARYONS_H
-#define BARYONS_H
+#ifndef BARYONS_UUU_H
+#define BARYONS_UUU_H
 
 /**
    @fn int baryons_diagonal( struct propagator prop , const struct cut_info CUTINFO , const char *outfile )
@@ -42,7 +42,7 @@
    @return #SUCCESS or #FAILURE
  */
 int
-baryons_diagonal( struct propagator prop ,
+baryons_diagonal( struct propagator prop1 ,
 		  const struct cut_info CUTINFO ,
 		  const char *outfile ) ;
 

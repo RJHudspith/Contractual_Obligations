@@ -105,25 +105,13 @@ void
 picture_gamma( const struct gamma G ) ;
 
 /**
-   @fn int setup_gamma_2( struct gamma *GAMMA , const proptype basis1 , const proptype basis2 )
-   @brief setup the gammas dependent on the basis of prop1 or prop2
-   @return #SUCCESS or #FAILURE
+   @fn int setup_gamma( struct gamma *GAMMAS , const struct propagator *prop , const size_t Nprops )
+   @brief setup our gamma basis
  */
 int
-setup_gamma_2( struct gamma *GAMMAS ,
-	       const proptype basis1 ,
-	       const proptype basis2 ) ;
-
-/**
-   @fn int setup_gamma_3( struct gamma *GAMMAS , const proptype basis1 , const proptype basis2 , const proptype basis3 )
-   @brief setup the gammas dependent on the basis of prop1 or prop2 or prop3
-   @return #SUCCESS or #FAILURE
- */
-int
-setup_gamma_3( struct gamma *GAMMAS ,
-	       const proptype basis1 ,
-	       const proptype basis2 , 
-	       const proptype basis3 ) ;
+setup_gamma( struct gamma *GAMMAS , 
+	     const struct propagator *prop , 
+	     const size_t Nprops ) ;
 
 #endif
 

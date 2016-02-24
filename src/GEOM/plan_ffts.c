@@ -99,7 +99,7 @@ obtain_wisdom( int *planflag ,
   }
   // condor mode ifdef
 #else
-  fprintf( stdout , "[FFTW] Creating plan on CONDOR host" ) ; 
+  fprintf( stdout , "\n[FFTW] Creating plan on CONDOR host" ) ; 
 #endif
   return str ;
 }

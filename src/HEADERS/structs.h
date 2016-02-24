@@ -142,6 +142,27 @@ struct latt_info{
   double twiddles[ ND ] ; // fourier transform twiddles
 } ;
 
+// structure of measurements
+struct measurements {
+  struct spinor **S ;
+  struct spinor **Sf ;
+  struct gamma *GAMMAS ;
+  struct veclist *list ;
+  struct veclist *wwlist ;
+  int *nmom ;
+  int *wwnmom ;
+  double complex **in ;
+  double complex **out ;
+#ifdef HAVE_FFTW3_H
+  fftw_plan *forward , *backward ;
+#else
+  int *forward , *backward ;
+#endif
+  struct mcorr **corr ;
+  struct mcorr **wwcorr ;
+  GLU_bool is_wall ;
+} ;
+
 /**
    @struct meson_info
    @brief meson contraction information

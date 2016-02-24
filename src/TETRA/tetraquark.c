@@ -13,10 +13,12 @@
 #include "GLU_timer.h"          // print_time()
 #include "io.h"                 // for read_prop()
 #include "plan_ffts.h"          // create_plans_DFT() 
-#include "read_propheader.h"    // for read_propheader()
 #include "setup.h"              // compute_correlator() ..
 #include "spinor_ops.h"         // sumprop()
 #include "tetra_contractions.h" // diquark_diquark()
+
+// number of propagators
+#define Nprops (3)
 
 // tetraquark candidate L1 L2 \bar{H} \bar{H} so three propagators
 int
@@ -31,91 +33,26 @@ tetraquark( struct propagator prop1 ,
   const size_t stride2 = B_CHANNELS ;
 
   // flat dirac indices are all colors and all single gamma combinations
-  const size_t flat_dirac = stride1*stride2 ;
+  const size_t flat_dirac = stride1 * stride2 ;
 
-  // gamma matrices
-  struct gamma *GAMMAS = NULL ;
-
-  // and our spinors
-  struct spinor *S1 = NULL , *S1f = NULL , 
-    *S2 = NULL , *S2f = NULL , *S3 = NULL , *S3f = NULL ;
-
-  // momentum stuff
-  int *NMOM = NULL , *wwNMOM = NULL ;
-  struct veclist *list = NULL , *wwlist = NULL ;
-
-  // fftw temporaries
-  double complex **in = NULL , **out = NULL ;
-
-  // correlators
-  struct mcorr **tetra_corr = NULL , **tetra_corrWW = NULL ;
-
-#ifdef HAVE_FFTW3_H
-  fftw_plan *forward = NULL , *backward = NULL ;
-#else
-  int *forward = NULL , *backward = NULL ;
-#endif
+  // error flag
+  int error_code = SUCCESS ;
 
   // loop counters
   size_t i , t ;
 
-  // error code
-  int error_code = SUCCESS ;
-
-  // allocations
-  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S3  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S3f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  // initialise our measurement struct
+  const struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
+  struct measurements M ;
+  if( init_measurements( &M , prop , Nprops , CUTINFO ,
+			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
-  }
-
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( setup_gamma_3( GAMMAS , prop1.basis , prop2.basis , prop3.basis ) 
-      == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
-  }
-
-  // allocate result array
-  in = malloc( flat_dirac * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < flat_dirac ; i++ ) {
-    in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
-  }
-
-#ifdef HAVE_FFTW3_H
-
-  out = malloc( flat_dirac * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < flat_dirac ; i++ ) {
-    out[ i ] = malloc( LCU * sizeof( double complex ) ) ;
-  }
-
-  forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
-  backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ;
-
-  // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;;
-
-#endif
-
-  // initialise momentum lists
-  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
-	     prop1.source == WALL ? GLU_TRUE : GLU_FALSE ) ;
-
-  // Define our output correlators, with 2 channels and ND-1 components
-  tetra_corr = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
-
-  // allocate the walls if we are using wall source propagators
-  if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    tetra_corrWW = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
   }
 
   // read in the first timeslice
-  if( read_prop( prop1 , S1 ) == FAILURE || 
-      read_prop( prop2 , S2 ) == FAILURE || 
-      read_prop( prop3 , S3 ) == FAILURE ) {
+  if( read_prop( prop1 , M.S[0] ) == FAILURE || 
+      read_prop( prop2 , M.S[1] ) == FAILURE || 
+      read_prop( prop3 , M.S[2] ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -123,16 +60,15 @@ tetraquark( struct propagator prop1 ,
   for( t = 0 ; t < LT ; t++ ) {
 
     // if we are doing nonrel-chiral hadrons we switch chiral to nrel
-    rotate_offdiag_3( S1 , prop1.basis , S2 ,prop2.basis , 
-		      S3 , prop3.basis ) ;
+    rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
     struct spinor SUM1 , SUM2 , SUM3 , SUMbwdH ;
-    if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-      sumprop( &SUM1 , S1 ) ;
-      sumprop( &SUM2 , S2 ) ;
-      sumprop( &SUM3 , S3 ) ;
-      full_adj( &SUMbwdH , SUM2 , GAMMAS[ GAMMA_5 ] ) ;
+    if( M.is_wall == GLU_TRUE ) {
+      sumprop( &SUM1 , M.S[0] ) ;
+      sumprop( &SUM2 , M.S[1] ) ;
+      sumprop( &SUM3 , M.S[2] ) ;
+      full_adj( &SUMbwdH , SUM2 , M.GAMMAS[ GAMMA_5 ] ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
@@ -146,19 +82,19 @@ tetraquark( struct propagator prop1 ,
       if( t < LT-1 ) {
         #pragma omp master
 	{
-	  if( read_prop( prop1 , S1f ) == FAILURE ) {
+	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
-	  if( read_prop( prop2 , S2f ) == FAILURE ) {
+	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
-	  if( read_prop( prop3 , S3f ) == FAILURE ) {
+	  if( read_prop( prop3 , M.Sf[2] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
@@ -169,7 +105,7 @@ tetraquark( struct propagator prop1 ,
 
 	// precompute backward bottom propagator
 	struct spinor bwdH ;
-	full_adj( &bwdH , S3[ site ] , GAMMAS[ GAMMA_5 ] ) ;
+	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 
 	// diquark-diquark tetra
 	double complex result[ stride1 ] ;
@@ -178,36 +114,35 @@ tetraquark( struct propagator prop1 ,
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , S1[ site ] , S2[ site ] , bwdH , 
-		  GAMMAS , GSRC , GLU_FALSE ) ;
+	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH , 
+		  M.GAMMAS , GSRC , GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
-	    in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
+	    M.in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
 	  }
 	}
       }
       // wall-wall contractions
-      if( prop1.source == WALL || prop2.source == WALL ) {
-	double complex result[ stride1 ] ;
-	size_t GSRC , op ;
+      if( M.is_wall == GLU_TRUE ) {
+	size_t GSRC  ;
+        #pragma omp parallel for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
+	  double complex result[ stride1 ] ;
 	  // perform contraction, result in result
-	  tetras( result , SUM1 , SUM2 , SUMbwdH , GAMMAS , GSRC , GLU_FALSE ) ;
+	  tetras( result , SUM1 , SUM2 , SUMbwdH , 
+		  M.GAMMAS , GSRC , GLU_FALSE ) ;
 	  // put contractions into final correlator object
+	  size_t op ;
 	  for( op = 0 ; op < stride1 ; op++ ) {
-	    tetra_corrWW[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
+	    M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
 	}
 	///
       }
     }
 
-    // function computes the correlator, fftw-ing if available
-    compute_correlator( tetra_corr , 
-			(const double complex**)in , 
-			(const double complex**)out , 
-			list , NMOM , forward , stride1 , stride2 , 
-			tshifted ) ;
+    // compute the contracted correlator
+    compute_correlator( &M , stride1 , stride2 , tshifted ) ;
 
     // if we error we leave
     if( error_code == FAILURE ) {
@@ -217,9 +152,9 @@ tetraquark( struct propagator prop1 ,
     // copy over the propagators
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
-      memcpy( &S2[i] , &S2f[i] , sizeof( struct spinor ) ) ;
-      memcpy( &S3[i] , &S3f[i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[0][i] , &M.Sf[0][i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[1][i] , &M.Sf[1][i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[2][i] , &M.Sf[2][i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation
@@ -229,50 +164,24 @@ tetraquark( struct propagator prop1 ,
   printf( "\n" ) ;
 
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)tetra_corr ,
-		 list , stride1 , stride2 , NMOM ) ;
-
-  // if we have walls we use them
-  if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-    char outstr[ 256 ] ;
-    sprintf( outstr , "%s.ww" , outfile ) ;
-    write_momcorr( outstr , (const struct mcorr**)tetra_corrWW ,
-		   wwlist , stride1 , stride2 , wwNMOM ) ;
-  }  
+  write_momcorr( outfile , (const struct mcorr**)M.corr , 
+		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  if( M.is_wall == GLU_TRUE ) {
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
+		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+  }
 
   // failure sink
  memfree :
 
-  // free our correlators
-  if( NMOM != NULL ) {
-    free_momcorrs( tetra_corr , stride1 , stride2 , NMOM[0] ) ;
-    if( prop1.source == WALL || prop2.source == WALL || prop3.source == WALL ) {
-      free_momcorrs( tetra_corrWW , stride1 , stride2 , wwNMOM[0] ) ;
-    }
-  }
-
-  // free our ffts
-  free_ffts( in , out , forward , backward , flat_dirac ) ;
-
-  // free spinors
-  free( S1f ) ; free( S1 ) ; 
-  free( S2f ) ; free( S2 ) ;
-  free( S3f ) ; free( S3 ) ;
-
-  // free momentum stuff
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free the gammas
-  free( GAMMAS ) ;
-
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
-  rewind( prop3.file ) ; read_propheader( &prop3 ) ;
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
   // tell us how long it all took
   print_time( ) ;
 
   return error_code ;
 }
+
+// clean up number of props
+#undef Nprops

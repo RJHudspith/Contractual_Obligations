@@ -8,14 +8,15 @@
 
 #include "basis_conversions.h" // chiral->nrel
 #include "contractions.h"      // meson contract
-#include "correlators.h"       // for allocate_corrs and free_corrs
-#include "gammas.h"            // gamma matrices
+#include "correlators.h"       // write_momcorr()
+#include "gammas.h"            // gt_Gdag_gt()
 #include "GLU_timer.h"         // print_time() 
 #include "io.h"                // read_prop
-#include "plan_ffts.h"         // ND-1 FFTS
-#include "read_propheader.h"   // (re)read the propagator header
 #include "setup.h"             // free_ffts() ..
 #include "spinor_ops.h"        // sumprop()
+
+// number of propagators
+#define Nprops (2)
 
 // computes flavour-off diagonal correlators with ND-1 momentum projection
 int
@@ -31,85 +32,26 @@ mesons_offdiagonal( struct propagator prop1 ,
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1*stride2 ;
 
-  // spinors, S1f is the forward one
-  struct spinor *S1 = NULL , *S1f = NULL , *S2 = NULL , *S2f = NULL ;
-
-  // allocate the basis, maybe extern this as it is important ...
-  struct gamma *GAMMAS = NULL ;
-
-  // number of allowed momenta
-  int *NMOM = NULL , *wwNMOM = NULL ;
-
-#ifdef HAVE_FFTW3_H
-  // fftw temporary storage
-  double complex **in = NULL , **out = NULL ;
-
-  // fftw plans
-  fftw_plan *forward = NULL , *backward = NULL ;
-#endif
-
-  // set momenta and the momenta list
-  struct veclist *list = NULL , *wwlist = NULL ;
-
-  // structure containing dispersion relation stuff
-  struct mcorr **disp = NULL , **wwdisp = NULL ;
-
-  // error code
+  // error flag for if the code messes up
   int error_code = SUCCESS ;
 
   // loop counters
-  size_t i , t ;
+  size_t i , t , GSGK ;
 
-  // and our spinor
-  if( corr_malloc( (void**)&S1  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S1f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2  , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&S2f , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  // wall sums
+  struct spinor SUM1 , SUM2 ;
+
+  // initialise our measurement struct
+  const struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  struct measurements M ;
+  if( init_measurements( &M , prop , Nprops , CUTINFO ,
+			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
-  }
-
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( setup_gamma_2( GAMMAS , prop1.basis , prop2.basis ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
-  }
-
-#ifdef HAVE_FFTW3_H
-
-  in  = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
-  out = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
-
-  forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
-  backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
-
-  // allocate FFTW storage
-  #pragma omp parallel for private(i)
-  for( i = 0 ; i < ( NSNS*NSNS ) ; i++ ) {
-    in[i]  = ( double complex* )fftw_malloc( LCU * sizeof( double complex ) ) ; 
-    out[i] = ( double complex* )fftw_malloc( LCU * sizeof( double complex ) ) ; 
-  }
-
-  // create spatial volume fftw plans
-  create_plans_DFT( forward , backward , in , out , flat_dirac , ND-1 ) ;
-
-#endif
-
-  // initialise momentum lists
-  init_moms( &NMOM , &wwNMOM , &list , &wwlist , CUTINFO , 
-	     prop1.source == WALL || prop2.source == WALL ? \
-	     GLU_TRUE : GLU_FALSE ) ;
-
-  // compute the dispersion correlator
-  disp = allocate_momcorrs( stride1 , stride2 , NMOM[0] ) ;
-
-  // and the walls
-  if( prop1.source == WALL || prop2.source == WALL ) {
-    wwdisp = allocate_momcorrs( stride1 , stride2 , wwNMOM[0] ) ;
   }
 
   // read in the files
-  if( read_prop( prop1 , S1 ) == FAILURE ||
-      read_prop( prop2 , S2 ) == FAILURE ) {
+  if( read_prop( prop1 , M.S[0] ) == FAILURE ||
+      read_prop( prop2 , M.S[1] ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -117,33 +59,31 @@ mesons_offdiagonal( struct propagator prop1 ,
   for( t = 0 ; t < LT ; t++ ) {
 
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    rotate_offdiag_2( S1 , prop1.basis , S2 , prop2.basis ) ;
+    rotate_offdiag( M.S , prop , Nprops ) ;
 
     // prop sums
-    struct spinor SUM1 , SUM2 ;
-    if( prop1.source == WALL || prop2.source == WALL ) {
-      sumprop( &SUM1 , S1 ) ;
-      sumprop( &SUM2 , S2 ) ;
+    if( M.is_wall == GLU_TRUE ) {
+      sumprop( &SUM1 , M.S[0] ) ;
+      sumprop( &SUM2 , M.S[1] ) ;
     }
     
     // support for multiple time sources
     const size_t tshifted = ( t - prop1.origin[ ND-1 ] + LT ) % LT ;
 
     // master-slave the IO and perform each FFT in parallel
-    size_t GSGK ;
     #pragma omp parallel
     {
      // two threads for IO
       if( t < ( LT - 1 ) ) {
         #pragma omp master
 	{
-	  if( read_prop( prop1 , S1f ) == FAILURE ) {
+	  if( read_prop( prop1 , M.Sf[0] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
         #pragma omp single nowait
 	{
-	  if( read_prop( prop2 , S2f ) == FAILURE ) {
+	  if( read_prop( prop2 , M.Sf[1] ) == FAILURE ) {
 	    error_code = FAILURE ;
 	  }
 	}
@@ -153,44 +93,30 @@ mesons_offdiagonal( struct propagator prop1 ,
       for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
-	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( GAMMAS[ GSNK ] , 
-						       GAMMAS[ GAMMA_T ] ) ;
+	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
+						       M.GAMMAS[ GAMMA_T ] ) ;
+
 	// loop spatial hypercube
 	size_t site ;
-        #ifdef HAVE_FFTW3_H
 	for( site = 0 ; site < VOL3 ; site++ ) {
-	  in[ GSGK ][ site ] = meson_contract( gt_GSNKdag_gt  , S2[ site ] ,
-					       GAMMAS[ GSRC ] , S1[ site ] ,
-					       GAMMAS[ GAMMA_5 ] ) ;
+	  M.in[ GSGK ][ site ] = 
+	    meson_contract( gt_GSNKdag_gt  , M.S[1][ site ] , 
+			    M.GAMMAS[ GSRC ] , M.S[0][ site ] , 
+			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}
-	// fft forward is e^{ip.x}
-	fftw_execute( forward[ GSGK ] ) ;
-	// pack our struct
-	size_t p ;
-	for( p = 0 ; p < NMOM[0] ; p++ ) {
-	  disp[ GSRC ][ GSNK ].mom[ p ].C[ tshifted ] =
-	    out[ GSGK ][ list[ p ].idx ] ;
-	}
-        #else
-	register double complex sum = 0.0 ;
-	// for the non-fftw'd version we fall back on the zero-mom projection
-	for( site = 0 ; site < VOL3 ; site++ ) {
-	  sum += meson_contract( gt_GSNKdag_gt  , S2[ site ] , 
-				 GAMMAS[ GSRC ] , S1[ site ] ,
-				 GAMMAS[ GAMMA_5 ] ) ;
-	}
-	disp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = sum ;
-	#endif
 
 	// and contract the walls
-	if( prop1.source == WALL || prop2.source == WALL ) {
-	  wwdisp[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] = \
+	if( M.is_wall == GLU_TRUE ) {
+	  M.wwcorr[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] =	\
 	    meson_contract( gt_GSNKdag_gt  , SUM2 ,
-			    GAMMAS[ GSRC ] , SUM1 ,
-			    GAMMAS[ GAMMA_5 ] ) ;
+			    M.GAMMAS[ GSRC ] , SUM1 ,
+			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }
     }
+
+    // compute the contracted correlator
+    compute_correlator( &M , stride1 , stride2 , tshifted ) ;
 
     // to err is human
     if( error_code == FAILURE ) {
@@ -200,8 +126,8 @@ mesons_offdiagonal( struct propagator prop1 ,
     // copy S1f into S1
     #pragma omp parallel for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &S1[i] , &S1f[i] , sizeof( struct spinor ) ) ;
-      memcpy( &S2[i] , &S2f[i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[0][i] , &M.Sf[0][i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[1][i] , &M.Sf[1][i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation
@@ -211,48 +137,24 @@ mesons_offdiagonal( struct propagator prop1 ,
   printf( "\n" ) ;
 
   // write out the ND-1 momentum-injected correlator
-  write_momcorr( outfile , (const struct mcorr**)disp , list , 
-		 stride1 , stride2 , NMOM ) ;
-
-  // and do the walls as they are basically free
-  if( prop1.source == WALL || prop2.source == WALL ) {
-    char outstr[ 256 ] ;
-    sprintf( outstr , "%s.ww" , outfile ) ;
-    write_momcorr( outstr , (const struct mcorr**)wwdisp ,
-		   wwlist , stride1 , stride2 , wwNMOM ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
+		 stride1 , stride2 , M.nmom , "" ) ;
+  if( M.is_wall == GLU_TRUE ) {
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
+		   stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
   // memory freeing part
  memfree :
 
-  // free correlators and momentum list
-  if( NMOM != NULL ) {
-    free_momcorrs( disp , stride1 , stride2 , NMOM[0] ) ;
-    if( prop1.source == WALL ) {
-      free_momcorrs( wwdisp , stride1 , stride2 , wwNMOM[0] ) ;
-    }
-  }
-
-  // free our ffts
-  free_ffts( in , out , forward , backward , flat_dirac ) ;
-
-  // free momenta lists
-  free( NMOM ) ; free( (void*)list ) ;
-  free( wwNMOM ) ; free( (void*)wwlist ) ;
-
-  // free our GAMMAS
-  free( GAMMAS ) ;
-
-  // free our spinors
-  free( S1 ) ;  free( S1f ) ;
-  free( S2 ) ;  free( S2f ) ;
-
-  // rewind file and read header again
-  rewind( prop1.file ) ; read_propheader( &prop1 ) ;
-  rewind( prop2.file ) ; read_propheader( &prop2 ) ;
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
   // tell us how long it all took
   print_time( ) ;
 
   return error_code ;
 }
+
+// clean up number of props
+#undef Nprops

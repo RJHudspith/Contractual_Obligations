@@ -73,4 +73,15 @@ baryon_momentum_project( struct mcorr **corr ,
 			 const size_t t ,
 			 const baryon_type btype ) ;
 
+/**
+   @fn void baryon_momentum_project2( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t t , const baryon_type btype )
+   @brief perform the momentum projection for our baryons
+ */
+void
+baryon_momentum_project2( struct measurements *M ,
+			  const size_t stride1 , 
+			  const size_t stride2 ,
+			  const size_t t ,
+			  const baryon_type btype ) ;
+
 #endif

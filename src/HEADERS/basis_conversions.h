@@ -32,25 +32,12 @@ void
 nrel_rotate_slice( struct spinor *S ) ;
 
 /**
-   @fn void rotate_offdiag_2( struct spinor *S1 , const proptype basis1 , struct spinor *S2 , const proptype basis2 )
-   @brief rotate either S1 or S2 to the non-rel basis if one is chiral and the other non-relativistic
+   @fn void rotate_offdiag( struct spinor **S , const struct propagator *prop , const size_t Nprops )
+   @brief rotate props if some are chiral and some are non-relativistic
  */
-void
-rotate_offdiag_2( struct spinor *S1 ,
-		  const proptype basis1 ,
-		  struct spinor *S2 ,
-		  const proptype basis2 ) ;
-
-/**
-   @fn void rotate_offdiag_3( struct spinor *S1 , const proptype basis1 , struct spinor *S2 , const proptype basis2 , struct spinor *S3 , const proptype basis3 )
-   @brief rotate chiral to nrel basis for any of the three props given
- */
-void
-rotate_offdiag_3( struct spinor *S1 ,
-		  const proptype basis1 ,
-		  struct spinor *S2 ,
-		  const proptype basis2 , 
-		  struct spinor *S3 ,
-		  const proptype basis3 ) ;
+void 
+rotate_offdiag( struct spinor **S ,
+		const struct propagator *prop ,
+		const size_t Nprops ) ;
 
 #endif
