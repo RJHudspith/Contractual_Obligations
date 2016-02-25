@@ -47,7 +47,7 @@
    @def MAX_CONTRACTIONS
    @brief break for the while loops in contraction logic
 */
-#define MAX_CONTRACTIONS (20)
+#define MAX_CONTRACTIONS (64)
 
 /**
    @def MAX_LINE_LENGTH
@@ -59,7 +59,7 @@
    @def MAX_TOKENS
    @brief maximum number of NERSC header values
  */
-#define MAX_TOKENS (32)
+#define MAX_TOKENS (64)
 
 /**
    @def LVOLUME
