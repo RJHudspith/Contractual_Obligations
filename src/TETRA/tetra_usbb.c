@@ -22,11 +22,11 @@
 
 // tetraquark candidate L1 L2 \bar{H} \bar{H} so three propagators
 int
-tetraquark( struct propagator prop1 ,
-	    struct propagator prop2 ,
-	    struct propagator prop3 ,
-	    struct cut_info CUTINFO ,
-	    const char *outfile )
+tetraquark_usbb( struct propagator prop1 ,
+		 struct propagator prop2 ,
+		 struct propagator prop3 ,
+		 struct cut_info CUTINFO ,
+		 const char *outfile )
 {
   // counters
   const size_t stride1 = TETRA_NOPS ;
@@ -50,8 +50,12 @@ tetraquark( struct propagator prop1 ,
   }
 
   // read in the first timeslice
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // Time slice loop 
@@ -76,7 +80,7 @@ tetraquark( struct propagator prop1 ,
     {
       // read on the master and one slave
       if( t < LT-1 ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
@@ -93,8 +97,8 @@ tetraquark( struct propagator prop1 ,
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH , 
-		  M.GAMMAS , GSRC , GLU_FALSE ) ;
+	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH , bwdH ,
+		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
 	    M.in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
@@ -108,8 +112,8 @@ tetraquark( struct propagator prop1 ,
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  double complex result[ stride1 ] ;
 	  // perform contraction, result in result
-	  tetras( result , M.SUM[0] , M.SUM[1] , SUMbwdH , 
-		  M.GAMMAS , GSRC , GLU_FALSE ) ;
+	  tetras( result , M.SUM[0] , M.SUM[1] , SUMbwdH , SUMbwdH ,
+		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
 	  // put contractions into final correlator object
 	  size_t op ;
 	  for( op = 0 ; op < stride1 ; op++ ) {

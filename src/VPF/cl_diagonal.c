@@ -66,8 +66,12 @@ cl_diagonal( struct propagator prop1 ,
   DATA_VV = calloc( LVOLUME , sizeof( struct PIdata ) ) ;
 
   // Read first timeslice and the one above it
-  if( read_ahead( prop , M.S , 1 ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , 1 ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // copy for the final timeslice
@@ -91,7 +95,7 @@ cl_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < ( LT-2 ) ) {
-	error_code = read_ahead( prop , M.Sf , 1 ) ;
+	read_ahead( prop , M.Sf , &error_code , 1 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
       for( x = 0 ; x < LCU ; x++ ) {

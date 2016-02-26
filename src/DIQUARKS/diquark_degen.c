@@ -37,8 +37,8 @@ diquark_degen( struct propagator prop1 ,
   size_t i , t , site ;
 
   // gamma LUT
-  struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
-  struct gamma *Cgnu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
+  struct gamma *Cgmu = malloc( stride1 * sizeof( struct gamma ) ) ;
+  struct gamma *Cgnu = malloc( stride1 * sizeof( struct gamma ) ) ;
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 } ;
@@ -49,14 +49,18 @@ diquark_degen( struct propagator prop1 ,
   }
 
   // precompute the gammas we use
-  for( i = 0 ; i < B_CHANNELS ; i++ ) {
+  for( i = 0 ; i < stride1 ; i++ ) {
     Cgmu[ i ] = CGmu( M.GAMMAS[ i ] , M.GAMMAS ) ;
     Cgnu[ i ] = gt_Gdag_gt( Cgmu[i] , M.GAMMAS[ GAMMA_T ] ) ;
   }
 
-  // read in the first timeslice
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+  // read in the files
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // Time slice loop 
@@ -75,7 +79,7 @@ diquark_degen( struct propagator prop1 ,
     {
       // read on the master and one slave
       if( t < LT-1 ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

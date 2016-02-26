@@ -28,8 +28,14 @@ tetra_tokens( struct tetra_info *tetras ,
   if( get_contraction_map( &( tetras -> map[2] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] %s_%zu :: Contracting prop %zu with prop %zu with prop %zu\n" , 
-	  message , meas_idx , tetras -> map[0] , tetras -> map[1] , tetras -> map[2] ) ;
+  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+  if( get_contraction_map( &( tetras -> map[3] ) , token , nprops ) == FAILURE ) {
+    return FAILURE ;
+  }
+  printf( "[IO] %s_%zu :: Contracting prop %zu with prop %zu "
+	  "with prop %zu with prop %zu\n" , 
+	  message , meas_idx , tetras -> map[0] , tetras -> map[1] , 
+	  tetras -> map[2] , tetras -> map[3] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;

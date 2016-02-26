@@ -17,11 +17,13 @@ static int
 diquark_diquark( double complex *result ,
 		 const struct spinor U ,
 		 const struct spinor D ,
-		 const struct spinor B ,
+		 const struct spinor B1 ,
+		 const struct spinor B2 ,
 		 const struct gamma Cg1 ,
 		 const struct gamma Cg2 ,
 		 const struct gamma Cg3 ,
-		 const struct gamma Cg4 )
+		 const struct gamma Cg4 , 
+		 const GLU_bool H1H2_degenerate )
 {
   // loop of colors
   const size_t Nco = NCNC * NCNC ;
@@ -30,7 +32,7 @@ diquark_diquark( double complex *result ,
   size_t abcd , a , b , c , d ;
 
   // sum is the two forward propagating diquarks minus the cross term
-  register double complex sum = 0.0 ;
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
 
   // temporaries are 
   struct block *C1 = NULL , *C2 = NULL ;
@@ -43,75 +45,86 @@ diquark_diquark( double complex *result ,
 
   // Eq.37 in note is O_1 O_1^\dagger
   {
-    sum = 0.0 ;
+    sum1 = sum2 = 0.0 ;
     precompute_block( C1 , transpose_spinor( U ) , Cg1 , D , Cg2 ) ;
-    precompute_block( C2 , B , Cg3 , transpose_spinor( B ) , Cg4 ) ;
+    precompute_block( C2 , B1 , Cg3 , transpose_spinor( B2 ) , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
-      sum += 
-	spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
-	(
-	 // factorises to below, can remove 2* in a bit
-	 +spinmatrix_trace( C2[ element( c , a , d , b ) ].M )
-	 -spinmatrix_trace( C2[ element( c , b , d , a ) ].M )
-	  ) ;
+      // usual forward streaming term
+      sum1 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
+	+spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
+      // cross color term by interchanging Bs
+      sum2 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
+	spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
     }
-    result[0] = 4*sum ;
+    // if the heavies are the same particle we have a cross term
+    if( H1H2_degenerate == GLU_TRUE ) {
+      result[0] = 4*( sum1 - sum2 ) ;
+    } else {
+      result[0] = 4*( sum1 ) ;
+    }
   }
   // Eq.41 in note is O_1 O_2^\dagger
   {
-    sum = 0.0 ;
-    // note:
-    //precompute_block( C1 , B , Cg3 , transpose_spinor( B ) , Cg2 ) ;
-    //precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
-    precompute_block( C1 , transpose_spinor( B ) , Cg3 , B , Cg2 ) ;
+    sum1 = sum2 = 0.0 ;
+    precompute_block( C1 , transpose_spinor( B2 ) , Cg3 , B1 , Cg2 ) ;
     precompute_block( C2 , transpose_spinor( U ) , Cg1 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
-      sum += 
+      sum1 += 
 	trace_prod_spinmatrices( C1[ element( c , a , d , b ) ].M ,
-				 C2[ element( a , c , b , d ) ].M ) -
+				 C2[ element( a , c , b , d ) ].M ) ;
+      sum2 += 
 	trace_prod_spinmatrices( C1[ element( c , b , d , a ) ].M ,
 				 C2[ element( a , c , b , d ) ].M ) ;
     }
-    result[1] = 4*sum ;
+    // if the heavies are the same particle we have a cross term
+    if( H1H2_degenerate == GLU_TRUE ) {
+      result[1] = 4*( sum1 - sum2 ) ;
+    } else {
+      result[1] = 4*( sum1 ) ;
+    }
   }
   // Eq.43 in note is O_2 O_1^{\dagger}
   {
-    sum = 0.0 ;
-    // note:
-    //precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
-    //                       transpose_spinor( B ) , Cg4 ) ;
-    //precompute_block( C2 , B , Cg3 , D , Cg2 ) ;
-    precompute_block( C1 , transpose_spinor( U ) , Cg1 , B , Cg4 ) ;
-    precompute_block( C2 , transpose_spinor( B ) , Cg3 , D , Cg2 ) ;
+    sum1 = sum2 = 0.0 ;
+    precompute_block( C1 , transpose_spinor( U ) , Cg1 , B1 , Cg4 ) ;
+    precompute_block( C2 , transpose_spinor( B2 ) , Cg3 , D , Cg2 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
-      sum += 
-	trace_prod_spinmatrices( C1[ element( a , c , d , b ) ].M ,
-				 C2[ element( c , a , b , d ) ].M ) -
-	trace_prod_spinmatrices( C1[ element( a , c , d , a ) ].M ,
-				 C2[ element( c , b , b , d ) ].M ) ;
+      sum1 += trace_prod_spinmatrices( C1[ element( a , c , d , b ) ].M ,
+				       C2[ element( c , a , b , d ) ].M ) ;
+      sum2 += trace_prod_spinmatrices( C1[ element( a , c , d , a ) ].M ,
+				       C2[ element( c , b , b , d ) ].M ) ;
     }
-    result[2] = 4*sum ;
+    // if the heavies are the same particle we have a cross term
+    if( H1H2_degenerate == GLU_TRUE ) {
+      result[2] = 4*( sum1 - sum2 ) ;
+    } else {
+      result[2] = 4*( sum1 ) ;
+    }
   }
   // Eq.39 in note is O_2 O_2^\dagger
   {
-    sum = 0.0 ;
+    sum1 = sum2 = 0.0 ;
     precompute_block( C1 , transpose_spinor( U ) , Cg1 , 
-		           transpose_spinor( B ) , Cg3 ) ;
-    precompute_block( C2 , B , Cg2 , D , Cg4 ) ;
+		           transpose_spinor( B2 ) , Cg3 ) ;
+    precompute_block( C2 , B1 , Cg2 , D , Cg4 ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
-      sum += 
-	// block1
+      sum1 += 
 	spinmatrix_trace( C1[ element( a , c , d , b ) ].M ) * 
-	spinmatrix_trace( C2[ element( c , a , b , d ) ].M ) - 
-	// block2
+	spinmatrix_trace( C2[ element( c , a , b , d ) ].M ) ;
+      sum2 +=
 	spinmatrix_trace( C1[ element( a , c , d , a ) ].M ) * 
 	spinmatrix_trace( C2[ element( c , b , b , d ) ].M ) ;
     }
-    result[3] = 4*sum ;
+    // if the heavies are the same particle we have a cross term
+    if( H1H2_degenerate == GLU_TRUE ) {
+      result[3] = 4*( sum1 - sum2 ) ;
+    } else {
+      result[3] = 4*( sum1 ) ;
+    }
   }
 
   free( C1 ) ;
@@ -129,11 +142,13 @@ diquark_diquark( double complex *result ,
 static double complex
 dimeson( const struct spinor U , // u prop
 	 const struct spinor D , // d prop
-	 const struct spinor B , // adjoint of B
+	 const struct spinor B1 , // adjoint of B1
+	 const struct spinor B2 , // adjoint of B2
 	 const struct gamma gt ,
 	 const struct gamma gi ,
 	 const struct gamma g5 , 
-	 const GLU_bool L1L2_degenerate )
+	 const GLU_bool L1L2_degenerate ,
+	 const GLU_bool H1H2_degenerate )
 {
   // flattened number of colors we loop over
   const size_t Nco = NCNC * NCNC ;
@@ -151,6 +166,8 @@ dimeson( const struct spinor U , // u prop
   // sums
   register double complex sum1 = 0.0 ;
   register double complex sum2 = 0.0 ;
+  register double complex sum3 = 0.0 ;
+  register double complex sum4 = 0.0 ;
 
   // make everything a NaN if we fail to allocate memory
   if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct block ) ) != 0 || 
@@ -160,8 +177,8 @@ dimeson( const struct spinor U , // u prop
 
   // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
   {
-    precompute_block( C1 , B , g5 , U , tildeg5 ) ;
-    precompute_block( C2 , B , gi , D , tildegi ) ;
+    precompute_block( C1 , B1 , g5 , U , tildeg5 ) ;
+    precompute_block( C2 , B2 , gi , D , tildegi ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
@@ -170,15 +187,15 @@ dimeson( const struct spinor U , // u prop
 	spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
 
       // cross term
-      sum1 -= 
+      sum3 += 
 	spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
     }
   }
   // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note
   {
-    precompute_block( C1 , B , gi , D , tildeg5 ) ;
-    precompute_block( C2 , B , g5 , U , tildegi ) ;
+    precompute_block( C1 , B1 , gi , D , tildeg5 ) ;
+    precompute_block( C2 , B2 , g5 , U , tildegi ) ;
     for( abcd = 0 ; abcd < Nco ; abcd++ ) {
       get_abcd( &a , &b , &c , &d , abcd ) ;
       // usual meson product
@@ -186,7 +203,7 @@ dimeson( const struct spinor U , // u prop
 	spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
       // cross term
-      sum2 -= 
+      sum4 += 
 	spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
 	spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
     }
@@ -195,7 +212,12 @@ dimeson( const struct spinor U , // u prop
   free( C1 ) ;
   free( C2 ) ;
 
-  return sum1 - sum2 ;
+  // if the heavies are degenerate we include the cross terms
+  if( H1H2_degenerate == GLU_TRUE ) {
+    return ( sum1 - sum2 ) - ( sum3 - sum4 ) ;
+  } else {
+    return ( sum1 - sum2 ) ;
+  }
 
  memfree :
   free( C1 ) ;
@@ -257,10 +279,12 @@ int
 tetras( double complex *result ,
 	const struct spinor L1 , 
 	const struct spinor L2 ,
-	const struct spinor bwdH ,
+	const struct spinor bwdH1 ,
+	const struct spinor bwdH2 ,
 	const struct gamma *GAMMAS ,
 	const size_t mu , 
-	const GLU_bool L1L2_degenerate )
+	const GLU_bool L1L2_degenerate ,
+	const GLU_bool H1H2_degenerate )
 {
   // rename gamma matrices to match the contractions above
   const struct gamma gt = GAMMAS[ GAMMA_T ] ;
@@ -276,34 +300,40 @@ tetras( double complex *result ,
   const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
 
   // poke in the first set of tetra contractions, top left matrix
-  if( diquark_diquark( result+0x0 , L1 , L2 , bwdH , 
-		       Cg5 , tildeCg5 , Cgi , tildeCgi ) == FAILURE ) {
+  if( diquark_diquark( result+0x0 , L1 , L2 , bwdH1 , bwdH2 , 
+		       Cg5 , tildeCg5 , Cgi , tildeCgi ,
+		       H1H2_degenerate ) == FAILURE ) {
     return FAILURE ;
   }
 
   // top right matrix is the interchange of 2 -> 4
-  if( diquark_diquark( result+0x4 , L1 , L2 , bwdH , 
-		       Cg5 , tildeCgi , Cgi , tildeCg5 ) == FAILURE ) {
+  if( diquark_diquark( result+0x4 , L1 , L2 , bwdH1 , bwdH2 , 
+		       Cg5 , tildeCgi , Cgi , tildeCg5 , 
+		       H1H2_degenerate ) == FAILURE ) {
     return FAILURE ;
   }
 
   // bottom left matrix is the interchange of 1 -> 3
-  if( diquark_diquark( result+0x8 , L1 , L2 , bwdH , 
-		       Cgi , tildeCg5 , Cg5 , tildeCgi ) == FAILURE ) {
+  if( diquark_diquark( result+0x8 , L1 , L2 , bwdH1 , bwdH2 ,
+		       Cgi , tildeCg5 , Cg5 , tildeCgi , 
+		       H1H2_degenerate ) == FAILURE ) {
     return FAILURE ;
   }
 
   // here we do the Cg5 <-> Cgi interchanges, bottom right corner of matrix
-  if( diquark_diquark( result+0xc , L1 , L2 , bwdH , 
-		       Cgi , tildeCgi , Cg5 , tildeCg5 ) == FAILURE ) {
+  if( diquark_diquark( result+0xc , L1 , L2 , bwdH1 , bwdH2 , 
+		       Cgi , tildeCgi , Cg5 , tildeCg5 , 
+		       H1H2_degenerate ) == FAILURE ) {
     return FAILURE ;
   }
 
   // compute the meson-meson, if L1 is degenerate with L2 we have exact isospin 
   // and need to flip a sign
-  result[ 16 ] = dimeson( L1 , L2 , bwdH , gt , gi , g5 , L1L2_degenerate ) ;
+  result[ 16 ] = dimeson( L1 , L2 , bwdH1 , bwdH2 , gt , gi , g5 , 
+			  L1L2_degenerate , H1H2_degenerate ) ;
   if( L1L2_degenerate == GLU_FALSE ) {
-    result[ 16 ] += dimeson( L2 , L1 , bwdH , gt , gi , g5 , L1L2_degenerate ) ;
+    result[ 16 ] += dimeson( L2 , L1 , bwdH1 , bwdH2 , gt , gi , g5 , 
+			     L1L2_degenerate , H1H2_degenerate ) ;
   } else {
     result[ 16 ] *= 2 ;
   }

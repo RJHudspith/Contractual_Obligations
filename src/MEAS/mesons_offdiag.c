@@ -47,8 +47,12 @@ mesons_offdiagonal( struct propagator prop1 ,
   }
 
   // read in the files
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // Time slice loop 
@@ -70,7 +74,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     {
      // two threads for IO
       if( t < ( LT - 1 ) ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	error_code = read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)

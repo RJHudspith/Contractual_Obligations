@@ -58,6 +58,7 @@ print_time( void )
   } else {
     printf( "%f (seconds) \n", diff ) ;
   }
+  t1 = GLUtimer.tv_sec + ( GLUtimer.tv_usec / 1E6 ) ;
   return diff ;
 }
 

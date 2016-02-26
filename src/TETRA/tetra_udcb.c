@@ -1,6 +1,6 @@
 /**
-   @file tetra_degen.c
-   @brief tetraquark contraction code for degenerate light quarks
+   @file tetraquark.c
+   @brief tetraquark contraction code
 */
 
 #include "common.h"
@@ -17,15 +17,16 @@
 #include "spinor_ops.h"         // sumprop()
 #include "tetra_contractions.h" // diquark_diquark()
 
-// number of props
-#define Nprops (2)
+// number of propagators
+#define Nprops (3)
 
-// tetraquark candidate L1 L1 \bar{H} \bar{H} so two propagators
+// tetraquark candidate L1 L1 \bar{H1} \bar{H2} so three propagators
 int
-tetraquark_degen( struct propagator prop1 ,
-		  struct propagator prop2 ,
-		  struct cut_info CUTINFO ,
-		  const char *outfile )
+tetraquark_udcb( struct propagator prop1 , // L1
+		 struct propagator prop2 , // H1
+		 struct propagator prop3 , // H2
+		 struct cut_info CUTINFO ,
+		 const char *outfile )
 {
   // counters
   const size_t stride1 = TETRA_NOPS ;
@@ -41,7 +42,7 @@ tetraquark_degen( struct propagator prop1 ,
   size_t i , t ;
 
   // initialise our measurement struct
-  struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -49,42 +50,47 @@ tetraquark_degen( struct propagator prop1 ,
   }
 
   // read in the first timeslice
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
-    // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    rotate_offdiag( M.S , prop , Nprops ) ; 
+    // if we are doing nonrel-chiral hadrons we switch chiral to nrel
+    rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
-    struct spinor SUMbwdH ;
+    struct spinor SUMbwdH1 , SUMbwdH2 ;
     if( M.is_wall == GLU_TRUE ) {
       sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-      full_adj( &SUMbwdH , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
+      full_adj( &SUMbwdH1 , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
+      full_adj( &SUMbwdH2 , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
+    const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ; 
 
     // strange memory access pattern threads better than what was here before
     size_t site ;
     #pragma omp parallel
     {
-      // read on the master and one slave
+      // read on the master and slaves
       if( t < LT-1 ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	// precompute backward bottom propagator using 
-	// gamma_5 hermiticity
-	struct spinor bwdH ;
-	full_adj( &bwdH , M.S[1][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
+	// precompute backward bottom propagator
+	struct spinor bwdH1 , bwdH2 ;
+	full_adj( &bwdH1 , M.S[1][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
+	full_adj( &bwdH2 , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 
 	// diquark-diquark tetra
 	double complex result[ stride1 ] ;
@@ -93,8 +99,8 @@ tetraquark_degen( struct propagator prop1 ,
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , M.S[0][ site ] , M.S[0][ site ] , bwdH , 
-		  M.GAMMAS , GSRC , GLU_TRUE ) ;
+	  tetras( result , M.S[0][ site ] , M.S[0][ site ] , bwdH1 , bwdH2 ,
+		  M.GAMMAS , GSRC , GLU_TRUE , GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
 	    M.in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
@@ -103,26 +109,26 @@ tetraquark_degen( struct propagator prop1 ,
       }
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
-	size_t GSRC ;
+	size_t GSRC  ;
         #pragma omp parallel for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  double complex result[ stride1 ] ;
 	  // perform contraction, result in result
-	  tetras( result , M.SUM[0] , M.SUM[0] , SUMbwdH , 
-		  M.GAMMAS , GSRC , GLU_TRUE ) ;
+	  tetras( result , M.SUM[0] , M.SUM[0] , SUMbwdH1 , SUMbwdH2 ,
+		  M.GAMMAS , GSRC , GLU_TRUE , GLU_FALSE ) ;
 	  // put contractions into final correlator object
 	  size_t op ;
 	  for( op = 0 ; op < stride1 ; op++ ) {
 	    M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
 	}
+	///
       }
-      // end of walls
     }
 
     // compute the contracted correlator
     compute_correlator( &M , stride1 , stride2 , tshifted ) ;
-
+    
     // if we error we leave
     if( error_code == FAILURE ) {
       goto memfree ;
@@ -133,16 +139,17 @@ tetraquark_degen( struct propagator prop1 ,
     for( i = 0 ; i < LCU ; i++ ) {
       memcpy( &M.S[0][i] , &M.Sf[0][i] , sizeof( struct spinor ) ) ;
       memcpy( &M.S[1][i] , &M.Sf[1][i] , sizeof( struct spinor ) ) ;
+      memcpy( &M.S[2][i] , &M.Sf[2][i] , sizeof( struct spinor ) ) ;
     }
 
     // status of the computation
-    printf( "\r[TETRA] done %.f %%", (t+1)/((LT)/100.) ) ; 
+    printf("\r[TETRA] done %.f %%", (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
   printf( "\n" ) ;
 
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr ,
+  write_momcorr( outfile , (const struct mcorr**)M.corr , 
 		 M.list , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
     write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
@@ -161,5 +168,5 @@ tetraquark_degen( struct propagator prop1 ,
   return error_code ;
 }
 
-// clean up the number of props
+// clean up number of props
 #undef Nprops

@@ -254,7 +254,7 @@ struct spinor{
    @param outfile :: output file name
  */
 struct tetra_info {
-  size_t map[3] ;
+  size_t map[4] ;
   char outfile[ 256 ] ;
 } ;
 

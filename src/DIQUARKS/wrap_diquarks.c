@@ -7,6 +7,7 @@
 // diquark contractions
 #include "diquark.h"
 #include "diquark_degen.h"
+#include "read_propheader.h"
 
 // contract the diquarks
 int
@@ -28,6 +29,7 @@ contract_diquarks( struct propagator *prop ,
 			 ) == FAILURE ) {
 	return FAILURE ;
       }
+      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
       if( prop[p1].source != prop[p2].source ) {
 	printf( "[DIQUARK] unequal source types for the two diquarks" ) ;
@@ -37,6 +39,8 @@ contract_diquarks( struct propagator *prop ,
 			   diquarks[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
+      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
     }
   }
   return SUCCESS ;

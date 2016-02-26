@@ -243,13 +243,14 @@ read_staticprop( struct propagator prop ,
 int
 read_ahead( struct propagator *prop ,
 	    struct spinor **S , 
+	    int *error_code ,
 	    const size_t Nprops )
 {
-  int error_code = SUCCESS ;
+  // loops for IO
 #pragma omp master
   {
     if( read_prop( prop[0] , S[0] ) == FAILURE ) {
-      error_code = FAILURE ;
+      *error_code = FAILURE ;
     }
   }
   size_t mu ;
@@ -257,11 +258,11 @@ read_ahead( struct propagator *prop ,
 #pragma omp single nowait
     {
       if( read_prop( prop[mu] , S[mu] ) == FAILURE ) {
-	error_code = FAILURE ;
+	*error_code = FAILURE ;
       }
     }
   }
-  return error_code ;
+  return 0 ;
 }
 
 // thin wrapper for propagator reading

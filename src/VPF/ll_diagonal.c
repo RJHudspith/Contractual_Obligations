@@ -60,8 +60,12 @@ ll_diagonal( struct propagator prop1 ,
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
   // initially read a timeslice
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // loop the timeslices
@@ -74,7 +78,7 @@ ll_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-1 ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {

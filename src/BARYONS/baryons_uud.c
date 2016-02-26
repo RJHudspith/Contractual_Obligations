@@ -58,8 +58,12 @@ baryons_2fdiagonal( struct propagator prop1 ,
   }
 
   // read in the first timeslice
-  if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , Nprops ) ; 
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // Time slice loop 
@@ -81,7 +85,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < ( LT - 1 ) ) {
-	error_code = read_ahead( prop , M.Sf , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

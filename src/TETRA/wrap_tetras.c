@@ -5,26 +5,130 @@
 
 #include "common.h"
 
-#include "tetra_degen.h"      // light flavour degenerate
-#include "tetraquark.h"       // light flavour agnostic
+#include "tetra_udbb.h"       // light flavour degenerate
+#include "tetra_usbb.h"       // light flavour agnostic heavy degen
+#include "tetra_udcb.h"       // light flavour degenerate heavy not
+#include "tetra_uscb.h"       // all non-degenerate
 #include "read_propheader.h"  // for read_propheader()
 
 // for origin checking
 static int
 check_origins( struct propagator p1 ,
 	       struct propagator p2 ,
-	       struct propagator p3 )
+	       struct propagator p3 , 
+	       struct propagator p4 )
 {
   size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( p1.origin[mu] != p2.origin[mu] ||
 	p1.origin[mu] != p3.origin[mu] ||
-	p2.origin[mu] != p3.origin[mu] ) {
-      printf( "[TETRA] mismatched origins %zu %zu %zu (index %zu)\n" ,
-	      p1.origin[mu] , p2.origin[mu] , p3.origin[mu] , mu ) ;
+	p1.origin[mu] != p4.origin[mu] ||
+	p2.origin[mu] != p3.origin[mu] || 
+	p2.origin[mu] != p4.origin[mu] ||
+	p3.origin[mu] != p4.origin[mu] ) {
+      printf( "[TETRA] mismatched origins %zu %zu %zu %zu (index %zu)\n" ,
+	      p1.origin[mu] , p2.origin[mu] , p3.origin[mu] ,
+	      p4.origin[mu] , mu ) ;
       return FAILURE ;
     }
   }
+  return SUCCESS ;
+}
+
+// first case :: udbb type there are only two props
+static int
+contract_udbb( struct propagator *prop ,
+	       const struct cut_info CUTINFO ,
+	       const char *outfile ,
+	       const size_t p1 ,
+	       const size_t p2 )
+{
+  printf( "[TETRA] contracting a udbb type tetra\n" ) ;
+  if( check_origins( prop[ p1 ] , prop[ p1 ] , 
+		     prop[ p2 ] , prop[ p2 ] ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( tetraquark_udbb( prop[ p1 ] , prop[ p2 ] , 
+		       CUTINFO , outfile ) == FAILURE ) {
+    return FAILURE ;
+  }
+  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  return SUCCESS ;
+}
+
+// second case :: lights are not degenerate
+static int
+contract_usbb( struct propagator *prop ,
+	       const struct cut_info CUTINFO ,
+	       const char *outfile ,
+	       const size_t p1 ,
+	       const size_t p2 ,
+	       const size_t p3 )
+{
+  printf( "[TETRA] contracting a usbb type tetra\n" ) ;
+  if( check_origins( prop[ p1 ] , prop[ p2 ] , 
+		     prop[ p3 ] , prop[ p3 ] ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( tetraquark_usbb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , 
+		       CUTINFO , outfile ) == FAILURE ) {
+    return FAILURE ;
+  }
+  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  return SUCCESS ;
+}
+
+// third case :: heavys are not degenerate
+static int
+contract_udcb( struct propagator *prop ,
+	       const struct cut_info CUTINFO ,
+	       const char *outfile ,
+	       const size_t p1 ,
+	       const size_t p2 ,
+	       const size_t p3 )
+{
+  printf( "[TETRA] contracting a udcb type tetra\n" ) ;
+  if( check_origins( prop[ p1 ] , prop[ p1 ] , 
+		     prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( tetraquark_udcb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , 
+		       CUTINFO , outfile ) == FAILURE ) {
+    return FAILURE ;
+  }
+  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  return SUCCESS ;
+}
+
+// fourth case :: all are not degenerate
+static int
+contract_uscb( struct propagator *prop ,
+	       const struct cut_info CUTINFO ,
+	       const char *outfile , 
+	       const size_t p1 ,
+	       const size_t p2 ,
+	       const size_t p3 ,
+	       const size_t p4 )
+{
+  printf( "[TETRA] contracting a uscb type tetra\n" ) ;
+  if( check_origins( prop[ p1 ] , prop[ p2 ] , 
+		     prop[ p3 ] , prop[ p4 ] ) == FAILURE ) {
+    return FAILURE ;
+  }
+  if( tetraquark_uscb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , prop[ p4 ] , 
+		       CUTINFO , outfile )
+      == FAILURE ) {
+    return FAILURE ;
+  }
+  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  rewind( prop[ p4 ].file ) ; read_propheader( &prop[ p4 ] ) ;
   return SUCCESS ;
 }
 
@@ -43,55 +147,48 @@ contract_tetras( struct propagator *prop ,
     const size_t p1 = tetras[ measurements ].map[0] ;
     const size_t p2 = tetras[ measurements ].map[1] ;
     const size_t p3 = tetras[ measurements ].map[2] ;
+    const size_t p4 = tetras[ measurements ].map[3] ;
 
     // support for degenerate light content
-    if( p1 == p2 && p2 != p3 ) {
-      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p3 ] ) == FAILURE ) {
+    if( p1 == p2 ) {
+      // sanity trap
+      if( p2 == p3 || p2 == p4 || p1 == p3 || p1 == p4 ) {
+	printf( "Tetraquark ( %zu %zu %zu %zu ) not supported \n" , 
+		p1 , p2 , p3 , p4 ) ;
+      }
+      // degenerate heavy quarks
+      if( p3 == p4 ) {
+	// degenerate light and heavies
+	if( contract_udbb( prop , CUTINFO , tetras[ measurements ].outfile ,
+			   p1 , p3 ) == FAILURE ) {
+	  return FAILURE ;
+	}
+      } else {
+	// non-degenerate heavies
+	if( contract_udcb( prop , CUTINFO , tetras[ measurements ].outfile ,
+			   p1 , p3 , p4 ) == FAILURE ) {
+	  return FAILURE ;
+	}
+      }
+    } else if( p3 == p4 ) {
+      // sanity trap
+      if( p2 == p3 || p2 == p4 || p1 == p3 || p1 == p4 ) {
+	printf( "Tetraquark ( %zu %zu %zu %zu ) not supported \n" , 
+		p1 , p2 , p3 , p4 ) ;
+      }
+      // degenerate light quarks already covered above so only have
+      // usbb case
+      if( contract_usbb( prop , CUTINFO , tetras[ measurements ].outfile ,
+			 p1 , p2 , p3 ) == FAILURE ) { 
 	return FAILURE ;
       }
-      if( tetraquark_degen( prop[ p1 ] , prop[ p3 ] , CUTINFO , 
-			    tetras[ measurements ].outfile
-			    ) == FAILURE ) {
-	return FAILURE ;
-      }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-    } else if( p1 == p3 && p2 != p3 ) {
-      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
-      if( tetraquark_degen( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
-			    tetras[ measurements ].outfile
-			    ) == FAILURE ) {
-	return FAILURE ;
-      }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-    } else if( p2 == p3 && p1 != p2 ) {
-      if( check_origins( prop[ p2 ] , prop[ p2 ] , prop[ p1 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
-      if( tetraquark_degen( prop[ p2 ] , prop[ p1 ] , CUTINFO , 
-			    tetras[ measurements ].outfile
-			    ) == FAILURE ) {
-	return FAILURE ;
-      }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-    // general p1 != p2 combination
-    } else if( p1 != p2 && p2 != p3 ) {
-      if( tetraquark( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , CUTINFO , 
-		      tetras[ measurements ].outfile
-		      ) == FAILURE ) {
-	return FAILURE ;
-      }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-      rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-    // otherwise complain 
     } else {
-      printf( "[TETRA] fully non-degenerate not supported\n" ) ;
-      return FAILURE ;
+      // all non degenerate eats all the other options
+      if( contract_uscb( prop , CUTINFO , tetras[ measurements ].outfile ,
+			 p1 , p2 , p3 , p4 ) == FAILURE ) {
+	return FAILURE ;
+      }
+      //
     }
   }
   return SUCCESS ;

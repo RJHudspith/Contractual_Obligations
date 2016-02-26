@@ -63,17 +63,25 @@ cl_offdiagonal( struct propagator prop1 ,
   DATA_AA = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
   DATA_VV = malloc( LVOLUME * sizeof( struct PIdata ) ) ;
 
-  // free everything if the read fails
-  if( read_ahead( prop , M.S , 2 ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+  // read the first couple of slices
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S , &error_code , 2 ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // if we are doing nonrel-chiral mesons we switch chiral to nrel
   rotate_offdiag( M.S, prop , 2 ) ;
 
   // read the first couple of slices
-  if( read_ahead( prop , M.S+2 , 2 ) == FAILURE ) {
-    error_code = FAILURE ; goto memfree ;
+#pragma omp parallel
+  {
+    read_ahead( prop , M.S+2 , &error_code , 2 ) ;
+  }
+  if( error_code == FAILURE ) {
+    goto memfree ;
   }
 
   // copy for the final timeslice
@@ -101,7 +109,7 @@ cl_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-2 ) {
-	read_ahead( prop , M.Sf , 2 ) ;
+	read_ahead( prop , M.Sf , &error_code , 2 ) ;
 	rotate_offdiag( M.Sf , prop , 2 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
