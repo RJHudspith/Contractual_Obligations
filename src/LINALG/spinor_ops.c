@@ -270,7 +270,7 @@ spintrace( void *S ,
   return ;
 }
 
-// sums a propagator over some volume into spinor "SUM"
+// sums a propagator over spatial volume into spinor "SUM"
 void
 sumprop( void *SUM ,
 	 const void *S )
@@ -281,6 +281,20 @@ sumprop( void *SUM ,
   size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
     add_spinors( sum , s ) ; s += NSNS*NCNC ;
+  }
+  return ;
+}
+
+// sums propagators over spatial volume into spinor "SUM"
+void
+sumwalls( struct spinor *SUM ,
+	  const struct spinor **S ,
+	  const size_t Nprops )
+{
+  size_t mu ;
+#pragma omp parallel for private(mu)
+  for( mu = 0 ; mu < Nprops ; mu++ ) {
+    sumprop( &SUM[mu] , S[mu] ) ;
   }
   return ;
 }

@@ -61,16 +61,14 @@ tetraquark( struct propagator prop1 ,
     rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
-    struct spinor SUM1 , SUM2 , SUM3 , SUMbwdH ;
+    struct spinor SUMbwdH ;
     if( M.is_wall == GLU_TRUE ) {
-      sumprop( &SUM1 , M.S[0] ) ;
-      sumprop( &SUM2 , M.S[1] ) ;
-      sumprop( &SUM3 , M.S[2] ) ;
-      full_adj( &SUMbwdH , SUM2 , M.GAMMAS[ GAMMA_5 ] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
+      full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
+    const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ; 
 
     // strange memory access pattern threads better than what was here before
     size_t site ;
@@ -110,7 +108,7 @@ tetraquark( struct propagator prop1 ,
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  double complex result[ stride1 ] ;
 	  // perform contraction, result in result
-	  tetras( result , SUM1 , SUM2 , SUMbwdH , 
+	  tetras( result , M.SUM[0] , M.SUM[1] , SUMbwdH , 
 		  M.GAMMAS , GSRC , GLU_FALSE ) ;
 	  // put contractions into final correlator object
 	  size_t op ;

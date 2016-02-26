@@ -45,7 +45,7 @@
 // important info gets stored here
 extern struct latt_info Latt ;
 
-// gauge field goes here
+// gauge field is global !!
 extern struct site *lat ;
 
 #endif

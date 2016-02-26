@@ -1,13 +1,6 @@
 /**
    @file basis_conversions.h
    @brief prototype functions for converting between bases
- */
-#ifndef BASIS_CONVERSIONS_H
-#define BASIS_CONVERSIONS_H
-
-/**
-   @fn void chiral_to_nrel( struct spinor *S )
-   @brief convert chiral basis to non-relativistic
 
    change from chiral into nrel basis
     
@@ -21,15 +14,15 @@
     
    with \f$s = \sqrt{2} \f$
  */
-void
-chiral_to_nrel( struct spinor *S ) ;
+#ifndef BASIS_CONVERSIONS_H
+#define BASIS_CONVERSIONS_H
 
 /**
-   @fn void nrel_rotate_slice( struct spinor *S )
-   @brief rotate a time-slice worth of spinor S to NREL basis
+   @fn void chiral_to_nrel( struct spinor *S )
+   @brief convert a chiral spinor to a non-relativistic one by gamma basis rotation
  */
 void
-nrel_rotate_slice( struct spinor *S ) ;
+chiral_to_nrel( struct spinor *S ) ;
 
 /**
    @fn void rotate_offdiag( struct spinor **S , const struct propagator *prop , const size_t Nprops )

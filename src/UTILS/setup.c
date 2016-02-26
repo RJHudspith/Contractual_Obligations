@@ -10,42 +10,8 @@
 #include "plan_ffts.h"         // ND-1 FFTS
 #include "setup.h"             // alphabetising
 
-// compute the momentum-projected correlation function
-int
-compute_correlator( struct measurements *M , 
-		    const size_t stride1 , 
-		    const size_t stride2 ,
-		    const size_t tshifted )
-{
-#ifdef HAVE_FFTW3_H
-  fftw_plan *fwd = (fftw_plan*)M -> forward ;
-#endif
-  // momentum projection
-  size_t i ;
-#pragma omp parallel for private(i)
-  for( i = 0 ; i < stride1 ; i++ ) {
-    size_t j , p ;
-    for( j = 0 ; j < stride2 ; j++ ) {
-      #ifdef HAVE_FFTW3_H
-      fftw_execute( fwd[ j + stride2*i ] ) ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	  M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
-      }
-      #else
-      register double complex sum = 0.0 ;
-      for( p = 0 ; p < LCU ; p++ ) {
-	sum += M - > in[ j + stride2*i ][ p ] ;
-      }
-      M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
-      #endif
-    }
-  }
-  return SUCCESS ;
-}
-
 // free our ffts
-int
+static int
 free_ffts( double complex **in , 
 	   double complex **out , 
 	   void *forward ,
@@ -84,6 +50,62 @@ free_ffts( double complex **in ,
   free( backward ) ; 
   fftw_cleanup( ) ; 
 #endif
+  return SUCCESS ;
+}
+
+// allocate and initialise the usual cruft
+static int
+init_moms( int **NMOM , 
+	   int **wwNMOM ,
+	   struct veclist **list ,
+	   struct veclist **wwlist ,
+	   const struct cut_info CUTINFO , 
+	   const GLU_bool is_wall )
+{
+  *(NMOM) = malloc( sizeof( int ) ) ;
+  *(wwNMOM) = malloc( sizeof( int ) ) ;
+#ifdef HAVE_FFTW3_H
+  *(list) = (struct veclist*)compute_veclist( *NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
+#else
+  *(list) = (struct veclist*)zero_veclist( *NMOM , ND-1 , GLU_FALSE ) ;
+#endif
+  if( is_wall == GLU_TRUE ) {
+    *(wwlist) = (struct veclist*)zero_veclist( *wwNMOM , ND-1 , GLU_FALSE ) ;
+  }
+  return SUCCESS ;
+}
+
+// compute the momentum-projected correlation function
+int
+compute_correlator( struct measurements *M , 
+		    const size_t stride1 , 
+		    const size_t stride2 ,
+		    const size_t tshifted )
+{
+#ifdef HAVE_FFTW3_H
+  fftw_plan *fwd = (fftw_plan*)M -> forward ;
+#endif
+  // momentum projection
+  size_t i ;
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < stride1 ; i++ ) {
+    size_t j , p ;
+    for( j = 0 ; j < stride2 ; j++ ) {
+      #ifdef HAVE_FFTW3_H
+      fftw_execute( fwd[ j + stride2*i ] ) ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	  M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+      }
+      #else
+      register double complex sum = 0.0 ;
+      for( p = 0 ; p < LCU ; p++ ) {
+	sum += M - > in[ j + stride2*i ][ p ] ;
+      }
+      M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
+      #endif
+    }
+  }
   return SUCCESS ;
 }
 
@@ -128,6 +150,11 @@ free_measurements( struct measurements *M ,
   free( M->S ) ; 
   free( M->Sf ) ;
 
+  // free the wall sums if they were allocated
+  if( M -> SUM != NULL ) {
+    free( M -> SUM ) ;
+  }
+
   return ;
 }
 
@@ -152,6 +179,7 @@ init_measurements( struct measurements *M ,
   M -> in = NULL ; M -> out = NULL ;
   M -> forward = NULL ; M -> backward = NULL ;
   M -> S = NULL ; M -> Sf = NULL ;
+  M -> SUM = NULL ;
 
   // allocate S and Sf the forwards prop
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
@@ -199,6 +227,11 @@ init_measurements( struct measurements *M ,
     }
   }
 
+  // allocate the wall sums
+  if( M -> is_wall == GLU_TRUE ) {
+    M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
+  }
+
   // initialise momentum lists
   init_moms( &M -> nmom , &M -> wwnmom , 
 	     &M -> list , &M -> wwlist , 
@@ -220,24 +253,3 @@ init_measurements( struct measurements *M ,
   return error_code ;
 }
 
-// allocate and initialise the usual cruft
-int
-init_moms( int **NMOM , 
-	   int **wwNMOM ,
-	   struct veclist **list ,
-	   struct veclist **wwlist ,
-	   const struct cut_info CUTINFO , 
-	   const GLU_bool is_wall )
-{
-  *(NMOM) = malloc( sizeof( int ) ) ;
-  *(wwNMOM) = malloc( sizeof( int ) ) ;
-#ifdef HAVE_FFTW3_H
-  *(list) = (struct veclist*)compute_veclist( *NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
-#else
-  *(list) = (struct veclist*)zero_veclist( *NMOM , ND-1 , GLU_FALSE ) ;
-#endif
-  if( is_wall == GLU_TRUE ) {
-    *(wwlist) = (struct veclist*)zero_veclist( *wwNMOM , ND-1 , GLU_FALSE ) ;
-  }
-  return SUCCESS ;
-}

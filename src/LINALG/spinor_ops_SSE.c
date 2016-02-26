@@ -379,21 +379,6 @@ spinmul_atomic_left( struct spinor *A ,
   return ;
 }
 
-// sums a propagator over a timeslice
-void
-sumprop( void *SUM ,
-	 const void *S )
-{
-  __m128d *tSUM = (__m128d*)SUM ;
-  zero_spinor( tSUM ) ;
-  const __m128d *tS = (const __m128d*)S ;
-  size_t i ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
-  }
-  return ;
-}
-
 // trace out our dirac indices
 void
 spintrace( void *S ,
@@ -418,6 +403,35 @@ spintrace( void *S ,
     s++ ;
     s2 ++ ;
   }
+}
+
+// sums a propagator over a timeslice
+void
+sumprop( void *SUM ,
+	 const void *S )
+{
+  __m128d *tSUM = (__m128d*)SUM ;
+  zero_spinor( tSUM ) ;
+  const __m128d *tS = (const __m128d*)S ;
+  size_t i ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
+  }
+  return ;
+}
+
+// sums propagators over spatial volume into spinor "SUM"
+void
+sumwalls( struct spinor *SUM ,
+	  const struct spinor **S ,
+	  const size_t Nprops )
+{
+  size_t mu ;
+#pragma omp parallel for private(mu)
+  for( mu = 0 ; mu < Nprops ; mu++ ) {
+    sumprop( &SUM[mu] , S[mu] ) ;
+  }
+  return ;
 }
 
 // dirac transpose a spinor, returns S^T on stack

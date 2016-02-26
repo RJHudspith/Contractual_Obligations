@@ -67,10 +67,8 @@ diquark_offdiag( struct propagator prop1 ,
     rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
-    struct spinor SUM1 , SUM2 ;
     if( prop1.source == WALL ) {
-      sumprop( &SUM1 , M.S[0] ) ;
-      sumprop( &SUM2 , M.S[1] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
@@ -108,7 +106,7 @@ diquark_offdiag( struct propagator prop1 ,
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
 	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( SUM1 , SUM2 , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
+	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
 	}
       }
       // end of walls

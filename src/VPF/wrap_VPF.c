@@ -58,8 +58,8 @@ int
 contract_VPF( struct propagator *prop ,
 	      const struct site *lat ,
 	      const struct VPF_info *VPF ,
-	      const size_t nVPF ,
-	      const struct cut_info CUTINFO )
+	      const struct cut_info CUTINFO ,
+	      const size_t nVPF )
 {
   printf( "\n[VPF] performing %zu contraction(s) \n" , nVPF ) ;
   size_t measurements ;

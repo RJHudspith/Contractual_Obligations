@@ -146,6 +146,7 @@ struct latt_info{
 struct measurements {
   struct spinor **S ;
   struct spinor **Sf ;
+  struct spinor *SUM ;
   struct gamma *GAMMAS ;
   struct veclist *list ;
   struct veclist *wwlist ;

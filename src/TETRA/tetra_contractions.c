@@ -195,12 +195,7 @@ dimeson( const struct spinor U , // u prop
   free( C1 ) ;
   free( C2 ) ;
 
-  // if u and d are the same, add them
-  //if( L1L2_degenerate == GLU_TRUE ) {
-  //  return sum1 + sum2 ;
-  //} else {
-    return sum1 - sum2 ;
-  //}
+  return sum1 - sum2 ;
 
  memfree :
   free( C1 ) ;

@@ -63,10 +63,9 @@ baryons_diagonal( struct propagator prop1 ,
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
-    // compute wall sum
-    struct spinor SUM1 ;
+    // compute wall-wall sum
     if( M.is_wall == GLU_TRUE ) {
-      sumprop( &SUM1 , M.S[0] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
 
     // shifted times
@@ -98,8 +97,9 @@ baryons_diagonal( struct propagator prop1 ,
       }
       // loop over open indices performing wall contraction
       if( M.is_wall == GLU_TRUE ) {
-	baryon_contract_walls( M.wwcorr , SUM1 , SUM1 , SUM1 , M.GAMMAS , 
-			       tshifted , UUU_BARYON ) ;
+	baryon_contract_walls( M.wwcorr , 
+			       M.SUM[0] , M.SUM[0] , M.SUM[0] , 
+			       M.GAMMAS , tshifted , UUU_BARYON ) ;
       }
     }
 

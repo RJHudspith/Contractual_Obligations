@@ -22,7 +22,7 @@
 // to be taken from the gauge configuration file OR the input file
 struct latt_info Latt ;
 
-// gauge field is global for now
+// really need to remove this somehow ...
 struct site *lat = NULL ;
 
 // enumeration for the arguments to our binary
@@ -111,14 +111,14 @@ main( const int argc,
 
   // if we don't have a gauge field we can't do conserved-local
   if( lat != NULL ) {
-    if( contract_VPF( prop , lat , inputs.VPF ,
-		      inputs.nVPF , inputs.CUTINFO ) == FAILURE ) {
+    if( contract_VPF( prop , lat , inputs.VPF , inputs.CUTINFO ,
+		      inputs.nVPF ) == FAILURE ) {
       goto FREES ; // do not pass GO, do not collect £200
     }
   } 
 
   // WME contraction, props have to be wall source
-  if( contract_WME( prop , inputs.wme , 
+  if( contract_WME( prop , inputs.wme , inputs.CUTINFO ,
 		    inputs.nWME ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }

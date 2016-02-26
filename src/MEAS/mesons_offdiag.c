@@ -11,9 +11,9 @@
 #include "correlators.h"       // write_momcorr()
 #include "gammas.h"            // gt_Gdag_gt()
 #include "GLU_timer.h"         // print_time() 
-#include "io.h"                // read_prop
-#include "setup.h"             // free_ffts() ..
-#include "spinor_ops.h"        // sumprop()
+#include "io.h"                // read_ahead()
+#include "setup.h"             // init_measurements()
+#include "spinor_ops.h"        // sumwalls()
 
 // number of propagators
 #define Nprops (2)
@@ -38,9 +38,6 @@ mesons_offdiagonal( struct propagator prop1 ,
   // loop counters
   size_t i , t , GSGK ;
 
-  // wall sums
-  struct spinor SUM1 , SUM2 ;
-
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
   struct measurements M ;
@@ -60,10 +57,9 @@ mesons_offdiagonal( struct propagator prop1 ,
     // if we are doing nonrel-chiral mesons we switch chiral to nrel
     rotate_offdiag( M.S , prop , Nprops ) ;
 
-    // prop sums
+    // compute wall-wall sum
     if( M.is_wall == GLU_TRUE ) {
-      sumprop( &SUM1 , M.S[0] ) ;
-      sumprop( &SUM2 , M.S[1] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
     
     // support for multiple time sources
@@ -96,8 +92,8 @@ mesons_offdiagonal( struct propagator prop1 ,
 	// and contract the walls
 	if( M.is_wall == GLU_TRUE ) {
 	  M.wwcorr[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] =	\
-	    meson_contract( gt_GSNKdag_gt  , SUM2 ,
-			    M.GAMMAS[ GSRC ] , SUM1 ,
+	    meson_contract( gt_GSNKdag_gt  , M.SUM[1] ,
+			    M.GAMMAS[ GSRC ] , M.SUM[0] ,
 			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }

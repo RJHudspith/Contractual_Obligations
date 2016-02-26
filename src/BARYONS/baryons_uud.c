@@ -69,10 +69,8 @@ baryons_2fdiagonal( struct propagator prop1 ,
     rotate_offdiag( M.S , prop , Nprops ) ;
 
     // accumulate wall sum expects both to be walls
-    struct spinor SUM1 , SUM2 ;
     if( prop1.source == WALL ) {
-      sumprop( &SUM1 , M.S[0] ) ;
-      sumprop( &SUM2 , M.S[1] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
 
     // multiple time source support
@@ -103,9 +101,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
       }
       // loop over open indices performing wall contraction
       if( prop1.source == WALL ) {
-	baryon_contract_walls( M.wwcorr , SUM1 , SUM1 , 
-			       SUM2 , M.GAMMAS , 
-			       tshifted , UUD_BARYON ) ;
+	baryon_contract_walls( M.wwcorr , 
+			       M.SUM[0] , M.SUM[0] , M.SUM[1] , 
+			       M.GAMMAS , tshifted , UUD_BARYON ) ;
       }
     }
 

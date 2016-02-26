@@ -40,9 +40,6 @@ diquark_degen( struct propagator prop1 ,
   struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
   struct gamma *Cgnu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
 
-  // wall sums
-  struct spinor SUM1 ;
-
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 } ;
   struct measurements M ;
@@ -67,7 +64,7 @@ diquark_degen( struct propagator prop1 ,
 
     // compute wall sum
     if( M.is_wall == GLU_TRUE ) {
-      sumprop( &SUM1 , M.S[0] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
 
     // assumes all sources are at the same origin, checked in wrap_tetras
@@ -105,7 +102,7 @@ diquark_degen( struct propagator prop1 ,
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
 	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( SUM1 , SUM1 , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
+	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
 	}
       }
       // end of walls
@@ -139,7 +136,7 @@ diquark_degen( struct propagator prop1 ,
 		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
-  // failure sink
+  // memfree sink
  memfree :
 
   // free our measurement struct

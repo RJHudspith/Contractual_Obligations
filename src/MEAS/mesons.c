@@ -36,9 +36,6 @@ mesons_diagonal( struct propagator prop1 ,
   // loop counters
   size_t i , t , GSGK ;
 
-  // wall sums
-  struct spinor SUM1 ;
-
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 } ;
   struct measurements M ;
@@ -57,7 +54,7 @@ mesons_diagonal( struct propagator prop1 ,
 
     // compute wall-wall sum
     if( M.is_wall == GLU_TRUE ) {
-      sumprop( &SUM1 , M.S[0] ) ;
+      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
     
     // for multiple time sources
@@ -88,8 +85,8 @@ mesons_diagonal( struct propagator prop1 ,
 	// correlator computed just out of the summed walls
 	if( M.is_wall == GLU_TRUE ) {
 	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] =	\
-	    meson_contract( gt_GSNKdag_gt  , SUM1 , 
-			    M.GAMMAS[ GSRC ] , SUM1 ,
+	    meson_contract( gt_GSNKdag_gt  , M.SUM[0] , 
+			    M.GAMMAS[ GSRC ] , M.SUM[0] ,
 			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }

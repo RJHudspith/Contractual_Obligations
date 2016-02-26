@@ -55,12 +55,23 @@ contract_tetras( struct propagator *prop ,
 	return FAILURE ;
       }
       rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
     } else if( p1 == p3 && p2 != p3 ) {
       if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
 	return FAILURE ;
       }
       if( tetraquark_degen( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
+			    tetras[ measurements ].outfile
+			    ) == FAILURE ) {
+	return FAILURE ;
+      }
+      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+    } else if( p2 == p3 && p1 != p2 ) {
+      if( check_origins( prop[ p2 ] , prop[ p2 ] , prop[ p1 ] ) == FAILURE ) {
+	return FAILURE ;
+      }
+      if( tetraquark_degen( prop[ p2 ] , prop[ p1 ] , CUTINFO , 
 			    tetras[ measurements ].outfile
 			    ) == FAILURE ) {
 	return FAILURE ;

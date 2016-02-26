@@ -12,8 +12,11 @@
 #include "gammas.h"            // gamma matrices
 #include "GLU_timer.h"         // print_time() function
 #include "io.h"                // read prop
-#include "read_propheader.h"   // (re)read the header
 #include "spinor_ops.h"        // spinor multiply
+#include "setup.h"             // init_measurements()
+
+// number of propagators
+#define Nprops (4)
 
 // ok, brute force this calculation
 static double complex
@@ -61,25 +64,16 @@ WME( struct propagator s0 ,
      struct propagator d0 ,
      struct propagator s1 ,
      struct propagator d1 ,
+     const struct cut_info CUTINFO ,
      const char *outfile )
 {
-  // usual cruft
-  struct spinor *SWALL_0 = NULL , *SWALL_L_2 = NULL ;
-  struct spinor *DWALL_0 = NULL , *DWALL_L_2 = NULL ;
+  // counters
+  const size_t stride1 = NSNS ;
+  const size_t stride2 = NSNS ;
 
-  // allocate the basis
-  struct gamma *GAMMAS = NULL ;
-  struct gamma PROJ ;
-
-  // momentum list stuff
-  int *NMOM = NULL ;
-  struct veclist *list = NULL ;
-
-  // data structure for holding the contractions
-  struct mcorr **corr = NULL ;
-
-  // flag for whether we switch basis
-  GLU_bool NREL_FLAG = GLU_FALSE ;
+  // flat dirac indices factor of two is because we keep
+  // two "terms" of the baryon contraction in "in" and "out"
+  const size_t flat_dirac = 2 * stride1 * stride2 ;
 
   // loop counters
   size_t t ;
@@ -87,58 +81,30 @@ WME( struct propagator s0 ,
   // error code
   int error_code = SUCCESS ;
 
-  // allocate our four spinors expecting them to be at 0 and L/2
-  if( corr_malloc( (void**)&SWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&DWALL_0 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&SWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ||
-      corr_malloc( (void**)&DWALL_L_2 , 16 , VOL3 * sizeof( struct spinor ) ) != 0 ) {
+  // project onto a state : GAMMAS[ 9 ] for projection onto A_t state
+  struct gamma PROJ ;
+
+  // initialise our measurement struct
+  struct propagator prop[ Nprops ] = { s0 , d0 , s1 , d1 } ;
+  struct measurements M ;
+  if( init_measurements( &M , prop , Nprops , CUTINFO ,
+			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
     error_code = FAILURE ; goto memfree ;
   }
 
-  // precompute the gamma basis
-  GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  if( s0.basis == NREL_FWD || s0.basis == NREL_BWD || 
-      d0.basis == NREL_FWD || d0.basis == NREL_BWD ||
-      s1.basis == NREL_FWD || s1.basis == NREL_BWD ||
-      d1.basis == NREL_FWD || d1.basis == NREL_FWD ) {
-    if( make_gammas( GAMMAS , NREL_FWD ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
-    NREL_FLAG = GLU_TRUE ;
-  } else {
-    if( make_gammas( GAMMAS , CHIRAL ) == FAILURE ) {
-      error_code = FAILURE ; goto memfree ;
-    }
-  }
-
   // pseudoscalar projection state
-  PROJ = GAMMAS[ GAMMA_5 ] ; // GAMMAS[ 9 ] for projection onto A_t state
-
-  // create a ( 0 , 0 , 0 ) vector list
-  NMOM = malloc( sizeof( int ) ) ;
-  list = (struct veclist*)zero_veclist( NMOM , ND-1 , GLU_FALSE ) ;
-
-  // allocate our corrs
-  corr = allocate_momcorrs( NSNS , NSNS , NMOM[0] ) ;
+  PROJ = M.GAMMAS[ GAMMA_5 ] ;
 
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
 
-    // read in the file
-    if( read_prop( s0 , SWALL_0 ) == FAILURE || 
-	read_prop( d0 , DWALL_0 ) == FAILURE ||
-	read_prop( s1 , SWALL_L_2 ) == FAILURE ||
-	read_prop( d1 , DWALL_L_2 ) == FAILURE ) {
+    // read the prop files
+    if( read_ahead( prop , M.S , Nprops ) == FAILURE ) {
       error_code = FAILURE ; goto memfree ;
     }
 
-    // if any of these are a mix of chiral && nrel we rotate all to NREL
-    if( NREL_FLAG == GLU_TRUE ) {
-      if( s0.basis == CHIRAL ) nrel_rotate_slice( SWALL_0 ) ;
-      if( d0.basis == CHIRAL ) nrel_rotate_slice( DWALL_0 ) ;
-      if( s1.basis == CHIRAL ) nrel_rotate_slice( SWALL_L_2 ) ;
-      if( d1.basis == CHIRAL ) nrel_rotate_slice( DWALL_L_2 ) ;
-    }
+    // rotate if we must
+    rotate_offdiag( M.S , prop , Nprops ) ;
 
     size_t GSGK ;
     // parallelise the furthest out loop
@@ -153,20 +119,20 @@ WME( struct propagator s0 ,
       size_t site ;
       for( site = 0 ; site < LCU ; site++ ) {
 	// trace-trace component is simple this is projected onto external "PROJ" state
-	trtr += ( meson_contract( PROJ , DWALL_0[ site ] ,
-				  GAMMAS[ GSRC ] , SWALL_0[ site ] , 
-				  GAMMAS[ GAMMA_5 ] ) *
-		  meson_contract( PROJ , DWALL_L_2[ site ] ,
-				  GAMMAS[ GSNK ] , SWALL_L_2[ site ] ,
-				  GAMMAS[ GAMMA_5 ] ) ) ;
+	trtr += ( meson_contract( PROJ , 
+				  M.S[1][ site ] , M.GAMMAS[ GSRC ] , 
+				  M.S[0][ site ] , M.GAMMAS[ GAMMA_5 ] ) *
+		  meson_contract( PROJ , 
+				  M.S[3][ site ] , M.GAMMAS[ GSNK ] , 
+				  M.S[4][ site ] , M.GAMMAS[ GAMMA_5 ] ) ) ;
 	// four quark trace is unpleasant
-	tr += four_quark_trace( SWALL_0[ site ] , DWALL_0[ site ] ,
-				SWALL_L_2[ site ] , DWALL_L_2[ site ] ,
-				GAMMAS[ GSRC ] , GAMMAS[ GSNK ] ,
-				PROJ , GAMMAS[ GAMMA_5 ] ) ;
+	tr += four_quark_trace( M.S[0][ site ] , M.S[1][ site ] ,
+				M.S[2][ site ] , M.S[3][ site ] ,
+				M.GAMMAS[ GSRC ] , M.GAMMAS[ GSNK ] ,
+				PROJ , M.GAMMAS[ GAMMA_5 ] ) ;
       }
       // there is probably a factor in this is it 1/2?
-      corr[ GSRC ][ GSNK ].mom[0].C[ t ] = tr - trtr ;
+      M.corr[ GSRC ][ GSNK ].mom[0].C[ t ] = tr - trtr ;
     }
     
     // tell us how far along we are
@@ -174,40 +140,19 @@ WME( struct propagator s0 ,
     fflush( stdout ) ;
   }
   printf("\n") ;
-#ifdef DEBUG
-  debug_mesons( "[WME]" , (const struct correlator**)corr ) ;
-#endif
+
+  // and write out a file
+  write_momcorr( outfile , (const struct mcorr**)M.corr ,
+		 M.list , stride1 , stride2 , M.nmom , "" ) ;
 
   // memory deallocation
  memfree :
 
-  if( error_code != FAILURE ) {
-    // and write out a file
-    write_momcorr( outfile , (const struct mcorr**)corr ,
-		   list , NSNS , NSNS , NMOM , "" ) ;
-  }
-
-  // free our correlator measurement
-  if( NMOM != NULL ) {
-    free_momcorrs( corr , NSNS , NSNS , NMOM[0] ) ;
-  }
-
-  // free momentum list stuff
-  free( NMOM ) ; free( (void*)list ) ;
-
-  // free our gamma matrices
-  free( GAMMAS ) ;
-
-  // free the space
-  free( DWALL_0 ) ; free( DWALL_L_2 ) ;
-  free( SWALL_0 ) ; free( SWALL_L_2 ) ;
-
-  // reread headers 
-  rewind( s0.file ) ; read_propheader( &s0 ) ;
-  rewind( d0.file ) ; read_propheader( &d0 ) ;
-  rewind( s1.file ) ; read_propheader( &s1 ) ;
-  rewind( d1.file ) ; read_propheader( &d1 ) ;
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 
   return error_code ;
 }
-     
+
+// clean up the number of props
+#undef Nprops

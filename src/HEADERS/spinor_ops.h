@@ -148,6 +148,16 @@ sumprop( void *SUM ,
 	 const void *S ) ;
 
 /**
+   @fn void sumwalls( struct spinor *SUM , const struct spinor **S , const size_t Nprops )
+   @brief sum over Nprops of spinors over #LCU
+   @warning is threaded
+ */
+void
+sumwalls( struct spinor *SUM ,
+	  const struct spinor **S ,
+	  const size_t Nprops ) ;
+
+/**
    @fn struct spinor transpose_spinor( const struct spinor S )
    @brief transpose a spinor @S
    #return the transpose of S
