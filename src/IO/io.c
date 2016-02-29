@@ -177,11 +177,11 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
 
-      // convention dictates that forward is the top left and backward is bottom right
+      // convention dictates that forward is the bottom right and backward is top left
       if( basis == NREL_FWD ) {
-	fill_spinor( &S[i] , ftmp , NR_NS , 0 , 0 , sizeof(float complex) ) ;
-      } else {
 	fill_spinor( &S[i] , ftmp , NR_NS , NR_NS , NR_NS , sizeof(float complex) ) ;
+      } else {
+	fill_spinor( &S[i] , ftmp , NR_NS , 0 , 0 , sizeof(float complex) ) ;
       }
       //
     } else {
@@ -194,13 +194,13 @@ read_nrprop( struct propagator prop ,
       }
       if( must_swap ) bswap_64( 2 * spinsize , tmp ) ;
 
-      // convention dictates that forward is the top left and backward is bottom right
+      // convention dictates that forward is the bottom right and backward is top left
       if( basis == NREL_FWD ) {
-	fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
-      } else {
 	fill_spinor( &S[i] , tmp , NR_NS , NR_NS , NR_NS , sizeof(double complex) ) ;
+      } else {
+	fill_spinor( &S[i] , tmp , NR_NS , 0 , 0 , sizeof(double complex) ) ;
       }
-      // can also hack in whatever you would like here
+      //
     }
   }
 
