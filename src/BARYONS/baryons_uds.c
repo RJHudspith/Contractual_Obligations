@@ -124,12 +124,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
     }
 
     // copy over the propagators
-    #pragma omp parallel for private(i)
-    for( i = 0 ; i < LCU ; i++ ) {
-      memcpy( &M.S[0][i] , &M.Sf[0][i] , sizeof( struct spinor ) ) ;
-      memcpy( &M.S[1][i] , &M.Sf[1][i] , sizeof( struct spinor ) ) ;
-      memcpy( &M.S[2][i] , &M.Sf[2][i] , sizeof( struct spinor ) ) ;
-    }
+    copy_props( &M , Nprops ) ;
 
     // status of the computation
     printf("\r[BARYONS] done %.f %%", (t+1)/((LT)/100.) ) ; 

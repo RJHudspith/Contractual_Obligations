@@ -109,6 +109,21 @@ compute_correlator( struct measurements *M ,
   return SUCCESS ;
 }
 
+// do a time-slice wide copy of our propagators
+void
+copy_props( struct measurements *M , 
+	    const size_t Nprops )
+{
+  struct spinor *ptr ;
+  size_t mu ;
+  for( mu = 0 ; mu < Nprops ; mu++ ) {
+    ptr = M -> S[ mu ] ;
+    M -> S[ mu ] = M -> Sf[ mu ] ;
+    M -> Sf[ mu ] = ptr ;
+  }
+  return ;
+}
+
 // free our measurement struct
 void
 free_measurements( struct measurements *M ,
