@@ -35,13 +35,19 @@
    @def LT
    @brief Length of the time direction
  */
-#define LT ( Latt.dims[ ND - 1 ] )
+#define LT (Latt.dims[ND-1])
 
 /**
    @def LCU
    @brief spatial volume
  */
-#define LCU (VOL3)
+#define LCU (Latt.Lcu)
+
+/**
+   @def LVOLUME
+   @brief lattice volume
+ */
+#define LVOLUME (Latt.Volume)
 
 /**
    @def MAX_CONTRACTIONS
@@ -62,12 +68,6 @@
 #define MAX_TOKENS (64)
 
 /**
-   @def LVOLUME
-   @brief lattice volume
- */
-#define LVOLUME (VOL4)
-
-/**
    @def NC
    @brief number of colors in our theory
  */
@@ -79,7 +79,7 @@
    @def NCNC
    @brief Jamie stores links in a flattened #NC*#NC array
  */
-#define NCNC ( NC*NC )
+#define NCNC (NC*NC)
 
 /**
    @def ND
@@ -101,7 +101,7 @@
    @def NSNS
    @brief sometimes we want to look at the whole NS*NS component of a spinor
  */
-#define NSNS ( NS*NS )
+#define NSNS (NS*NS)
 
 /**
    @def PLAQ_AND_TRACE_TOL
@@ -125,25 +125,13 @@
    @def TETRA_NOPS
    @brief number of tetraquark operators we consider
  */
-#define TETRA_NOPS (17)
+#define TETRA_NOPS (4)
 
 /**
    @def TWOPI
    @brief \f$ 2 \pi$ appears everywhere
  */
 #define TWOPI (6.283185307179586)
-
-/**
-   @def VOL3 
-   @brief spatial hypercube size
- */
-#define VOL3 (Latt.Lcu)
-
-/**
-   @def VOL4
-   @brief full lattice volume
- */
-#define VOL4 (Latt.Volume)
 
 /**
    @def VPF_MAGIC

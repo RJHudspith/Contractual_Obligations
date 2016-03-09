@@ -86,7 +86,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 
 	// loop spatial hypercube
 	size_t site ;
-	for( site = 0 ; site < VOL3 ; site++ ) {
+	for( site = 0 ; site < LCU ; site++ ) {
 	  M.in[ GSGK ][ site ] = 
 	    meson_contract( gt_GSNKdag_gt  , M.S[1][ site ] , 
 			    M.GAMMAS[ GSRC ] , M.S[0][ site ] , 
