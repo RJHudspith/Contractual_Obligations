@@ -160,7 +160,7 @@ contract_O1O1( const struct block *C1 ,
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // usual forward streaming term
     sum1 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
-      +spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
+      spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
     // cross color term by interchanging Bs
     sum2 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
       spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
@@ -194,12 +194,12 @@ tetras( double complex *result ,
   const size_t Nco = NCNC * NCNC ;
 
   // temporaries are 
-  struct block *C1 = NULL , *C2 = NULL ;
+  struct block *C1 = NULL , *C2 = NULL , *C3 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
   if( corr_malloc( (void**)&C1 , 16 , Nco*sizeof( struct block ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
-    goto memfree ;
+      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 || 
+      corr_malloc( (void**)&C3 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
   }
 
   // precompute Cgamma matrices and Pull out the heavy contribution
@@ -217,40 +217,58 @@ tetras( double complex *result ,
   precompute_block( C1 , transpose_spinor( L1 ) , Cg5 , L2 , tildeCg5 ) ;
   result[0] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
-  // Operator
+  // Contraction
   //
-  //  ( u^T C d ) ( \bar{b} C \gamma_i \bar{b}^T ) 
+  //  ( u^T C d )
   //
   const struct gamma C = CGmu( GAMMAS[ IDENTITY ] , GAMMAS ) ;
   const struct gamma tildeC = gt_Gdag_gt( C , gt ) ;
   precompute_block( C1 , transpose_spinor( L1 ) , C , L2 , tildeC ) ;
-  result[1] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
-  // Operator
+  // Contraction
   //
-  //  ( u^T C \gamma_i \gamma_5 d ) ( \bar{b} C \gamma_i \bar{b}^T ) 
+  //  ( u^T C \gamma_i \gamma_5 d )
   //
-  const struct gamma Cgig5 = CGmu( GAMMAS[ GAMMA_5 + 1 + mu ] , GAMMAS ) ;
+  const struct gamma Cgig5 = CGmu( GAMMAS[ GAMMA_5 + mu + 1 ]  , GAMMAS ) ;
   const struct gamma tildeCgig5 = gt_Gdag_gt( Cgig5 , gt ) ;
-  precompute_block( C1 , transpose_spinor( L1 ) , C , L2 , tildeCgig5 ) ;
-  result[2] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
+  precompute_block( C3 , transpose_spinor( L1 ) , Cgig5 , L2 , tildeCgig5 ) ;
 
- memfree :
+  // and the weird ones
+  size_t j , count = 0 ;
+  for( j = 0 ; j < ND-1 ; j++ ) { 
+    if( j == mu ) continue ;
+
+    // precompute the Bs first as the result can be used twice
+    struct gamma gigj ;
+    gamma_mmul( &gigj , gi , GAMMAS[ j ] ) ;
+    const struct gamma Cgigj = CGmu( gigj , GAMMAS ) ;
+    const struct gamma tildeCgigj = gt_Gdag_gt( Cgigj , gt ) ;
+    precompute_block( C2 , bwdH1 , Cgigj , 
+		      transpose_spinor( bwdH2 ) , tildeCgigj ) ;
+
+    result[ 1 + count ] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
+    result[ 2 + count ] = contract_O1O1( C3 , C2 , H1H2_degenerate ) ;
+
+    count+=2 ;
+  }
+
+  // free these temporaries
   free( C1 ) ;
   free( C2 ) ;
+  free( C3 ) ;
 
   // dimeson contractions
-  result[3] = dimeson( L1 , L2 , bwdH1 , bwdH2 , gt , gi , g5 , 
-			  L1L2_degenerate , H1H2_degenerate ) ;
+  result[ TETRA_NOPS - 1 ] = dimeson( L1 , L2 , bwdH1 , bwdH2 , gt , gi , g5 , 
+				      L1L2_degenerate , H1H2_degenerate ) ;
   if( L1L2_degenerate == GLU_FALSE ) {
-    result[3] += dimeson( L2 , L1 , bwdH1 , bwdH2 , gt , gi , g5 , 
-			     L1L2_degenerate , H1H2_degenerate ) ;
+    result[ TETRA_NOPS - 1 ] += dimeson( L2 , L1 , bwdH1 , bwdH2 , gt , gi , g5 , 
+					 L1L2_degenerate , H1H2_degenerate ) ;
   } else {
-    result[3] *= 2 ;
+    result[ TETRA_NOPS - 1 ] *= 2 ;
   }
 
   // leave if something goes wrong (malloc failure in this case) 
-  if( result[3] == sqrt(-1) ) {
+  if( result[ TETRA_NOPS - 1 ] == sqrt(-1) ) {
     return FAILURE ;
   }
 
