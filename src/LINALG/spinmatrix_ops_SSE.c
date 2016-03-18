@@ -425,7 +425,7 @@ spinmatrix_trace( const void *spinmatrix )
   sum = _mm_add_pd( sum , *s ) , s+= NS + 1 ;
   sum = _mm_add_pd( sum , *s ) , s+= NS + 1 ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
     sum += s[ i * ( NS + 1 ) ] ;
   }

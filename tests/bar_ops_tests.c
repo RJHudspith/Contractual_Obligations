@@ -112,6 +112,7 @@ baryon_contract_site_test( void )
 static char *
 baryon_contract_test( void )
 {
+#if NC == 3
   // closed-form solution for each trace
   const size_t res = NC * ( NC - 1 ) * NC * ( 2*NC - 1 ) / 3 ;
   size_t d1 , d2 ;
@@ -125,6 +126,7 @@ baryon_contract_test( void )
 		 fabs( creal( r ) + cimag( r ) - res ) < FLTOL ) ;
     }
   }
+#endif
   return NULL ;
 }
 
@@ -133,6 +135,7 @@ baryon_contract_test( void )
 static char *
 cross_color_test( void )
 {
+#if NC == 3
   cross_color_trace( &S1 , S2 ) ;
   const double complex *a = (const double complex*)S1.D ;
   size_t d ;
@@ -140,6 +143,7 @@ cross_color_test( void )
     mu_assert( "[UNIT] error : bar_ops cross_color_trace broken\n" ,
 	       cabs( a[ d ] ) < FLTOL ) ;
   }
+#endif
   return NULL ;
 }
 

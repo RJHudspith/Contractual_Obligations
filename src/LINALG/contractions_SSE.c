@@ -466,7 +466,10 @@ meson_contract( const struct gamma GSNK ,
   const register __m128d *d2 = (const __m128d*)fwd.D ;
 
   // local sum
-  register __m128d sum , sum1 , sum2 ;
+  register __m128d sum ;
+#if NC == 3
+  register __m128d sum1 , sum2 ;
+#endif
 
   size_t i , j ;
   register uint8_t col2 , col1 , G5GSRC ;

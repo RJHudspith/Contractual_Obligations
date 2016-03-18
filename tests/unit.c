@@ -65,8 +65,10 @@ main( const int argc , const char *argv[] )
   total += tests_run ;
 
   // have a look at baryon operations
+#if NC == 3
   if( bar_ops_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
+#endif
 
   // have a look at baryon operations
   if( tetra_contractions_test_driver( ) == FAILURE ) goto failure ;

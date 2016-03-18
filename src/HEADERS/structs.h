@@ -21,7 +21,7 @@ struct baryon_info {
    @brief wrapper for flattened spinmatrix
  */
 struct block {
-  double complex M[ NSNS ] ;
+  double complex M[ NSNS ] __attribute__((aligned(16))) ;
 } ;
 
 /**

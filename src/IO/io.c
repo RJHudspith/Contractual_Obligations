@@ -132,7 +132,6 @@ read_chiralprop( struct propagator prop ,
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
     }
   }
-
   // free the possibly allocated floating-point storage
   free( ftmp ) ;
 

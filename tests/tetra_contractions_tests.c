@@ -172,6 +172,9 @@ spincolor_trace_test( void )
       mu_assert( "[UNIT] error : spincolor_trace_test broken \n" ,
 		 cabs( sum1 - sum2 ) < FLTOL ) ;
 
+      // for non-SU(3) the index structure is different and so this
+      // test fails - J
+#if NC == 3
       // test the spintrace-spintrace identity this is the first term in 
       // the mesonic contraction
       size_t abcd , a , b ;
@@ -187,11 +190,13 @@ spincolor_trace_test( void )
       sum2 = 
 	2* simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) * 
 	simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) ;
-      trprod *= 2 * trprod ;
+      trprod *= 2 * trprod ;  
+
       mu_assert( "[UNIT] error : spincolor_trace_test broken \n" ,
 		 cabs( sum1 - trprod ) < FLTOL ) ;
       mu_assert( "[UNIT] error : spincolor_trace_test broken \n" ,
 		 cabs( sum1 - sum2 ) < FLTOL ) ;
+#endif
       //
     }
   }

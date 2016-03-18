@@ -50,6 +50,7 @@ baryon_contract( const struct spinor DiQ ,
   return res ;
 }
 
+#if NC == 3
 // cross color 
 static inline void
 cross_color( __m128d *__restrict a ,
@@ -58,7 +59,6 @@ cross_color( __m128d *__restrict a ,
 	     const size_t id1 ,
 	     const size_t id2 )
 {
-#if NC == 3
   // top
   *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 0 ] , c[ id2 + 0 ] ) ,
 				    SSE2_MUL( b[ id2 + 0 ] , c[ id1 + 0 ] ) ) ) ;
@@ -89,28 +89,9 @@ cross_color( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 6 ] , c[ id2 + 6 ] ) ,
 				    SSE2_MUL( b[ id2 + 6 ] , c[ id1 + 6 ] ) ) ) ;
   a++ ;
-#elif NC == 2
-  // top
-  *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 0 ] , c[ id2 + 0 ] ) ,
-				    SSE2_MUL( b[ id2 + 0 ] , c[ id1 + 0 ] ) ) ) ; a++ ;
-  *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 0 ] , c[ id2 + 2 ] ) ,
-				    SSE2_MUL( b[ id2 + 0 ] , c[ id1 + 2 ] ) ) ) ; a++ ;
-  // bottom
-  *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 2 ] , c[ id2 + 0 ] ) ,
-				    SSE2_MUL( b[ id2 + 2 ] , c[ id1 + 0 ] ) ) ) ; a++ ;
-  *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + 2 ] , c[ id2 + 2 ] ) ,
-				    SSE2_MUL( b[ id2 + 2 ] , c[ id1 + 2 ] ) ) ) ; a++ ;
-#else
-  int c1 , c2 ;
-  for( c1 = 0 ; c1 < NC ; c1++ ) {
-    for( c2 = 0 ; c2 < NC ; c2++ ) {
-      *a = _mm_add_pd( *a , _mm_sub_pd( SSE2_MUL( b[ id1 + c1 * NC ] , c[ id2 + NC * c2 ] ) ,
-					SSE2_MUL( b[ id2 + c1 * NC ] , c[ id1 + NC * c2 ] ) ) ) ;
-    }
-  }
-#endif
   return ;
 }
+#endif
 
 // This carries out the color cross product and traces one set of Dirac indices.
 // The result forms a diquark-type object
