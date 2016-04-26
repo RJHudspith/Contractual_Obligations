@@ -210,30 +210,30 @@ meson_contract_test( void )
       // test against the product of the two inner gamma matrices
       struct gamma res ;
       gamma_mmul( &res , GSNK , GSRC ) ;
-      double complex test = NC * gamma_trace( res ) ;
+      double complex test = -NC * gamma_trace( res ) ;
 
       // meson contract is
       // Tr[ GSNK ( G5 A G5 )^{\dagger} GSRC ( A ) ]
       const double complex tr1 = meson_contract( GSNK , Id , 
 						 GSRC , Id , G5 ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken #1", 
 		 !cabs( test - tr1 ) > FTOL ) ;
 
       full_adj( &adj , Id , G5 ) ;
       gamma_mul_l( &adj , GSNK ) ;
       gamma_mul_r( &adj , GSRC ) ;
-      const double complex tr2 = bilinear_trace( adj , Id ) ;
+      const double complex tr2 = -bilinear_trace( adj , Id ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken #2", 
 		 !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
 		    fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
 
       full_adj( &adj , Id , G5 ) ;
       gamma_mul_lr( &adj , GSNK , GSRC ) ;
-      const double complex tr3 = bilinear_trace( adj , Id ) ;
+      const double complex tr3 = -bilinear_trace( adj , Id ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken #3", 
 		 !( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
 		    fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
 
@@ -241,7 +241,7 @@ meson_contract_test( void )
       const double complex tr4 = simple_meson_contract( GSNK , adj , 
 							GSRC , Id ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : meson_contract broken #4", 
 		 !( fabs( creal( tr1 ) - creal( tr4 ) ) > FTOL ||
 		    fabs( cimag( tr1 ) - cimag( tr4 ) ) > FTOL ) ) ;
 
@@ -266,32 +266,32 @@ simple_meson_contract_test( void )
       const struct gamma GSRC = GAMMAS[ G2 ] ;
 
       gamma_mmul( &res , GSNK , GSRC ) ;
-      double complex test = NC * gamma_trace( res ) ;
+      double complex test = -NC * gamma_trace( res ) ;
 
       // meson contract is
       // Tr[ GSNK A  GSRC ( A ) ]
       const double complex tr1 = simple_meson_contract( GSNK , Id , 
 							GSRC , Id ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : simple meson_contract broken #1", 
 		 !cabs( test - tr1 ) > FTOL ) ;
 
       // left-right multiply
       adj = Id ;
       gamma_mul_l( &adj , GSNK ) ;
       gamma_mul_r( &adj , GSRC ) ;
-      const double complex tr2 = bilinear_trace( adj , Id ) ;
+      const double complex tr2 = -bilinear_trace( adj , Id ) ;
 
-      mu_assert( "[CONTRACT UNIT] error : meson_contract broken", 
+      mu_assert( "[CONTRACT UNIT] error : simple meson_contract broken #2", 
 		 !( fabs( creal( tr1 ) - creal( tr2 ) ) > FTOL ||
 		    fabs( cimag( tr1 ) - cimag( tr2 ) ) > FTOL ) ) ;
 
       // left-right multiply
       adj = Id ;
       gamma_mul_lr( &adj , GSNK , GSRC ) ;
-      const double complex tr3 = bilinear_trace( adj , Id ) ;
+      const double complex tr3 = -bilinear_trace( adj , Id ) ;
 
-      mu_assert("[CONTRACT UNIT] error : simple_meson_contract broken", 
+      mu_assert("[CONTRACT UNIT] error : simple_meson_contract broken #3", 
 		!( fabs( creal( tr1 ) - creal( tr3 ) ) > FTOL ||
 		   fabs( cimag( tr1 ) - cimag( tr3 ) ) > FTOL ) ) ;
 

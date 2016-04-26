@@ -60,6 +60,8 @@ gamma_mmul_test( void )
   gamma_mmul( &t1 , GAMMAS[ GAMMA_X ] , GAMMAS[ GAMMA_Y ] ) ;
   gamma_mmul( &t2 , GAMMAS[ GAMMA_Z ] , GAMMAS[ GAMMA_T ] ) ;
   gamma_mmul( &res , t1 , t2 ) ;
+  picture_gamma( res ) ;
+  picture_gamma( GAMMAS[ GAMMA_5 ] ) ;
   mu_assert( "[UNIT] error : g0.g1.g2.g3 != g5" ,
 	     !gamma_comparison( res , GAMMAS[ GAMMA_5 ] ) ) ;
   return NULL ;

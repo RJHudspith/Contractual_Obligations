@@ -26,6 +26,7 @@
 
 #include "corr_malloc.h"   // align to the correct boundary
 #include "geometry.h"      // init_navig is here 
+#include "HIREP.h"         // read a hirep gauge config
 #include "plaqs_links.h"   // average plaquette, link traces
 #include "readers.h"       // read config files
 #include "read_headers.h"  // header readers
@@ -40,7 +41,7 @@ identity( double complex a[ NCNC ] )
   a[3] = 0.0 ; a[4] = 1.0 ; a[5] = 0.0 ;
   a[6] = 0.0 ; a[7] = 0.0 ; a[8] = 1.0 ;
 #else
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     a[i] = 0.0 ;
   }
@@ -69,10 +70,10 @@ unit_gauge( struct site *__restrict lat )
 
 // comparison between checksums
 static int 
-check_sums( plaq , tr , chksum , HEAD_DATA )
-     const double plaq , tr ;
-     const uint32_t chksum ; 
-     const struct head_data HEAD_DATA ;
+check_sums( const double plaq , 
+	    const double tr ,
+	    const uint32_t chksum ,
+	    const struct head_data HEAD_DATA )
 {
   // these headers I use the same check, the %29 one
   if( Latt.head == MILC_HEADER || Latt.head == ILDG_SCIDAC_HEADER || 
@@ -170,6 +171,8 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 	HEAD_DATA.config_type == OUTPUT_NCxNC ) {
       return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
     } break ;
+  case HIREP_HEADER :
+    return read_gauge_field( lat , CONFIG ) ;
   case UNIT_GAUGE :
     unit_gauge( lat ) ;
     return SUCCESS ;
@@ -243,12 +246,14 @@ read_gauge_file( struct head_data *HEAD_DATA ,
     get_header_data_SCIDAC( infile , &tmp ) ;
   }
 
+  /*
   // have a look at some available checks
   if( checks( lat , check , tmp ) == FAILURE ) { 
     fclose( infile ) ;
     free( lat ) ;
     return NULL ; 
   }
+  */
 
   // set the header info
   *HEAD_DATA = tmp ;

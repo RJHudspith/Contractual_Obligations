@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include "geometry.h"
+
 // computes momenta
 void
 compute_p_psq( double **p ,
@@ -13,7 +15,7 @@ compute_p_psq( double **p ,
 	       const size_t NMOM )
 {
   size_t i ;
-#pragma omp parallel for private(i)
+  #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM ; i++ ) {
     // compute psq and p[i]
     psq[i] = 0.0 ;
@@ -21,7 +23,7 @@ compute_p_psq( double **p ,
     for( mu = 0 ; mu < ND ; mu++ ) {
       // lattice momentum
       p[i][mu] = 2.0 * sin( 0.5 * Latt.twiddles[ mu ] * list[i].MOM[ mu ] ) ;
-      psq[i] += p[i][mu] * p[i][mu] ;
+      psq[i] += ( p[i][mu] * p[i][mu] ) ;
     }
   }
 

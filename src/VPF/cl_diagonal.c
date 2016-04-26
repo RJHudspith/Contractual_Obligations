@@ -68,7 +68,8 @@ cl_diagonal( struct propagator prop1 ,
   // Read first timeslice and the one above it
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , 1 ) ;
+    read_ahead( prop , M.S+0 , &error_code , 1 ) ;
+    read_ahead( prop , M.S+1 , &error_code , 1 ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -85,7 +86,6 @@ cl_diagonal( struct propagator prop1 ,
   // upper timeslice is in M.S[1]
   // upper+1 timeslice is in M.Sf[0]
   // final timeslice is in M.Sf[1]
-
   for( t = 0 ; t < ( LT-1 ) ; t++ ) {
 
     // multiple time source support

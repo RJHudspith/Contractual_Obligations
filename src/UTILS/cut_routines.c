@@ -379,12 +379,12 @@ compute_veclist( int *__restrict list_size ,
   // write its dimensions
   int mu ;
   for( mu = 0 ; mu < DIMS - 1 ; mu++ ) {
-    sprintf( str , "%s%dx" , str , Latt.dims[ mu ] ) ;
+    sprintf( str , "%s%zux" , str , Latt.dims[ mu ] ) ;
   }
-  sprintf( str , "%s%d" , str , Latt.dims[ DIMS - 1 ] ) ;
+  sprintf( str , "%s%zu" , str , Latt.dims[ DIMS - 1 ] ) ;
 
   // whether we use the sin-mom or the psq mom for our configs
-  sprintf( str , "%s_nn%d_%d_%g" ,
+  sprintf( str , "%s_nn%zu_%d_%g" ,
 	   str , CUTINFO.max_mom , CUTINFO.type , 
 	   CUTINFO.cyl_width ) ;
 

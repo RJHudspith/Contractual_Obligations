@@ -30,7 +30,7 @@ baryon_contract_site( double complex **term ,
 		      const struct gamma CgmuT ) ;
 
 /**
-   @fn void baryon_contract_site_mom( double complex **in , const struct spinor S1 , const struct spinor S2 , const struct spinor S3 , const struct gamma Cgmu , const struct gamma CgmuT , const size_t GSRC , const size_t site )
+   @fn void baryon_contract_site_mom( double complex **in , const struct spinor S1 , const struct spinor S2 , const struct spinor S3 , const struct gamma Cgmu , const struct gamma CgmuT , const size_t GSGK , const size_t site )
    @brief perform a baryon contraction accumulating site-wise result into flat "in" array for FFT-ing
  */
 void
@@ -40,7 +40,7 @@ baryon_contract_site_mom( double complex **in ,
 			  const struct spinor S3 , 
 			  const struct gamma Cgmu ,
 			  const struct gamma CgmuT ,
-			  const size_t GSRC ,
+			  const size_t GSGK ,
 			  const size_t site ) ;
 
 /**
@@ -67,5 +67,16 @@ baryon_momentum_project( struct measurements *M ,
 			 const size_t stride2 ,
 			 const size_t t ,
 			 const baryon_type btype ) ;
+
+void
+baryon_momentum_project2( struct mcorr **corr ,
+			 double complex **in ,
+			 double complex **out ,
+			 const void *forward ,
+			 const void *backward ,
+			 const struct veclist *list ,
+			 const int NMOM[ 1 ] ,
+			 const size_t t ,
+			  const baryon_type btype ) ;
 
 #endif

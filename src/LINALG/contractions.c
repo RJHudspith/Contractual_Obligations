@@ -142,7 +142,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
   return ;
 }
 
-// meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
+// meson contraction code computes -Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
 double complex
 meson_contract( const struct gamma GSNK ,		
 		const struct spinor bwd , 
@@ -177,12 +177,12 @@ meson_contract( const struct gamma GSNK ,
       }
 
 
-      // switch for the phases
+      // switch for the phases (note the implicit minus sign!)
       switch( ( GSNK.g[ i ] + G5.g[ col1 ] + G5.g[ col2 ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
-      case 1 : gsumr += -sumi ; gsumi +=  sumr ; break ;
-      case 2 : gsumr += -sumr ; gsumi += -sumi ; break ;
-      case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 0 : gsumr += -sumr ; gsumi += -sumi ; break ;
+      case 1 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 2 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
+      case 3 : gsumr += -sumi ; gsumi +=  sumr ; break ;
       }
       // and we are done
     }
@@ -190,7 +190,7 @@ meson_contract( const struct gamma GSNK ,
   return gsumr + I * gsumi ;
 }
 
-// meson contraction code computes Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
+// meson contraction code computes -Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
 double complex
 simple_meson_contract( const struct gamma GSNK ,		
 		       const struct spinor bwd , 
@@ -220,10 +220,10 @@ simple_meson_contract( const struct gamma GSNK ,
       }
       // switch for the phases
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
-      case 1 : gsumr += -sumi ; gsumi +=  sumr ; break ;
-      case 2 : gsumr += -sumr ; gsumi += -sumi ; break ;
-      case 3 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 0 : gsumr += -sumr ; gsumi += -sumi ; break ;
+      case 1 : gsumr +=  sumi ; gsumi += -sumr ; break ;
+      case 2 : gsumr +=  sumr ; gsumi +=  sumi ; break ;
+      case 3 : gsumr += -sumi ; gsumi +=  sumr ; break ;
       }
       //
     }

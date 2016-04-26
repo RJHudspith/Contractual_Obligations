@@ -172,8 +172,10 @@ tmoments( const struct PIdata *AA ,
   char str[ 256 ] ;
   sprintf( str , "%s.ptonly" , outfile ) ;
 
+  /*
   momspace_data( cpAA , (const double **)p , psq , list , 
 		 NMOM , str , current , AXIAL ) ;
+  */
 
   momspace_data( cpVV , (const double **)p , psq , list , 
 		 NMOM , str , current , VECTOR ) ;

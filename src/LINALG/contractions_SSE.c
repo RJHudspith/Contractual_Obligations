@@ -451,7 +451,7 @@ gamma_mul_lr( struct spinor *__restrict S ,
   return ;
 }
 
-// meson contraction code computes Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
+// meson contraction code computes -Tr[ GSNK ( G5 bwd G5 )^{\dagger} GSRC ( fwd ) ]
 double complex 
 meson_contract( const struct gamma GSNK ,
 		const struct spinor bwd , 
@@ -511,12 +511,12 @@ meson_contract( const struct gamma GSNK ,
       }
       #endif
 
-      // switch for the phases
+      // switch for the phases (note the implicit minus sign!)
       switch( ( GSNK.g[ i ] + G5.g[ col1 ] + G5GSRC ) & 3 ) {
-      case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
-      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
-      case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
-      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
+      case 0 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
+      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
+      case 2 : gsum = _mm_add_pd( gsum , sum ) ; break ;
+      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
       }
       // and we are done
     }
@@ -527,7 +527,7 @@ meson_contract( const struct gamma GSNK ,
   return s ;
 }
 
-// meson contraction code computes Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
+// meson contraction code computes -Tr[ GSNK ( bwd ) GSRC ( fwd ) ]
 double complex
 simple_meson_contract( const struct gamma GSNK ,		
 		       const struct spinor bwd , 
@@ -580,12 +580,12 @@ simple_meson_contract( const struct gamma GSNK ,
       }
       #endif
 
-      // switch for the phases
+      // switch for the phases (note the implicit minus sign!)
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
-      case 0 : gsum = _mm_add_pd( gsum , sum ) ; break ;
-      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
-      case 2 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
-      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
+      case 0 : gsum = _mm_sub_pd( gsum , sum ) ; break ;
+      case 1 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( sum , SSE_FLIP( sum ) , 1 ) ) ; break ;
+      case 2 : gsum = _mm_add_pd( gsum , sum ) ; break ;
+      case 3 : gsum = _mm_add_pd( gsum , _mm_shuffle_pd( SSE_FLIP( sum ) , sum , 1 ) ) ; break ;
       }
     }
   }

@@ -90,7 +90,7 @@ get_mom_pipi( int x[ ND ] ,
   size_t mu , subvol = 1 ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( mu != DIMS ) {
-      x[ mu ] = ( ( i - i % subvol ) / subvol ) % Latt.dims[ mu ] - (int)( Latt.dims[ mu ] >> 1 ) ;
+      x[ mu ] = ( ( i - i % (int)subvol ) / (int)subvol ) % (int)Latt.dims[ mu ] - (int)( Latt.dims[ mu ] >> 1 ) ;
       subvol *= Latt.dims[ mu ] ;
     } else {
       x[ mu ] = 0 ;

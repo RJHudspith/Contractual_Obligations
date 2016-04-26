@@ -165,11 +165,11 @@ spincolor_trace_test( void )
 	  sum1 += spinmatrix_trace( C1[ element( d , c , c , d ) ].M ) ;
 	}
       }
-      double complex sum2 = simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) ;
+      double complex sum2 = -simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) ;
 
-      mu_assert( "[UNIT] error : spincolor_trace_test broken \n" ,
+      mu_assert( "[UNIT] error : spincolor_trace_test broken #1\n" ,
 		 cabs( sum1 - trprod ) < FLTOL ) ;
-      mu_assert( "[UNIT] error : spincolor_trace_test broken \n" ,
+      mu_assert( "[UNIT] error : spincolor_trace_test broken #2\n" ,
 		 cabs( sum1 - sum2 ) < FLTOL ) ;
 
       // for non-SU(3) the index structure is different and so this
@@ -188,7 +188,7 @@ spincolor_trace_test( void )
       // factors of 2 are because we double count with the 
       // full sum over a,b,c,d
       sum2 = 
-	2* simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) * 
+	2 * simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) * 
 	simple_meson_contract( tildeCgj , S1 , Cgi , S2 ) ;
       trprod *= 2 * trprod ;  
 

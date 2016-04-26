@@ -513,7 +513,7 @@ print_colormatrix( const double complex a[ NCNC ] )
   printf( "\n" ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
-      printf( "%1.3f %1.3f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
+      printf( "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
     }
     printf( "\n" ) ;
   }

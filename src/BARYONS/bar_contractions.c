@@ -155,9 +155,16 @@ baryon_contract_site_mom( double complex **in ,
 			  const struct spinor S3 , 
 			  const struct gamma Cgmu ,
 			  const struct gamma GgmuD ,
-			  const size_t GSRC ,
+			  const size_t GSGK ,
 			  const size_t site )
 {
+  // zero our terms
+  size_t odc ;
+  for( odc = 0 ; odc < NSNS ; odc++ ) {
+    in[ 0 + 2 * ( odc + NSNS * ( GSGK ) ) ][ site ] = 0.0 ;
+    in[ 1 + 2 * ( odc + NSNS * ( GSGK ) ) ][ site ] = 0.0 ;
+  }
+
   // get diquark
   struct spinor DiQ = S1 ;
   gamma_mul_lr( &DiQ , GgmuD , Cgmu ) ;
@@ -188,7 +195,7 @@ baryon_contract_site_mom( double complex **in ,
   }
 
   // loop over open dirac indices
-  size_t odc , OD1 , OD2 ;
+  size_t OD1 , OD2 ;
   for( odc = 0 ; odc < NSNS ; odc++ ) {
     // open dirac index for source and sink
     OD1 = odc / NS ;
@@ -198,20 +205,21 @@ baryon_contract_site_mom( double complex **in ,
     // Tr( ( DiQ_{0,0} + DiQ_{1,1} + ... + DiQ_{NS,NS} ) S3_{OD2,OD1}^T ) for term[0]
     double complex *C = (double complex*)S3.D[ OD2 ][ OD1 ].C ;
     for( i = 0 ; i < NCNC ; i++ ) {
-      in[ 0 + 2 * ( odc + NSNS * GSRC ) ][ site ] += t[ i ] * ( *C ) ; C++ ;
+      in[ 0 + 2 * ( odc + NSNS * GSGK ) ][ site ] += t[ i ] * ( *C ) ; C++ ;
     }
 
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
     #if NS == 4
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
-    in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 3 , 3 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
+    in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , 3 , 3 , OD1 ) ;
     #else
     size_t dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
-      in[ 1 + 2 * ( odc + NSNS * GSRC ) ][ site ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
+      in[ 1 + 2 * ( odc + NSNS * GSGK ) ][ site ] += 
+	baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
     #endif
   }
@@ -307,5 +315,64 @@ baryon_momentum_project( struct measurements *M ,
     M -> corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
 #endif
   }
+  return ;
+}
+
+
+// baryonic momentum project
+void
+baryon_momentum_project2( struct mcorr **corr ,
+			 double complex **in ,
+			 double complex **out ,
+			 const void *forward ,
+			 const void *backward ,
+			 const struct veclist *list ,
+			 const int NMOM[ 1 ] ,
+			 const size_t t ,
+			 const baryon_type btype )
+{
+  //
+  double complex (*f)( const double complex term1 , 
+		       const double complex term2 ) = uds ; 
+  switch( btype ) {
+  case UDS_BARYON : break ;
+  case UUD_BARYON : f = uud ; break ;
+  case UUU_BARYON : f = uuu ; break ;
+  }
+  // loop over flatteded open dirac indices
+  size_t GSodc ;
+#ifdef HAVE_FFTW3_H
+  const fftw_plan *forw = ( const fftw_plan* )forward ;
+  // perform the FFTS separately here
+  #pragma omp parallel for private(GSodc)
+  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
+    const size_t GSGK = GSodc / NSNS ;
+    const size_t odc = GSodc % NSNS ;
+    const size_t idx = 2 * GSodc ;
+    fftw_execute( forw[ 0 + idx ] ) ;
+    fftw_execute( forw[ 1 + idx ] ) ;
+    const double complex *sum1 = out[ 0 + idx ] ;
+    const double complex *sum2 = out[ 1 + idx ] ;
+    size_t p ;
+    for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
+      const size_t lid = list[ p ].idx ;
+      corr[ GSGK ][ odc ].mom[ p ].C[ t ] = f( sum1[ lid ] , sum2[ lid ] ) ;
+    }
+  }
+#else
+  #pragma omp parallel for private(GSodc)
+  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
+    const size_t GSGK = GSodc / NSNS ;
+    const size_t odc = GSodc % NSNS ;
+    const size_t idx = 2 * GSodc ;
+    register double complex sum1 = 0.0 , sum2 = 0.0 ;
+    size_t site ;
+    for( site = 0 ; site < LCU ; site++ ) {
+      sum1 += in[ 0 + idx ][ site ] ;
+      sum2 += in[ 1 + idx ][ site ] ;
+    }
+    corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
+  }
+#endif
   return ;
 }

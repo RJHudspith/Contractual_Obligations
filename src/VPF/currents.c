@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "contractions.h" // meson_contract
+#include "gammas.h"       // gt_Gdag_gt
 #include "matrix_ops.h"   // link multiplies
 #include "spinor_ops.h"   // spinor - color matrix multiply
 
@@ -77,7 +78,7 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
   const size_t i = x + LCU * t ;
   size_t mu , nu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
-    
+
     // multiply through by the link matrix 
     // if we are in the t-direction we use the "UP" space
     if( mu == ND-1 ) {
@@ -88,7 +89,7 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
       gauge_spinor( &US1xpmu , lat[i].O[mu] , S1[xpmu] ) ; // U S(x+\mu)
       S2xpmu = S2[ xpmu ] ;
     }
-    gaugedag_spinor( &UdS1x , lat[i].O[mu] , S1[x] ) ;       // U^{\dagger} S(x)
+    gaugedag_spinor( &UdS1x , lat[i].O[mu] , S1[x] ) ; // U^{\dagger} S(x)
 
     for( nu = 0 ; nu < ND ; nu++ ) {
 
@@ -99,12 +100,14 @@ contract_conserved_local_site( struct PIdata *DATA_AA ,
 					  AGMAP[ mu ] , AGMAP[ nu ] ) ;
 	
       // vectors 
-      DATA_VV[i].PI[mu][nu] = CL_munu_VV( US1xpmu , UdS1x , 
-					  S2xpmu , S2[ x ] ,
-					  GAMMAS ,
-					  VGMAP[ mu ] , VGMAP[ nu ] ) ;
+      DATA_VV[i].PI[mu][nu] = -CL_munu_VV( US1xpmu , UdS1x , 
+					   S2xpmu , S2[ x ] ,
+					   GAMMAS ,
+					   VGMAP[ mu ] , VGMAP[ nu ] ) ;
+      //
     }
   }
+  //exit(1) ;
 
   return ;
 }

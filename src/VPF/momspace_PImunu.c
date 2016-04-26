@@ -81,18 +81,19 @@ momspace_PImunu( struct PIdata *AA ,
     p[i] = (double*)malloc( ND * sizeof( double ) ) ;
   }
 
-#if 0
+  #if 0
   // zero mode subtraction
   subtract_zeromom( AA , psq , NMOM ) ;
   subtract_zeromom( VV , psq , NMOM ) ;
-#endif
+  #endif
 
   // precompute momenta
-  compute_p_psq( p , psq , list , NMOM[0] ) ;
+  compute_p_psq( p , psq , list , (size_t)NMOM[0] ) ;
 
+  /*
   momspace_data( AA , (const double **)p , psq , list , 
 		 NMOM , outfile , current , AXIAL ) ;
-
+  */
   momspace_data( VV , (const double **)p , psq , list , 
 		 NMOM , outfile , current , VECTOR ) ;
 

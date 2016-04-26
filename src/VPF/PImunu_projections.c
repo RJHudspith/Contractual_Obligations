@@ -77,9 +77,9 @@ projection( const struct PIdata *data ,
 
   const double NORM = 1.0 / (double)( ND - 1 ) ;
   size_t i ;
-  #pragma omp parallel for private(i)
+  //#pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM[0] ; i++ ) {
-    const size_t list_idx = list[i].idx ;
+    const size_t list_idx = (size_t)list[i].idx ;
     const double spsq = ( psq[i] == 0.0 ) ? 1.0 : 1.0 / psq[i] ;
     register double sumtrans = 0.0 , sumlong = 0.0 ;
     size_t mu , nu ;

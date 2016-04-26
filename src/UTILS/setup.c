@@ -100,7 +100,7 @@ compute_correlator( struct measurements *M ,
       #else
       register double complex sum = 0.0 ;
       for( p = 0 ; p < LCU ; p++ ) {
-	sum += M - > in[ j + stride2*i ][ p ] ;
+	sum += M -> in[ j + stride2*i ][ p ] ;
       }
       M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
       #endif

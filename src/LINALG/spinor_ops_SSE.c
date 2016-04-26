@@ -159,7 +159,7 @@ equate_spinor_minus( void *mS ,
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
   }
-#elif NC == 3
+#elif NC == 2
   for( i = 0 ; i < NSNS ; i++ ) {
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
     *s = SSE_FLIP( *s2 ) ; s++ ; s2++ ;
