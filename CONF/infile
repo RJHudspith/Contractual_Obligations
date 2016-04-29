@@ -1,14 +1,25 @@
 HEADER = UNIT
-DIMS0 = 16
-DIMS1 = 16
-DIMS2 = 16
-DIMS3 = 16
-## propagator in the chiral basis is point source
-PROP0 = propagator_16x16x16x16b6.000000k0.12500c1.000000id1.1n1
-BARYON0 = 0,0,0,baryons
-MESON0 = 0,0,mesons
-VPF0 = 0,0,CONSERVED_LOCAL,cl
+DIMS0 = 4
+DIMS1 = 4
+DIMS2 = 4
+DIMS3 = 8
+## SU(3) chiral prop UNIT gauge
+PROP0 = prop_srcx0y0z0t0_8x4x4x4b1.900000Kud0.12500Ks0.12500c1.000000id1.1n1
+PROP1 = prop_srcx0y0z0t0_8x4x4x4b1.900000Kud0.12500Ks0.12500c1.000000id1.1n1
+PROP2 = prop_srcx0y0z0t0_8x4x4x4b1.900000Kud0.12500Ks0.12500c1.000000id1.1n1
+PROP3 = prop_srcx0y0z0t0_8x4x4x4b1.900000Kud0.12500Ks0.12500c1.000000id1.1n1
+BARYON0 = 0,0,0,baryon
+BARYON1 = 0,0,1,baryon
+BARYON2 = 0,1,2,baryon
+MESON0 = 0,0,meson1
+MESON1 = 0,1,meson2
+TETRA0 = 0,0,1,1,tet.udbb
+TETRA1 = 0,0,1,2,tet.udcb
+TETRA2 = 0,1,2,2,tet.usbb
+TETRA3 = 0,1,2,3,tet.uscb
+VPF0 = 0,0,CONSERVED_LOCAL,cl1
+VPF1 = 0,1,CONSERVED_LOCAL,cl2
 ## momentum information
 MOM_CUT = CYLINDER_CUT
-MAXMOM = 30
+MAXMOM = 3
 CYL_WIDTH = 2.0
