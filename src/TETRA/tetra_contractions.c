@@ -28,7 +28,7 @@ contract_O1O1( const struct block *C1 ,
       spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 16*( sum1 - sum2 ) : 16*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
 }
 
 // diquark-dimeson cross term
@@ -51,7 +51,7 @@ contract_O1O2_1( const struct block *C1 ,
 			       C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
 }
 
 // diquark-dimeson cross term
@@ -74,7 +74,7 @@ contract_O1O2_2( const struct block *C1 ,
 			       C2[ element( d , b , c , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
 }
 
 // dimeson-diquark cross term
@@ -97,7 +97,7 @@ contract_O2O1_1( const struct block *C1 ,
 			       C2[ element( a , c , d , b ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
 }
 
 // dimeson-diquark cross term
@@ -120,7 +120,7 @@ contract_O2O1_2( const struct block *C1 ,
 			       C2[ element( b , c , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
 }
 
 static double complex
