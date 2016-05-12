@@ -28,7 +28,7 @@ contract_O1O1( const struct block *C1 ,
       spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 16*( sum1 - sum2 ) : 16*sum1 ;
 }
 
 // diquark-dimeson cross term
