@@ -142,7 +142,7 @@ contract_O2O2_1( const struct block *C1 ,
       spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
 }
 
 static double complex
@@ -164,7 +164,7 @@ contract_O2O2_2( const struct block *C1 ,
       spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
 }
 
 // get an element from a b c d
