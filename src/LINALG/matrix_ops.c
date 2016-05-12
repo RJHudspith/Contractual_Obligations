@@ -186,7 +186,7 @@ LU_det( const int N ,
       }
     }
     if( a[i+piv*N] == 0.0 ) { 
-      printf( "[DETERMINANT] LU  Singular Matrix!!!\n" ) ;
+      fprintf( stderr , "[DETERMINANT] LU  Singular Matrix!!!\n" ) ;
       return 0.0 ;
     }
     if( piv != i ) {
@@ -389,13 +389,13 @@ multab_dagdag( double complex a[ NCNC ] ,
 void
 print_colormatrix( const double complex a[ NCNC ] )
 {
-  int i , j ;
-  printf( "\n" ) ;
+  size_t i , j ;
+  fprintf( stdout , "\n" ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
-      printf( "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
+      fprintf( stdout  "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
     }
-    printf( "\n" ) ;
+    fprintf( stdout , "\n" ) ;
   }
   return ;
 }

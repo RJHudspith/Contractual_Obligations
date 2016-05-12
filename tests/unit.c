@@ -32,7 +32,7 @@ main( const int argc , const char *argv[] )
   }
   init_geom( ) ; // geometry inherited from GLU and has been tested
 
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   int total = 0 ;
 
@@ -77,7 +77,7 @@ main( const int argc , const char *argv[] )
   if( SSE_OPS_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
-  printf( "[UNIT] %d tests run and passed\n" , total ) ;
+  fprintf( stdout , "[UNIT] %d tests run and passed\n" , total ) ;
 
   return SUCCESS ;
 

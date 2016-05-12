@@ -48,6 +48,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+    fprintf( stderr , "[BARYONS] measurement initialisation failed\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -122,10 +123,10 @@ baryons_2fdiagonal( struct propagator prop1 ,
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    printf("\r[BARYONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
+    fprintf( stdout , "\r[BARYONS] done %.f %%" , (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // write out the baryons wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 

@@ -44,7 +44,8 @@ get_dims( size_t *dims ,
     dims[ mu ] = (size_t)strtol( INPUT[ dims_idx ].VALUE , &endptr , 10 ) ;
     if( INPUT[ dims_idx ].VALUE == endptr ||
 	errno == ERANGE ) {
-      printf( "[IO] non-sensical dimension value %zu \n" , dims[ mu ] ) ;
+      fprintf( stderr , "[IO] non-sensical dimension value %zu \n" , 
+	       dims[ mu ] ) ;
       return FAILURE ;
     }
   }
@@ -72,7 +73,7 @@ get_props( struct propagator *props ,
       // open file
       props[ *nprops ].file = fopen( token , "rb" ) ;
       if( props[ *nprops ].file == NULL ) {
-	printf( "[IO] propfile %s not found \n" , token ) ;
+	fprintf( stderr , "[IO] propfile %s not found \n" , token ) ;
 	return FAILURE ;
       }
     }
@@ -91,45 +92,45 @@ header_type( const struct inputs *INPUT )
     return UNSUPPORTED ;
   }
   if( are_equal( INPUT[header_idx].VALUE , "NERSC" ) ) {
-    printf( "[IO] Attempting to read a NERSC file \n" ) ;
+    fprintf( stdout , "[IO] Attempting to read a NERSC file \n" ) ;
     return NERSC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "HIREP" ) ) {
-    printf( "[IO] Attempting to read a HIREP file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read a HIREP file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     return HIREP_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "MILC" ) ) {
-    printf( "[IO] Attempting to read a MILC file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read a MILC file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     return MILC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "SCIDAC" ) ) {
-    printf( "[IO] Attempting to read a SCIDAC file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read a SCIDAC file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     return SCIDAC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "LIME" ) ) {
-    printf( "[IO] Attempting to read an LIME file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read an LIME file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     printf( "[IO] WARNING!! NOT CHECKING ANY CHECKSUMS!! \n" ) ;
     return LIME_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "ILDG_SCIDAC" ) ) {
-    printf( "[IO] Attempting to read an ILDG (Scidac) file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read an ILDG (Scidac) file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     return ILDG_SCIDAC_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "ILDG_BQCD" ) ) {
-    printf( "[IO] Attempting to read an ILDG (BQCD) file \n" ) ;
-    printf( "[IO] Using sequence number from input file :: %zu \n" ,
-	    Latt.flow = confno( INPUT ) ) ;
+    fprintf( stdout , "[IO] Attempting to read an ILDG (BQCD) file \n" ) ;
+    fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,
+	     Latt.flow = confno( INPUT ) ) ;
     return ILDG_BQCD_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "UNIT" ) ) {
-    printf( "[IO] Generating a UNIT gauge configuration \n" ) ;
+    fprintf( stdout , "[IO] Generating a UNIT gauge configuration \n" ) ;
     return UNIT_GAUGE ;
   }
-  printf( "[IO] HEADER %s not recognised ... Leaving \n" , 
-	  INPUT[header_idx].VALUE ) ;
+  fprintf( stderr , "[IO] HEADER %s not recognised ... Leaving \n" , 
+	   INPUT[header_idx].VALUE ) ;
   return UNSUPPORTED ; 
 }
 
@@ -149,8 +150,9 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   } else if ( are_equal( INPUT[momcut_idx].VALUE , "CYLINDER_CUT" ) ) {
     CUTINFO -> type = CYLINDER_CUT ; 
   } else {
-    printf( "[IO] Unrecognised type [%s] \n" , INPUT[momcut_idx].VALUE ) ; 
-    printf( "[IO] Defaulting to SPHERICAL_CUT \n" ) ; 
+    fprintf( stderr , "[IO] Unrecognised type [%s] \n" , 
+	     INPUT[momcut_idx].VALUE ) ; 
+    fprintf( stderr , "[IO] Defaulting to SPHERICAL_CUT \n" ) ; 
     CUTINFO -> type = PSQ_CUT ; 
   }
   // minmom, maxmom angle and cylinder width
@@ -169,7 +171,8 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   CUTINFO -> cyl_width = (double)strtod( INPUT[cyl_idx].VALUE , &endptr ) ;
   if( endptr == INPUT[cyl_idx].VALUE || errno == ERANGE ||
       CUTINFO -> cyl_width < 0.0 ) {
-    printf( "[IO] non-sensical cylinder width %f \n" , CUTINFO -> cyl_width ) ;
+    fprintf( stderr , "[IO] non-sensical cylinder width %f \n" , 
+	     CUTINFO -> cyl_width ) ;
     return FAILURE ;
   }
   return SUCCESS ;

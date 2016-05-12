@@ -273,13 +273,13 @@ tetra_contractions_test_driver( void )
   free( GAMMAS ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[TETRAS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[TETRAS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , tetrasres ) ;
-    printf( "[TETRAS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , tetrasres ) ;
+    fprintf( stderr , "[TETRAS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

@@ -14,7 +14,7 @@ contract_WME( struct propagator *prop ,
 	      const struct cut_info CUTINFO ,
 	      const size_t nWME )
 {
-  printf( "\n[WME] performing %zu contraction(s) \n" , nWME ) ;
+  fprintf( stdout , "\n[WME] performing %zu contraction(s) \n" , nWME ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nWME ; measurements++ ) {
@@ -26,7 +26,7 @@ contract_WME( struct propagator *prop ,
 
     if( prop[p0].source != WALL || prop[p1].source != WALL ||
 	prop[p2].source != WALL || prop[p3].source != WALL ) {
-      printf( "[WME] routine only works for WALL sources \n" ) ;
+      fprintf( stderr , "[WME] Routine only works for WALL sources \n" ) ;
       return FAILURE ;
     }
 

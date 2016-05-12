@@ -56,11 +56,12 @@ identity( double complex a[ NCNC ] )
 static void
 unit_gauge( struct site *__restrict lat )
 {
-  int i ; 
-  printf( "\n[UNIT] Creating identity SU(%d) lattice fields \n" , NC ) ; 
+  size_t i ; 
+  fprintf( stdout , "\n[UNIT] Creating identity SU(%d) lattice fields \n" , 
+	   NC ) ; 
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) { 
       identity( lat[i].O[mu] ) ; 
     } 
@@ -80,7 +81,7 @@ check_sums( const double plaq ,
       Latt.head == SCIDAC_HEADER ) {
     // do a check only on the sum29
     if( chksum != HEAD_DATA.checksum )  {
-      printf( "\n[IO] Unequal checksums [Calc] %x [Read] %x \n\n" , 
+      fprintf( stderr , "\n[IO] Unequal checksums [Calc] %x [Read] %x \n\n" , 
 	      chksum , HEAD_DATA.checksum ) ; 
       return FAILURE ;
     }
@@ -93,21 +94,22 @@ check_sums( const double plaq ,
       TTOL = 1E-14 ;
     }
     if( fabs( HEAD_DATA.plaquette - plaq ) > TTOL ) {
-      printf( "\n[IO] Unequal Plaquettes %e %e \n\n" , 
-	      plaq , HEAD_DATA.plaquette ) ; 
+      fprintf( stderr , "\n[IO] Unequal Plaquettes %e %e \n\n" , 
+	       plaq , HEAD_DATA.plaquette ) ; 
       return FAILURE ;
     }
     // and the CRC of the binary data
     if( chksum != HEAD_DATA.checksum )  {
-      printf( "\n[IO] Unequal checksums Calc %x || Read %x \n\n" , 
-	      chksum , HEAD_DATA.checksum ) ; 
+      fprintf( stderr , "\n[IO] Unequal checksums Calc %x || Read %x \n\n" , 
+	       chksum , HEAD_DATA.checksum ) ; 
       return FAILURE ;
     }
   } else if( Latt.head == HIREP_HEADER ) {
     // only check available is the plaquette
     if( fabs( plaq - HEAD_DATA.plaquette ) > PREC_TOL ) {
-      printf("[IO] HIREP header Plaquette Mismatch %e vs %e ... Leaving \n" ,
-	     plaq , HEAD_DATA.plaquette ) ;
+      fprintf( stderr , "[IO] HIREP header Plaquette Mismatch"
+	       "%e vs %e ... Leaving \n" ,
+	       plaq , HEAD_DATA.plaquette ) ;
       return FAILURE ;
     }
   } else if( Latt.head == NERSC_HEADER ) {
@@ -115,30 +117,32 @@ check_sums( const double plaq ,
     // it is disastrous if all three checks fail ...
     int error = 0 ; 
     if( chksum != HEAD_DATA.checksum )  {
-      printf( "\n[IO] Unequal checksums Calc %x || Read %x \n\n" , 
-	      chksum , HEAD_DATA.checksum ) ; 
+      fprintf( stderr , "\n[IO] Unequal checksums Calc %x || Read %x \n\n" , 
+	       chksum , HEAD_DATA.checksum ) ; 
       error ++ ; 
       // TOL is defined as 10^-6
     }  if( fabs( plaq - HEAD_DATA.plaquette ) > PLAQ_AND_TRACE_TOL ) {
-      printf( "\n[IO] Unequal Plaquettes Calc %f || Read %f \n\n" , 
-	      plaq , HEAD_DATA.plaquette ) ; 
+      fprintf( stderr , "\n[IO] Unequal Plaquettes Calc %f || Read %f \n\n" , 
+	       plaq , HEAD_DATA.plaquette ) ; 
       error ++ ; 
     } if( fabs( tr - HEAD_DATA.trace) > PLAQ_AND_TRACE_TOL ) {
-      printf( "\n[IO] Unequal Link_Traces Calc %1.8f || Read %1.8f \n\n" , 
-	      tr , HEAD_DATA.trace ) ; 
+      fprintf( stderr , "\n[IO] Unequal Link_Traces Calc %1.8f "
+	       "|| Read %1.8f \n\n" , 
+	       tr , HEAD_DATA.trace ) ; 
       error ++ ; 
     }
     // pretty printing
-    printf( "[IO] Header     Trace :: %f           || Plaq :: %f \n" , 
-	    HEAD_DATA.trace , HEAD_DATA.plaquette ) ; 
+    fprintf( stderr , "[IO] Header     Trace :: %f           || Plaq :: %f \n" ,
+	     HEAD_DATA.trace , HEAD_DATA.plaquette ) ; 
     // if everything is wrong we leave
     if( error == DISASTER ) {
-      printf("[IO] NONE of the NERSC Checksums match, this is a problem .. Leaving \n") ; 
+      fprintf( stderr , "[IO] NONE of the NERSC Checksums match,"
+	       " this is a problem .. Leaving \n") ; 
       return FAILURE ;
     }
   } 
- printf( "[IO] Calculated Trace :: %1.15f  || Plaq :: %1.15f \n" , 
-	 tr , plaq ) ; 
+  fprintf( stdout , "[IO] Calculated Trace :: %1.15f  || Plaq :: %1.15f \n" , 
+	   tr , plaq ) ; 
   return SUCCESS ; // may only be partially successful but I am optimistic
 }
 
@@ -177,7 +181,7 @@ get_config_SUNC( FILE *__restrict CONFIG ,
     unit_gauge( lat ) ;
     return SUCCESS ;
   default : 
-    printf( "[IO] Unrecognised HEADER type .. Leaving \n" ) ;
+    fprintf( stderr , "[IO] Unrecognised HEADER type .. Leaving \n" ) ;
     return FAILURE ;
   }
   return FAILURE ;
@@ -193,14 +197,14 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   // open our configuration
   FILE *infile = fopen( config_in , "r" ) ;
   if ( infile == NULL ) {
-    printf( "[IO] error opening file :: %s\n" , config_in ) ;
+    fprintf( stderr , "[IO] error opening file :: %s\n" , config_in ) ;
     return NULL ;
   }
  
   // initialise the configuration number to zero
   struct head_data tmp ;
   if( read_header( infile , &tmp , GLU_TRUE ) == FAILURE ) {
-    printf( "[IO] Header reading failure \n" ) ;
+    fprintf( stderr , "[IO] Header reading failure \n" ) ;
     fclose( infile ) ;
     return NULL ;
   } 
@@ -212,9 +216,9 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   size_t mu ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( Latt.dims[ mu ] != refdims[ mu ] ) {
-      printf( "[IO] %zu %zu \n" , Latt.dims[ mu ] , refdims[ mu ] ) ;
-      printf( "[IO] gauge_field and input file dimensions mismatch %zu != %zu \n" 
-	      , Latt.dims[ mu ] , refdims[ mu ] ) ;
+      fprintf( stderr , "[IO] gauge_field and input file"
+	       " dimensions mismatch %zu != %zu \n" 
+	       , Latt.dims[ mu ] , refdims[ mu ] ) ;
       fclose( infile ) ;
       return NULL ;
     }
@@ -223,7 +227,7 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   // malloc our gauge field and initialise our lattice geometry
   struct site *lat = NULL ;
   if( corr_malloc( (void**)&lat , 16 , LVOLUME * sizeof ( struct site ) ) != 0 ) {
-    printf( "[IO] Gauge field allocation failure ... Leaving \n" ) ;
+    fprintf( stderr , "[IO] Gauge field allocation failure ... Leaving \n" ) ;
     fclose( infile ) ;
     free( lat ) ;
     return NULL ;
@@ -233,7 +237,7 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   const uint32_t check = get_config_SUNC( infile , lat , tmp ) ;
   // read in the configuration ...  
   if( check == FAILURE ) {
-    printf( "[IO] File read error ... Leaving \n" ) ;
+    fprintf( stderr , "[IO] File read error ... Leaving \n" ) ;
     fclose( infile ) ;
     free( lat ) ;
     return NULL ;
@@ -246,14 +250,12 @@ read_gauge_file( struct head_data *HEAD_DATA ,
     get_header_data_SCIDAC( infile , &tmp ) ;
   }
 
-  /*
   // have a look at some available checks
   if( checks( lat , check , tmp ) == FAILURE ) { 
     fclose( infile ) ;
     free( lat ) ;
     return NULL ; 
   }
-  */
 
   // set the header info
   *HEAD_DATA = tmp ;

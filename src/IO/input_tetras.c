@@ -14,7 +14,7 @@ tetra_tokens( struct tetra_info *tetras ,
 	      const size_t meas_idx ,
 	      const char *message ) 
 {
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   // starts with the contraction indices
   char *token = (char*)strtok( (char*)tetra_str , "," ) ;
   if( get_contraction_map( &( tetras -> map[0] ) , token , nprops ) == FAILURE ) {
@@ -32,21 +32,22 @@ tetra_tokens( struct tetra_info *tetras ,
   if( get_contraction_map( &( tetras -> map[3] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] %s_%zu :: Contracting prop %zu with prop %zu "
-	  "with prop %zu with prop %zu\n" , 
-	  message , meas_idx , tetras -> map[0] , tetras -> map[1] , 
-	  tetras -> map[2] , tetras -> map[3] ) ;
+  fprintf( stdout , "[IO] %s_%zu :: Contracting prop %zu with prop %zu "
+	   "with prop %zu with prop %zu\n" , 
+	   message , meas_idx , tetras -> map[0] , tetras -> map[1] , 
+	   tetras -> map[2] , tetras -> map[3] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( tetras -> outfile , "%s" , token ) ;
-  printf( "[IO] %s_%zu :: Contraction file in %s \n" , 
-	  message , meas_idx , token ) ;
+  fprintf( stdout , "[IO] %s_%zu :: Contraction file in %s \n" , 
+	   message , meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
-	    message , meas_idx , token ) ;
+    fprintf( stderr , "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
+	     message , meas_idx , token ) ;
+    return FAILURE ;
   }
   return SUCCESS ;
 }

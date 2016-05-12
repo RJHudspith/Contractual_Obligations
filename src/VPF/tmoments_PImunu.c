@@ -148,7 +148,7 @@ tmoments( const struct PIdata *AA ,
 
   // allocate momenta
   if( NMOM[0] == 0 ) {
-    printf( "[VPF] NMOM is zero \n" ) ;
+    fprintf( stderr , "[VPF] NMOM is zero \n" ) ;
     goto memfree ;
   }
 
@@ -163,6 +163,7 @@ tmoments( const struct PIdata *AA ,
   // precompute momenta
   compute_p_psq( p , psq , list , NMOM[0] ) ;
 
+  // zero momentum subtraction
 #if 0
   subtract_zeromom( cpAA , psq , NMOM ) ;
   subtract_zeromom( cpVV , psq , NMOM ) ;
@@ -172,10 +173,8 @@ tmoments( const struct PIdata *AA ,
   char str[ 256 ] ;
   sprintf( str , "%s.ptonly" , outfile ) ;
 
-  /*
   momspace_data( cpAA , (const double **)p , psq , list , 
 		 NMOM , str , current , AXIAL ) ;
-  */
 
   momspace_data( cpVV , (const double **)p , psq , list , 
 		 NMOM , str , current , VECTOR ) ;

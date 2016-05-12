@@ -1,8 +1,6 @@
 /**
    @file gammas.c
    @brief gamma matrix business
-   
-   Now mapped Gattringer & Lang Appendices, A.21
 
    0 -> gamma_0 ( x )
    1 -> gamma_1 ( y )
@@ -310,19 +308,19 @@ picture_gamma( const struct gamma G )
       // 
       if( G.ig[ d1 ] == d2 ) {
 	switch( G.g[d1] ) {
-	case 0 : printf( " +1 " ) ; break ;
-	case 1 : printf( " +i " ) ; break ;
-	case 2 : printf( " -1 " ) ; break ;
-	case 3 : printf( " -i " ) ; break ;
+	case 0 : fprintf( stdout , " +1 " ) ; break ;
+	case 1 : fprintf( stdout , " +i " ) ; break ;
+	case 2 : fprintf( stdout , " -1 " ) ; break ;
+	case 3 : fprintf( stdout , " -i " ) ; break ;
 	}
       } else {
-	printf( "  0 " ) ;
+	fprintf( stdout , "  0 " ) ;
       }
       //
     }
-    printf( "\n" ) ;
+    fprintf( stdout , "\n" ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   return ;
 }
 

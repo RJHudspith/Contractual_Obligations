@@ -64,8 +64,8 @@ compute_WI( const struct PIdata *data ,
   }
 
   const double NORM = 1.0 / (double)( NMOM * ND ) ;
-  printf( "|| p_{mu} Pi_{mu,nu} || :: %e\n" , sum * NORM ) ;
-  printf( "|| PI_{mu,nu} p_{nu} || :: %e\n\n" , sum2 * NORM ) ;
+  fprintf( stdout , "|| p_{mu} Pi_{mu,nu} || :: %e\n" , sum * NORM ) ;
+  fprintf( stdout , "|| PI_{mu,nu} p_{nu} || :: %e\n\n" , sum2 * NORM ) ;
 }
 
 // perform ward identity correction
@@ -124,8 +124,8 @@ WI_configspace_bwd( const struct PIdata *data ,
       sum = sum + cabs( der ) ;
     }
   }
-  printf( "\n[VPF] backward config-space violation %e \n\n" , 
-	  sum / ( double)LVOLUME ) ;
+  fprintf( stdout , "\n[VPF] backward config-space violation %e \n\n" , 
+	   sum / ( double)LVOLUME ) ;
   return ;
 }
 
@@ -147,8 +147,8 @@ WI_configspace_fwd( const struct PIdata *data ,
       sum = sum + cabs( der ) ;
     }
   }
-  printf( "\n[VPF] forward config-space violation %e \n\n" , 
-	  sum / ( double)LVOLUME ) ;
+  fprintf( stdout , "\n[VPF] forward config-space violation %e \n\n" , 
+	   sum / ( double)LVOLUME ) ;
   return ;
 }
 
@@ -172,7 +172,7 @@ WI_configspace_sym( const struct PIdata *data ,
       sum = sum + cabs( der ) ;
     }
   }
-  printf( "\n[VPF] symmetric config-space violation %e \n\n" , 
-	  sum / ( double)LVOLUME ) ;
+  fprintf( stdout , "\n[VPF] symmetric config-space violation %e \n\n" , 
+	   sum / ( double)LVOLUME ) ;
   return ;
 }

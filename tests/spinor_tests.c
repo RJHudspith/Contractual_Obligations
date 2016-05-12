@@ -408,13 +408,13 @@ spinor_test_driver( void )
   free( S ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[SPINORS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[SPINORS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , spinres ) ;
-    printf( "[SPINORS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , spinres ) ;
+    fprintf( stderr , "[SPINORS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

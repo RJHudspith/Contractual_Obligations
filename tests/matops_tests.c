@@ -251,13 +251,13 @@ matops_test_driver( void )
   free( Id ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[MATOPS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[MATOPS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , matres ) ;
-    printf( "[MATOPS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , matres ) ;
+    fprintf( stderr , "[MATOPS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

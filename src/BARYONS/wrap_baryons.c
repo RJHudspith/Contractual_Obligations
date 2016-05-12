@@ -21,10 +21,9 @@ check_origins( struct propagator p1 ,
     if( ( p1.origin[ mu ] != p2.origin[ mu ] ) || 
 	( p1.origin[ mu ] != p3.origin[ mu ] ) ||
 	( p2.origin[ mu ] != p3.origin[ mu ] ) ) {
-      printf( "[BARYONS] contraction of baryons with unequal origins"
-	      "%zu vs %zu vs. %zu ( index %zu ) " , 
-	      p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , 
-	      mu ) ;
+      fprintf( stderr , "[BARYONS] contraction of baryons with unequal origins"
+	       "%zu vs %zu vs. %zu ( index %zu )\n" , 
+	       p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , mu ) ;
       return FAILURE ;
     }
   }
@@ -38,7 +37,7 @@ contract_baryons( struct propagator *prop ,
 		  const struct cut_info CUTINFO ,
 		  const size_t nbaryons )
 {
-  printf( "\n[BARYONS] performing %zu contraction(s) \n" , nbaryons ) ;
+  fprintf( stdout , "\n[BARYONS] performing %zu contraction(s)\n" , nbaryons ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nbaryons ; measurements++ ) {
@@ -59,7 +58,7 @@ contract_baryons( struct propagator *prop ,
       // two props are the same S3 ( S1 Cgmu S1 Cgmu )
     } else if( ( p1 == p2 && p2 != p3 ) ) {
       if( prop[ p1 ].source != prop[ p3 ].source ) {
-	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
       if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p3 ] ) == FAILURE ) {
@@ -75,7 +74,7 @@ contract_baryons( struct propagator *prop ,
       // two props are the same S2 ( S1 Cgmu S1 Cgmu )
     } else if( p1 == p3 && p3 != p2 ) {
       if( prop[ p1 ].source != prop[ p2 ].source ) {
-	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
       if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
@@ -91,7 +90,7 @@ contract_baryons( struct propagator *prop ,
       // two props are the same S1 ( S2 Cgmu S2 Cgmu )
     } else if( p2 == p3 && p1 != p2 ) {
       if( prop[ p2 ].source != prop[ p1 ].source ) {
-	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
       if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
@@ -109,7 +108,7 @@ contract_baryons( struct propagator *prop ,
       if( prop[ p1 ].source != prop[ p2 ].source ||
 	  prop[ p1 ].source != prop[ p3 ].source ||
 	  prop[ p2 ].source != prop[ p3 ].source ) {
-	printf( "[BARYONS] Caught unequal sources contraction \n" ) ;
+	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
       if( check_origins( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {

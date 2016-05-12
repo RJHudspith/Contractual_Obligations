@@ -66,7 +66,7 @@ write_momspace_data( const char *filename ,
 		     const struct veclist *__restrict list ,
 		     const int DIR )
 {
-  printf( "[IO] writing momspace data to %s \n" , filename ) ;
+  fprintf( stdout , "[IO] writing momspace data to %s \n" , filename ) ;
 
   FILE *outfile = fopen( filename , "wb" ) ;
 

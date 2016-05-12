@@ -21,11 +21,11 @@ get_current_type( current_type *current ,
   } else if( are_equal( token , "CONSERVED_LOCAL" ) ) {
     *current = CONSERVED_LOCAL ;
   } else {
-    printf( "[IO] I don't understand VPF type %s\n" , token ) ;
+    fprintf( stderr , "[IO] I don't understand VPF type %s\n" , token ) ;
     return FAILURE ;
   }
-  printf( "[IO] VPF_%zu :: We are performing %s contractions \n" , 
-	  meas , token ) ;
+  fprintf( stdout , "[IO] VPF_%zu :: We are performing %s contractions \n" , 
+	   meas , token ) ;
   return SUCCESS ;
 }
 
@@ -36,7 +36,7 @@ VPF_tokens( struct VPF_info *VPF ,
 	    const size_t nprops ,
 	    const size_t meas_idx ) 
 {
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // starts with the propagator map
   char *token = (char*)strtok( (char*)VPF_str , "," ) ;
@@ -47,8 +47,8 @@ VPF_tokens( struct VPF_info *VPF ,
   if( get_contraction_map( &( VPF -> map[1] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] VPF_%zu :: Contracting prop %zu with prop %zu \n" , 
-	  meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
+  fprintf( stdout , "[IO] VPF_%zu :: Contracting prop %zu with prop %zu \n" , 
+	   meas_idx , VPF -> map[0] , VPF -> map[1] ) ;
 
   // check for current
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
@@ -61,8 +61,9 @@ VPF_tokens( struct VPF_info *VPF ,
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] VPF_%zu :: Unexpected extra contraction info %s \n" ,
-	    meas_idx , token ) ;
+    fprintf( stderr , "[IO] VPF_%zu :: Unexpected extra contraction info %s\n" ,
+	     meas_idx , token ) ;
+    return FAILURE ;
   }
   return SUCCESS ;
 }

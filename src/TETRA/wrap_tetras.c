@@ -26,7 +26,8 @@ check_origins( struct propagator p1 ,
 	p2.origin[mu] != p3.origin[mu] || 
 	p2.origin[mu] != p4.origin[mu] ||
 	p3.origin[mu] != p4.origin[mu] ) {
-      printf( "[TETRA] mismatched origins %zu %zu %zu %zu (index %zu)\n" ,
+      fprintf( stderr , "[TETRA] mismatched origins "
+	       "%zu %zu %zu %zu (index %zu)\n" ,
 	      p1.origin[mu] , p2.origin[mu] , p3.origin[mu] ,
 	      p4.origin[mu] , mu ) ;
       return FAILURE ;
@@ -43,7 +44,7 @@ contract_udbb( struct propagator *prop ,
 	       const size_t p1 ,
 	       const size_t p2 )
 {
-  printf( "[TETRA] contracting a udbb type tetra\n" ) ;
+  fprintf( stdout , "[TETRA] contracting a udbb type tetra\n" ) ;
   if( check_origins( prop[ p1 ] , prop[ p1 ] , 
 		     prop[ p2 ] , prop[ p2 ] ) == FAILURE ) {
     return FAILURE ;
@@ -66,7 +67,7 @@ contract_usbb( struct propagator *prop ,
 	       const size_t p2 ,
 	       const size_t p3 )
 {
-  printf( "[TETRA] contracting a usbb type tetra\n" ) ;
+  fprintf( stdout , "[TETRA] contracting a usbb type tetra\n" ) ;
   if( check_origins( prop[ p1 ] , prop[ p2 ] , 
 		     prop[ p3 ] , prop[ p3 ] ) == FAILURE ) {
     return FAILURE ;
@@ -90,7 +91,7 @@ contract_udcb( struct propagator *prop ,
 	       const size_t p2 ,
 	       const size_t p3 )
 {
-  printf( "[TETRA] contracting a udcb type tetra\n" ) ;
+  fprintf( stdout , "[TETRA] contracting a udcb type tetra\n" ) ;
   if( check_origins( prop[ p1 ] , prop[ p1 ] , 
 		     prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {
     return FAILURE ;
@@ -115,7 +116,7 @@ contract_uscb( struct propagator *prop ,
 	       const size_t p3 ,
 	       const size_t p4 )
 {
-  printf( "[TETRA] contracting a uscb type tetra\n" ) ;
+  fprintf( stdout , "[TETRA] contracting a uscb type tetra\n" ) ;
   if( check_origins( prop[ p1 ] , prop[ p2 ] , 
 		     prop[ p3 ] , prop[ p4 ] ) == FAILURE ) {
     return FAILURE ;
@@ -153,8 +154,9 @@ contract_tetras( struct propagator *prop ,
     if( p1 == p2 ) {
       // sanity trap
       if( p2 == p3 || p2 == p4 || p1 == p3 || p1 == p4 ) {
-	printf( "Tetraquark ( %zu %zu %zu %zu ) not supported \n" , 
-		p1 , p2 , p3 , p4 ) ;
+	fprintf( stderr , "Tetraquark ( %zu %zu %zu %zu ) not supported \n" , 
+		 p1 , p2 , p3 , p4 ) ;
+	return FAILURE ;
       }
       // degenerate heavy quarks
       if( p3 == p4 ) {

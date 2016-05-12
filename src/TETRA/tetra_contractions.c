@@ -1,8 +1,6 @@
 /**
    @file tetra_contractions.c
    @brief tetraquark contractions
-
-   TODO :: write some tests for this!
  */
 #include "common.h"
 
@@ -12,92 +10,161 @@
 #include "spinor_ops.h"         // transpose_spinor()
 #include "tetra_contractions.h" // alphabetising
 
-// dimeson contraction
+// perform the contraction
 static double complex
-dimeson( const struct spinor U , // u prop
-	 const struct spinor D , // d prop
-	 const struct spinor B1 , // adjoint of B1
-	 const struct spinor B2 , // adjoint of B2
-	 const struct gamma gt ,
-	 const struct gamma gi ,
-	 const struct gamma g5 , 
-	 const GLU_bool L1L2_degenerate ,
-	 const GLU_bool H1H2_degenerate )
+contract_O1O1( const struct block *C1 , 
+	       const struct block *C2 ,
+	       const GLU_bool H1H2_degenerate )
 {
-  // flattened number of colors we loop over
-  const size_t Nco = NCNC * NCNC ;
-
-  // index loops
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
   size_t abcd , a , b , c , d ;
-
-  // temporaries blocks of spinmatrix data
-  struct block *C1 = NULL , *C2 = NULL ;
-
-  // precompute our tilded temporaries
-  const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt )  ;
-  const struct gamma tildegi = gt_Gdag_gt( gi , gt )  ;
-
-  // sums
-  register double complex sum1 = 0.0 ;
-  register double complex sum2 = 0.0 ;
-  register double complex sum3 = 0.0 ;
-  register double complex sum4 = 0.0 ;
-
-  // make everything a NaN if we fail to allocate memory
-  if( corr_malloc( (void**)&C1 , 16 , Nco * sizeof( struct block ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco * sizeof( struct block ) ) != 0 ) {
-    goto memfree ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // usual forward streaming term
+    sum1 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
+      spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
+    // cross color term by interchanging Bs
+    sum2 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
+      spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
   }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
 
-  // first term is (O_3 O_3^\dagger)^{(1)} = Eq.46 in note
-  {
-    precompute_block( C1 , B1 , g5 , U , tildeg5 ) ;
-    precompute_block( C2 , B2 , gi , D , tildegi ) ;
-    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
-      get_abcd( &a , &b , &c , &d , abcd ) ;
-      // usual meson product
-      sum1 += 
-	spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
-	spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
-
-      // cross term
-      sum3 += 
-	spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
-	spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
-    }
+// diquark-dimeson cross term
+static double complex
+contract_O1O2_1( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // single dirac trace
+    sum1 += 
+      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
+			       C2[ element( c , a , d , b ) ].M ) ;
+    // cross term
+    sum2 +=
+      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
+			       C2[ element( c , b , d , a ) ].M ) ;
   }
-  // second part is (O_3 O_3^\dagger)^{(2)} Eq.48 in note
-  {
-    precompute_block( C1 , B1 , gi , D , tildeg5 ) ;
-    precompute_block( C2 , B2 , g5 , U , tildegi ) ;
-    for( abcd = 0 ; abcd < Nco ; abcd++ ) {
-      get_abcd( &a , &b , &c , &d , abcd ) ;
-      // usual meson product
-      sum2 += 
-	spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
-	spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
-      // cross term
-      sum4 += 
-	spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
-	spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
-    }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
+
+// diquark-dimeson cross term
+static double complex
+contract_O1O2_2( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // single dirac trace
+    sum1 += 
+      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
+			       C2[ element( d , a , c , b ) ].M ) ;
+    // cross term
+    sum2 +=
+      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
+			       C2[ element( d , b , c , a ) ].M ) ;
   }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
 
-  free( C1 ) ;
-  free( C2 ) ;
-
-  // if the heavies are degenerate we include the cross terms
-  if( H1H2_degenerate == GLU_TRUE ) {
-    return ( sum1 - sum2 ) - ( sum3 - sum4 ) ;
-  } else {
-    return ( sum1 - sum2 ) ;
+// dimeson-diquark cross term
+static double complex
+contract_O2O1_1( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // usual meson product
+    sum1 += 
+      trace_prod_spinmatrices( C1[ element( c , b , b , d ) ].M ,
+			       C2[ element( a , c , d , a ) ].M ) ;
+    // cross term
+    sum2 += 
+      trace_prod_spinmatrices( C1[ element( c , a , b , d ) ].M ,
+			       C2[ element( a , c , d , b ) ].M ) ;
   }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
 
- memfree :
-  free( C1 ) ;
-  free( C2 ) ;
-  printf( "[TETRA] corr_malloc failure in dimeson\n" ) ;
-  return sqrt(-1) ;
+// dimeson-diquark cross term
+static double complex
+contract_O2O1_2( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // usual meson product
+    sum1 += 
+      trace_prod_spinmatrices( C1[ element( c , a , a , d ) ].M ,
+			       C2[ element( b , c , d , b ) ].M ) ;
+    // cross term
+    sum2 += 
+      trace_prod_spinmatrices( C1[ element( c , b , a , d ) ].M ,
+			       C2[ element( b , c , d , a ) ].M ) ;
+  }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
+
+static double complex
+contract_O2O2_1( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // usual meson product
+    sum1 += 
+      spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
+      spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
+    // cross term
+    sum2 += 
+      spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
+      spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
+  }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+}
+
+static double complex
+contract_O2O2_2( const struct block *C1 , 
+		 const struct block *C2 ,
+		 const GLU_bool H1H2_degenerate )
+{
+  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  size_t abcd , a , b , c , d ;
+  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+    get_abcd( &a , &b , &c , &d , abcd ) ;
+    // usual meson product
+    sum1 += 
+      spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
+      spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
+    // cross term
+    sum2 += 
+      spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
+      spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
+  }
+  // if the heavies are the same particle we have a cross term
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
 }
 
 // get an element from a b c d
@@ -149,31 +216,6 @@ precompute_block( struct block *C1 ,
 }
 
 // perform the contraction
-static double complex
-contract_O1O1( const struct block *C1 , 
-	       const struct block *C2 ,
-	       const GLU_bool H1H2_degenerate )
-{
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
-  size_t abcd , a , b , c , d ;
-  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
-    get_abcd( &a , &b , &c , &d , abcd ) ;
-    // usual forward streaming term
-    sum1 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
-      spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
-    // cross color term by interchanging Bs
-    sum2 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-      spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
-  }
-  // if the heavies are the same particle we have a cross term
-  if( H1H2_degenerate == GLU_TRUE ) {
-    return 4*( sum1 - sum2 ) ;
-  } else {
-    return 4*( sum1 ) ;
-  }
-}
-
-// perform the contraction
 int
 tetras( double complex *result ,
 	const struct spinor L1 , 
@@ -189,88 +231,98 @@ tetras( double complex *result ,
   const struct gamma gt = GAMMAS[ GAMMA_T ] ;
   const struct gamma gi = GAMMAS[ mu ] ;
   const struct gamma g5 = GAMMAS[ GAMMA_5 ] ;
+  const struct gamma tildegi = gt_Gdag_gt( gi , gt ) ;
+  const struct gamma tildeg5 = gt_Gdag_gt( g5 , gt ) ;
 
-  // loop of colors
-  const size_t Nco = NCNC * NCNC ;
+  // charge conjugation matrices
+  const struct gamma Cgi = CGmu( gi , GAMMAS ) ;
+  const struct gamma Cg5 = CGmu( g5 , GAMMAS ) ;
+  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
+  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , gt ) ;
+
+  // transposed spinor temporaries
+  struct spinor L1T = transpose_spinor( L1 ) ;
+  struct spinor bwdH2T = transpose_spinor( bwdH2 ) ;
 
   // temporaries are 
-  struct block *C1 = NULL , *C2 = NULL , *C3 = NULL ;
+  const size_t Nco = NCNC*NCNC ;
+  struct block *C1 = NULL , *C2 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
   if( corr_malloc( (void**)&C1 , 16 , Nco*sizeof( struct block ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 || 
-      corr_malloc( (void**)&C3 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
+      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
+    free( C1 ) ; free( C2 ) ;
+    fprintf( stderr , "[MALLOC] failed to allocate C1/C2 temporaries" ) ;
+    return sqrt(-1) ;
   }
 
-  // precompute Cgamma matrices and Pull out the heavy contribution
-  // which is the block of bs with a gamma_i inside
-  const struct gamma Cgi = CGmu( gi , GAMMAS ) ;
-  const struct gamma tildeCgi = gt_Gdag_gt( Cgi , gt ) ;
-  precompute_block( C2 , bwdH1 , Cgi , transpose_spinor( bwdH2 ) , tildeCgi ) ;
-
-  // Operator
-  //
-  //  ( u^T C \gamma_5 d ) ( \bar{b} C \gamma_i \bar{b}^T ) 
-  //
-  const struct gamma Cg5 = CGmu( g5 , GAMMAS ) ;
-  const struct gamma tildeCg5 = gt_Gdag_gt( Cg5 , gt ) ;
-  precompute_block( C1 , transpose_spinor( L1 ) , Cg5 , L2 , tildeCg5 ) ;
+  // O_1 O_1
+  precompute_block( C1 , L1T , Cg5 , L2 , tildeCg5 ) ;
+  precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeCgi ) ;
   result[0] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
-  // Contraction
-  //
-  //  ( u^T C d )
-  //
-  const struct gamma C = CGmu( GAMMAS[ IDENTITY ] , GAMMAS ) ;
-  const struct gamma tildeC = gt_Gdag_gt( C , gt ) ;
-  precompute_block( C1 , transpose_spinor( L1 ) , C , L2 , tildeC ) ;
+  // O_1 O_2
+  precompute_block( C1 , L1T , Cg5 , L2 , gamma_transpose( tildegi ) ) ;
+  precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeg5 ) ;
+  result[1]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-  // Contraction
-  //
-  //  ( u^T C \gamma_i \gamma_5 d )
-  //
-  const struct gamma Cgig5 = CGmu( GAMMAS[ GAMMA_5 + mu + 1 ]  , GAMMAS ) ;
-  const struct gamma tildeCgig5 = gt_Gdag_gt( Cgig5 , gt ) ;
-  precompute_block( C3 , transpose_spinor( L1 ) , Cgig5 , L2 , tildeCgig5 ) ;
+  precompute_block( C1 , L1T , Cg5 , L2 , gamma_transpose( tildeg5 ) ) ;
+  precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildegi ) ;
+  result[1] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
 
-  // and the weird ones
-  size_t j , count = 0 ;
-  for( j = 0 ; j < ND-1 ; j++ ) { 
-    if( j == mu ) continue ;
+  // O_2 O_1
+  precompute_block( C1 , bwdH1 , gamma_transpose( gi ) , L2 , tildeCg5 ) ;
+  precompute_block( C2 , L1T , g5 , bwdH2T , tildeCgi ) ;
+  result[2]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
 
-    // precompute the Bs first as the result can be used twice
-    struct gamma gigj ;
-    gamma_mmul( &gigj , gi , GAMMAS[ j ] ) ;
-    const struct gamma Cgigj = CGmu( gigj , GAMMAS ) ;
-    const struct gamma tildeCgigj = gt_Gdag_gt( Cgigj , gt ) ;
-    precompute_block( C2 , bwdH1 , Cgigj , 
-		      transpose_spinor( bwdH2 ) , tildeCgigj ) ;
+  precompute_block( C1 , bwdH1 , gamma_transpose( g5 ) , L2 , tildeCg5 ) ;
+  precompute_block( C2 , L1T , gi , bwdH2T , tildeCgi ) ;
+  result[2] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
 
-    result[ 1 + count ] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
-    result[ 2 + count ] = contract_O1O1( C3 , C2 , H1H2_degenerate ) ;
+  // O_2 O_2
+  precompute_block( C1 , bwdH1 , g5 , L1 , tildeg5 ) ;
+  precompute_block( C2 , bwdH2 , gi , L2 , tildegi ) ;
+  result[3]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-    count+=2 ;
+  precompute_block( C1 , bwdH1 , gi , L2 , tildeg5 ) ;
+  precompute_block( C2 , bwdH2 , g5 , L1 , tildegi ) ;  
+  result[3] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+
+  // need to do the others where L1 and L2 are swapped
+  if( L1L2_degenerate == GLU_FALSE ) {
+    struct spinor L2T = transpose_spinor( L2 ) ;
+    // O1O2
+    precompute_block( C1 , L2T , Cg5 , L1 , gamma_transpose( tildegi ) ) ;
+    precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeg5 ) ;
+    result[1] += contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
+
+    precompute_block( C1 , L2T, Cg5 , L1 , tildeg5 ) ;
+    precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildegi ) ;
+    result[1] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
+
+    // O2O1
+    precompute_block( C1 , bwdH1 , gamma_transpose( gi ) , L1 , tildeCg5 ) ;
+    precompute_block( C2 , L2T , g5 , bwdH2T , tildeCgi ) ;
+    result[2] += contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
+
+    precompute_block( C1 , bwdH1 , gamma_transpose( g5 ) , L1 , tildeCg5 ) ;
+    precompute_block( C2 , L2T , gi , bwdH2T , tildeCgi ) ;
+    result[2] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
+
+    // O2O2
+    precompute_block( C1 , bwdH1 , g5 , L2 , tildeg5 ) ;
+    precompute_block( C2 , bwdH2 , gi , L1 , tildegi ) ;
+    result[3] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
+
+    precompute_block( C1 , bwdH1 , gi , L1 , tildeg5 ) ;
+    precompute_block( C2 , bwdH2 , g5 , L2 , tildegi ) ;  
+    result[3] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+  } else {
+    result[1] *= 2 ; result[2] *= 2 ; result[3] *= 2 ;
   }
 
-  // free these temporaries
   free( C1 ) ;
   free( C2 ) ;
-  free( C3 ) ;
-
-  // dimeson contractions
-  result[ TETRA_NOPS - 1 ] = dimeson( L1 , L2 , bwdH1 , bwdH2 , gt , gi , g5 , 
-				      L1L2_degenerate , H1H2_degenerate ) ;
-  if( L1L2_degenerate == GLU_FALSE ) {
-    result[ TETRA_NOPS - 1 ] += dimeson( L2 , L1 , bwdH1 , bwdH2 , gt , gi , g5 , 
-					 L1L2_degenerate , H1H2_degenerate ) ;
-  } else {
-    result[ TETRA_NOPS - 1 ] *= 2 ;
-  }
-
-  // leave if something goes wrong (malloc failure in this case) 
-  if( result[ TETRA_NOPS - 1 ] == sqrt(-1) ) {
-    return FAILURE ;
-  }
 
   return SUCCESS ;
 }

@@ -13,7 +13,7 @@ matrix_element_tokens( struct WME_info *wme ,
 		       const size_t nprops ,
 		       const size_t meas_idx ) 
 {
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // starts with the contraction indices
   char *token = (char*)strtok( (char*)WME_str , "," ) ;
@@ -32,18 +32,22 @@ matrix_element_tokens( struct WME_info *wme ,
   if( get_contraction_map( &( wme -> map[3] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] WME_%zu :: Contracting prop %zu with prop %zu with %zu with %zu \n" , 
-	  meas_idx , wme -> map[0] , wme -> map[1] , wme -> map[2] , wme -> map[3] ) ;
+  fprintf( stdout , "[IO] WME_%zu :: Contracting prop %zu with"
+	   "prop %zu with %zu with %zu \n" , 
+	   meas_idx , wme -> map[0] , wme -> map[1] , wme -> map[2] , 
+	   wme -> map[3] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( wme -> outfile , "%s" , token ) ;
-  printf( "[IO] WME_%zu :: Contraction file in %s \n" , meas_idx , token ) ;
+  fprintf( stdout , "[IO] WME_%zu :: Contraction file in %s \n" , 
+	   meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] WME_%zu :: Unexpected extra contraction info %s \n" ,
-	    meas_idx , token ) ;
+    fprintf( stderr , "[IO] WME_%zu :: Unexpected extra contraction info %s\n" ,
+	     meas_idx , token ) ;
+    return FAILURE ;
   }
   return SUCCESS ;
 }

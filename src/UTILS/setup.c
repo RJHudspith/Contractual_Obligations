@@ -19,21 +19,21 @@ free_ffts( double complex **in ,
 	   const size_t flat_dirac )
 {
   size_t i ;
+  // free fftw stuff
+#ifdef HAVE_FFTW3_H
   // free the "in" allocation
   if( in != NULL ) {
     for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( in[ i ] ) ;
+      fftw_free( in[ i ] ) ;
     }
   }
-  free( in ) ;
-#ifdef HAVE_FFTW3_H
-  // free fftw stuff
+  fftw_free( in ) ;
   if( out != NULL ) {
     for( i = 0 ; i < flat_dirac ; i++ ) {
-      free( out[ i ] ) ;
+      fftw_free( out[ i ] ) ;
     }
   }
-  free( out ) ; 
+  fftw_free( out ) ; 
   if( forward != NULL ) {
     fftw_plan *forwd = (fftw_plan*)forward ;
     for( i = 0 ; i < flat_dirac ; i++ ) {
@@ -49,6 +49,14 @@ free_ffts( double complex **in ,
   }
   free( backward ) ; 
   fftw_cleanup( ) ; 
+#else
+  // free the "in" allocation
+  if( in != NULL ) {
+    for( i = 0 ; i < flat_dirac ; i++ ) {
+      free( in[ i ] ) ;
+    }
+  }
+  free( in ) ;
 #endif
   return SUCCESS ;
 }
@@ -210,27 +218,40 @@ init_measurements( struct measurements *M ,
     }
   }
 
-  // allocate fftw stuff
-  M -> in  = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
-  for( i = 0 ; i < flat_dirac ; i++ ) {
-    M -> in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
-  }
-
 #ifdef HAVE_FFTW3_H
-  M -> out = (double complex**)malloc( flat_dirac * sizeof( double complex* ) ) ;
 
+  // fftw aligns these
+  M -> in  = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
+  M -> out = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
+
+  // create the fftw plans
   M -> forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
   M -> backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
 
   // allocate FFTW storage
   #pragma omp parallel for private(i)
   for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
-    M -> out[ i ] = ( double complex* )malloc( LCU * sizeof( double complex ) ) ; 
+    M -> in[ i ]  = fftw_malloc( LCU * sizeof( double complex ) ) ; 
+    M -> out[ i ] = fftw_malloc( LCU * sizeof( double complex ) ) ; 
+    // zero the "in" vector just in case
+    size_t j ;
+    for( j = 0 ; j < LCU ; j++ ) {
+      M -> in[ i ][ j ] = 0.0 ; 
+    }
   }
 
   // create spatial volume fftw plans
   create_plans_DFT( M -> forward , M -> backward , 
 		    M -> in , M -> out , flat_dirac , ND-1 ) ;
+
+#else
+
+  // allocate fftw stuff
+  M -> in  = malloc( flat_dirac * sizeof( double complex* ) ) ;
+  for( i = 0 ; i < flat_dirac ; i++ ) {
+    M -> in[ i ] = calloc( LCU , sizeof( double complex ) ) ;
+  }
+
 #endif
 
   // are these wall source props

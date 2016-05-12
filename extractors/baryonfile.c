@@ -18,23 +18,23 @@ struct latt_info Latt ;
 static int
 usage( void )
 {
-  return printf( "[BARYON] usage :: ./BARYONS {correlator file} "
-		 " BASIS SPIN PARITY TFLIP Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
+  return fprintf( stdout , "[BARYON] usage :: ./BARYONS {correlator file} "
+		  " BASIS SPIN PARITY TFLIP Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
 }
 
 // provide a help function
 static int
 help( void ) 
 {
-  printf( "\n\n" ) ;
+  fprintf( stdout , "\n\n" ) ;
   usage( ) ;
-  printf( "\nI list the various options for this code, I give the \n" 
-	  "OPTION :: {then a brief description} 'AND'|'THEN'|'THE'|'POSSIBLE'|'OPTIONS' \n\n" ) ;
-  printf( "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NONREL' \n" ) ;
-  printf( "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
-  printf( "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
-  printf( "TFLIP :: {time axis flip} true|false" ) ;
-  return printf( "\n" ) ;
+  fprintf( stdout , "\nI list the various options for this code, I give the \n" 
+	   "OPTION :: {then a brief description} 'AND'|'THEN'|'THE'|'POSSIBLE'|'OPTIONS' \n\n" ) ;
+  fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NONREL' \n" ) ;
+  fprintf( stdout , "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
+  fprintf( stdout , "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
+  fprintf( stdout , "TFLIP :: {time axis flip} true|false" ) ;
+  return fprintf( stdout , "\n" ) ;
 }
 
 // strcmp defaults to 0 if they are equal which is contrary to standard if statements
@@ -65,7 +65,7 @@ main( const int argc ,
   // read the correlation file
   FILE *infile = fopen( argv[ INFILE ] , "rb" ) ;
   if( infile == NULL ) {
-    printf( "File %s does not exist\n" , argv[ INFILE ] ) ;
+    fprintf( stderr , "[BARYON] File %s does not exist\n" , argv[ INFILE ] ) ;
     return FAILURE ;
   }
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
@@ -93,53 +93,53 @@ main( const int argc ,
   } else if( are_equal( argv[ GAMMA_BASIS ] , "CHIRAL" ) ) {
     basis = CHIRAL ;
   } else {
-    printf( "[INPUTS] I don't understand your basis %s \n" , 
-	    argv[ GAMMA_BASIS ] ) ;
+    fprintf( stderr , "[INPUTS] I don't understand your basis %s \n" , 
+	     argv[ GAMMA_BASIS ] ) ;
     goto memfree ;
   }
 
   // set the spin projection
   if( are_equal( argv[ SPIN_PROJ ] , "1/2_11" ) ) {
-    printf( "[SPIN] Performing the 11 spin-1/2 projection\n" ) ;
+    fprintf( stdout , "[SPIN] Performing the 11 spin-1/2 projection\n" ) ;
     spin_proj = OneHalf_11 ;
   } else if( are_equal( argv[ SPIN_PROJ ] , "1/2_12" ) ) {
-    printf( "[SPIN] Performing the 12 spin-1/2 projection\n" ) ;
+    fprintf( stdout , "[SPIN] Performing the 12 spin-1/2 projection\n" ) ;
     spin_proj = OneHalf_12 ;
   } else if( are_equal( argv[ SPIN_PROJ ] , "1/2_21" ) ) {
-    printf( "[SPIN] Performing the 21 spin-1/2 projection\n" ) ;
+    fprintf( stdout , "[SPIN] Performing the 21 spin-1/2 projection\n" ) ;
     spin_proj = OneHalf_21 ;
   } else if( are_equal( argv[ SPIN_PROJ ] , "1/2_22" ) ) {
-    printf( "[SPIN] Performing the 22 spin-1/2 projection\n" ) ;
+    fprintf( stdout , "[SPIN] Performing the 22 spin-1/2 projection\n" ) ;
     spin_proj = OneHalf_22 ;
   } else if( are_equal( argv[ SPIN_PROJ ] , "3/2" ) ) {
-    printf( "[SPIN] Performing the spin-3/2 projection\n" ) ;
+    fprintf( stdout , "[SPIN] Performing the spin-3/2 projection\n" ) ;
     spin_proj = ThreeHalf ;
   } else {
-    printf( "[SPIN] NOT performing a spin-projection\n" ) ;
+    fprintf( stdout , "[SPIN] NOT performing a spin-projection\n" ) ;
   }
 
   // set the parity projection
   if( are_equal( argv[ PARITY_PROJ ] , "L0" ) ) {
-    printf( "[PARITY] Performing an L0 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L0 projection\n" ) ;
     parity_proj = L0 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L1" ) ) {
-    printf( "[PARITY] Performing an L1 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L1 projection\n" ) ;
     parity_proj = L1 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L2" ) ) {
-    printf( "[PARITY] Performing an L2 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L2 projection\n" ) ;
     parity_proj = L2 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L3" ) ) {
-    printf( "[PARITY] Performing an L3 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L3 projection\n" ) ;
     parity_proj = L3 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L4" ) ) {
-    printf( "[PARITY] Performing an L4 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L4 projection\n" ) ;
     parity_proj = L4 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L5" ) ) {
-    printf( "[PARITY] Performing an L5 projection\n" ) ;
+    fprintf( stdout , "[PARITY] Performing an L5 projection\n" ) ;
     parity_proj = L5 ;
   } else {
-    printf( "[PARITY] I don't understand your parity projection %s \n" , 
-	    argv[ PARITY_PROJ ] ) ;
+    fprintf( stderr , "[PARITY] I don't understand your"
+	     " parity projection %s\n" , argv[ PARITY_PROJ ] ) ;
     goto memfree ;
   }
 
@@ -152,8 +152,8 @@ main( const int argc ,
   tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
   Latt.dims[ 0 ] = (int)atoi( tok ) ;
   if( Latt.dims[ 0 ] < 1 ) {
-    printf( "[INPUTS] non-sensical lattice dimension 0 %zu \n" , 
-	    Latt.dims[0] ) ;
+    fprintf( stderr , "[INPUTS] non-sensical lattice dimension 0 %zu \n" , 
+	     Latt.dims[0] ) ;
     goto memfree ;
   }
   for( mu = 1 ; mu < ND ; mu++ ) {
@@ -161,8 +161,8 @@ main( const int argc ,
     if( ptok == NULL ) break ;
     Latt.dims[ mu ] = (int)atoi( ptok ) ;
     if( Latt.dims[mu] < 1 ) {
-      printf( "[INPUTS] non-sensical lattice dimension %zu %zu \n" , 
-	      mu , Latt.dims[mu] ) ;
+      fprintf( stderr , "[INPUTS] non-sensical lattice dimension %zu %zu \n" , 
+	       mu , Latt.dims[mu] ) ;
       goto memfree ;
     }
   }

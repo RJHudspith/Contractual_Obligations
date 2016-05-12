@@ -145,13 +145,13 @@ SSE_OPS_test_driver( void )
   char *SSE_OPS_res = SSE_OPS_test( ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[SSE_OPS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[SSE_OPS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , SSE_OPS_res ) ;
-    printf( "[SSE_OPS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , SSE_OPS_res ) ;
+    fprintf( stderr , "[SSE_OPS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

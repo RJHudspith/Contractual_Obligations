@@ -16,7 +16,8 @@ contract_diquarks( struct propagator *prop ,
 		   const struct cut_info CUTINFO ,
 		   const size_t ndiquarks )
 {
-  printf( "\n[DIQUARK] performing %zu contraction(s) \n" , ndiquarks ) ;
+  fprintf( stdout , "\n[DIQUARK] performing %zu"
+	   "contraction(s)\n" , ndiquarks ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < ndiquarks ; measurements++ ) {
@@ -32,7 +33,8 @@ contract_diquarks( struct propagator *prop ,
       rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
       if( prop[p1].source != prop[p2].source ) {
-	printf( "[DIQUARK] unequal source types for the two diquarks" ) ;
+	fprintf( stderr , "[DIQUARK] unequal source types"
+		 "for the two diquarks\n" ) ;
 	return FAILURE ;
       }
       if( diquark_offdiag( prop[ p1 ] , prop[ p2 ] , CUTINFO , 

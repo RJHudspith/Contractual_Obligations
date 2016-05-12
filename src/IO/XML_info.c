@@ -16,15 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with GLU.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 /**
    @file XML_info.c
    @brief dirty parser for the xml information in Scidac and ILDG config files
  */
+#include "common.h"
 
 #include <string.h>
-
-#include "common.h"
 
 // this prints to stdout all of the header information ...
 //#define DEBUG_ILDG
@@ -126,13 +124,13 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
       if( are_equal( pch , "spacetime" ) ) {
 	if( ( dimensions = get_int_tag( pch , "spacetime" ) ) != 0 ) {
 	  if( dimensions != ND ) {
-	    printf( "[IO] ND mismatch compiled %d vs. read %d \n" ,
-		    ND , dimensions ) ;
+	    fprintf( stderr , "[IO] ND mismatch compiled %d vs. read %d \n" ,
+		     ND , dimensions ) ;
 	    return FAILURE ;
 	  }
 	}
 	#ifdef DEBUG_ILDG
-	printf( "[IO] spacetime :: %d \n" , dimensions ) ;
+	fprintf( stdout , "[IO] spacetime :: %d \n" , dimensions ) ;
 	#endif
       }
 
@@ -140,13 +138,13 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
       if( are_equal( pch , "colors" ) ) {
 	if( ( dimensions = get_int_tag( pch , "colors" ) ) != 0 ) {
 	  if( dimensions != NC ) {
-	    printf( "[IO] NC mismatch compiled %d vs. read %d \n" ,
-		    NC , dimensions ) ;
+	    fprintf( stderr , "[IO] NC mismatch compiled %d vs. read %d \n" ,
+		     NC , dimensions ) ;
 	    return FAILURE ;
 	  }
 	}
 	#ifdef DEBUG_ILDG
-	printf( "[IO] colors :: %d \n" , dimensions ) ;
+	fprintf( stdout , "[IO] colors :: %d \n" , dimensions ) ;
 	#endif
       }
 
@@ -159,12 +157,12 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  } else if( dimensions == ( 4 * ND * NCNC ) ) {
 	    HEAD_DATA -> precision = DOUBLE_PREC ;
 	  } else {
-	    printf( "[IO] Storage type not recognised \n" ) ;
+	    fprintf( stderr , "[IO] Storage type not recognised \n" ) ;
 	    return FAILURE ;
 	  }
 	}
 	#ifdef DEBUG_ILDG
-	printf( "[IO] typesize :: %d \n" , dimensions ) ;
+	fprintf( stdout , "[IO] typesize :: %d \n" , dimensions ) ;
 	#endif
       }
 
@@ -172,13 +170,13 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
       if( are_equal( pch , "precision" ) ) {
 	if( ( dimensions = get_prec_tag( pch , "precision" ) ) != -1 ) {
 	  if( dimensions == FLOAT_PREC ) {
-	    printf( "[IO] Attempting to read single precision data\n" ) ;
+	    fprintf( stdout , "[IO] Attempting to read single precision data\n" ) ;
 	    HEAD_DATA -> precision = FLOAT_PREC ;
 	  } else if( dimensions == DOUBLE_PREC ) {
-	    printf( "[IO] Attempting to read double precision data\n" ) ;
+	    fprintf( stdout , "[IO] Attempting to read double precision data\n" ) ;
 	    HEAD_DATA -> precision = DOUBLE_PREC ;
 	  } else {
-	    printf( "[IO] Precision %d not understood \n" , dimensions ) ;
+	    fprintf( stderr , "[IO] Precision %d not understood \n" , dimensions ) ;
 	    return FAILURE ;
 	  }
 	}
@@ -194,13 +192,13 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  char *pEnd ;
 	  Latt.dims[ idx++ ] = strtol( token , &pEnd , 10 ) ;
 	  #ifdef DEBUG_ILDG
-	  printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
+	  fprintf( stdout , "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
 	  #endif
 	  while( ( token = strtok( NULL , " " ) ) != NULL ) {
 	    if(  ( are_equal( token , "/dims" ) ) ) break ;
 	    Latt.dims[ idx ] = strtol( token , &pEnd , 10 ) ;
 	    #ifdef DEBUG_ILDG
-	    printf( "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
+	    fprintf( stdout , "[IO] DIMS_%d \n" , Latt.dims[idx]) ;
 	    #endif
 	    idx++ ;
 	  } 
@@ -216,7 +214,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  if( are_equal( pch , "/suma" ) ) break ;
 	  sscanf( pch , "%x" , &(HEAD_DATA -> checksum) ) ;
 	  #ifdef DEBUG_ILDG
-	  printf( "[IO] checksum %x \n" , HEAD_DATA -> checksum ) ;
+	  fprintf( stdout , "[IO] checksum %x \n" , HEAD_DATA -> checksum ) ;
 	  #endif
 	}
 	continue ;
@@ -234,7 +232,7 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  if( ( length = get_int_tag( pch , search[mu] ) ) != 0 ) {
 	    Latt.dims[ mu ] = length ;
             #ifdef DEBUG_ILDG
-	    printf( "[IO] ILDG Lx :: %d \n" , length ) ;
+	    fprintf( stdout , "[IO] ILDG Lx :: %d \n" , length ) ;
             #endif
 	  }
 	  continue ;
@@ -253,11 +251,12 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
 	  if( !strncmp( compare , token , 8 ) ) {
 	    HEAD_DATA -> config_type = OUTPUT_NCxNC ;
 	    #ifdef DEBUG_ILDG
-	    printf( "[ILDG] configuration type %d \n" , 
-		    HEAD_DATA -> config_type ) ; 
+	    fprintf( stdout , "[ILDG] configuration type %d \n" , 
+		     HEAD_DATA -> config_type ) ; 
 	    #endif
 	  } else {
-	    printf( "[ILDG] Expected %s, got \"%s\" \n" , compare , token ) ;
+	    fprintf( stderr , "[ILDG] Expected %s, got \"%s\" \n" , 
+		     compare , token ) ;
 	    return FAILURE ;
 	  }
 	}

@@ -310,9 +310,9 @@ gamma_test_driver( void )
   char *gammares = gammas_test( ) ;
 
   if( tests_fail != 0 ) {
-    printf( "%s \n" , gammares ) ;
-    printf( "[GAMMAS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , gammares ) ;
+    fprintf( stderr , "[GAMMAS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 
@@ -323,13 +323,13 @@ gamma_test_driver( void )
   free( GAMMAS ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[GAMMAS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[GAMMAS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , gammares ) ;
-    printf( "[GAMMAS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , gammares ) ;
+    fprintf( stderr , "[GAMMAS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

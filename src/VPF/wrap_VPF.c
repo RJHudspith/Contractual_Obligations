@@ -2,7 +2,6 @@
    @file wrap_VPF.c
    @brief wrapper for calling the VPF contractions
  */
-
 #include "common.h"
 
 #include "cl_diagonal.h"      // conserved-local Wilson currents
@@ -61,7 +60,7 @@ contract_VPF( struct propagator *prop ,
 	      const struct cut_info CUTINFO ,
 	      const size_t nVPF )
 {
-  printf( "\n[VPF] performing %zu contraction(s) \n" , nVPF ) ;
+  fprintf( stdout , "\n[VPF] performing %zu contraction(s) \n" , nVPF ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nVPF ; measurements++ ) {
@@ -79,7 +78,8 @@ contract_VPF( struct propagator *prop ,
       rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
       if( prop[ p1 ].source != prop[ p2 ].source ) {
-	printf( "[VPF] thwarted attempt contracting different sources \n" ) ;
+	fprintf( stderr , "[VPF] thwarted attempt contracting"
+		 " different sources \n" ) ;
 	return FAILURE ;
       }
       select_callback_double( VPF[ measurements ].current ) ;

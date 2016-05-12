@@ -15,7 +15,7 @@ contract_mesons( struct propagator *prop ,
 		 const struct cut_info CUTINFO ,
 		 const size_t nmesons )
 {
-  printf( "\n[MESONS] performing %zu contraction(s) \n" , nmesons ) ;
+  fprintf( stdout , "\n[MESONS] performing %zu contraction(s) \n" , nmesons ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nmesons ; measurements++ ) {
@@ -32,17 +32,17 @@ contract_mesons( struct propagator *prop ,
     } else {
       // I can't think of a time when this would be legitimate
       if( prop[ p1 ].source != prop[ p2 ].source ) {
-	printf( "[MESONS] attempt to contract two different source type"
-		"propagators thwarted \n" ) ;
+	fprintf( stderr , "[MESONS] attempt to contract two different "
+		 "source type propagators thwarted \n" ) ;
 	return FAILURE ;
       }
       // check that the two props have the same origin?
       size_t mu ;
       for( mu = 0 ; mu < ND ; mu++ ) {
 	if( prop[ p1 ].origin[ mu ] != prop[ p2 ].origin[ mu ] ) {
-	  printf( "[MESONS] contraction of mesons with unequal origins"
-		  "%zu vs %zu ( index %zu ) " , prop[ p1 ].origin[ mu ] ,
-		  prop[ p2 ].origin[ mu ] , mu ) ;
+	  fprintf( stderr , "[MESONS] contraction of mesons with unequal "
+		   "origins %zu vs %zu ( index %zu ) " , 
+		   prop[ p1 ].origin[ mu ] , prop[ p2 ].origin[ mu ] , mu ) ;
 	  return FAILURE ;
 	}
       }

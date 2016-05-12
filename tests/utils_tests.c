@@ -187,13 +187,13 @@ utils_test_driver( void )
   char *utils_res = utils_test( ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[UTILS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[UTILS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , utils_res ) ;
-    printf( "[UTILS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , utils_res ) ;
+    fprintf( stderr , "[UTILS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 

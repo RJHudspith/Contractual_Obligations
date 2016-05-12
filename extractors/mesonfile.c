@@ -16,14 +16,15 @@ main( const int argc ,
       const char *argv[] )
 {
   if( argc < 2 ) {
-    return printf( "usage ./MESONS {correlator file} GSRC,GSNK,px,py,pz ... \n" ) ;
+    return fprintf( stdout , "[MESONS] Usage ./MESONS {correlator file}"
+		    " GSRC,GSNK,px,py,pz ... \n" ) ;
   }
 
   // read the correlation file
   FILE *infile = fopen( argv[1] , "rb" ) ;
   if( infile == NULL ) {
-    printf( "File %s does not exist\n" , argv[1] ) ;
-    return -1 ;
+    fprintf( stderr , "[MESONS] File %s does not exist\n" , argv[1] ) ;
+    return FAILURE ;
   }
 
   // set geometry to 0
@@ -54,14 +55,14 @@ main( const int argc ,
     if( tok1 == NULL ) break ;
     const int idx1 = atoi( tok1 ) ;
     if( idx1 >= NGSRC[0] || idx1 < 0 ) { 
-      printf( "[Momcorr] Non-sensical source index %d \n" , idx1 ) ;
+      fprintf( stderr , "[Momcorr] Non-sensical source index %d \n" , idx1 ) ;
       break ;
     } 
     char *tok2 = strtok( NULL , "," ) ;
     if( tok2 == NULL ) break ;
     const int idx2 = atoi( tok2 ) ;
     if( idx2 >= NGSNK[0] || idx2 < 0 ) { 
-      printf( "[Momcorr] Non-sensical sink index %d \n" , idx2 ) ;
+      fprintf( stderr , "[Momcorr] Non-sensical sink index %d \n" , idx2 ) ;
       break ;
     } 
 
@@ -71,38 +72,38 @@ main( const int argc ,
       moms[ mu ] = 0 ;
     }
 
-    printf( "[Momcorr] searching for momenta (" ) ;
+    fprintf( stdout , "[Momcorr] searching for momenta (" ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       char *ptok = strtok( NULL , "," ) ;
       if( ptok == NULL ) break ;
       moms[ mu ] = (int)atoi( ptok ) ;
-      printf( " %d " , moms[ mu ] ) ;
+      fprintf( stdout , " %d " , moms[ mu ] ) ;
     }
-    printf( ") \n" ) ;
+    fprintf( stdout , ") \n" ) ;
 
     // find the correlator in the list
     const size_t matchmom = find_desired_mom( momentum , moms , 
 					      (int)NMOM[0] ) ;
     if( matchmom == FAILURE ) {
-      printf( "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
+      fprintf( stderr , "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
       break ;
     }
 
-    printf( "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[0] ,
-	    momentum[ matchmom ].MOM[1] ,  momentum[ matchmom ].MOM[2] ) ;
+    fprintf( stdout , "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[0] ,
+	     momentum[ matchmom ].MOM[1] ,  momentum[ matchmom ].MOM[2] ) ;
 
-    printf( "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
-	    idx1 , idx2 ) ;
+    fprintf( stdout , "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
+	     idx1 , idx2 ) ;
 
     size_t t ;
     for( t = 0 ; t < LT ; t++ ) {
-      printf( "CORR %zu %1.12e %1.12e\n" , t ,
-	      creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
-	      cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
+      fprintf( stdout , "CORR %zu %1.12e %1.12e\n" , t ,
+	       creal( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ,
+	       cimag( corr[ idx1 ][ idx2 ].mom[ matchmom ].C[ t ] ) ) ;
     }
     corrs_written++ ;
     //
-    printf( "\n" ) ;
+    fprintf( stdout , "\n" ) ;
   }
 
   // if we don't have a match or didn't specify gammas give the momentum
@@ -121,5 +122,5 @@ main( const int argc ,
 
   fclose( infile ) ;
 
-  return 0 ;
+  return SUCCESS ;
 }

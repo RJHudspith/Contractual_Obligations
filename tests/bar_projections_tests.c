@@ -33,16 +33,16 @@ static void
 write_spinmatrix( double complex p[ NSNS ] )
 {
   size_t d1 , d2 ;
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
-      printf( " {%1.2f,%1.2f} " , 
-	      creal( p[ d2 + d1*NS ] ) ,
-	      cimag( p[ d2 + d1*NS ] ) ) ;
+      fprintf( stdout , " {%1.2f,%1.2f} " , 
+	       creal( p[ d2 + d1*NS ] ) ,
+	       cimag( p[ d2 + d1*NS ] ) ) ;
     }
-    printf( "\n" ) ;
+    fprintf( stdout , "\n" ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   return ;
 }
 
@@ -86,7 +86,7 @@ idempotent( void (*p1)( double complex *proj , const size_t i , const size_t j ,
   size_t d ;
   for( d = 0 ; d < NSNS ; d++ ) {
     if( cabs( t1[ d ] - sum[ d ] ) > FTOL ) {
-      printf( "idempotency broken %zu %zu \n" , mu , nu ) ;
+      fprintf( stderr , "idempotency broken %zu %zu \n" , mu , nu ) ;
       write_spinmatrix( t3 ) ;
       write_spinmatrix( sum ) ;
       return FAILURE ;
@@ -431,13 +431,13 @@ bar_projections_test_driver( void )
   free( GAMMA ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[BAR PROJECTIONS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[BAR PROJECTIONS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , barprojres ) ;
-    printf( "[BAR PROJECTIONS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , barprojres ) ;
+    fprintf( stderr , "[BAR PROJECTIONS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

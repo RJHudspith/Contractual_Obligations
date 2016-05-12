@@ -132,14 +132,14 @@ function tetra_test {
     z="$(./MESONS $1 0,2,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
     let 'tests=tests+1'
     if [ $x != $y ] || [ $x != $z ] || [ $y != $z ] ; then
-      echo "[BARYONS] $1 non xyz degeneracy in diquark (x,y,z) :: ($x,$y,$z)"
+      echo "[TETRA] $1 non xyz degeneracy in diquark (x,y,z) :: ($x,$y,$z)"
       let 'failures=failures+1'
     fi
     ## dimeson
     ## project a parity and check xyz degeneracy for the first six digits
-    x="$(./MESONS $1 5,0,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
-    y="$(./MESONS $1 5,1,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
-    z="$(./MESONS $1 5,2,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
+    x="$(./MESONS $1 1,0,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
+    y="$(./MESONS $1 1,1,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
+    z="$(./MESONS $1 1,2,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
     let 'tests=tests+1'
     if [ $x != $y ] || [ $x != $z ] || [ $y != $z ] ; then
       echo "[TETRA] $1 non xyz degeneracy in dimeson (x,y,z) :: ($x,$y,$z)"
@@ -183,7 +183,28 @@ function test_VPF {
     echo "[VPF] Testing momentum space WI"
     pmuPimunu="$(cat runout.txt | grep "p_{mu}" | cut -d" " -f6,7,8)"
     p1="$(echo $pmuPimunu | cut -d" " -f1)"
-    p2="$(echo $pmuPimunu | cut -d" " -f3)"
+    p2="$(echo $pmuPimunu | cut -d" " -f5)"
+    let 'tests=tests+1'
+    if [ $p1 != $p2 ] ; then
+	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
+	let 'failures=failures+1'
+    fi
+    p1="$(echo $pmuPimunu | cut -d" " -f2)"
+    p2="$(echo $pmuPimunu | cut -d" " -f6)"
+    let 'tests=tests+1'
+    if [ $p1 != $p2 ] ; then
+	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
+	let 'failures=failures+1'
+    fi
+    p1="$(echo $pmuPimunu | cut -d" " -f3)"
+    p2="$(echo $pmuPimunu | cut -d" " -f7)"
+    let 'tests=tests+1'
+    if [ $p1 != $p2 ] ; then
+	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
+	let 'failures=failures+1'
+    fi
+    p1="$(echo $pmuPimunu | cut -d" " -f4)"
+    p2="$(echo $pmuPimunu | cut -d" " -f8)"
     let 'tests=tests+1'
     if [ $p1 != $p2 ] ; then
 	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
@@ -214,6 +235,6 @@ test_TETRA
 test_VPF
 
 ## clean up the output
-#rm runout.txt
+rm runout.txt
 
 printf "\n[REGRESSION] Tests run :: $tests || tests failed :: $failures\n"

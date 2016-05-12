@@ -47,6 +47,7 @@ tetraquark_uscb( struct propagator prop1 ,
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+    fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -139,10 +140,10 @@ tetraquark_uscb( struct propagator prop1 ,
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    printf("\r[TETRA] done %.f %%", (t+1)/((LT)/100.) ) ; 
+    fprintf( stdout , "\r[TETRA] done %.f %%" , (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , 

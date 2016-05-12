@@ -75,7 +75,8 @@ simorb_ratios( const int DIMS )
   norm = 0. ;
   for( mu = 0 ; mu < ND ; mu++ ) {
     rats[ mu ] = (double)small / (double)Latt.dims[ mu ] ; 
-    printf( "[CUTS] rats :: %f %f %f\n" , rats[mu] , (double)small , (double)Latt.dims[ mu ] ) ;
+    fprintf( stdout , "[CUTS] rats :: %f %f %f\n" , 
+	     rats[mu] , (double)small , (double)Latt.dims[ mu ] ) ;
     norm += ( rats[mu] * rats[mu] ) ;
   }
   norm = sqrt( norm ) ;
@@ -243,11 +244,11 @@ get_mom_veclist( struct veclist *__restrict kept ,
   simorb_ratios( DIMS ) ;
 
   int mu ;
-  printf( "[CUTS] " ) ;
+  fprintf( stdout , "[CUTS] " ) ;
   for( mu = 0 ; mu < DIMS ; mu++ ) {
-    printf("simorb[ %f ] " , rats[mu] ) ;
+    fprintf( stdout , "simorb[ %f ] " , rats[mu] ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // loop the correct length
   int i , in = 0 ; 
@@ -262,9 +263,9 @@ get_mom_veclist( struct veclist *__restrict kept ,
     }
   }
   
-  printf( "[CUTS] Kept vs reject %f vs %f \n" , 
-	  100 * in/( double )LOOP, 
-	  100 * ( LOOP - in )/( double )LOOP ) ; 
+  fprintf( stdout , "[CUTS] Kept vs reject %f vs %f \n" , 
+	   100 * in/( double )LOOP, 
+	   100 * ( LOOP - in )/( double )LOOP ) ; 
   
   // test the list in the shifted bz .. passes unless too many momenta are used
 #pragma omp parallel for private(i)
@@ -277,17 +278,17 @@ get_mom_veclist( struct veclist *__restrict kept ,
     int mu ;
     for( mu = 0 ; mu < DIMS ; mu++ ) {
       if( ( k[mu] + sum[mu] ) != 0 ) {
-	printf( "NON +/- Symmetric Momenta @ %d \n" , i ) ;
+	fprintf( stderr , "NON +/- Symmetric Momenta @ %d \n" , i ) ;
 	    
-	printf("(");
+	fprintf( stderr , "(" ) ;
 	for( mu = 0 ; mu < ND ; mu++ ){
-	  printf( " %d " , k[mu] );
+	  fprintf( stderr , " %d " , k[mu] ) ;
 	}
-	printf(") != (");
+	fprintf( stderr , ") != (" ) ;
 	for( mu = 0 ; mu < ND ; mu++ ) {
-	  printf( " %d " , sum[mu] );
+	  fprintf( stderr , " %d " , sum[mu] );
 	}   
-	printf(")") ;
+	fprintf( stderr , ")" ) ;
       }
     }
   }
@@ -411,7 +412,7 @@ compute_veclist( int *__restrict list_size ,
   // if we can't find the file we create one ...
   if( flag == NO_MOMENTUM_CONFIG ) {
 
-    printf("[CUTS] Storing Momentum list @@@ ...\n%s\n",str) ;
+    fprintf( stdout , "[CUTS] Storing Momentum list @@@ ...\n%s\n" , str ) ;
 
     FILE *config2 = fopen( str , "wb" ) ;
 
@@ -443,7 +444,7 @@ compute_veclist( int *__restrict list_size ,
   // malloc list if not already done so
   int check = fread( in , sizeof(int) , 1 , config ) ;
   if( check != 1 ) {
-    printf( "[IO] list read error \n" ) ;
+    fprintf( stderr , "[IO] list read error \n" ) ;
     fclose( config ) ;
     *list_size = 0 ;
     return NULL ;
@@ -454,7 +455,8 @@ compute_veclist( int *__restrict list_size ,
   }
 
   if( fread( list , sizeof(struct veclist) , in[0] , config ) == 0 ) {
-    printf( "[CUTS] Empty Momentum list .. Nothing to do ... Leaving\n" ) ;
+    fprintf( stderr , "[CUTS] Empty Momentum list ..."
+	     " Nothing to do ... Leaving\n" ) ;
     fclose( config ) ;
     *list_size = 0 ;
     return NULL ;

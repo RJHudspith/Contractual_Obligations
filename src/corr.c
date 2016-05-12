@@ -41,7 +41,7 @@ main( const int argc,
   if( argc == ( INFILE + 1 ) ) {
     MODE = PROPAGATORS_ONLY ;
   } else if( argc != ( GAUGE_FILE + 1 ) ) {
-    printf( "USAGE :: ./CORR -i {input_file} -g {gauge_field} \n" ) ;
+    fprintf( stdout , "USAGE :: ./CORR -i {input_file} -g {gauge_field}\n" ) ;
     return FAILURE ;
   }
 

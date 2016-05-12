@@ -48,14 +48,15 @@ get_propdims( size_t *dims )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     dims[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
     if( token == endptr || errno == ERANGE ) {
-      printf( "[IO] propheader dims[%zu] misread %zu \n" , N , dims[ N ] ) ;
+      fprintf( stderr , "[IO] propheader dims[%zu] misread %zu \n" , 
+	       N , dims[ N ] ) ;
       return FAILURE ;
     }
     // check against global lattice data struct
     if( dims[ N ] != Latt.dims[ N ] ) {
-      printf( "[IO] propheader and global lattice dims mismatch!\n"
-	      "[IO] %zu vs %zu ( index %zu ) \n" , dims[ N ] ,
-	      Latt.dims[ N ] , N ) ;
+      fprintf( stderr , "[IO] propheader and global lattice dims mismatch!\n"
+	       "[IO] %zu vs %zu ( index %zu ) \n" , dims[ N ] ,
+	       Latt.dims[ N ] , N ) ;
       return FAILURE ;
     }
     // we have successfully read in all the dimension info we need
@@ -75,8 +76,8 @@ get_propsrc( size_t *origin )
     origin[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
     if( token == endptr || errno == ERANGE || 
 	origin[ N ] > Latt.dims[ N ] ) {
-      printf( "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
-	      N , origin[ N ] ) ;
+      fprintf( stderr , "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
+	       N , origin[ N ] ) ;
       return FAILURE ;
     }
     if( ++N == ND ) return SUCCESS ;
@@ -182,8 +183,8 @@ static int
 tagfailure( const char *message , 
 	    const char *line )
 {
-  printf( "[IO] propheader failure while searching for tag %s \n"
-	  "[IO] line in file is %s \n" , message , line ) ;
+  fprintf( stderr , "[IO] propheader failure while searching for tag %s \n"
+	   "[IO] line in file is %s \n" , message , line ) ;
   return FAILURE ;
 }
 
@@ -191,7 +192,7 @@ tagfailure( const char *message ,
 static int
 nonexistent_record( const char *message )
 {
-  printf( "[IO] I cannot find record for tag %s \n" , message ) ;
+  fprintf( stderr , "[IO] I cannot find record for tag %s \n" , message ) ;
   return FAILURE ;
 }
 
@@ -214,7 +215,7 @@ read_propheader( struct propagator *prop )
 
     // read a line
     if( fgets( line , MAX_LINE_LENGTH , prop -> file ) == NULL ) {
-      printf( "[IO] prop Header reading failed ... Leaving \n" ) ;
+      fprintf( stderr , "[IO] prop Header reading failed ... Leaving \n" ) ;
       return FAILURE ;
     }
     char *tag = get_tag( line ) ;

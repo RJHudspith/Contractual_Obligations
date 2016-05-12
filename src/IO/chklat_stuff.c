@@ -23,7 +23,6 @@
    @warning Byte swaps assume IEEE754 floating point representation so that
    floats are 32 bit
  */
-
 #include "common.h"
 
 #include <strings.h>
@@ -102,41 +101,45 @@ get_header( FILE *__restrict in )
 
   // Begin reading, and check for "BEGIN_HEADER" token 
   if( fgets( line , MAX_LINE_LENGTH , in ) == NULL ) {
-    printf( "Header reading failed ... Leaving\n" ) ;
-    exit( 1 ) ;
+    fprintf( stderr , "[IO] Header reading failed ... Leaving\n" ) ;
+    return NULL ;
   }
   if( strcmp( line , "BEGIN_HEADER\n" ) != 0 ) {
-    printf( "Missing \"BEGIN_HEADER\"; Is this a NERSC config?\n" ) ;
-    exit( 1 ) ;
+    fprintf( stderr , "[IO] Missing \"BEGIN_HEADER\"; "
+	     "... Is this a NERSC config?\n" ) ;
+    return NULL ;
   }
 
   // Allocate space for QCDheader and its pointers 
   tokens = ( char ** )malloc( MAX_TOKENS * sizeof( char * ) );
   values = ( char ** )malloc( MAX_TOKENS * sizeof( char * ) );
   hdr = ( struct QCDheader * ) malloc( sizeof ( struct QCDheader ) ) ;
-  (*hdr).token = tokens ;
-  (*hdr).value = values ;
+  hdr -> token = tokens ;
+  hdr -> value = values ;
 
   // Begin loop on tokens 
   n = 0 ;
   while (1) {
 
     if( fgets( line , MAX_LINE_LENGTH , in ) == NULL ) {
-      printf( "Header reading failed ... Leaving \n" ) ;
-      exit( 1 ) ; 
+      fprintf( stderr , "[IO] Header reading failed ... Leaving \n" ) ;
+      free( hdr -> token ) ;
+      free( hdr -> value ) ;
+      free( hdr ) ;
+      return NULL ;
     }
     if( strcmp ( line , "END_HEADER\n" ) == 0 ) {
       break;
     }
 
-    /* Tokens are terminated by a space */
+    // Tokens are terminated by a space
     q = index( line,' ' ) ;
 
-    /* Overwrite space with a terminating null */
+    // Overwrite space with a terminating null
     *q = '\0';
     len = q - line ;
 
-    /* allocate space and copy the token in to it */
+    // allocate space and copy the token in to it
     p = malloc( len+1 ) ;
     (*hdr).token[n] = p ;
     strcpy( p , line ) ;
@@ -164,7 +167,6 @@ get_uint32_t( char *s ,
   char *p ;
   get_string( s , hdr , &p ) ;
   if( p == NULL ) { return FAILURE ; }
-
 #ifdef INTS_ARE_32BIT
   sscanf( p , "%x" , q ) ;
 #else
@@ -184,7 +186,7 @@ skip_hdr( FILE *__restrict file )
   while( GLU_TRUE ) {
     // if there is an error we leave
     if( fgets( line , MAX_LINE_LENGTH , file ) == NULL ) {
-      printf( "[IO] Skip header failure ... Leaving \n" ) ;  
+      fprintf( stderr , "[IO] Skip header failure ... Leaving \n" ) ;  
       return FAILURE ;
     } else if ( strcmp ( line , "END_HEADER\n" ) == SUCCESS ) {
       return SUCCESS ;

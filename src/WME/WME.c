@@ -89,6 +89,7 @@ WME( struct propagator s0 ,
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+    fprintf( stderr , "[WME] Failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -140,10 +141,10 @@ WME( struct propagator s0 ,
     }
     
     // tell us how far along we are
-    printf("\r[WME] done %.f %%",100.0*(t+1)/(double)(LT) ) ;
+    fprintf( stdout , "\r[WME] done %.f %%" , 100.0*(t+1)/(double)(LT) ) ;
     fflush( stdout ) ;
   }
-  printf("\n") ;
+  fprintf( stdout , "\n" ) ;
 
   // and write out a file
   write_momcorr( outfile , (const struct mcorr**)M.corr ,

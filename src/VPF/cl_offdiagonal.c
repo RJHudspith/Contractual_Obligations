@@ -56,6 +56,7 @@ cl_offdiagonal( struct propagator prop1 ,
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+    fprintf( stderr , "[VPF] Failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
 
@@ -139,8 +140,8 @@ cl_offdiagonal( struct propagator prop1 ,
     }
 
     // status
-    printf("\r[VPF] cl-flavour diagonal done %.f %%", 
-	   (t+1)/((LT)/100.) ) ; 
+    fprintf( stdout , "\r[VPF] cl-flavour diagonal done %.f %%" , 
+	     (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
 
@@ -154,7 +155,7 @@ cl_offdiagonal( struct propagator prop1 ,
 				   M.GAMMAS , AGMAP , VGMAP , x , 
 				   ( t + LT - prop1.origin[ ND-1 ] ) % LT ) ;
   }
-  printf("\r[VPF] cl-flavour off diagonal done 100%% \n" ) ; 
+  fprintf( stdout , "\r[VPF] cl-flavour off diagonal done 100%% \n" ) ; 
 
   // free some memory
  memfree :

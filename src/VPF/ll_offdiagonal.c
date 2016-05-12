@@ -54,6 +54,7 @@ ll_offdiagonal( struct propagator prop1 ,
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+    fprintf( stderr , "[VPF] Failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
  
@@ -108,11 +109,11 @@ ll_offdiagonal( struct propagator prop1 ,
     }
 
     // status
-    printf("\r[VPF] ll-flavour diagonal done %.f %%", 
-	   (t+1)/((LT)/100.) ) ; 
+    fprintf( stdout , "\r[VPF] ll-flavour diagonal done %.f %%", 
+	     (t+1)/((LT)/100.) ) ; 
     fflush( stdout ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // deallocs
  memfree :

@@ -66,7 +66,8 @@ unpack_inputs( void )
 int
 tag_failure( const char *tag )
 {
-  printf( "[IO] Failure looking for tag %s in input file ... Leaving\n" , tag ) ;
+  fprintf( stderr , "[IO] Failure looking for tag %s in input file"
+	   "... Leaving\n" , tag ) ;
   return FAILURE ;
 }
 
@@ -85,7 +86,7 @@ tag_search( const char *tag )
 int
 unexpected_NULL( void ) 
 {
-  printf( "[IO] unexpected NULL in contraction string \n" ) ;
+  fprintf( stderr , "[IO] unexpected NULL in contraction string \n" ) ;
   return FAILURE ;
 }
 
@@ -99,11 +100,11 @@ get_contraction_map( size_t *map ,
   char *endptr ;
   *map = (size_t)strtol( token , &endptr , 10 ) ;
   if( token == endptr ) {
-    printf( "[IO] contraction mapping expects an integer \n" ) ;
+    fprintf( stderr , "[IO] contraction mapping expects an integer \n" ) ;
     return FAILURE ;
   }
   if( *map >= nprops || errno == ERANGE ) {
-    printf( "[IO] non-sensical contraction index %zu \n" , *map ) ;
+    fprintf( stderr , "[IO] non-sensical contraction index %zu \n" , *map ) ;
     return FAILURE ;
   }
   return SUCCESS ;
@@ -144,7 +145,7 @@ get_input_data( struct propagator **prop ,
   // open the input file in here and free it at the bottom
   FILE *infile = fopen( file_name , "r" ) ;
   if( infile == NULL ) {
-    printf( "[IO] input file cannot be read ... Leaving\n" ) ;
+    fprintf( stderr , "[IO] input file cannot be read ... Leaving\n" ) ;
     return FAILURE ;
   }
   
@@ -180,7 +181,8 @@ get_input_data( struct propagator **prop ,
   get_props( *prop , &( inputs -> nprops ) , INPUT , GLU_TRUE ) ;
   *prop = (struct propagator*)malloc( ( inputs -> nprops ) * sizeof( struct propagator ) ) ;
   if( inputs -> nprops == 0 ) { 
-    printf( "[IO] No propagator files specified \n" ) ;
+    fprintf( stderr , "[IO] No propagator files specified \n" ) ;
+    STATUS = FAILURE ;
   }
   get_props( *prop , &( inputs -> nprops ) , INPUT , GLU_FALSE ) ;
 

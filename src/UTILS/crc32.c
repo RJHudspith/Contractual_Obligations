@@ -265,20 +265,20 @@ DML_checksum_accum( uint32_t *checksuma ,
 		    size_t size )
 {
 #ifdef DEBUG
-  printf( "[EDIT] RANK %d\n" , rank ) ;
-  printf( "[EDIT] SIZE %d\n" , size ) ;
+  fprintf( stdout , "[EDIT] RANK %d\n" , rank ) ;
+  fprintf( stdout , "[EDIT] SIZE %d\n" , size ) ;
 #endif
   const uint32_t rank29 = rank % 29 ;
   const uint32_t rank31 = rank % 31 ;
   const uint32_t work = crc32( 0 , buf , size ) ;
 #ifdef DEBUG
-  printf( "[EDIT] WORK %x\n" , work ) ;
+  fprintf( stdout , "[EDIT] WORK %x\n" , work ) ;
 #endif 
   *checksuma ^= work<<rank29 | work>>(32-rank29);
   *checksumb ^= work<<rank31 | work>>(32-rank31);
 #ifdef DEBUG
-  printf( "[EDIT] CHECKSUMS %x %x\n" , *checksuma , *checksumb ) ;
-  printf( "\n" ) ;
+  fprintf( stdout , "[EDIT] CHECKSUMS %x %x\n" , *checksuma , *checksumb ) ;
+  fprintf( stdout , "\n" ) ;
 #endif
   return ;
 }

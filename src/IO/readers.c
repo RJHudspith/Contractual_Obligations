@@ -136,7 +136,7 @@ construct_loop_variables( size_t *LATT_LOOP ,
     break ;
   default :
     // actually should try and read an NCxNC config perhaps?
-    printf( "[IO] Unrecognised input type .. Leaving in disgust\n" ) ;
+    fprintf( stderr , "[IO] Unrecognised input type .. Leaving in disgust\n" ) ;
     return FAILURE ;
   }
   return SUCCESS ;
@@ -169,7 +169,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
 {
   // this is checked previously, nice to be certain though
   if( in == NULL ) {
-    printf( "[IO] Error opening config file!!... Returning with error \n" ) ; 
+    fprintf( stderr , "[IO] Error opening config file!!... Leaving \n" ) ; 
     return FAILURE ; 
   }
 
@@ -187,7 +187,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
   if( HEAD_DATA.precision == DOUBLE_PREC ) {
     uind = ( double* )malloc( LATT_LOOP * sizeof( double ) ) ; 
     if( fread( uind , sizeof( double ) , LATT_LOOP , in ) != LATT_LOOP ) {
-      printf( "[IO] Configuration File reading failure .. Leaving \n" ) ;
+      fprintf( stderr , "[IO] Configuration File read failure .. Leaving\n" ) ;
       free( uind ) ;
       return FAILURE ;
     }
@@ -215,7 +215,7 @@ lattice_reader_suNC( struct site *__restrict lat ,
   } else {
     uin = ( float* )malloc( LATT_LOOP * sizeof( float ) ) ; 
     if( fread( uin , sizeof( float ) , LATT_LOOP  , in ) != LATT_LOOP ) {
-      printf("[IO] Configuration File reading failure .. Leaving \n" ) ;
+      fprintf( stderr , "[IO] Configuration File read failure .. Leaving \n" ) ;
       free( uin ) ;
       return FAILURE ;
     }
@@ -300,10 +300,10 @@ lattice_reader_suNC( struct site *__restrict lat ,
   }
 
 #ifdef DEBUG_ILDG
-  printf( "[IO] NERSC cksum   :: %x \n" , k ) ;
-  printf( "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
-  printf( "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
-  printf( "[IO] BQCD cksum    :: %x \n" , CRC_BQCD ) ;
+  fprintf( stdout , "[IO] NERSC cksum   :: %x \n" , k ) ;
+  fprintf( stdout , "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
+  fprintf( stdout , "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
+  fprintf( stdout , "[IO] BQCD cksum    :: %x \n" , CRC_BQCD ) ;
 #endif
 
   if( HEAD_DATA.precision == DOUBLE_PREC ) {
@@ -336,7 +336,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
 {
   // this is checked previously, nice to be certain though
   if( in == NULL ) {
-    printf( "[IO] Error opening config file!!... Returning with error \n" ) ; 
+    fprintf( stderr , "[IO] Error opening config file!! ... Leaving\n" ) ; 
     return FAILURE ; 
   }
 
@@ -365,7 +365,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
     // read in a site, could we not use fseek to allow this to be done in parallel?
     if( HEAD_DATA.precision == DOUBLE_PREC ) {
       if( fread( uind , sizeof( double ) , ND*LOOP_VAR , in ) != ND*LOOP_VAR ) {
-	printf("[IO] Configuration File reading failure .. Leaving \n" ) ;
+	fprintf( stderr , "[IO] Configuration File read failure .. Leaving\n" ) ;
 	free( uind ) ;
 	return FAILURE ;
       }
@@ -380,7 +380,7 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
       p = uind ;
     } else { 
       if( fread( uin , sizeof( float ) , ND*LOOP_VAR , in ) != ND*LOOP_VAR ) {
-	printf("[IO] Configuration File reading failure .. Leaving \n" ) ;
+	fprintf( stderr , "[IO] Configuration File read failure .. Leaving\n" ) ;
 	free( uin ) ;
 	return FAILURE ;
       }
@@ -448,10 +448,10 @@ lattice_reader_suNC_cheaper( struct site *__restrict lat ,
   CKSUM_GET( &CRC_BQCD , &nbytes ) ;
 
 #ifdef DEBUG_ILDG
-  printf( "[IO] NERSC cksum   :: %x \n" , k ) ;
-  printf( "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
-  printf( "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
-  printf( "[IO] BQCD cksum    :: %x \n" , CRC_BQCD ) ;
+  fprintf( stdout , "[IO] NERSC cksum   :: %x \n" , k ) ;
+  fprintf( stdout , "[IO] MILC cksums   :: %x %x \n" , sum29 , sum31 ) ;
+  fprintf( stdout , "[IO] SCIDAC cksums :: %x %x \n" , CRCsum29 , CRCsum31 ) ;
+  fprintf( stdout , "[IO] BQCD cksum    :: %x \n" , CRC_BQCD ) ;
 #endif
 
   if( HEAD_DATA.precision == DOUBLE_PREC ) {

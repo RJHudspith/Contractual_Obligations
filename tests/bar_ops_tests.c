@@ -195,13 +195,13 @@ bar_ops_test_driver( void )
   char *baropsres = bar_ops_test( ) ;
 
   if( tests_fail == 0 ) {
-    printf( "[BAR_OPS UNIT] all %d tests passed\n\n" ,
-	    tests_run ) ;
+    fprintf( stdout , "[BAR_OPS UNIT] all %d tests passed\n\n" ,
+	     tests_run ) ;
     return SUCCESS ;
   } else {
-    printf( "%s \n" , baropsres ) ;
-    printf( "[BAR_OPS UNIT] %d out of %d tests failed\n\n" , 
-	    tests_fail , tests_run ) ;
+    fprintf( stderr , "%s \n" , baropsres ) ;
+    fprintf( stderr , "[BAR_OPS UNIT] %d out of %d tests failed\n\n" , 
+	     tests_fail , tests_run ) ;
     return FAILURE ;
   }
 }

@@ -62,7 +62,7 @@ check_checksum( FILE *fprop )
   size_t site;
   for( site = 0 ; site < LVOLUME ; site++ ) {
     if( fread( prop_buf , sizeof(double) , spinsize*2 , fprop ) != spinsize*2 ) {
-      printf( "[IO] fread failure ... exiting \n" ) ;
+      fprintf( stderr , "[IO] fread failure ... exiting \n" ) ;
       free( prop_buf ) ;
       return FAILURE ;
     }
@@ -77,14 +77,16 @@ check_checksum( FILE *fprop )
   // we are at the end of the file now so we can fscanf for the value I will have to grok the output
   uint32_t rCRCsum29 , rCRCsum31 ;
   if( fscanf( fprop , "%x %x" , &rCRCsum29 , &rCRCsum31 ) != 2 ) {
-    printf( "[IO] file read failure at the checksums \n" ) ;
+    fprintf( stderr , "[IO] file read failure at the checksums \n" ) ;
     return FAILURE ;
   }
 
   if( CRCsum29 != rCRCsum29 || CRCsum31 != rCRCsum31 ) {
-    printf( "[IO] mismatched checksums \n" ) ;
-    printf( "[IO] Computed Checksums %x %x\n" , CRCsum29 , CRCsum31 ) ;
-    printf( "[IO] File Read Checksums %x %x\n" , rCRCsum29 , rCRCsum31 ) ;
+    fprintf( stderr , "[IO] mismatched checksums \n" ) ;
+    fprintf( stderr , "[IO] Computed Checksums %x %x\n" , 
+	     CRCsum29 , CRCsum31 ) ;
+    fprintf( stderr , "[IO] File Read Checksums %x %x\n" , 
+	     rCRCsum29 , rCRCsum31 ) ;
     return FAILURE ;
   }
 
@@ -115,7 +117,8 @@ read_chiralprop( struct propagator prop ,
     if( prop.precision == SINGLE ) {
       if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure single prec (%zu) \n" , i ) ;
+	fprintf( stderr , "[IO] chiral propagator failure single prec (%zu)\n" ,
+		 i ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
@@ -126,7 +129,8 @@ read_chiralprop( struct propagator prop ,
       // Read in propagator on a timeslice elements of our struct should be byte-compatible
       if( fread( S[i].D , sizeof( double complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] chiral propagator failure double prec (%zu) \n" , i ) ;
+	fprintf( stderr , "[IO] chiral propagator failure double prec (%zu)\n" ,
+		 i ) ;
 	return FAILURE ;
       }
       if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
@@ -153,7 +157,8 @@ read_nrprop( struct propagator prop ,
     GLU_TRUE : GLU_FALSE ;
 
   // temporaries depending on prop precision
-  double complex *tmp = NULL , *ftmp = NULL ;
+  double complex *tmp = NULL ;
+  float complex *ftmp = NULL ;
   if( prop.precision == SINGLE ) {
     ftmp = malloc( spinsize * sizeof( float complex ) ) ;
   } else {
@@ -170,7 +175,7 @@ read_nrprop( struct propagator prop ,
       // Read in tslice 
       if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] nrel propagator read failure \n" ) ;
+	fprintf( stderr , "[IO] nrel propagator read failure \n" ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
@@ -187,7 +192,7 @@ read_nrprop( struct propagator prop ,
       // Read in tslice 
       if( fread( tmp , sizeof(double complex) , spinsize , prop.file ) != 
 	  spinsize ) {
-	printf( "[IO] nrel propagator read failure \n" ) ;
+	fprintf( stderr , "[IO] nrel propagator read failure \n" ) ;
 	free( tmp ) ;
 	return FAILURE ;
       }
@@ -220,7 +225,7 @@ read_staticprop( struct propagator prop ,
 {
   // if we haven't read the gauge field we can't do this
   if( lat == NULL ) {
-    printf( "[IO] Empty gauge field! Cannot compute static\n" ) ;
+    fprintf( stderr , "[IO] Empty gauge field! Cannot compute static\n" ) ;
     return FAILURE ;
   }
 

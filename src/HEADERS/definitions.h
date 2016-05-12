@@ -125,7 +125,7 @@
    @def TETRA_NOPS
    @brief number of tetraquark operators we consider
  */
-#define TETRA_NOPS (2+(ND-2)*2)
+#define TETRA_NOPS (4)
 
 /**
    @def TWOPI

@@ -20,7 +20,6 @@
    @file Scidac.c
    @brief Scidac and ILDG configuration header readers and writers
  */
-
 #include "common.h"
 
 #include "GLU_bswap.h" // for the byteswaps
@@ -74,7 +73,7 @@ parse_SCIDAC_hdr( FILE *infile ,
 		  const int record )
 {
 #ifdef DEBUG_ILDG
-  printf( "\n[IO] Header for record :: %d \n\n" , record ) ;
+  fprintf( stdout , "\n[IO] Header for record :: %d \n\n" , record ) ;
 #endif
   // assumes we have opened it fine and are at the start of the file
   const char myname[] = "GLU::parse_SCIDAC_hdr";
@@ -87,11 +86,11 @@ parse_SCIDAC_hdr( FILE *infile ,
   if( !WORDS_BIGENDIAN ) { bswap_32( 1 , i_magic_no ) ; }
 
 #ifdef DEBUG_ILDG
-  printf( "[IO] Magic number :: %x \n" , i_magic_no[0] ) ;
+  fprintf( stdout , "[IO] Magic number :: %x \n" , i_magic_no[0] ) ;
 #endif
   if( i_magic_no[0] != 1164413355 ) {
-    printf( "%s wrong magic number %x vs. %x \n" , myname ,
-	    i_magic_no[0] , 1164413355 ) ;
+    fprintf( stderr , "[IO] Scideac %s wrong magic number %x vs. %x \n" , 
+	     myname , i_magic_no[0] , 1164413355 ) ;
     return FAILURE ;
   }
 
@@ -99,7 +98,8 @@ parse_SCIDAC_hdr( FILE *infile ,
   unsigned int i_version[1] = { header_version( ) } ;
   if( !WORDS_BIGENDIAN ) { bswap_32( 1 , i_version ) ; }
 #ifdef DEBUG_ILDG
-  printf( "[IO] Reading Scidac header version %x \n" , i_version[0] ) ;
+  fprintf( stdout , "[IO] Reading Scidac header version %x \n" , 
+	   i_version[0] ) ;
 #endif
 
   // I don't really care about the ME or MB record type
@@ -110,31 +110,33 @@ parse_SCIDAC_hdr( FILE *infile ,
   } else {
     i_MB = GLU_FALSE ;
   }
-  printf( "[IO] %s MB flag %d \n" , myname , i_MB ) ;
+  fprintf( stdout , "[IO] %s MB flag %d \n" , myname , i_MB ) ;
   // same for ME
   if( header_mbme( ) & ME_MASK ) { 
     i_ME = GLU_TRUE ; 
   } else {
     i_ME = GLU_FALSE ;
   }
-  printf( "[IO] %s ME flag %d \n" , myname , i_ME ) ;
+  fprintf( stdout , "[IO] %s ME flag %d \n" , myname , i_ME ) ;
 #endif
 
   uint64_t i_data_length[1] = { header_datalength() } ;
   if( !WORDS_BIGENDIAN ) { bswap_64( 1 , i_data_length ) ; }
 #ifdef DEBUG_ILDG
-  printf( "[IO] %s DATALENGTH %llu \n" , myname , (unsigned long long)i_data_length[0] ) ;
+  fprintf( stdout , "[IO] %s DATALENGTH %llu \n" , 
+	   myname , (unsigned long long)i_data_length[0] ) ;
 #endif
 
   int padding = lime_padding( (size_t)i_data_length[0] ) ;
 #ifdef DEBUG_ILDG
-  printf( "[IO] Using %d bytes of padding for this record \n" , padding ) ;
+  fprintf( stdout , "[IO] Using %d bytes of padding for this record \n" , 
+	   padding ) ;
 #endif
 
   // again, typebuf is uninteresting ...
   unsigned char *typebuf = (unsigned char*)lime_hdr_rec_type ;
 #ifdef DEBUG_ILDG
-  printf( "[IO] %s type %s \n" , myname , typebuf ) ;
+  fprintf( stdout , "[IO] %s type %s \n" , myname , typebuf ) ;
 #endif
 
   // if we hit the binary data we exit for a binary read, could pass the length
@@ -148,7 +150,7 @@ parse_SCIDAC_hdr( FILE *infile ,
   // we should be able to read the remaining data
   char *io_data = malloc( ( i_data_length[0] + 1 ) * sizeof( char ) ) ;
   if( fread( io_data , sizeof( char ) , i_data_length[0] , infile ) != i_data_length[0] ) {
-    printf( "[IO] xml information reading failed ... Leaving \n" ) ;
+    fprintf( stderr , "[IO] xml information reading failed ... Leaving \n" ) ;
     free( io_data ) ;
     return FAILURE ;
   }
@@ -168,7 +170,7 @@ parse_SCIDAC_hdr( FILE *infile ,
     *HEAD_DATA = tmp ;
   }
 #ifdef DEBUG_ILDG
-  printf( "[IO] %s \n" , io_data ) ;
+  fprintf( stdout , "[IO] %s \n" , io_data ) ;
 #endif
 
   parse_and_set_xml_SCIDAC( io_data , HEAD_DATA ) ;
@@ -180,54 +182,11 @@ parse_SCIDAC_hdr( FILE *infile ,
   if( padding > 0 ) {
     char pad_str[ padding ] ;
     if( fread( pad_str , sizeof( char ) , padding , infile ) != padding ) {
-      printf( "[IO] Reading of padded data failed \n" ) ;
+      fprintf( stderr , "[IO] Reading of padded data failed \n" ) ;
       return FAILURE ;
     }
   }
-
   return SUCCESS ;
-}
-
-// for writing the header record
-static void
-write_SCIDAC_binary( FILE *__restrict out ,
-		     char *record ,
-		     const int record_length ,
-		     const char *banf )
-{
-  // padding ...
-  const unsigned char padbuf[7] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // we zero the header
-  int i ;
-  for( i = 0 ; i < MAX_HDR64 ; i++ ) { header.int64[i] = 0 ; }
-  // is magic
-  uint32_t i_magic_no[1] = { 1164413355 } ;
-  if( !WORDS_BIGENDIAN ) { bswap_32( 1 , i_magic_no ) ; }
-  header.int32[0] = i_magic_no[0] ;
-  // is version
-  uint16_t i_version[1] = { 1 } ;
-  if( !WORDS_BIGENDIAN ) { bswap_16( 1 , i_version ) ; }
-  header.int16[2] = i_version[0] ;
-  // is ME and MB
-  header.uchr[6] = MB_MASK ;
-  // is datalength
-  uint64_t datalength[1] = { record_length } ;
-  if( !WORDS_BIGENDIAN ) { bswap_64( 1 , datalength ) ; }
-  header.int64[1] = datalength[0] ;
-  // poke in some stuff for the header
-  int chr , ref = 16 ; // this is where the useful info stops
-  for( chr = 0 ; chr < strlen( banf ) ; chr++ ) {
-    header.uchr[ ref + chr ] = banf[ chr ] ;
-  }
-  // and write out the record
-  if( fwrite( (void*)header.int64 , sizeof( int64_t ) , MAX_HDR64 , out ) != MAX_HDR64 ) {
-    printf( "[IO] SCIDAC header writing failure ... Leaving\n" ) ;
-  }
-  fprintf( out , "%s" , record ) ;
-  // write out some padding ...
-  const int padding = lime_padding( (size_t)record_length ) ;
-  fwrite( padbuf , sizeof( unsigned char ) , padding , out ) ;
-  return ;
 }
 
 // scidac file has a header, plus some xml data
@@ -246,145 +205,13 @@ get_header_data_SCIDAC( FILE *infile ,
       break ;
     }
   }
-
 #ifdef DEBUG_ILDG
   struct head_data tem = *HEAD_DATA ;
-  printf( "[IO] ENDIAN :: %d \n" , tem.endianess ) ;
-  printf( "[IO] PRECISION :: %d \n" , tem.precision ) ;
-  printf( "[IO] CONFIG :: %d \n" , tem.config_type ) ;
+  fprintf( stdout , "[IO] ENDIAN :: %d \n" , tem.endianess ) ;
+  fprintf( stdout , "[IO] PRECISION :: %d \n" , tem.precision ) ;
+  fprintf( stdout , "[IO] CONFIG :: %d \n" , tem.config_type ) ;
 #endif
-
   return SUCCESS ;
-}
-
-// for writing out SCIDAC configurations ...
-void
-write_header_SCIDAC( FILE *__restrict out )
-{
-  // initialisation 
-  const char *start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ;
-  char str[ 512 ] ;
-
-  // sprintf in some xml stuff
-  sprintf( str , "%s<scidacFile><version>1.1</version><spacetime>%d</spacetime><dims>" , start , ND ) ;
-  int mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    sprintf( str , "%s%zu " , str , Latt.dims[mu] ) ;
-  }
-  sprintf( str , "%s</dims><volfmt>0</volfmt></scidacFile>" , str ) ;
-  // some dummy file
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-private-file-xml" ) ;
-  sprintf( str , "Dummy user file xml" ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-file-xml" ) ;
-
-  // gauge file informations
-  sprintf( str , "%s" , start ) ;
-  sprintf( str , "%s<scidacRecord><version>1.0</version><date>%s GMT</date><globaldata>0</globaldata>" , str , get_date( ) ) ;
-#ifdef SINGLE_PREC
-  sprintf( str , "%s<datatype>QDP_F%d_ColorMatrix</datatype><precision>F</precision>" , str , NC ) ;
-#else
-  sprintf( str , "%s<datatype>QDP_D%d_ColorMatrix</datatype><precision>D</precision>" , str , NC ) ;
-#endif
-  sprintf( str , "%s<colors>%d</colors><typesize>%d</typesize><datacount>%d</datacount></scidacRecord>" , 
-	   str , NC , ND * NCNC * 2 * (int)( sizeof( double ) / sizeof( float ) ) , ND ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-private-record-xml" ) ;
-
-  // dummy again
-  sprintf( str , "Dummy user record XML for lattice fields" ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-record-xml" ) ;
-
-  // and then leave space for the gauge field
-  char *nada = "" ; 
-  write_SCIDAC_binary( out , nada , sizeof( double ) * LVOLUME * ND * NCNC * 2 , "scidac-binary-data" ) ; // the 2 is for complex
-  return ;
-}
-
-// writes the final header for the scidac record
-void
-write_trailing_header_SCIDAC( FILE *__restrict out ,
-			      const uint32_t cksuma ,
-			      const uint32_t cksumb )
-{
-  const char *start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><scidacChecksum>" ;
-  const char *end   = "</scidacChecksum>" ;
-  char str[ 512 ] ;
-  sprintf( str , "%s" , start ) ; 
-  sprintf( str , "%s<version>1.0</version><suma>%x</suma><sumb>%x</sumb>" ,
-	   str , cksuma , cksumb ) ;
-  sprintf( str , "%s%s" , str , end ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-checksum" ) ;
-  return ;
-}
-
-// and a header writer for the ILDG configuration
-// for writing out SCIDAC configurations ...
-void
-write_header_ILDG( FILE *__restrict out )
-{
-  // initialisation 
-  const char *start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ;
-  char str[ 512 ] ;
-
-  // sprintf in some xml stuff
-  sprintf( str , "%s<scidacFile><version>1.1</version><spacetime>%d</spacetime><dims>" , start , ND ) ;
-  int mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    sprintf( str , "%s%zu " , str , Latt.dims[mu] ) ;
-  }
-  sprintf( str , "%s</dims><volfmt>0</volfmt></ScidacFile>" , str ) ;
-  // some dummy file
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-private-file-xml" ) ;
-  sprintf( str , "%s<title>GLU ILDG archival gauge configuration</title>" , start ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-file-xml" ) ;
-
-  // SCIDAC gauge file informations
-  sprintf( str , "%s<scidacRecord>" , start ) ;
-  sprintf( str , "%s<version>1.0</version><date>%s GMT</date><globaldata>0</globaldata>" , str , get_date( ) ) ;
-#ifdef SINGLE_PREC
-  sprintf( str , "%s<datatype>QDP_F%d_ColorMatrix</datatype><precision>F</precision>" , str , NC ) ;
-#else
-  sprintf( str , "%s<datatype>QDP_D%d_ColorMatrix</datatype><precision>D</precision>" , str , NC ) ;
-#endif
-  sprintf( str , "%s<colors>%d</colors><typesize>%d</typesize><datacount>%d</datacount></scidacRecord>" , 
-	   str , NC , ND * NCNC * 2 * (int)( sizeof( double ) / sizeof( float ) ) , ND ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-private-record-xml" ) ;
-
-  // and finally an xml
-  sprintf( str , "%s<info>GLU library configuration file</info>" , start ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "scidac-record-xml" ) ;
-
-  // FINALLY WE HAVE THE ILDG FORMAT STUFF //
-  const char *ILDG_start = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ildgFormat xmlns=\"http://www.lqcd.org/ildg\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.lqcd.org/ildg/filefmt.xsd\">" ;
-  const char *ILDG_end = "</ildgFormat>" ;
-  // begin with the usual spiel and the versioning ...
-  sprintf( str , "%s<version>1.0</version>" , ILDG_start ) ;
-#ifdef SINGLE_PREC
-  sprintf( str , "%s<field>su3gauge</field><precision>32</precision>" , str ) ;
-#else
-  sprintf( str , "%s<field>su3gauge</field><precision>64</precision>" , str ) ;
-#endif
-  // and input the geometry .. I enumerate the extra (>4) dimensions, always leaving t running slowest
-  const char open[4][5] = { "<lx>" , "<ly>" , "<lz>" , "<lt>" } ;
-  const char close[4][6] = { "</lx>" , "</ly>" , "</lz>" , "</lt>" } ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    if( mu < 4 ) {
-      sprintf( str , "%s%s%zu%s" , str , open[mu] , Latt.dims[mu] , 
-	       close[mu] ) ;
-    } else {
-      sprintf( str , "%s<l%d>%zu</l%d>" , str , mu , Latt.dims[mu] , mu ) ;
-    }
-  }
-  sprintf( str , "%s%s%zu%s%s" , str , open[3] , Latt.dims[ND-1] , close[3] , ILDG_end ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "ildg-format" ) ;
-
-  // Logical file name; just leave it blank for now
-  sprintf( str , "lfn://" ) ;
-  write_SCIDAC_binary( out , str , strlen( str ) , "ildg-data-lfn" ) ;
-	   
-  // and then leave space for the gauge field
-  char *nada = "" ; 
-  write_SCIDAC_binary( out , nada , sizeof( double ) * LVOLUME * ND * NCNC * 2 , "ildg-binary-data" ) ; // the 2 is for complex
-  return ;
 }
 
 // clean this up

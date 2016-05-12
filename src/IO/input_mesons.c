@@ -14,7 +14,7 @@ twopoint_tokens( struct meson_info *mesons ,
 		 const size_t meas_idx ,
 		 const char *message ) 
 {
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // starts with the contraction indices
   char *token = (char*)strtok( (char*)meson_str , "," ) ;
@@ -25,19 +25,20 @@ twopoint_tokens( struct meson_info *mesons ,
   if( get_contraction_map( &( mesons -> map[1] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] %s_%zu :: Contracting prop %zu with prop %zu \n" , 
-	  message , meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
+  fprintf( stdout , "[IO] %s_%zu :: Contracting prop %zu with prop %zu \n" , 
+	   message , meas_idx , mesons -> map[0] , mesons -> map[1] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( mesons -> outfile , "%s" , token ) ;
-  printf( "[IO] %s_%zu :: Contraction file in %s \n" , 
-	  message , meas_idx , token ) ;
+  fprintf( stdout , "[IO] %s_%zu :: Contraction file in %s \n" , 
+	   message , meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
-	    message , meas_idx , token ) ;
+    fprintf( stderr , "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
+	     message , meas_idx , token ) ;
+    return FAILURE ;
   }
   return SUCCESS ;
 }

@@ -20,7 +20,7 @@ read_data( double *PIdata ,
 	   const int NMOM )
 {
   if( fread( PIdata , sizeof( double ) , NMOM , infile ) != NMOM ) {
-    printf( "[IO] Unexpected EOF\n" ) ;
+    fprintf( stderr , "[IO] Unexpected EOF\n" ) ;
     return FAILURE ;
   }
   if( must_swap ) bswap_64( NMOM , PIdata ) ;
@@ -32,14 +32,14 @@ read_data( double *PIdata ,
   }
   uint32_t cksum[ 2 ] ;
   if( fread( cksum , sizeof( uint32_t ) , 2 , infile ) != 2 ) {
-    printf( "[IO] Cannot find checksums\n" ) ;
+    fprintf( stderr , "[IO] Cannot find checksums\n" ) ;
     return FAILURE ;
   }
   if( must_swap ) bswap_32( 2 , cksum ) ;
   if( cksuma != cksum[0] || cksumb != cksum[1] ) {
-    printf( "[IO] Checksum mismatch!! \n" ) ;
-    printf( "[IO] Computed %x %x :: Read %x %x \n" ,
-	    cksuma , cksumb , cksum[0] , cksum[1] ) ;
+    fprintf( stderr , "[IO] Checksum mismatch!! \n" ) ;
+    fprintf( stderr , "[IO] Computed %x %x :: Read %x %x \n" ,
+	     cksuma , cksumb , cksum[0] , cksum[1] ) ;
     return FAILURE ;
   }
   return SUCCESS ;
@@ -49,7 +49,7 @@ read_data( double *PIdata ,
 static int
 FREAD32( uint32_t *data , const size_t size , FILE *infile ) {
   if( fread( data , sizeof( uint32_t ) , size , infile ) != size ) {
-    printf( "[IO] FREAD32 failure \n" ) ;
+    fprintf( stderr , "[IO] FREAD32 failure \n" ) ;
     return FAILURE ;
   }
   if( must_swap ) bswap_32( size , data ) ;
@@ -64,19 +64,20 @@ write_PIdata( const int **momentum ,
 	      const size_t DIMS )
 {
   size_t p ;
-  printf( "\n[MOMS] outputting available %zu-momenta ... \n\n" , DIMS ) ;
+  fprintf( stdout , "\n[MOMS] outputting available %zu-momenta ... \n\n" , 
+	   DIMS ) ;
   for( p = 0 ; p < NMOM ; p++ ) {
     register double p2 = 0.0 ;
     size_t mu ;
-    printf( "[MOMS] %zu :: (" , p ) ;
+    fprintf( stdout , "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       const double cache = 2.0 * sin( 0.5 * momentum[ p ][ mu ] * TWOPI / (double)Latt.dims[ mu ] ) ;
       p2 += cache * cache ;
-      printf( " %d " , momentum[ p ][ mu ] ) ;
+      fprintf( stdout , " %d " , momentum[ p ][ mu ] ) ;
     }
-    printf( ") %f %f \n" , p2 , PIdata[ p ] ) ;
+    fprintf( stdout , ") %f %f \n" , p2 , PIdata[ p ] ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   return ;
 }
 
@@ -86,14 +87,15 @@ main( const int argc ,
       const char *argv[] )
 {
   if( argc != 3 ) {
-    return printf( "usage ./VPF {vpf_file} lx,ly,lz,lt \n" ) ;
+    return fprintf( stdout , "[VPFREAD] "
+		    "usage ./VPF {vpf_file} lx,ly,lz,lt \n" ) ;
   }
 
   // read the correlation file
   FILE *infile = fopen( argv[1] , "rb" ) ;
   if( infile == NULL ) {
-    printf( "File %s does not exist\n" , argv[1] ) ;
-    return -1 ;
+    fprintf( stderr , "[IO] File %s does not exist\n" , argv[1] ) ;
+    return FAILURE ;
   }
 
   // set up lattice geometry
@@ -107,8 +109,8 @@ main( const int argc ,
       mu++ ;
     }
     if( mu < ND || mu > ND ) {
-      printf( "Incorrect lattice dimensions :: Compiled %d, Given %d, \n" ,
-	      ND , mu ) ;
+      fprintf( stderr , "[IO] Incorrect lattice dimensions ::"
+	       " Compiled %d, Given %d, \n" , ND , mu ) ;
       return FAILURE ;
     }
   }
@@ -131,7 +133,7 @@ main( const int argc ,
   if( magic[0] != VPF_MAGIC ) {
     bswap_32( 1 , magic ) ;
     if( magic[0] != VPF_MAGIC) {
-      printf( "Magic number read failure\n" ) ;
+      fprintf( stderr , "[IO] Magic number read failure\n" ) ;
       goto memfree ;
     }
     must_swap = GLU_TRUE ;
@@ -153,7 +155,7 @@ main( const int argc ,
       failure = GLU_TRUE ;
     }
     if( n[ 0 ] != ND ) {
-      printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND ) ;
+      fprintf( stderr , "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND ) ;
       failure = GLU_TRUE ;
     }
     int mu ;
@@ -169,7 +171,8 @@ main( const int argc ,
   uint32_t TNMOM[ 1 ] ;
   if( FREAD32( TNMOM , 1 , infile ) == FAILURE ) goto memfree ;
   if( TNMOM[ 0 ] != NMOM[ 0 ] ) {
-    printf( "[MOMLIST] length mismatch %d %d \n" , NMOM[0] , TNMOM[0] ) ;
+    fprintf( stderr , "[MOMLIST] length mismatch %d %d \n" , 
+	     NMOM[0] , TNMOM[0] ) ;
     goto memfree ;
   }
 

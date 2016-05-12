@@ -36,7 +36,7 @@ read_corr( double complex *corr ,
 static int
 FREAD32( uint32_t *data , const int size , FILE *infile ) {
   if( fread( data , sizeof( uint32_t ) , size , infile ) != size ) {
-    printf( "[IO] FREAD32 failure \n" ) ;
+    fprintf( stderr , "[IO] FREAD32 failure \n" ) ;
     return FAILURE ;
   }
   if( must_swap ) bswap_32( size , data ) ;
@@ -59,9 +59,12 @@ read_momcorr( struct mcorr **corr ,
     if( FREAD32( tNGSRC , 1 , infile ) == FAILURE ) return FAILURE ;
     if( FREAD32( tNGSNK , 1 , infile ) == FAILURE ) return FAILURE ;
     if( FREAD32( tLT , 1 , infile ) == FAILURE ) return FAILURE ;
-    if( tNGSRC[ 0 ] != NGSRC[ 0 ] || tNGSNK[ 0 ] != NGSNK[ 0 ] || tLT[ 0 ] != L0[ 0 ] ) {
-      printf( "[IO] NGSRC , NGSNK , LT misread \n" ) ;
-      printf( "[IO] %d %d %d \n" , tNGSRC[ 0 ] , tNGSNK[ 0 ] , tLT[ 0 ] ) ;
+    if( tNGSRC[ 0 ] != NGSRC[ 0 ] || 
+	tNGSNK[ 0 ] != NGSNK[ 0 ] || 
+	tLT[ 0 ] != L0[ 0 ] ) {
+      fprintf( stderr , "[IO] NGSRC , NGSNK , LT misread \n" ) ;
+      fprintf( stderr , "[IO] %d %d %d \n" , tNGSRC[ 0 ] , 
+	       tNGSNK[ 0 ] , tLT[ 0 ] ) ;
       return FAILURE ;
     }
   }
@@ -75,13 +78,14 @@ read_momcorr( struct mcorr **corr ,
 	uint32_t L0[1] ;
 	if( FREAD32( L0 , 1 , infile ) == FAILURE ) return FAILURE ;
 	if( (int)L0[0] != LT ) { 
-	  printf( "[IO] LT Read failure %d %zu \n" , (int)L0[0] , LT ) ; 
+	  fprintf( stderr , "[IO] LT Read failure %d %zu \n" , 
+		   (int)L0[0] , LT ) ; 
 	  return FAILURE ; 
 	}
       }
       if( read_corr( corr[ GSRC ][ GSNK ].mom[ p ].C , cksuma , cksumb , infile ,
 		     GSNK + NGSNK[0] * GSRC ) == FAILURE ) {
-	printf( "[IO] corr Read failure \n" ) ;
+	fprintf( stderr , "[IO] corr Read failure \n" ) ;
 	return FAILURE ;
       }
       //
@@ -113,17 +117,17 @@ void
 write_momlist( const struct veclist *momentum ,
 	       const int NMOM )
 {
-  int p ;
-  printf( "\n[MOMS] outputting available %d-momenta ... \n\n" , ND - 1 ) ;
+  size_t p , mu ;
+  fprintf( stdout , "\n[MOMS] outputting available %d-momenta ... \n\n" , 
+	   ND - 1 ) ;
   for( p = 0 ; p < NMOM ; p++ ) {
-    int mu ;
-    printf( "[MOMS] %d :: (" , p ) ;
+    fprintf( stdout , "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      printf( " %d " , momentum[ p ].MOM[ mu ]  ) ;
+      fprintf( stdout , " %d " , momentum[ p ].MOM[ mu ]  ) ;
     }
-    printf( ") \n" ) ;
+    fprintf( stdout , ") \n" ) ;
   }
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
   return ;
 }
 
@@ -153,7 +157,7 @@ process_file( struct veclist **momentum ,
   if( magic[0] != 67798233 ) {
     bswap_32( 1 , magic ) ;
     if( magic[0] != 67798233 ) {
-      printf( "Magic number read failure\n" ) ;
+      fprintf( stderr , "[IO] Magic number read failure\n" ) ;
       return NULL ;
     }
     must_swap = GLU_TRUE ;
@@ -170,7 +174,7 @@ process_file( struct veclist **momentum ,
     uint32_t n[ ND ] ;
     if( FREAD32( n , ND , infile ) == FAILURE ) failure = GLU_TRUE ;
     if( n[ 0 ] != ND-1 ) {
-      printf( "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
+      fprintf( stderr , "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
       failure = GLU_TRUE ;
     }
     size_t mu ;
@@ -187,7 +191,8 @@ process_file( struct veclist **momentum ,
   uint32_t TNMOM[ 1 ] ;
   if( FREAD32( TNMOM , 1 , infile ) == FAILURE ) return NULL ;
   if( TNMOM[ 0 ] != NMOM[ 0 ] ) {
-    printf( "[MOMLIST] length mismatch %d %d \n" , NMOM[0] , TNMOM[0] ) ;
+    fprintf( stderr , "[MOMLIST] length mismatch %d %d \n" , 
+	     NMOM[0] , TNMOM[0] ) ;
     return NULL ;
   }
 
@@ -213,7 +218,7 @@ process_file( struct veclist **momentum ,
     }
   }
 
-  printf( "[IO] All correlators read \n" ) ;
+  fprintf( stdout , "[IO] All correlators read \n" ) ;
 
   // check our checksums
   // at the moment this is a soft warning as I changed the type of checksum we 
@@ -221,9 +226,10 @@ process_file( struct veclist **momentum ,
   // TODO :: change it to a full exit in the near future - J
   if( FREAD32( csum , 2 , infile ) == FAILURE ) return NULL ;
   if( csum[0] != cksuma || csum[1] != cksumb ) {
-    printf( "[CHECKSUM] Mismatched checksums ! %x %x %x %x\n" , csum[0] , csum[1] , cksuma , cksumb ) ;
+    fprintf( stderr , "[CHECKSUM] Mismatched checksums ! %x %x %x %x\n" , 
+	     csum[0] , csum[1] , cksuma , cksumb ) ;
   } else {
-    printf( "[CHECKSUM] both checksums passed \n\n" ) ;
+    fprintf( stdout , "[CHECKSUM] both checksums passed \n\n" ) ;
   }
 
   return corr ;

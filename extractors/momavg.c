@@ -159,7 +159,7 @@ momentum_average( struct veclist **avlist ,
 {
   *Nequiv = count_equivalents( list , NMOM ) ;
 
-  printf( "\n[AVE] %d equivalents \n" , *Nequiv ) ;
+  fprintf( stdout , "\n[AVE] %d equivalents \n" , *Nequiv ) ;
 
   // stop zero bytes malloc
   if( *Nequiv < 1 ) return NULL ;
@@ -177,11 +177,12 @@ momentum_average( struct veclist **avlist ,
     equate_momcorrs( corravg , corr , idx , m , NGSRC , NGSNK ) ;
 
     #ifdef verbose
-    printf( "Average :: ( %d %d ) [ %d %d %d ] -> [ %d %d %d ] :: ( %1.12e ) \n" , 
-	    m , m ,
-	    list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
-	    list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
-	    creal( corr[5][5].mom[m].C[1] ) ) ;
+    fprintf( stdout , "Average :: ( %d %d ) [ %d %d %d ] "
+	     "-> [ %d %d %d ] :: ( %1.12e ) \n" , 
+	     m , m ,
+	     list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+	     list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+	     creal( corr[5][5].mom[m].C[1] ) ) ;
     #endif
 
     // loop through equivalent momenta again
@@ -192,11 +193,12 @@ momentum_average( struct veclist **avlist ,
 	break ;
       } else {
 	#ifdef verbose
-	printf( "Average :: ( %d, %d ) [ %d %d %d ] -> [ %d %d %d ] :: ( %1.12e ) \n" , 
-		m , k+m ,
-		list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
-		list[m+k].MOM[0] , list[m+k].MOM[1] , list[m+k].MOM[2] , 
-		creal( corr[5][5].mom[k+m].C[1] ) ) ;
+	fprintf( stdout , "Average :: ( %d, %d ) [ %d %d %d ] "
+		 "-> [ %d %d %d ] :: ( %1.12e ) \n" , 
+		 m , k+m ,
+		 list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
+		 list[m+k].MOM[0] , list[m+k].MOM[1] , list[m+k].MOM[2] , 
+		 creal( corr[5][5].mom[k+m].C[1] ) ) ;
 	#endif
 	add_momcorrs( corravg , corr , idx , k+m , NGSRC , NGSNK ) ;
 	nequiv++ ;
@@ -205,7 +207,8 @@ momentum_average( struct veclist **avlist ,
     divide_constant( corravg , (double)(nequiv) , idx , NGSRC , NGSNK ) ;
 
     #ifdef verbose
-    printf( "AVERAGE :: %d %1.12e \n" , idx , creal( corravg[5][5].mom[idx].C[1] ) ) ;
+    fprintf( stdout , "AVERAGE :: %d %1.12e \n" , idx , 
+	     creal( corravg[5][5].mom[idx].C[1] ) ) ;
     #endif
 
     idx ++ ;
@@ -260,15 +263,16 @@ main( const int argc ,
       const char *argv[] )
 {
   if( argc != 3 ) {
-    return printf( "usage ./MESONS {correlator file} {outfile}\n" ) ;
+    return fprintf( stdout , "[MOMAVG] "
+		    "usage ./MESONS {correlator file} {outfile}\n" ) ;
   }
-  printf( "[IO] Outputting to %s \n" , argv[2] ) ;
+  fprintf( stdout , "[IO] Outputting to %s \n" , argv[2] ) ;
 
   // read the correlation file
   FILE *infile = fopen( argv[1] , "rb" ) ;
   if( infile == NULL ) {
-    printf( "File %s does not exist\n" , argv[1] ) ;
-    return -1 ;
+    fprintf( stderr , "[IO] File %s does not exist\n" , argv[1] ) ;
+    return FAILURE ;
   }
 
   start_timer( ) ;
@@ -286,9 +290,9 @@ main( const int argc ,
 
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
-  printf( "%d %d %d \n" , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+  fprintf( stdout , "%d %d %d \n" , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
-  printf( "\n[IO] file read \n" ) ;
+  fprintf( stdout , "\n[IO] file read \n" ) ;
 
   print_time( ) ;
 
@@ -299,7 +303,7 @@ main( const int argc ,
     goto memfree ;
   }
 
-  printf( "\n[SORT] momentum list sorted \n" ) ;
+  fprintf( stdout , "\n[SORT] momentum list sorted \n" ) ;
 
   print_time( ) ;
 
@@ -308,7 +312,7 @@ main( const int argc ,
 			      momentum , (const struct mcorr**)corr ,
 			      NMOM[0] , NGSRC[0] , NGSNK[0] ) ;
 
-  printf( "\n[AVE] correlators averaged \n" ) ;
+  fprintf( stdout , "\n[AVE] correlators averaged \n" ) ;
 
   print_time( ) ;
 
@@ -318,7 +322,7 @@ main( const int argc ,
   write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
 		  Nequiv , NGSRC[0] , NGSNK[0] ) ;
 
-  printf( "\n[MOMAVG] all finished \n" ) ;
+  fprintf( stdout , "\n[MOMAVG] all finished \n" ) ;
 
   print_time( ) ;
 

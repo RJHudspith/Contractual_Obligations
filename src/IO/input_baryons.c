@@ -14,7 +14,7 @@ threepoint_tokens( struct baryon_info *baryons ,
 		   const size_t meas_idx ,
 		   const char *message ) 
 {
-  printf( "\n" ) ;
+  fprintf( stdout , "\n" ) ;
 
   // starts with the contraction indices
   char *token = (char*)strtok( (char*)baryon_str , "," ) ;
@@ -29,20 +29,22 @@ threepoint_tokens( struct baryon_info *baryons ,
   if( get_contraction_map( &( baryons -> map[2] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  printf( "[IO] %s_%zu :: Contracting prop %zu with prop %zu with prop %zu \n" , 
+  fprintf( stdout , "[IO] %s_%zu :: Contracting prop %zu"
+	   "with prop %zu with prop %zu \n" , 
 	  message , meas_idx , baryons -> map[0] , 
 	  baryons -> map[1] , baryons -> map[2] ) ;
 
   // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( baryons -> outfile , "%s" , token ) ;
-  printf( "[IO] %s_%zu :: Contraction file in %s \n" , 
-	  message , meas_idx , token ) ;
+  fprintf( stdout , "[IO] %s_%zu :: Contraction file in %s \n" , 
+	   message , meas_idx , token ) ;
 
   // tell us if we get more than we expect
   if( ( token = (char*)strtok( NULL , "," ) ) != NULL ) {
-    printf( "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
+    fprintf( stderr , "[IO] %s_%zu :: Unexpected extra contraction info %s \n" ,
 	    message , meas_idx , token ) ;
+    return FAILURE ;
   }
   return SUCCESS ;
 }

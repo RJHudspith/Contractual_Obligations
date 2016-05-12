@@ -140,10 +140,11 @@ cross_color_trace( struct spinor *__restrict DiQ ,
     t0 += NCNC ; t1 += NCNC ; t2 += NCNC ;
   }
 #elif NC == 2
-  printf( "[CROSS COLOR TRACE] %d not supported \n" , NC ) ;
+  fprintf( stderr , "[CROSS COLOR TRACE] NC = %d not supported\n" , NC ) ;
+  fprintf( stderr , "please call the diquark code instead of baryons\n" ) ;
   exit(1) ;
 #else
-  printf( "[CROSS COLOR TRACE] %d not supported \n" , NC ) ;
+  fprintf( "[CROSS COLOR TRACE] NC = %d not supported\n" , NC ) ;
   exit(1) ;
 #endif
   return ;

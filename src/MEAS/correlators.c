@@ -14,10 +14,11 @@ print_convenience( const struct mcorr **corr ,
 		   const size_t GSRC ,
 		   const size_t GSNK ) 
 {
-  int t ;
+  size_t t ;
   for( t = 0 ; t < LT ; t++ ) {
-    printf( "%d %e %e \n" , t , creal( corr[GSRC][GSNK].mom[0].C[t] ) , 
-	    cimag( corr[GSRC][GSNK].mom[0].C[t] ) ) ;
+    fprintf( stdout , "%zu %e %e \n" , t , 
+	     creal( corr[GSRC][GSNK].mom[0].C[t] ) , 
+	     cimag( corr[GSRC][GSNK].mom[0].C[t] ) ) ;
   }
   return ;
 }
@@ -30,8 +31,8 @@ allocate_momcorrs( const size_t length1 ,
 {
   // check if stuff is non-zero
   if( length1 == 0 || length2 == 0 || nmom == 0 ) {
-    printf( "[IO] corr lengths are 0 :: ( %zu , %zu , %zu ) \n" ,
-	    length1 , length2 , nmom ) ;
+    fprintf( stderr , "[IO] corr lengths are 0 :: ( %zu , %zu , %zu ) \n" ,
+	     length1 , length2 , nmom ) ;
     return NULL ;
   }
   struct mcorr **mcorr = malloc( length1 * sizeof( struct mcorr* ) ) ;
@@ -74,22 +75,22 @@ void
 debug_mesons( const char *message , 
 	      const struct mcorr **corr )
 {
-  printf( "%s PION\n" , message ) ;
+  fprintf( stdout , "%s PION\n" , message ) ;
   print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
 
-  printf( "%s 00\n" , message ) ;
+  fprintf( stdout , "%s 00\n" , message ) ;
   print_convenience( corr , GAMMA_X , GAMMA_X ) ;
 
-  printf( "%s 11\n" , message ) ;
+  fprintf( stdout , "%s 11\n" , message ) ;
   print_convenience( corr , GAMMA_Y , GAMMA_Y ) ;
 
-  printf( "%s 22\n" , message ) ;
+  fprintf( stdout , "%s 22\n" , message ) ;
   print_convenience( corr , GAMMA_Z , GAMMA_Z ) ;
 
-  printf( "%s 33\n" , message ) ;
+  fprintf( stdout , "%s 33\n" , message ) ;
   print_convenience( corr , GAMMA_T , GAMMA_T ) ;
 
-  printf( "%s 1010\n" , message ) ;
+  fprintf( stdout , "%s 1010\n" , message ) ;
   print_convenience( corr , 10 , 10 ) ;
   return ;
 }
@@ -99,22 +100,22 @@ void
 debug_baryons( const char *message , 
 	       const struct mcorr **corr )
 {
-  printf( "%s OCTETT\n" , message ) ;
+  fprintf( stdout , "%s OCTETT\n" , message ) ;
   print_convenience( corr , 5 , 0 ) ;
 
-  printf( "%s DECUPLETT G0\n" , message ) ;
+  fprintf( stdout , "%s DECUPLETT G0\n" , message ) ;
   print_convenience( corr , 0 , 0 ) ;
 
-  printf( "%s DECUPLETT G1\n" , message ) ;
+  fprintf( stdout , "%s DECUPLETT G1\n" , message ) ;
   print_convenience( corr , 1 , 0 ) ;
 
-  printf( "%s DECUPLETT G2\n" , message ) ;
+  fprintf( stdout , "%s DECUPLETT G2\n" , message ) ;
   print_convenience( corr , 2 , 0 ) ;
 
-  printf( "%s DECUPLETT G3\n" , message ) ;
+  fprintf( stdout , "%s DECUPLETT G3\n" , message ) ;
   print_convenience( corr , 3 , 0 ) ;
 
-  printf( "%s DECUPLETT G4\n" , message ) ;
+  fprintf( stdout , "%s DECUPLETT G4\n" , message ) ;
   print_convenience( corr , 4 , 0 ) ;
 
   return ;
@@ -138,7 +139,7 @@ write_momcorr( const char *outfile ,
     sprintf( outstr , "%s.%s" , outfile , type ) ;
   }
 
-  printf( "[IO] writing correlation matrix to %s \n" , outstr ) ;
+  fprintf( stdout , "[IO] writing correlation matrix to %s \n" , outstr ) ;
 
   FILE *output_file = fopen( outstr , "wb" ) ;
 
