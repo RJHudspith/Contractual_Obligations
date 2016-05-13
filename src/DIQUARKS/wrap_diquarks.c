@@ -7,6 +7,7 @@
 // diquark contractions
 #include "diquark.h"
 #include "diquark_degen.h"
+#include "GLU_timer.h"        // print_time()
 #include "read_propheader.h"
 
 // contract the diquarks
@@ -44,6 +45,8 @@ contract_diquarks( struct propagator *prop ,
       rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
       rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
     }
+    // give us the time
+    print_time( ) ;
   }
   return SUCCESS ;
 }

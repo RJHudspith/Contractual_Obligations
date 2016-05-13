@@ -5,16 +5,14 @@
 #include "common.h"
 
 #include "bar_contractions.h"  // baryon_contract_site_mom()
-#include "basis_conversions.h" // nrel_rotate_slice()
-#include "contractions.h"      // gamma_mul_lr()
-#include "correlators.h"       // allocate_corrs() && free_corrs()
+#include "basis_conversions.h" // rotate_offdiag()
+#include "correlators.h"       // write_momcorr()
 #include "gammas.h"            // make_gammas() && gamma_mmul*
-#include "GLU_timer.h"         // print_time()
 #include "io.h"                // for read_prop()
-#include "plan_ffts.h"         // create_plans_DFT() 
+#include "progress_bar.h"      // progress_bar()
 #include "read_propheader.h"   // for read_propheader()
-#include "setup.h"             // free_ffts() ...
-#include "spinor_ops.h"        // sumprop()
+#include "setup.h"             // free_ffts()
+#include "spinor_ops.h"        // sumwalls()
 
 // number of propagators
 #define Nprops (2)
@@ -123,10 +121,8 @@ baryons_2fdiagonal( struct propagator prop1 ,
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    fprintf( stdout , "\r[BARYONS] done %.f %%" , (t+1)/((LT)/100.) ) ; 
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
-  fprintf( stdout , "\n" ) ;
 
   // write out the baryons wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
@@ -144,9 +140,6 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
   // free our LUT
   free( Cgmu ) ; free( Cgnu ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
 
   return error_code ;
 }

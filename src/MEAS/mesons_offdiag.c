@@ -10,8 +10,8 @@
 #include "contractions.h"      // meson contract
 #include "correlators.h"       // write_momcorr()
 #include "gammas.h"            // gt_Gdag_gt()
-#include "GLU_timer.h"         // print_time() 
 #include "io.h"                // read_ahead()
+#include "progress_bar.h"      // progress_bar()
 #include "setup.h"             // init_measurements()
 #include "spinor_ops.h"        // sumwalls()
 
@@ -116,10 +116,8 @@ mesons_offdiagonal( struct propagator prop1 ,
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    fprintf( stdout , "\r[MESONS] done %.f %%" , (t+1)/((LT)/100.) ) ; 
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
-  fprintf( stdout , "\n" ) ;
 
   // write out the ND-1 momentum-injected correlator
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
@@ -134,9 +132,6 @@ mesons_offdiagonal( struct propagator prop1 ,
 
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
 
   return error_code ;
 }

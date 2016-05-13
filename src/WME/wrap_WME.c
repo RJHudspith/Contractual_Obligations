@@ -4,8 +4,9 @@
  */
 #include "common.h"
 
-#include "WME.h"
+#include "GLU_timer.h"       // print_time()
 #include "read_propheader.h" // reread the propagator file header
+#include "WME.h"
 
 // perform a WME contraction
 int
@@ -35,6 +36,8 @@ contract_WME( struct propagator *prop ,
 	     wme[ measurements ].outfile ) == FAILURE ) {
       return FAILURE ;
     }
+    print_time() ;
+
     // reread headers 
     rewind( prop[p0].file ) ; read_propheader( &prop[p0] ) ;
     rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;

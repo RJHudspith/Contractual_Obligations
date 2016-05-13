@@ -8,6 +8,7 @@
 #include "baryons_uuu.h"      // flavour degenerate
 #include "baryons_uud.h"      // 2 the same, 1 different
 #include "baryons_uds.h"      // 3 different quarks in contraction
+#include "GLU_timer.h"        // print_time()
 #include "read_propheader.h"  // for read_propheader()
 
 // make sure we have the same source origins
@@ -123,6 +124,8 @@ contract_baryons( struct propagator *prop ,
       rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
       rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
     }
+    // tell us how long it took
+    print_time( ) ;
   }
   return SUCCESS ;
 }

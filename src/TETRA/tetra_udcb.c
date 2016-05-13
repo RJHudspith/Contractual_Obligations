@@ -10,9 +10,8 @@
 #include "correlators.h"        // allocate_corrs() && free_corrs()
 #include "cut_routines.h"       // veclist
 #include "gammas.h"             // make_gammas() && gamma_mmul*
-#include "GLU_timer.h"          // print_time()
 #include "io.h"                 // for read_prop()
-#include "plan_ffts.h"          // create_plans_DFT() 
+#include "progress_bar.h"       // progress_bar()
 #include "setup.h"              // compute_correlator() ..
 #include "spinor_ops.h"         // sumprop()
 #include "tetra_contractions.h" // diquark_diquark()
@@ -139,10 +138,8 @@ tetraquark_udcb( struct propagator prop1 , // L1
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    fprintf( stdout , "\r[TETRA] done %.f %%" , (t+1)/((LT)/100.) ) ; 
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
-  fprintf( stdout , "\n" ) ;
 
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , 
@@ -157,9 +154,6 @@ tetraquark_udcb( struct propagator prop1 , // L1
 
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
 
   return error_code ;
 }

@@ -20,7 +20,6 @@
    @file GLU_timer.c
    @brief timing functions
  */
-
 #include "common.h"
 
 // functions for the elapsed time of a process

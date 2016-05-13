@@ -10,10 +10,10 @@
 #include "basis_conversions.h" // chiral->nrel
 #include "currents.h"          // conserved-local
 #include "gammas.h"            // gamma matrices
-#include "GLU_timer.h"         // print_time()
 #include "io.h"                // read_prop
 #include "matrix_ops.h"        // constant_mul_gauge
 #include "momspace_PImunu.h"   // momentum space VPF
+#include "progress_bar.h"      // progress_bar()
 #include "read_propheader.h"   // reread the header
 #include "tmoments_PImunu.h"   // time moments too
 #include "setup.h"             // general setup
@@ -123,9 +123,7 @@ cl_diagonal( struct propagator prop1 ,
     }
 
     // status
-    fprintf( stdout , "\r[VPF] cl-flavour diagonal done %.f %%", 
-	     (t+1)/((LT)/100.) ) ; 
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
 
   // and contract the final timeslice
@@ -138,7 +136,7 @@ cl_diagonal( struct propagator prop1 ,
 				   M.GAMMAS , AGMAP , VGMAP , x , 
 				   ( t + LT - prop1.origin[ ND-1 ] ) % LT  ) ;
   }
-  fprintf( stdout , "\r[VPF] cl-flavour diagonal done 100%% \n" ) ; 
+  progress_bar( t , LT ) ;
 
  memfree :
 
@@ -159,7 +157,6 @@ cl_diagonal( struct propagator prop1 ,
 		       CONSERVED_LOCAL ) ;
     }
   }
-  print_time( ) ;
 
   // free the AA & VV data
   free( DATA_AA ) ;

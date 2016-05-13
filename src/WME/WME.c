@@ -10,8 +10,8 @@
 #include "contractions.h"      // for the 4 prop contraction
 #include "cut_routines.h"      // zero_veclist()
 #include "gammas.h"            // gamma matrices
-#include "GLU_timer.h"         // print_time() function
 #include "io.h"                // read prop
+#include "progress_bar.h"      // progress_bar()
 #include "spinor_ops.h"        // spinor multiply
 #include "setup.h"             // init_measurements()
 
@@ -141,10 +141,8 @@ WME( struct propagator s0 ,
     }
     
     // tell us how far along we are
-    fprintf( stdout , "\r[WME] done %.f %%" , 100.0*(t+1)/(double)(LT) ) ;
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
-  fprintf( stdout , "\n" ) ;
 
   // and write out a file
   write_momcorr( outfile , (const struct mcorr**)M.corr ,

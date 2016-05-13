@@ -4,6 +4,7 @@
  */
 #include "common.h"
 
+#include "GLU_timer.h"       // print_time()
 #include "mesons.h"          // flavour diagonal meson contractions
 #include "mesons_offdiag.h"  // flavour off-diagonal meson contractions
 #include "read_propheader.h" // (re)read the propagator header
@@ -23,6 +24,7 @@ contract_mesons( struct propagator *prop ,
     const size_t p1 = mesons[ measurements ].map[0] ;
     const size_t p2 = mesons[ measurements ].map[1] ;
 
+    // flavour diagonal meson
     if( p1 == p2 ) {
       if( mesons_diagonal( prop[ p1 ] , CUTINFO , 
 			   mesons[ measurements ].outfile ) == FAILURE ) {
@@ -55,6 +57,7 @@ contract_mesons( struct propagator *prop ,
       rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
     }
     // loop on measurements
+    print_time( ) ;
   }
   // I would consider getting here to be most successful, quite.
   return SUCCESS ;

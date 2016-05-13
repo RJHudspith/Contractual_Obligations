@@ -6,6 +6,7 @@
 
 #include "cl_diagonal.h"      // conserved-local Wilson currents
 #include "cl_offdiagonal.h"   // conserved-local flavour off diagonal
+#include "GLU_timer.h"        // print_time()
 #include "ll_diagonal.h"      // local-local currents
 #include "ll_offdiagonal.h"   // flavour off diagonal local-local
 #include "read_propheader.h"  // read_propheader()
@@ -92,6 +93,7 @@ contract_VPF( struct propagator *prop ,
       rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
     }
     // end of measurement loop
+    print_time() ;
   }
   // I would consider getting here a success
   return SUCCESS ;

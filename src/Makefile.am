@@ -51,7 +51,7 @@ UTILSFILES=./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \
 	./UTILS/corr_sort.c ./UTILS/crc32.c ./UTILS/crc32c.c \
 	./UTILS/cut_routines.c ./UTILS/GLU_bswap.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c \
-	./UTILS/setup.c
+	./UTILS/progress_bar.c ./UTILS/setup.c
 
 ## c files in ./VPF
 VPFFILES=./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c ./VPF/currents.c \

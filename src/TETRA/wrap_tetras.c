@@ -5,6 +5,7 @@
 
 #include "common.h"
 
+#include "GLU_timer.h"        // print_time()
 #include "tetra_udbb.h"       // light flavour degenerate
 #include "tetra_usbb.h"       // light flavour agnostic heavy degen
 #include "tetra_udcb.h"       // light flavour degenerate heavy not
@@ -192,6 +193,8 @@ contract_tetras( struct propagator *prop ,
       }
       //
     }
+    // tell us how long it all took
+    print_time( ) ;
   }
   return SUCCESS ;
 }

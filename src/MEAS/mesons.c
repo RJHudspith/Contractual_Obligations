@@ -7,10 +7,9 @@
 #include "basis_conversions.h" // chiral->nrel
 #include "contractions.h"      // meson contract
 #include "correlators.h"       // for allocate_corrs and free_corrs
-#include "gammas.h"            // gamma matrices
-#include "GLU_timer.h"         // print_time() 
+#include "gammas.h"            // gt_Gdag_gt()
 #include "io.h"                // read_prop
-#include "plan_ffts.h"         // ND-1 FFTS
+#include "progress_bar.h"      // progress_bar()
 #include "setup.h"             // free_ffts() ..
 #include "spinor_ops.h"        // sumprop()
 
@@ -109,10 +108,8 @@ mesons_diagonal( struct propagator prop1 ,
     copy_props( &M , Nprops ) ;
 
     // status of the computation
-    fprintf( stdout , "\r[MESONS] done %.f %%", (t+1)/((LT)/100.) ) ; 
-    fflush( stdout ) ;
+    progress_bar( t , LT ) ;
   }
-  fprintf( stdout , "\n" ) ;
 
   // write out the ND-1 momentum-injected correlator and maybe the wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , 
@@ -126,9 +123,6 @@ mesons_diagonal( struct propagator prop1 ,
 
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
-
-  // tell us how long it all took
-  print_time( ) ;
 
   return error_code ;
 }
