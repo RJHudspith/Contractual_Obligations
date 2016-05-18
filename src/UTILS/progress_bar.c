@@ -4,13 +4,15 @@
  */
 #include <stdio.h>
 
+// number of previous marks in the bar
 static size_t prev_nequals = 0 ;
 
+// draws a simple progress bar
 void
 progress_bar( const size_t state ,
 	      const size_t goal )
 {
-  // idea is to have a buffer of some chars
+  // idea is to have a set line of chars
   if( state == 0 ) {
     fprintf( stdout , "\n____________________________"
 	     "__________________________\n\n" ) ;
@@ -20,6 +22,8 @@ progress_bar( const size_t state ,
     fprintf( stdout , "\n____________________________"
 	     "__________________________\n" ) ;
     fprintf( stdout , "\n\n" ) ;
+    // reset the counter
+    prev_nequals = 0 ;
   } else {
     // tell us how many equals to put down
     const size_t nequals = (size_t)( state*( 62./(double)goal ) ) ;
