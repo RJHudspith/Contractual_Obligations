@@ -202,8 +202,9 @@ main( const int argc ,
       // poke into proj_corr
       size_t t ;
       if( time_flip == GLU_TRUE ) {
-	for( t = 0 ; t < LT ; t++ ) {
-	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ LT-t-1 ] = C[ t ] ;
+	proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ 0 ] = C[ 0 ] ;
+	for( t = 1 ; t < LT ; t++ ) {
+	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ LT-t ] = -C[ t ] ;
 	}
       } else {
 	for( t = 0 ; t < LT ; t++ ) {
