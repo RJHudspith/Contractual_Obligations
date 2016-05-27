@@ -19,7 +19,7 @@ static int
 usage( void )
 {
   return fprintf( stdout , "[BARYON] usage :: ./BARYONS {correlator file} "
-		  " BASIS SPIN PARITY TFLIP Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
+		  " BASIS SPIN PARITY TFLIP TSRC Lx,Ly,Lz,Lt.. {outfile} \n" ) ;
 }
 
 // provide a help function
@@ -30,10 +30,11 @@ help( void )
   usage( ) ;
   fprintf( stdout , "\nI list the various options for this code, I give the \n" 
 	   "OPTION :: {then a brief description} 'AND'|'THEN'|'THE'|'POSSIBLE'|'OPTIONS' \n\n" ) ;
-  fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NONREL' \n" ) ;
+  fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NREL' \n" ) ;
   fprintf( stdout , "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
   fprintf( stdout , "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
   fprintf( stdout , "TFLIP :: {time axis flip} true|false" ) ;
+  fprintf( stdout , "TSRC :: {what time slice our source was on} <positive integer>" ) ;
   return fprintf( stdout , "\n" ) ;
 }
 
@@ -43,7 +44,7 @@ are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str
 
 // enum for the options
 typedef enum {
-  INFILE = 1 , GAMMA_BASIS = 2 , SPIN_PROJ = 3 , PARITY_PROJ = 4 , TIME_FLIP = 5 , DIMENSIONS = 6 , OUTFILE = 7 
+  INFILE = 1 , GAMMA_BASIS = 2 , SPIN_PROJ = 3 , PARITY_PROJ = 4 , TIME_FLIP = 5 , TSRC = 6 , DIMENSIONS = 7 , OUTFILE = 8 
 } command_line_options ;
 
 // little code for accessing elements of our baryon correlator files
@@ -81,7 +82,9 @@ main( const int argc ,
   spinhalf spin_proj = NONE ;
   bprojection parity_proj = L0 ;
   GLU_bool time_flip = GLU_FALSE ;
-
+  int tsrc = 0 ;
+  
+  // some counters
   size_t mu , GSGK ;
   char *tok = NULL ;
 
@@ -148,6 +151,15 @@ main( const int argc ,
     time_flip = GLU_TRUE ;
   }
 
+  // sanity check the source position
+  tsrc = atoi( argv[ TSRC ] ) ;
+  if( tsrc < 0 || tsrc > (LT-1) ) {
+    fprintf( stderr , "[TSRC] non-sensical source position given %d\n" , tsrc ) ;
+    goto memfree ;
+  } else {
+    fprintf( stdout , "[TSRC] source position at %d \n" , tsrc ) ;
+  }
+
   // get the dimensions
   tok = strtok( (char*)argv[ DIMENSIONS ] , "," ) ;
   Latt.dims[ 0 ] = (int)atoi( tok ) ;
@@ -198,17 +210,34 @@ main( const int argc ,
 						GSRC , GSNK , p ,
 						parity_proj ,
 						spin_proj ) ;
-      
+ 
       // poke into proj_corr
       size_t t ;
       if( time_flip == GLU_TRUE ) {
 	proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ 0 ] = C[ 0 ] ;
 	for( t = 1 ; t < LT ; t++ ) {
-	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ LT-t ] = -C[ t ] ;
+	  // need to make sure I get the sign correct
+	  if( tsrc > 0 ) { 
+	    if( t <= tsrc ) {
+	      proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] =  C[ LT - t ] ;
+	    } else {
+	      proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = -C[ LT - t ] ;
+	    }
+	  } else {
+	    proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = -C[ LT - t ] ;
+	  }
+	  //
 	}
       } else {
-	for( t = 0 ; t < LT ; t++ ) {
-	  proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = C[ t ] ;
+	proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ 0 ] = C[ 0 ] ;
+	for( t = 1 ; t < LT ; t++ ) {
+	  // need to make sure I get the sign correct
+          if( t >= (LT - tsrc) ) {
+            proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = -C[ t ] ;
+          } else {
+            proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] =  C[ t ] ;
+          }
+          //   
 	}
       }
     
