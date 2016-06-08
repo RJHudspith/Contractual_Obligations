@@ -110,7 +110,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
       if( prop1.source == WALL ) {
 	baryon_contract_walls( M.corr , 
 			       M.SUM[0] , M.SUM[1] , M.SUM[2] , 
-			       M.GAMMAS , tshifted , UDS_BARYON ) ;
+			       Cgmu , Cgnu , tshifted , UDS_BARYON ) ;
       }
     }
 

@@ -106,7 +106,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       if( prop1.source == WALL ) {
 	baryon_contract_walls( M.wwcorr , 
 			       M.SUM[0] , M.SUM[0] , M.SUM[1] , 
-			       M.GAMMAS , tshifted , UUD_BARYON ) ;
+			       Cgmu , Cgnu , tshifted , UUD_BARYON ) ;
       }
     }
 

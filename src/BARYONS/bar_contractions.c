@@ -2,13 +2,13 @@
    @file bar_contractions.c
    @brief baryon contraction codes
  */
-
 #include "common.h"
 
 #include "bar_ops.h"      // baryon operations
 #include "contractions.h" // gamma_mul_lr()
 #include "gammas.h"       // Cgmu and CgmuD
 
+// helper functions
 static double complex
 uds( const double complex term1 , const double complex term2 ) {
   return term1 ;
@@ -232,7 +232,8 @@ baryon_contract_walls( struct mcorr **corr ,
 		       const struct spinor SUM1 ,
 		       const struct spinor SUM2 ,
 		       const struct spinor SUM3 ,
-		       const struct gamma *GAMMAS ,
+		       const struct gamma *Cgmu ,
+		       const struct gamma *Cgnu ,
 		       const size_t t ,
 		       const baryon_type btype )
 {
@@ -244,9 +245,10 @@ baryon_contract_walls( struct mcorr **corr ,
   case UUD_BARYON : f = uud ; break ;
   case UUU_BARYON : f = uuu ; break ;
   }
+
   // accumulate the sums with open dirac indices
   size_t GSGK ;
-#pragma omp for private(GSGK) schedule(dynamic)
+#pragma omp for private(GSGK)
   for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
     // source and sink indices
     const size_t GSRC = GSGK / B_CHANNELS ;
@@ -255,11 +257,9 @@ baryon_contract_walls( struct mcorr **corr ,
     double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
     term[0] = calloc( NSNS , sizeof( double complex ) ) ;
     term[1] = calloc( NSNS , sizeof( double complex ) ) ;
-    // recompute teh Cgmus, these are basically free to calculate
-    const struct gamma Cgmu  = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
-    const struct gamma Cgnu  = CGmu( GAMMAS[ GSNK ] , GAMMAS ) ;
-    const struct gamma CgnuD = gt_Gdag_gt( Cgnu , GAMMAS[ GAMMA_T ] ) ;
-    baryon_contract_site( term , SUM1 , SUM1 , SUM1 , Cgmu , CgnuD ) ;
+    // comtract
+    baryon_contract_site( term , SUM1 , SUM2 , SUM3 , 
+			  Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
     // wall contractions project to zero spatial momentum explicitly
     size_t odc ;
     for( odc = 0 ; odc < NSNS ; odc++ ) {
@@ -315,64 +315,5 @@ baryon_momentum_project( struct measurements *M ,
     M -> corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
 #endif
   }
-  return ;
-}
-
-
-// baryonic momentum project
-void
-baryon_momentum_project2( struct mcorr **corr ,
-			 double complex **in ,
-			 double complex **out ,
-			 const void *forward ,
-			 const void *backward ,
-			 const struct veclist *list ,
-			 const int NMOM[ 1 ] ,
-			 const size_t t ,
-			 const baryon_type btype )
-{
-  //
-  double complex (*f)( const double complex term1 , 
-		       const double complex term2 ) = uds ; 
-  switch( btype ) {
-  case UDS_BARYON : break ;
-  case UUD_BARYON : f = uud ; break ;
-  case UUU_BARYON : f = uuu ; break ;
-  }
-  // loop over flatteded open dirac indices
-  size_t GSodc ;
-#ifdef HAVE_FFTW3_H
-  const fftw_plan *forw = ( const fftw_plan* )forward ;
-  // perform the FFTS separately here
-  #pragma omp parallel for private(GSodc)
-  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
-    const size_t GSGK = GSodc / NSNS ;
-    const size_t odc = GSodc % NSNS ;
-    const size_t idx = 2 * GSodc ;
-    fftw_execute( forw[ 0 + idx ] ) ;
-    fftw_execute( forw[ 1 + idx ] ) ;
-    const double complex *sum1 = out[ 0 + idx ] ;
-    const double complex *sum2 = out[ 1 + idx ] ;
-    size_t p ;
-    for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
-      const size_t lid = list[ p ].idx ;
-      corr[ GSGK ][ odc ].mom[ p ].C[ t ] = f( sum1[ lid ] , sum2[ lid ] ) ;
-    }
-  }
-#else
-  #pragma omp parallel for private(GSodc)
-  for( GSodc = 0 ; GSodc < ( B_CHANNELS * B_CHANNELS * NSNS ) ; GSodc++ ) {
-    const size_t GSGK = GSodc / NSNS ;
-    const size_t odc = GSodc % NSNS ;
-    const size_t idx = 2 * GSodc ;
-    register double complex sum1 = 0.0 , sum2 = 0.0 ;
-    size_t site ;
-    for( site = 0 ; site < LCU ; site++ ) {
-      sum1 += in[ 0 + idx ][ site ] ;
-      sum2 += in[ 1 + idx ][ site ] ;
-    }
-    corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
-  }
-#endif
   return ;
 }

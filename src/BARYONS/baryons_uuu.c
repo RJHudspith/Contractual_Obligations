@@ -103,7 +103,7 @@ baryons_diagonal( struct propagator prop1 ,
       if( M.is_wall == GLU_TRUE ) {
 	baryon_contract_walls( M.wwcorr , 
 			       M.SUM[0] , M.SUM[0] , M.SUM[0] , 
-			       M.GAMMAS , tshifted , UUU_BARYON ) ;
+			       Cgmu , Cgnu , tshifted , UUU_BARYON ) ;
       }
     }
 

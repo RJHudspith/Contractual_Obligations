@@ -53,7 +53,7 @@ main( const int argc ,
       const char *argv[] )
 {
   // have a help function now to avoid confusion
-  if( argc != 8 ) {
+  if( argc != 9 ) {
     if( argc == 1 ) {
       return usage( ) ;
     } else if( are_equal( argv[ INFILE ] , "--help" ) ) {
