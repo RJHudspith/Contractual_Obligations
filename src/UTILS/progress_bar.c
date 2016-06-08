@@ -18,20 +18,24 @@ progress_bar( const size_t state ,
 	     "__________________________\n\n" ) ;
     fprintf( stdout , "0%%         25%%          50%%"
 	     "          75%%          100%%\n" ) ;
-  } else if( state == ( goal - 1 ) ) {
+  } 
+
+  // tell us how many equals to put down
+  const size_t nequals = (size_t)( (state+1)*( 54./(double)goal ) ) ;
+  size_t i ;
+  for( i = 0 ; i < ( nequals - prev_nequals ) ; i++ ) {
+    fprintf( stdout , "=" ) ; fflush( stdout ) ;
+  }
+  prev_nequals = nequals ;
+
+  // clean up the bottom
+  if( state == ( goal - 1 ) ) {
     fprintf( stdout , "\n____________________________"
 	     "__________________________\n" ) ;
     fprintf( stdout , "\n\n" ) ;
     // reset the counter
     prev_nequals = 0 ;
-  } else {
-    // tell us how many equals to put down
-    const size_t nequals = (size_t)( state*( 62./(double)goal ) ) ;
-    size_t i ;
-    for( i = 0 ; i < ( nequals - prev_nequals ) ; i++ ) {
-      fprintf( stdout , "=" ) ; fflush( stdout ) ;
-    }
-    prev_nequals = nequals ;
   }
+
   return ;
 }
