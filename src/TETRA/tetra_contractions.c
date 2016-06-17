@@ -1,6 +1,8 @@
 /**
    @file tetra_contractions.c
    @brief tetraquark contractions
+
+   TODO :: non-degenerate heavy?
  */
 #include "common.h"
 
@@ -21,11 +23,13 @@ contract_O1O1( const struct block *C1 ,
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // usual forward streaming term
-    sum1 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
+    sum1 += 
+      spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
       spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
     // cross color term by interchanging Bs
-    sum2 += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-      spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
+    sum2 += 
+      spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
+      spinmatrix_trace( C2[ element( d , a , c , b ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
@@ -43,12 +47,12 @@ contract_O1O2_1( const struct block *C1 ,
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // single dirac trace
     sum1 += 
-      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
-			       C2[ element( c , a , d , b ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
+			       C2[ element( d , a , c , b ) ].M ) ;
     // cross term
     sum2 +=
-      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
-			       C2[ element( c , b , d , a ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
+			       C2[ element( d , b , c , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
@@ -66,12 +70,12 @@ contract_O1O2_2( const struct block *C1 ,
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // single dirac trace
     sum1 += 
-      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
-			       C2[ element( d , a , c , b ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
+			       C2[ element( c , a , d , b ) ].M ) ;
     // cross term
     sum2 +=
-      trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
-			       C2[ element( d , b , c , a ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
+			       C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
@@ -93,8 +97,8 @@ contract_O2O1_1( const struct block *C1 ,
 			       C2[ element( a , c , d , a ) ].M ) ;
     // cross term
     sum2 += 
-      trace_prod_spinmatrices( C1[ element( c , a , b , d ) ].M ,
-			       C2[ element( a , c , d , b ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( d , b , b , d ) ].M ,
+			       C2[ element( a , c , c , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
@@ -116,8 +120,8 @@ contract_O2O1_2( const struct block *C1 ,
 			       C2[ element( b , c , d , b ) ].M ) ;
     // cross term
     sum2 += 
-      trace_prod_spinmatrices( C1[ element( c , b , a , d ) ].M ,
-			       C2[ element( b , c , d , a ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( d , a , a , d ) ].M ,
+			       C2[ element( b , c , c , b ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
@@ -138,8 +142,8 @@ contract_O2O2_1( const struct block *C1 ,
       spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
     // cross term
     sum2 += 
-      spinmatrix_trace( C1[ element( c , b , a , c ) ].M ) *
-      spinmatrix_trace( C2[ element( d , a , b , d ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( d , a , a , c ) ].M ,
+			       C2[ element( c , b , b , d ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
@@ -156,12 +160,12 @@ contract_O2O2_2( const struct block *C1 ,
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // usual meson product
     sum1 += 
-      spinmatrix_trace( C1[ element( c , b , b , c ) ].M ) *
-      spinmatrix_trace( C2[ element( d , a , a , d ) ].M ) ;
+      spinmatrix_trace( C1[ element( d , a , a , d ) ].M ) *
+      spinmatrix_trace( C2[ element( c , b , b , c ) ].M ) ;
     // cross term
     sum2 += 
-      spinmatrix_trace( C1[ element( c , a , b , c ) ].M ) *
-      spinmatrix_trace( C2[ element( d , b , a , d ) ].M ) ;
+      trace_prod_spinmatrices( C1[ element( c , a , a , d ) ].M ,
+			       C2[ element( d , b , b , c ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
@@ -256,12 +260,15 @@ tetras( double complex *result ,
     return sqrt(-1) ;
   }
 
+  ////////////////// Diquark - Anti Diquark -> Diquark - Anti Diquark
+
   // O_1 O_1
   precompute_block( C1 , L1T , Cg5 , L2 , tildeCg5 ) ;
   precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeCgi ) ;
   result[0] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
-  // O_1 O_2
+  ////////////////// Diquark-Anti Diquark -> Dimeson
+
   precompute_block( C1 , L1T , Cg5 , L2 , gamma_transpose( tildegi ) ) ;
   precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeg5 ) ;
   result[1]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
@@ -270,55 +277,44 @@ tetras( double complex *result ,
   precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildegi ) ;
   result[1] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
 
-  // O_2 O_1
+  ////////////////// Dimeson -> Diquark - Anti Diquark
+
+  // O_2 O_1 -- term 1
   precompute_block( C1 , bwdH1 , gamma_transpose( gi ) , L2 , tildeCg5 ) ;
   precompute_block( C2 , L1T , g5 , bwdH2T , tildeCgi ) ;
   result[2]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
 
+  // O_2 O_1 -- term 2 has the minus sign
   precompute_block( C1 , bwdH1 , gamma_transpose( g5 ) , L2 , tildeCg5 ) ;
   precompute_block( C2 , L1T , gi , bwdH2T , tildeCgi ) ;
   result[2] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
 
-  // O_2 O_2
+  ////////////////// Dimeson -> Dimeson
+
+  // O_2 O_2 -- term 1 is positive 
   precompute_block( C1 , bwdH1 , g5 , L1 , tildeg5 ) ;
   precompute_block( C2 , bwdH2 , gi , L2 , tildegi ) ;
   result[3]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-  precompute_block( C1 , bwdH1 , gi , L2 , tildeg5 ) ;
-  precompute_block( C2 , bwdH2 , g5 , L1 , tildegi ) ;  
+  // O_2 O_2 -- term 2 is -( a b^\dagger )
+  precompute_block( C1 , bwdH1 , g5 , L1 , tildegi ) ;
+  precompute_block( C2 , bwdH2 , gi , L2 , tildeg5 ) ;  
   result[3] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 
-  // need to do the others where L1 and L2 are swapped
+  // need to do the others where L1 and L2 are swapped, this is only 
+  // a concern for the dimeson - dimeson
   if( L1L2_degenerate == GLU_FALSE ) {
-    struct spinor L2T = transpose_spinor( L2 ) ;
-    // O1O2
-    precompute_block( C1 , L2T , Cg5 , L1 , gamma_transpose( tildegi ) ) ;
-    precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildeg5 ) ;
-    result[1] += contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
+    // O2O2 -- term 3 is -( b a^\dagger )
+    precompute_block( C1 , bwdH1 , g5 , L2 , tildegi ) ;
+    precompute_block( C2 , bwdH2 , gi , L1 , tildeg5 ) ;  
+    result[3] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 
-    precompute_block( C1 , L2T, Cg5 , L1 , tildeg5 ) ;
-    precompute_block( C2 , bwdH1 , Cgi , bwdH2T , tildegi ) ;
-    result[1] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
-
-    // O2O1
-    precompute_block( C1 , bwdH1 , gamma_transpose( gi ) , L1 , tildeCg5 ) ;
-    precompute_block( C2 , L2T , g5 , bwdH2T , tildeCgi ) ;
-    result[2] += contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
-
-    precompute_block( C1 , bwdH1 , gamma_transpose( g5 ) , L1 , tildeCg5 ) ;
-    precompute_block( C2 , L2T , gi , bwdH2T , tildeCgi ) ;
-    result[2] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
-
-    // O2O2
+    // O2O2 -- term 4 is ( b b^\dagger )
     precompute_block( C1 , bwdH1 , g5 , L2 , tildeg5 ) ;
     precompute_block( C2 , bwdH2 , gi , L1 , tildegi ) ;
     result[3] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
-
-    precompute_block( C1 , bwdH1 , gi , L1 , tildeg5 ) ;
-    precompute_block( C2 , bwdH2 , g5 , L2 , tildegi ) ;  
-    result[3] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
   } else {
-    result[1] *= 2 ; result[2] *= 2 ; result[3] *= 2 ;
+    result[3] *= 2 ;
   }
 
   free( C1 ) ;
