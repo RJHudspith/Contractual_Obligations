@@ -218,7 +218,7 @@ meson_contract_test( void )
 						 GSRC , Id , G5 ) ;
 
       mu_assert( "[CONTRACT UNIT] error : meson_contract broken #1", 
-		 !cabs( test - tr1 ) > FTOL ) ;
+		 !( cabs( test - tr1 ) > FTOL ) ) ;
 
       full_adj( &adj , Id , G5 ) ;
       gamma_mul_l( &adj , GSNK ) ;
@@ -274,7 +274,7 @@ simple_meson_contract_test( void )
 							GSRC , Id ) ;
 
       mu_assert( "[CONTRACT UNIT] error : simple meson_contract broken #1", 
-		 !cabs( test - tr1 ) > FTOL ) ;
+		 !( cabs( test - tr1 ) > FTOL ) ) ;
 
       // left-right multiply
       adj = Id ;

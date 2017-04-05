@@ -52,7 +52,8 @@ read_momcorr( struct mcorr **corr ,
 	      const uint32_t NGSRC[ 1 ] ,
 	      const uint32_t NGSNK[ 1 ] ,
 	      const uint32_t L0[ 1 ] ,
-	      const int p )
+	      const int p ,
+	      const int NMOM )
 {
   if( p != 0 ) {
     uint32_t tNGSRC[ 1 ] , tNGSNK[ 1 ] , tLT[ 1 ] ;
@@ -69,7 +70,7 @@ read_momcorr( struct mcorr **corr ,
     }
   }
 
-  int GSRC , GSNK ;
+  size_t GSRC , GSNK ;
   for( GSRC = 0 ; GSRC < (int)NGSRC[0] ; GSRC++ ) {
     for( GSNK = 0 ; GSNK < (int)NGSNK[0] ; GSNK++ ) {
       if( ( GSRC == 0 ) && ( GSNK == 0 ) ) {
@@ -84,7 +85,7 @@ read_momcorr( struct mcorr **corr ,
 	}
       }
       if( read_corr( corr[ GSRC ][ GSNK ].mom[ p ].C , cksuma , cksumb , infile ,
-		     GSNK + NGSNK[0] * GSRC ) == FAILURE ) {
+		     p + NMOM * ( GSNK + NGSNK[0] * GSRC ) ) == FAILURE ) {
 	fprintf( stderr , "[IO] corr Read failure \n" ) ;
 	return FAILURE ;
       }
@@ -213,7 +214,7 @@ process_file( struct veclist **momentum ,
   // read the correlator
   for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
     if( read_momcorr( corr , infile , &cksuma , &cksumb ,
-		      NGSRC , NGSNK , L0 , p ) == FAILURE ) {
+		      NGSRC , NGSNK , L0 , p , NMOM[0] ) == FAILURE ) {
       return NULL ;
     }
   }

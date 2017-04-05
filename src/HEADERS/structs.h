@@ -41,21 +41,16 @@ struct correlator{
 } ;
 
 /**
-   @struct cut_info
-   @brief cutting information storage
-   @param dir :: either spatial or temporal cuts allowed for now
-   @param type :: psq,hypercubic,cylinder or conical
-   @param max_mom :: maximum allowed p^2 for the vector of ints definition
-   @param max_t :: maximum T allowed in static potential
-   @param where :: where is our file outputted to?
-   @param definition :: are our gauge fields logarithmic or AntiHermitian_projly defined?
-   @param angle :: conical angle from the p=0.
-   @param cyl_width :: width of the cylinder in lattice units
+   @param type :: cut type we are doing
+   @param max_mom :: maximum n^2
+   @param cyl_width :: cylinder width
+   @param configspace :: configuration space hook
  */
 struct cut_info{
   momentum_cut_def type ; // enumerated cutting type
   size_t max_mom ; // maximum momentum allowed for the cut
   double cyl_width ; // cylinder with
+  GLU_bool configspace ; // are we doing configuration space analysis
 } ;
 
 /**

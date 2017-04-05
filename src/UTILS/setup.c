@@ -73,12 +73,15 @@ init_moms( int **NMOM ,
   *(NMOM) = malloc( sizeof( int ) ) ;
   *(wwNMOM) = malloc( sizeof( int ) ) ;
 #ifdef HAVE_FFTW3_H
-  *(list) = (struct veclist*)compute_veclist( *NMOM , CUTINFO , ND-1 , GLU_FALSE ) ;
+  *(list) = (struct veclist*)compute_veclist( *NMOM , CUTINFO , ND-1 , 
+					      CUTINFO.configspace ) ;
 #else
-  *(list) = (struct veclist*)zero_veclist( *NMOM , ND-1 , GLU_FALSE ) ;
+  *(list) = (struct veclist*)zero_veclist( *NMOM , ND-1 , 
+					   CUTINFO.configspace ) ;
 #endif
   if( is_wall == GLU_TRUE ) {
-    *(wwlist) = (struct veclist*)zero_veclist( *wwNMOM , ND-1 , GLU_FALSE ) ;
+    *(wwlist) = (struct veclist*)zero_veclist( *wwNMOM , ND-1 , 
+					       CUTINFO.configspace ) ;
   }
   return SUCCESS ;
 }
@@ -88,30 +91,45 @@ int
 compute_correlator( struct measurements *M , 
 		    const size_t stride1 , 
 		    const size_t stride2 ,
-		    const size_t tshifted )
+		    const size_t tshifted ,
+		    const GLU_bool configspace )
 {
-#ifdef HAVE_FFTW3_H
-  fftw_plan *fwd = (fftw_plan*)M -> forward ;
-#endif
-  // momentum projection
-  size_t i ;
-#pragma omp parallel for private(i)
-  for( i = 0 ; i < stride1 ; i++ ) {
-    size_t j , p ;
-    for( j = 0 ; j < stride2 ; j++ ) {
-      #ifdef HAVE_FFTW3_H
-      fftw_execute( fwd[ j + stride2*i ] ) ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	  M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+  if( configspace == GLU_TRUE ) {
+    size_t i ;
+    #pragma omp parallel for private(i)
+    for( i = 0 ; i < stride1 ; i++ ) {
+      size_t j , p ;
+      for( j = 0 ; j < stride2 ; j++ ) {
+	for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	  M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	    M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
+	}
       }
-      #else
-      register double complex sum = 0.0 ;
-      for( p = 0 ; p < LCU ; p++ ) {
-	sum += M -> in[ j + stride2*i ][ p ] ;
+    }
+  } else {
+    #ifdef HAVE_FFTW3_H
+    fftw_plan *fwd = (fftw_plan*)M -> forward ;
+    #endif
+    // momentum projection
+    size_t i ;
+    #pragma omp parallel for private(i)
+    for( i = 0 ; i < stride1 ; i++ ) {
+      size_t j , p ;
+      for( j = 0 ; j < stride2 ; j++ ) {
+        #ifdef HAVE_FFTW3_H
+	fftw_execute( fwd[ j + stride2*i ] ) ;
+	for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	  M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	    M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+	}
+        #else
+	register double complex sum = 0.0 ;
+	for( p = 0 ; p < LCU ; p++ ) {
+	  sum += M -> in[ j + stride2*i ][ p ] ;
+	}
+	M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
+        #endif
       }
-      M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
-      #endif
     }
   }
   return SUCCESS ;

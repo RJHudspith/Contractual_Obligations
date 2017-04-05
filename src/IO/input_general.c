@@ -175,5 +175,14 @@ read_cuts_struct( struct cut_info *CUTINFO ,
 	     CUTINFO -> cyl_width ) ;
     return FAILURE ;
   }
+  // config space
+  const int cspace_idx = tag_search( "CONFIGSPACE" ) ;
+  if( are_equal( INPUT[cspace_idx].VALUE , "TRUE" ) ) {
+    fprintf( stdout , "[IO] computing configuration space correlators\n" ) ;
+    CUTINFO -> configspace = GLU_TRUE ;
+  } else {
+    fprintf( stdout , "[IO] computing momentum space correlators\n" ) ;
+    CUTINFO -> configspace = GLU_FALSE ;
+  }
   return SUCCESS ;
 }

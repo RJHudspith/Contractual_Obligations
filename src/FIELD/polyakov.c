@@ -8,6 +8,9 @@
 #include "matrix_ops.h"
 #include "spinor_ops.h"
 
+// precompute all of the polyakov lines
+static double complex **lines = NULL ;
+
 // simple matrix multiplication a = a * b
 static void 
 multab_atomic_right( double complex a[ NCNC ] , 
@@ -75,6 +78,39 @@ identity( double complex poly[ NCNC ] )
   return ;
 }
 
+// precompute all of the lines
+static void
+precompute_poly_lines( const struct site *__restrict lat ,
+		       const size_t site , 
+		       const size_t dir ,
+		       const size_t tsrc , // is a timeslice idx
+		       const GLU_bool forward ,
+		       const size_t length )
+{
+  // allocate the lines, there will be LVOLUME of these
+  corr_malloc( (void**)&lines , 16 , LVOLUME ) ;
+  size_t i ;
+  for( i = 0 ; i < LVOLUME ; i++ ) {
+    corr_malloc( (void**)lines[i] , 16 , NCNC ) ;
+  }
+
+  // loop sub volume, multiplying the time like links of the previous timeslice
+  size_t t , prev = lat[ tsrc*LCU ].back[ ND-1 ] ;
+  for( t = 0 ; t < Latt.dims[ND-1] ; t++ ) {
+    // compute this timeslice and the previous one
+    const size_t idx = lat[ prev ].neighbor[ ND-1 ] ; 
+    // can do this in parallel
+    size_t j ;
+#pragma omp parallel for private(j)
+    for( j = 0 ; j < LCU ; j++ ) {
+      multab( lines[ j + idx ] , lines[ j + prev ] , lat[ j + idx ].O[ ND-1 ] ) ;
+    }
+    prev = idx ;
+  }
+
+  return ;
+}
+
 // compute a short polyakov line
 static void
 small_poly( double complex poly[ NCNC ] ,
@@ -107,6 +143,18 @@ static_quark( struct spinor *S ,
 	      const size_t t ,
 	      const GLU_bool forward )
 {
+  // set the spinor to 0
+  spinor_zero( S ) ;
+
+  // put it in the top left sector
+  size_t i ;
+#pragma omp parallel for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    memcpy( S[i].D[0][0].C , lines[i+LCU*t] , NCNC*sizeof(double complex) ) ;
+    memcpy( S[i].D[1][1].C , lines[i+LCU*t] , NCNC*sizeof(double complex) ) ;
+  }
+
+#if 0
   // compute the direction it is going in
   const double direction = ( forward == GLU_TRUE ) ? 1 : -1 ;
 
@@ -133,8 +181,8 @@ static_quark( struct spinor *S ,
       
       // multiply by gamma
       switch( gamma_t.g[j] ) {
-      case 0 : constant_mul_gauge( res , 0.5 * direction , pline ) ; break ;
-      case 1 : constant_mul_gauge( res , 0.5 * I * direction , pline ) ; break ;
+      case 0 : constant_mul_gauge( res ,  0.5 * direction , pline ) ; break ;
+      case 1 : constant_mul_gauge( res ,  0.5 * I * direction , pline ) ; break ;
       case 2 : constant_mul_gauge( res , -0.5 * direction , pline ) ; break ;
       case 3 : constant_mul_gauge( res , -0.5 * I * direction , pline ) ; break ;
       }
@@ -149,6 +197,7 @@ static_quark( struct spinor *S ,
     }
   }
   return ;
+#endif
 }
 
 // computes a polyakov line, looping around the dimension "dir"

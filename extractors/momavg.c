@@ -257,22 +257,42 @@ write_averages( const struct veclist *list ,
   return ;
 }
 
+// enum for the IO
+enum { INFILE = 1 , SPLIT = 2 , OUTFILE = 3 } ;
+
+// strcmp defaults to 0 if they are equal which is contrary to standard if statements
+static int
+are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str_2 ) ; }
+
 // little code for accessing elements of our correlator files
 int 
 main( const int argc ,
       const char *argv[] )
 {
-  if( argc != 3 ) {
+  // check the number of command line arguments
+  if( argc != 4 ) {
     return fprintf( stdout , "[MOMAVG] "
-		    "usage ./MESONS {correlator file} {outfile}\n" ) ;
+		    "usage ./MESONS {correlator file} {split} {outfile}\n" 
+		    "{split} :: true/false\n" ) ;
   }
-  fprintf( stdout , "[IO] Outputting to %s \n" , argv[2] ) ;
+  fprintf( stdout , "[IO] Outputting to %s \n" , argv[ OUTFILE ] ) ;
+
+  // check in and out are not the same
+  if( are_equal( argv[ INFILE ] , argv[ OUTFILE ] ) ) {
+    return FAILURE ;
+  }
 
   // read the correlation file
-  FILE *infile = fopen( argv[1] , "rb" ) ;
+  FILE *infile = fopen( argv[ INFILE ] , "rb" ) ;
   if( infile == NULL ) {
-    fprintf( stderr , "[IO] File %s does not exist\n" , argv[1] ) ;
+    fprintf( stderr , "[IO] File %s does not exist\n" , argv[ INFILE ] ) ;
     return FAILURE ;
+  }
+
+  // are we splitting up the files?
+  GLU_bool split = GLU_FALSE ;
+  if( are_equal( argv[ SPLIT ] , "true" ) ) {
+    split = GLU_TRUE ;
   }
 
   start_timer( ) ;
@@ -290,7 +310,8 @@ main( const int argc ,
 
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
-  fprintf( stdout , "%d %d %d \n" , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
+  fprintf( stdout , "[IO] (N_SRC, N_SNK, NMOM) :: (%d, %d, %d)\n" , 
+	   NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
   fprintf( stdout , "\n[IO] file read \n" ) ;
 
@@ -318,9 +339,16 @@ main( const int argc ,
 
   if( corravg == NULL ) goto memfree ;
 
-  // split the averaged results into separate files for ease of reading
-  write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
-		  Nequiv , NGSRC[0] , NGSNK[0] ) ;
+  if( split == GLU_TRUE ) {
+    // split the averaged results into separate files for ease of reading
+    write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
+		    Nequiv , NGSRC[0] , NGSNK[0] ) ;
+  } else {
+    // write into a file
+    int NMOM[1] = { Nequiv } ;
+    write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)corravg , 
+		   avlist , NGSRC[0] , NGSNK[0] , (const int*)NMOM , "" ) ;
+  }
 
   fprintf( stdout , "\n[MOMAVG] all finished \n" ) ;
 

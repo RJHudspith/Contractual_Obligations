@@ -61,12 +61,19 @@ enum{ MOMENTUM_CONFIG , NO_MOMENTUM_CONFIG } momenta_saved ;
 
 // calculate similar orbits i.e measure anisotropy
 void
-simorb_ratios( const int DIMS )
+simorb_ratios( const int DIMS ,
+	       const GLU_bool configspace )
 {
+  size_t mu ;
+  if( configspace == GLU_TRUE ) {
+    for( mu = 0 ; mu < DIMS ; mu++ ) {
+      rats[mu] = 1 ;
+    }  
+    return ;
+  }
   // similar orbits in terms of the smallest dimension ...
   // find the smallest
   small = Latt.dims[0] ;
-  int mu ;
   for( mu = 1 ; mu < DIMS ; mu++ ) {
     if( Latt.dims[ mu ] < small ) {
       small = Latt.dims[ mu ] ;
@@ -201,35 +208,34 @@ safe_momenta( const int n[ ND ] ,
 	      const int DIMS )
 {
   const double latt_width = TWOPI * CUTINFO.cyl_width / small ;
-  switch( CUTINFO.type )
-    {
-    case HYPERCUBIC_CUT :
-      return gen_calc_hyp( n , sqrt( CUTINFO.max_mom ) , DIMS ) ;
-    case PSQ_CUT :
-      if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
-	return GLU_TRUE ;
-      }
-    case CYLINDER_CUT :
-      if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
-	double k[ ND ] ; 
-	compute_p( k , n , DIMS ) ;
-	// CJD and DF are equivalent
-        #ifdef CYLINDER_AS
-	if( cylinder_AS( k , DIMS , latt_width ) == 1 ) {
-	  return GLU_TRUE ;
-	}
-	#else
-	if( cylinder_DF( k , DIMS , latt_width ) == 1 ) {
-	  return GLU_TRUE ;
-	}
-	#endif
-      }
-      break ;
-    default :
-      if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
-	return GLU_TRUE ;
-      }
+  switch( CUTINFO.type ) {
+  case HYPERCUBIC_CUT :
+    return gen_calc_hyp( n , sqrt( CUTINFO.max_mom ) , DIMS ) ;
+  case PSQ_CUT :
+    if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
+      return GLU_TRUE ;
     }
+  case CYLINDER_CUT :
+    if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
+      double k[ ND ] ; 
+      compute_p( k , n , DIMS ) ;
+      // CJD and DF are equivalent
+      #ifdef CYLINDER_AS
+      if( cylinder_AS( k , DIMS , latt_width ) == 1 ) {
+	return GLU_TRUE ;
+      }
+      #else
+      if( cylinder_DF( k , DIMS , latt_width ) == 1 ) {
+	return GLU_TRUE ;
+      }
+      #endif
+    }
+    break ;
+  default :
+    if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
+      return GLU_TRUE ;
+    }
+  }
   return GLU_FALSE ;
 }
 
@@ -241,7 +247,7 @@ get_mom_veclist( struct veclist *__restrict kept ,
 		 const int LOOP ,
 		 const int DIMS )
 { 
-  simorb_ratios( DIMS ) ;
+  simorb_ratios( DIMS , GLU_FALSE ) ;
 
   int mu ;
   fprintf( stdout , "[CUTS] " ) ;
@@ -337,6 +343,7 @@ get_veclist( struct veclist *__restrict kept ,
 	     const int LOOP ,
 	     const int DIMS )
 {
+  simorb_ratios( DIMS , GLU_TRUE ) ;
   int i , size = 0 ;
   for( i = 0 ; i < LOOP ; i++ ) {
     if( passes_cuts( i , CUTINFO , DIMS ) == GLU_TRUE ) {

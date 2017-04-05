@@ -198,7 +198,7 @@ get_input_data( struct propagator **prop ,
   diquark_contractions( inputs -> diquarks , &( inputs -> ndiquarks ) , INPUT , inputs -> nprops , GLU_TRUE ) ;
   inputs -> diquarks = (struct meson_info*)malloc( ( inputs -> ndiquarks ) * sizeof( struct meson_info ) ) ;
   if( diquark_contractions( inputs -> diquarks , &( inputs -> ndiquarks ) , INPUT ,
-			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
+			    inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
 

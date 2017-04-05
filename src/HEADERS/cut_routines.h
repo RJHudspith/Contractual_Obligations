@@ -20,7 +20,6 @@
    @file cut_routines.h
    @brief Cutting of extreme momenta from our data
  */
-
 #ifndef GLU_CUT_ROUTINES_H
 #define GLU_CUT_ROUTINES_H
 
@@ -30,7 +29,7 @@
 extern double rats[ ND ] ;
 
 /**
-   @fn void simorb_ratios( const int DIMS )
+   @fn void simorb_ratios( const int DIMS , const GLU_bool configspace )
    @brief compute the ratio of the smallest to the largest lattice direction
    @param DIMS :: dimensions of the problem
 
@@ -40,7 +39,8 @@ extern double rats[ ND ] ;
    momenta.
  **/
 void
-simorb_ratios( const int DIMS ) ;
+simorb_ratios( const int DIMS , 
+	       const GLU_bool configspace ) ;
 
 /**
    @fn struct veclist* compute_veclist( int *__restrict list_size , const struct cut_info CUTINFO , const int DIMS , const GLU_bool CONFIGSPACE ) ;

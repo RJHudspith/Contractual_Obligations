@@ -59,7 +59,7 @@ baryon_contract_walls( struct mcorr **corr ,
 		       const baryon_type btype ) ;
 
 /**
-   @fn void baryon_momentum_project( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t t , const baryon_type btype )
+   @fn void baryon_momentum_project( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t t , const baryon_type btype , const GLU_bool configspace )
    @brief perform the momentum projection for our baryons
  */
 void
@@ -67,6 +67,7 @@ baryon_momentum_project( struct measurements *M ,
 			 const size_t stride1 , 
 			 const size_t stride2 ,
 			 const size_t t ,
-			 const baryon_type btype ) ;
+			 const baryon_type btype ,
+			 const GLU_bool configspace ) ;
 
 #endif

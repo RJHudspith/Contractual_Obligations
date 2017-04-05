@@ -276,7 +276,8 @@ baryon_momentum_project( struct measurements *M ,
 			 const size_t stride1 , 
 			 const size_t stride2 ,
 			 const size_t t ,
-			 const baryon_type btype )
+			 const baryon_type btype ,
+			 const GLU_bool configspace )
 {
   //
   double complex (*f)( const double complex term1 , 
@@ -287,33 +288,53 @@ baryon_momentum_project( struct measurements *M ,
   case UUU_BARYON : f = uuu ; break ;
   }
 
-  // loop over flatteded open dirac indices
-  size_t GSodc ;
-  #pragma omp parallel for private(GSodc)
-  for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
-    const size_t GSGK = GSodc / stride2 ;
-    const size_t odc = GSodc % stride2 ;
-    const size_t idx = 2 * GSodc ;
-#ifdef HAVE_FFTW3_H
-    fftw_execute( M -> forward[ 0 + idx ] ) ;
-    fftw_execute( M -> forward[ 1 + idx ] ) ;
-    const double complex *sum1 = M -> out[ 0 + idx ] ;
-    const double complex *sum2 = M -> out[ 1 + idx ] ;
-    size_t p ;
-    for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-      const size_t lid = M -> list[ p ].idx ;
-      M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
-	f( sum1[ lid ] , sum2[ lid ] ) ;
+  // if we want to look at these in terms of spatial distance, r
+  if( configspace == GLU_TRUE ) {
+    // loop over flatteded open dirac indices
+    size_t GSodc ;
+    #pragma omp parallel for private(GSodc)
+    for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
+      const size_t GSGK = GSodc / stride2 ;
+      const size_t odc = GSodc % stride2 ;
+      const size_t idx = 2 * GSodc ;
+      const double complex *sum1 = M -> in[ 0 + idx ] ;
+      const double complex *sum2 = M -> in[ 1 + idx ] ;
+      size_t p ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	const size_t lid = M -> list[ p ].idx ;
+	M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
+	  f( sum1[ lid ] , sum2[ lid ] ) ;
+      }
     }
-#else
-    register double complex sum1 = 0.0 , sum2 = 0.0 ;
-    size_t site ;
-    for( site = 0 ; site < LCU ; site++ ) {
-      sum1 += M -> in[ 0 + idx ][ site ] ;
-      sum2 += M -> in[ 1 + idx ][ site ] ;
+  } else {
+    // loop over flatteded open dirac indices
+    size_t GSodc ;
+    #pragma omp parallel for private(GSodc)
+    for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
+      const size_t GSGK = GSodc / stride2 ;
+      const size_t odc = GSodc % stride2 ;
+      const size_t idx = 2 * GSodc ;
+    #ifdef HAVE_FFTW3_H
+      fftw_execute( M -> forward[ 0 + idx ] ) ;
+      fftw_execute( M -> forward[ 1 + idx ] ) ;
+      const double complex *sum1 = M -> out[ 0 + idx ] ;
+      const double complex *sum2 = M -> out[ 1 + idx ] ;
+      size_t p ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	const size_t lid = M -> list[ p ].idx ;
+	M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
+	  f( sum1[ lid ] , sum2[ lid ] ) ;
+      }
+    #else
+      register double complex sum1 = 0.0 , sum2 = 0.0 ;
+      size_t site ;
+      for( site = 0 ; site < LCU ; site++ ) {
+	sum1 += M -> in[ 0 + idx ][ site ] ;
+	sum2 += M -> in[ 1 + idx ][ site ] ;
+      }
+      M -> corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
+    #endif
     }
-    M -> corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
-#endif
   }
   return ;
 }

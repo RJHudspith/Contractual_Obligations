@@ -171,7 +171,7 @@ write_momcorr( const char *outfile ,
 	fwrite( corr[GSRC][GSNK].mom[p].C , sizeof( double complex ) , LT , output_file ) ; 
 	// accumulate the newer, fancier checksum
 	DML_checksum_accum_crc32c( &cksuma , &cksumb ,
-				   GSNK + NSNK * GSRC , 
+				   p + nmom[0] * ( GSNK + NSNK * GSRC ) , 
 				   corr[GSRC][GSNK].mom[p].C , 
 				   sizeof( double complex ) * LT ) ;
       }

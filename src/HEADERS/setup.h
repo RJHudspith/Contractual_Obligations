@@ -14,14 +14,15 @@ copy_props( struct measurements *M ,
 	    const size_t Nprops ) ;
 
 /**
-   @fn int compute_correlator( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t tshifted )
+   @fn int compute_correlator( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t tshifted , const GLU_bool configspace )
    @brief compute the momentum-projected correlation function in @M.corr
  */
 int
 compute_correlator( struct measurements *M , 
 		    const size_t stride1 , 
 		    const size_t stride2 ,
-		    const size_t tshifted ) ;
+		    const size_t tshifted ,
+		    const GLU_bool configspace ) ;
 
 /**
    @fn void free_measurements( struct measurements *M , const size_t Nprops , const size_t stride1 , const size_t stride2 , const size_t flat_dirac )
