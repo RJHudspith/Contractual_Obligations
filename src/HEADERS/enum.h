@@ -88,7 +88,17 @@ typedef enum {
   GAMMA_Z  = 2 ,
   GAMMA_T  = 3 ,
   IDENTITY = 4 ,
-  GAMMA_5  = 5 } gamma_labels ;
+  GAMMA_5  = 5 ,
+  AX = 6 ,
+  AY = 7 ,
+  AZ = 8 ,
+  AT = 9 ,
+  TXY = 10 ,
+  TYZ = 11 ,
+  TZX = 12 ,
+  TXT = 13 ,
+  TYT = 14 ,
+  TZT = 15 } gamma_labels ;
 
 /**
    @enum GLU_bool

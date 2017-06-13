@@ -11,7 +11,8 @@ AM_PROG_CC_C_O
 AC_LANG([C]) 
 m4_pattern_allow([AM_PROG_AR])
 AC_PROG_RANLIB ## include a check for libtool if not use ranlib?
-AC_C_BIGENDIAN 
+AC_C_BIGENDIAN
+AM_PROG_AR
 
 ## SET up the m4
 AC_CONFIG_MACRO_DIR([m4])
@@ -207,6 +208,17 @@ AC_ARG_WITH([fftw],
 )
 AM_CONDITIONAL([DEFFFTW],[$fftw])
 AC_SUBST(FFTW)
+
+## Compile a tetra block size
+AC_ARG_WITH([TETRA_NBLOCK],
+	AC_HELP_STRING([--with-TETRA_NBLOCK=],
+		       [Block matrix tetra contraction size]),
+            [
+	    AC_MSG_NOTICE([User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})])
+	    AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [${with_TETRA_NBLOCK}] , [Compiled TETRA_NBLOCK] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, code defaults to 1])	
+])
 
 ## C standard libraries
 AC_CHECK_HEADERS([math.h],[LDFLAGS="$LDFLAGS -lm" ])

@@ -92,8 +92,12 @@ tetraquark_udcb( struct propagator prop1 , // L1
 	full_adj( &bwdH1 , M.S[1][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 	full_adj( &bwdH2 , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 
-	// diquark-diquark tetra
+	// tetraquark contractions stored in result
 	double complex result[ stride1 ] ;
+	size_t k ;
+	for( k = 0 ; k < stride1 ; k++ ) {
+	  result[ k ] = 0.0 ;
+	}
 
 	// loop gamma source
 	size_t GSRC , op ;

@@ -122,10 +122,18 @@
 #define SUCCESS !FAILURE
 
 /**
-   @def TETRA_NOPS
-   @brief number of tetraquark operators (8)^2 we consider
+   @def TETRA_NBLOCK
+   @brief number of different tetraquark blocks we will use
  */
-#define TETRA_NOPS (64)
+#ifndef TETRA_NBLOCK
+  #define TETRA_NBLOCK (1)
+#endif
+
+/**
+   @def TETRA_NOPS
+   @brief number of tetraquark operators (TETRA_NBLOCK)^2x4 we consider
+ */
+#define TETRA_NOPS (TETRA_NBLOCK*TETRA_NBLOCK*4)
 
 /**
    @def TWOPI

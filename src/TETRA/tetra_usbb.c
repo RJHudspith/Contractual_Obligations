@@ -90,9 +90,13 @@ tetraquark_usbb( struct propagator prop1 ,
 	struct spinor bwdH ;
 	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 
-	// diquark-diquark tetra
+	// tetraquark contractions stored in result
 	double complex result[ stride1 ] ;
-
+	size_t k ;
+	for( k = 0 ; k < stride1 ; k++ ) {
+	  result[ k ] = 0.0 ;
+	}
+	
 	// loop gamma source
 	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {

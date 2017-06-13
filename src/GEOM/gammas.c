@@ -12,10 +12,12 @@
    7 -> gamma_1 gamma_5
    8 -> gamma_2 gamma_5
    9 -> gamma_3 gamma_5
+
    10-> gamma_0 gamma_1
-   11-> gamma_0 gamma_2
-   12-> gamma_0 gamma_3
-   13-> gamma_1 gamma_2
+   11-> gamma_1 gamma_2
+   12-> gamma_2 gamma_0
+
+   13-> gamma_0 gamma_3
    14-> gamma_1 gamma_3
    15-> gamma_2 gamma_3  
 
@@ -248,7 +250,7 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[3].ig[1] = 3 ; GAMMA[3].g[1] = 2 ;
     GAMMA[3].ig[2] = 0 ; GAMMA[3].g[2] = 2 ;
     GAMMA[3].ig[3] = 1 ; GAMMA[3].g[3] = 2 ;
-    // gamma_5 gets flipped no?
+    // gamma_5
     GAMMA[5].ig[0] = 0 ; GAMMA[5].g[0] = 2 ;
     GAMMA[5].ig[1] = 1 ; GAMMA[5].g[1] = 2 ;
     GAMMA[5].ig[2] = 2 ; GAMMA[5].g[2] = 0 ;
@@ -278,14 +280,14 @@ make_gammas( struct gamma *GAMMA ,
   // gamma_0 gamma_1 
   gamma_mmul( &GAMMA[10] , GAMMA[0] , GAMMA[1] ) ;
 
-  // gamma_0 gamma_2 
-  gamma_mmul( &GAMMA[11] , GAMMA[0] , GAMMA[2] ) ;
+  // gamma_1 gamma_2 
+  gamma_mmul( &GAMMA[11] , GAMMA[1] , GAMMA[2] ) ;
+
+  // gamma_2 gamma_0
+  gamma_mmul( &GAMMA[12] , GAMMA[2] , GAMMA[0] ) ;
 
   // gamma_0 gamma_3 
-  gamma_mmul( &GAMMA[12] , GAMMA[0] , GAMMA[3] ) ;
-
-  // gamma_1 gamma_2 
-  gamma_mmul( &GAMMA[13] , GAMMA[1] , GAMMA[2] ) ;
+  gamma_mmul( &GAMMA[13] , GAMMA[0] , GAMMA[3] ) ;
 
   // gamma_1 gamma_3 
   gamma_mmul( &GAMMA[14] , GAMMA[1] , GAMMA[3] ) ;
