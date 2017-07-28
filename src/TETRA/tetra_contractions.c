@@ -1,8 +1,6 @@
 /**
    @file tetra_contractions.c
    @brief tetraquark contractions
-
-   TODO :: non-degenerate heavy?
  */
 #include "common.h"
 
@@ -41,7 +39,7 @@ contract_O1O1( const struct block *C1 ,
     // cross color term by interchanging Bs
     sum2 += 
       spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-      spinmatrix_trace( C2[ element( d , a , c , b ) ].M ) ;
+      spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
   return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
@@ -330,50 +328,50 @@ tetras( double complex *result ,
   for( B1 = 0 ; B1 < TETRA_NBLOCK ; B1++ ) {
     for( B2 = 0 ; B2 < TETRA_NBLOCK ; B2++ ) {
 
-      size_t idx = B2 + 2 * (size_t)TETRA_NBLOCK* B1 ;
+      const size_t idx1 = B2 + 2 * (size_t)TETRA_NBLOCK* B1 ;
 
       // Diquark-Diquark
       precompute_block( C1 , L1T , blck[B1].CG5 , L2 , blck[B2].t_CG5 ) ;
       precompute_block( C2 , bwdH1 , blck[B1].CGi , bwdH2T , blck[B2].t_CGi ) ;
       
-      result[idx] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
+      result[idx1] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
       /////////////////// Diquark-AntiDiquark - Dimeson mixing terms
-      idx = TETRA_NBLOCK + B2 + 8 * B1 ;
+      const size_t idx2 = idx1 + TETRA_NBLOCK ;
 
       precompute_block( C1 , L1T , blck[B1].CG5 , L2 , gamma_transpose( blck[B2].t_Gi ) ) ;
       precompute_block( C2 , bwdH1 , blck[B1].CGi , bwdH2T , blck[B2].t_G5 ) ;
-      result[idx]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
+      result[idx2]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
 
       precompute_block( C1 , L1T , blck[B1].CG5 , L2 , gamma_transpose( blck[B2].t_G5 ) ) ;
       precompute_block( C2 , bwdH1 , blck[B1].CGi , bwdH2T , blck[B2].t_Gi ) ;
-      result[idx] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
-
+      result[idx2] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
+      
       /////////////////// Dimeson -> Diquark Anti-Diquark mixing terms
-      idx = 2*TETRA_NBLOCK*TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
-
+      const size_t idx3 = 2*TETRA_NBLOCK*TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
+      
       // O_2 O_1 -- term 1
       precompute_block( C1 , bwdH1 , gamma_transpose( blck[B1].Gi ) , L2 , blck[B2].t_CG5 ) ;
       precompute_block( C2 , L1T , blck[B1].G5 , bwdH2T , blck[B2].t_CGi ) ;
-      result[idx]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
+      result[idx3]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
 
       // O_2 O_1 -- term 2 has the minus sign
       precompute_block( C1 , bwdH1 , gamma_transpose( blck[B1].G5 ) , L2 , blck[B2].t_CG5 ) ;
       precompute_block( C2 , L1T , blck[B1].Gi , bwdH2T , blck[B2].t_CGi ) ;
-      result[idx] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
+      result[idx3] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
 
       ////////////////// Dimeson -> Dimeson mixing terms
-      idx = 2*TETRA_NBLOCK*TETRA_NBLOCK + TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
-	    
+      const size_t idx4 = 2*TETRA_NBLOCK*TETRA_NBLOCK + TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
+      
       // O_2 O_2 -- term 1 is positive 
       precompute_block( C1 , bwdH1 , blck[B1].G5 , L1 , blck[B2].t_G5 ) ;
       precompute_block( C2 , bwdH2 , blck[B1].Gi , L2 , blck[B2].t_Gi ) ;
-      result[idx]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
+      result[idx4]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
       // O_2 O_2 -- term 2 is -( a b^\dagger )
       precompute_block( C1 , bwdH1 , blck[B1].G5 , L1 , blck[B2].t_Gi ) ;
       precompute_block( C2 , bwdH2 , blck[B1].Gi , L2 , blck[B2].t_G5 ) ;  
-      result[idx] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+      result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 
       // need to do the others where L1 and L2 are swapped, this is only 
       // a concern for the dimeson - dimeson
@@ -381,14 +379,14 @@ tetras( double complex *result ,
 	// O2O2 -- term 3 is -( b a^\dagger )
 	precompute_block( C1 , bwdH1 , blck[B1].G5 , L2 , blck[B2].t_Gi ) ;
 	precompute_block( C2 , bwdH2 , blck[B1].Gi , L1 , blck[B2].t_G5 ) ;  
-	result[idx] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+	result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 
 	// O2O2 -- term 4 is ( b b^\dagger )
 	precompute_block( C1 , bwdH1 , blck[B1].G5 , L2 , blck[B2].t_G5 ) ;
 	precompute_block( C2 , bwdH2 , blck[B1].Gi , L1 , blck[B2].t_Gi ) ;
-	result[idx] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
+	result[idx4] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
       } else {
-	result[idx] *= 2 ;
+	result[idx4] *= 2 ;
       }
       //
     }

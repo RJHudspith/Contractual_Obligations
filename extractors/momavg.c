@@ -341,7 +341,7 @@ main( const int argc ,
 
   if( split == GLU_TRUE ) {
     // split the averaged results into separate files for ease of reading
-    write_averages( avlist , (const struct mcorr**)corravg , argv[2] , 
+    write_averages( avlist , (const struct mcorr**)corravg , argv[3] , 
 		    Nequiv , NGSRC[0] , NGSNK[0] ) ;
   } else {
     // write into a file

@@ -71,7 +71,7 @@ mesons_diagonal( struct propagator prop1 ,
       if( t < ( LT - 1 ) ) {
 	error_code = read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
-      /*
+      
       // parallelise the furthest out loop :: flatten the gammas
       #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
@@ -95,7 +95,47 @@ mesons_diagonal( struct propagator prop1 ,
 			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }
-      */
+
+    }
+    // end of parallel loop
+
+    // compute the contracted correlator
+    compute_correlator( &M , stride1 , stride2 , tshifted ,
+			CUTINFO.configspace ) ;
+
+    // to err is human
+    if( error_code == FAILURE ) {
+      goto memfree ;
+    }
+
+    // copy Sf into S
+    copy_props( &M , Nprops ) ;
+
+    // status of the computation
+    progress_bar( t , LT ) ;
+  }
+
+  // write out the ND-1 momentum-injected correlator and maybe the wall
+  write_momcorr( outfile , (const struct mcorr**)M.corr , 
+		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  if( M.is_wall == GLU_TRUE ) {
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
+		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+  }
+
+ memfree :
+
+  // free our measurement struct
+  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
+
+  return error_code ;
+}
+
+// clean up number of props
+#undef Nprops
+
+// start of a disconnected code?
+#if 0
       // if t == source then we compute disconnected loops
       if( ( t == prop1.origin[ ND-1 ] ) && ( M.is_wall == GLU_TRUE ) ) {
 
@@ -140,40 +180,4 @@ mesons_diagonal( struct propagator prop1 ,
 
 	exit(1) ;
       }
-      // end of parallel loop
-    }
-
-    // compute the contracted correlator
-    compute_correlator( &M , stride1 , stride2 , tshifted ,
-			CUTINFO.configspace ) ;
-
-    // to err is human
-    if( error_code == FAILURE ) {
-      goto memfree ;
-    }
-
-    // copy Sf into S
-    copy_props( &M , Nprops ) ;
-
-    // status of the computation
-    progress_bar( t , LT ) ;
-  }
-
-  // write out the ND-1 momentum-injected correlator and maybe the wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , 
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
-
- memfree :
-
-  // free our measurement struct
-  free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
-
-  return error_code ;
-}
-
-// clean up number of props
-#undef Nprops
+#endif
