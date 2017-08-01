@@ -1,12 +1,14 @@
 /**
-   @file tetraquark.c
-   @brief tetraquark contraction code
+   @file penta_udusb.c
+   @brief first pentaquark contraction code
+
+   more or less exactly the same as the tetraquark one
 */
 
 #include "common.h"
 
-#include "basis_conversions.h"  // rotate_offdiag()
-#include "contractions.h"       // full_adj()
+#include "basis_conversions.h"  // nrel_rotate_slice()
+#include "contractions.h"       // gamma_mul_lr()
 #include "correlators.h"        // allocate_corrs() && free_corrs()
 #include "cut_routines.h"       // veclist
 #include "gammas.h"             // make_gammas() && gamma_mmul*
@@ -14,22 +16,21 @@
 #include "progress_bar.h"       // progress_bar()
 #include "setup.h"              // compute_correlator() ..
 #include "spinor_ops.h"         // sumprop()
-#include "tetra_contractions.h" // diquark_diquark()
+#include "penta_contractions.h" // 
 
 // number of propagators
 #define Nprops (3)
 
-// tetraquark candidate L1 L2 \bar{H} \bar{H} so three propagators
 int
-tetraquark_usbb( struct propagator prop1 ,
-		 struct propagator prop2 ,
-		 struct propagator prop3 ,
-		 struct cut_info CUTINFO ,
-		 const char *outfile )
+pentaquark_udusb( struct propagator prop1 , // L
+		  struct propagator prop2 , // S
+		  struct propagator prop3 , // H
+		  struct cut_info CUTINFO ,
+		  const char *outfile )
 {
   // counters
-  const size_t stride1 = TETRA_NOPS ;
-  const size_t stride2 = ND-1 ;
+  const size_t stride1 = B_CHANNELS * B_CHANNELS ;
+  const size_t stride2 = NS*NS ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -70,70 +71,72 @@ tetraquark_usbb( struct propagator prop1 ,
       sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
       full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
     }
-
+    
     // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ; 
+    const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ;
 
-    // strange memory access pattern threads better than what was here before
     size_t site ;
     #pragma omp parallel
     {
-      // read on the master and one slave
+      // read on the master and slaves
       if( t < LT-1 ) {
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
-
 	// precompute backward bottom propagator
 	struct spinor bwdH ;
 	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
-
-	// tetraquark contractions stored in result
-	double complex result[ stride1 ] ;
-	size_t op , GSRC ;
-	for( op = 0 ; op < stride1 ; op++ ) {
+	
+	// pentaquark contractions stored in result
+	double complex result[ stride2 ] ;
+	size_t GSRC , op ;
+	for( op = 0 ; op < stride2 ; op++ ) {
 	  result[ op ] = 0.0 ;
 	}
-	
+
 	// loop gamma source
-	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
+	for( GSRC = 0 ; GSRC < stride1 ; GSRC++ ) {
+	  const size_t GS = GSRC / B_CHANNELS ;
+	  const size_t GK = GSRC % B_CHANNELS ;
 	  // perform contraction, result in result
-	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH , bwdH ,
-		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
+	  pentas( result , M.S[0][ site ] , M.S[1][ site ] , bwdH ,
+		  M.GAMMAS , GS , GK ) ;
 	  // put contractions into flattend array for FFT
-	  for( op = 0 ; op < stride1 ; op++ ) {
-	    M.in[ GSRC + op * stride2 ][ site ] = result[ op ] ;
+	  for( op = 0 ; op < stride2 ; op++ ) {
+	    M.in[ op + GSRC * stride2 ][ site ] = result[ op ] ;
 	  }
 	}
       }
+
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
 	size_t GSRC  ;
         #pragma omp for private(GSRC)
-	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
-	  double complex result[ stride1 ] ;
-	  size_t op ;
-	  for( op = 0 ; op < stride1 ; op++ ) {
-	    result[ op ] = 0.0 ;
+	for( GSRC = 0 ; GSRC < stride1 ; GSRC++ ) {
+	  double complex result[ stride2 ] ;
+	  size_t k ;
+	  for( k = 0 ; k < stride2 ; k++ ) {
+	    result[ k ] = 0.0 ;
 	  }
+	  const size_t GS = GSRC / B_CHANNELS ;
+	  const size_t GK = GSRC % B_CHANNELS ;
 	  // perform contraction, result in result
-	  tetras( result , M.SUM[0] , M.SUM[1] , SUMbwdH , SUMbwdH ,
-		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
+	  pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS , GS, GK ) ;
 	  // put contractions into final correlator object
-	  for( op = 0 ; op < stride1 ; op++ ) {
-	    M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
+	  size_t op ;
+	  for( op = 0 ; op < stride2 ; op++ ) {
+	    M.wwcorr[ GSRC ][ op ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }
 	}
-	///
       }
+      // end of wall-wall stuff
     }
-
     // compute the contracted correlator
     compute_correlator( &M , stride1 , stride2 , tshifted ,
 			CUTINFO.configspace ) ;
-
+    
     // if we error we leave
     if( error_code == FAILURE ) {
       goto memfree ;
@@ -146,7 +149,7 @@ tetraquark_usbb( struct propagator prop1 ,
     progress_bar( t , LT ) ;
   }
 
-  // write out the tetra wall-local and maybe wall-wall
+  // write out the penta wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , 
 		 M.list , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
@@ -154,7 +157,7 @@ tetraquark_usbb( struct propagator prop1 ,
 		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
-  // failure sink
+  // memfree sink
  memfree :
 
   // free our measurement struct

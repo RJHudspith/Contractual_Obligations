@@ -95,13 +95,12 @@ tetraquark_uscb( struct propagator prop1 ,
 
 	// tetraquark contractions stored in result
 	double complex result[ stride1 ] ;
-	size_t k ;
-	for( k = 0 ; k < stride1 ; k++ ) {
-	  result[ k ] = 0.0 ;
+	size_t GSRC , op ;
+	for( op = 0 ; op < stride1 ; op++ ) {
+	  result[ op ] = 0.0 ;
 	}
 
 	// loop gamma source
-	size_t GSRC , op ;
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
 	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH1 , bwdH2 , 
@@ -115,14 +114,17 @@ tetraquark_uscb( struct propagator prop1 ,
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
 	size_t GSRC  ;
-        #pragma omp parallel for private(GSRC)
+        #pragma omp for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  double complex result[ stride1 ] ;
+	  size_t op ;
+	  for( op = 0 ; op < stride1 ; op++ ) {
+	    result[ op ] = 0.0 ;
+	  }
 	  // perform contraction, result in result
 	  tetras( result , M.SUM[0] , M.SUM[1] , SUMbwdH1 , SUMbwdH2 , 
 		  M.GAMMAS , GSRC , GLU_FALSE , GLU_FALSE ) ;
 	  // put contractions into final correlator object
-	  size_t op ;
 	  for( op = 0 ; op < stride1 ; op++ ) {
 	    M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	  }

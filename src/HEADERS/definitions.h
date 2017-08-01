@@ -122,6 +122,12 @@
 #define SUCCESS !FAILURE
 
 /**
+   @def PENTA_NOPS
+   @brief number of pentaquark operators
+ */
+#define PENTA_NOPS (1)
+
+/**
    @def TETRA_NBLOCK
    @brief number of different tetraquark blocks we will use
  */

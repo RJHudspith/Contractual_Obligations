@@ -14,6 +14,7 @@
 #include "wrap_baryons.h"    // Baryon contraction wrapper
 #include "wrap_diquarks.h"   // Diquark contraction wrapper
 #include "wrap_mesons.h"     // Meson contraction wrapper
+#include "wrap_pentas.h"     // Pentaquark contraction wrapper
 #include "wrap_tetras.h"     // Tetraquark contraction wrapper
 #include "wrap_VPF.h"        // VPF contraction wrapper
 #include "wrap_WME.h"        // VPF contraction wrapper
@@ -100,6 +101,12 @@ main( const int argc,
   // calls a wrapper that has some logic tests
   if( contract_mesons( prop , inputs.mesons , inputs.CUTINFO ,
 		       inputs.nmesons ) == FAILURE ) {
+    goto FREES ; // do not pass GO, do not collect £200
+  }
+
+  // pentaquark contraction code
+  if( contract_pentas( prop , inputs.pentas , inputs.CUTINFO , 
+		       inputs.npentas ) == FAILURE ) {
     goto FREES ; // do not pass GO, do not collect £200
   }
 

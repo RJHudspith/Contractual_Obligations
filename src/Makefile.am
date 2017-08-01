@@ -26,8 +26,9 @@ FIELDFILES=./FIELD/plaqs_links.c ./FIELD/polyakov.c
 IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/HIREP.c \
 	./IO/io.c ./IO/input_reader.c \
 	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
-	./IO/input_tetras.c ./IO/input_VPF.c ./IO/input_WME.c \
-	./IO/read_config.c ./IO/read_headers.c ./IO/read_propheader.c \
+	./IO/input_pentas.c ./IO/input_tetras.c ./IO/input_VPF.c \
+	./IO/input_WME.c ./IO/read_config.c ./IO/read_headers.c \
+	./IO/read_propheader.c \
 	./IO/readers.c ./IO/Scidac.c ./IO/XML_info.c
 
 ## c files in ./LINALG/
@@ -40,6 +41,10 @@ LINALGFILES= \
 ## c files in ./MEAS/
 MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
+
+## c files in ./PENTA/
+PENTAFILES=./PENTA/penta_contractions.c ./PENTA/penta_udusb.c \
+	./PENTA/wrap_pentas.c
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/tetra_usbb.c ./TETRA/wrap_tetras.c \
@@ -71,6 +76,7 @@ libCORR_a_SOURCES = \
 	${IOFILES} \
 	${LINALGFILES} \
 	${MEASFILES} \
+	${PENTAFILES} \
 	${TETRAFILES} \
 	${UTILSFILES} \
 	${VPFFILES} \
@@ -85,6 +91,7 @@ include_HEADERS = \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(LINALGFILES:./LINALG/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
+	$(PENTAFILES:./PENTA/%.c=./HEADERS/%.h) \
 	$(TETRAFILES:./TETRA/%.c=./HEADERS/%.h) \
 	$(UTILSSFILES:./UTILS/%.c=./HEADERS/%.h) \
 	$(VPFFILES:./VPF/%.c=./HEADERS/%.h) \

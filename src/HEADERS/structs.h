@@ -95,6 +95,8 @@ struct input_info {
   size_t ndiquarks ;
   struct meson_info *mesons ;
   size_t nmesons ;
+  struct penta_info *pentas ;
+  size_t npentas ;
   struct tetra_info *tetras ;
   size_t ntetras ;
   struct VPF_info *VPF ;
@@ -241,6 +243,16 @@ struct spinor{
   struct colormatrix D[ NS ][ NS ] __attribute__((aligned(16))) ;
 } ;
 
+/**
+   @struct penta_info
+   @brief pentaquark contraction info
+   @param map :: contraction map indices
+   @param outfile :: output file name
+ */
+struct penta_info {
+  size_t map[3] ;
+  char outfile[ 256 ] ;
+} ;
 
 /**
    @struct tetra_info

@@ -22,7 +22,6 @@
 
    Some of it was taken from my library GLU, some is new
 */
-
 #include "common.h"
 
 #include <errno.h>
@@ -30,6 +29,7 @@
 #include "input_baryons.h"  // baryon contraction logic
 #include "input_general.h"  // general setup information get_dims() etc..
 #include "input_mesons.h"   // meson contraction logic
+#include "input_pentas.h"   // pentaquark contraction logic
 #include "input_tetras.h"   // tetraquark contraction logic
 #include "input_VPF.h"      // VPF contraction logic
 #include "input_WME.h"      // WME contraction logic
@@ -117,6 +117,7 @@ free_inputs( struct input_info inputs )
   free( inputs.baryons ) ;
   free( inputs.diquarks ) ;
   free( inputs.mesons ) ;
+  free( inputs.pentas ) ;
   free( inputs.tetras ) ;
   free( inputs.VPF ) ;
   free( inputs.wme ) ;
@@ -173,6 +174,7 @@ get_input_data( struct propagator **prop ,
   inputs -> baryons = NULL ;
   inputs -> diquarks = NULL ;
   inputs -> mesons = NULL ;
+  inputs -> pentas = NULL ;
   inputs -> tetras = NULL ;
   inputs -> VPF = NULL ;
   inputs -> wme = NULL ;
@@ -206,6 +208,14 @@ get_input_data( struct propagator **prop ,
   meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , INPUT , inputs -> nprops , GLU_TRUE ) ;
   inputs -> mesons = (struct meson_info*)malloc( ( inputs -> nmesons ) * sizeof( struct meson_info ) ) ;
   if( meson_contractions( inputs -> mesons , &( inputs -> nmesons ) , INPUT ,
+			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
+    STATUS = FAILURE ;
+  }
+
+  // pentas
+  penta_contractions( inputs -> pentas , &( inputs -> npentas ) , INPUT , inputs -> nprops , GLU_TRUE ) ;
+  inputs -> pentas = (struct penta_info*)malloc( ( inputs -> npentas ) * sizeof( struct penta_info ) ) ;
+  if( penta_contractions( inputs -> pentas , &( inputs -> npentas ) , INPUT ,
 			  inputs -> nprops , GLU_FALSE ) == FAILURE ) {
     STATUS = FAILURE ;
   }
