@@ -79,7 +79,7 @@ identity( double complex poly[ NCNC ] )
 }
 
 // precompute all of the lines
-static void
+void
 precompute_poly_lines( const struct site *__restrict lat ,
 		       const size_t site , 
 		       const size_t dir ,
@@ -103,7 +103,15 @@ precompute_poly_lines( const struct site *__restrict lat ,
     size_t j ;
 #pragma omp parallel for private(j)
     for( j = 0 ; j < LCU ; j++ ) {
-      multab( lines[ j + idx ] , lines[ j + prev ] , lat[ j + idx ].O[ ND-1 ] ) ;
+      #ifdef HAVE_IMMINTRIN_H
+      multab( (__m128d*)lines[ j + idx ] ,
+	      (__m128d*)lines[ j + prev ] ,
+	      (__m128d*)lat[ j + idx ].O[ ND-1 ] ) ;
+      #else
+      multab( (__m128d*)lines[ j + idx ] ,
+	      (__m128d*)lines[ j + prev ] ,
+	      (__m128d*)lat[ j + idx ].O[ ND-1 ] ) ;
+      #endif
     }
     prev = idx ;
   }

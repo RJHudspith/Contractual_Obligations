@@ -244,6 +244,14 @@ struct spinor{
 } ;
 
 /**
+   @struct Ospinor
+   @brief opposite-ordering spinor
+ */
+struct Ospinor {
+  struct spinmatrix C[ NC ][ NC ] __attribute__((aligned(16))) ;
+} ;
+
+/**
    @struct penta_info
    @brief pentaquark contraction info
    @param map :: contraction map indices

@@ -182,7 +182,7 @@ contract_O2O2_2( const struct block *C1 ,
 }
 
 // mixing of heavy mesons
-static double complex
+double complex
 contract_O3( const struct block *C1 , 
 	     const struct block *C2 ,
 	     const GLU_bool H1H2_degenerate )

@@ -125,7 +125,7 @@
    @def PENTA_NOPS
    @brief number of pentaquark operators
  */
-#define PENTA_NOPS (1)
+#define PENTA_NOPS (4)
 
 /**
    @def TETRA_NBLOCK

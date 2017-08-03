@@ -29,8 +29,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 		  const char *outfile )
 {
   // counters
-  const size_t stride1 = B_CHANNELS * B_CHANNELS ;
-  const size_t stride2 = NS*NS ;
+  const size_t stride1 = 1 ;
+  const size_t stride2 = 2 * PENTA_NOPS ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -98,11 +98,9 @@ pentaquark_udusb( struct propagator prop1 , // L
 
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride1 ; GSRC++ ) {
-	  const size_t GS = GSRC / B_CHANNELS ;
-	  const size_t GK = GSRC % B_CHANNELS ;
 	  // perform contraction, result in result
 	  pentas( result , M.S[0][ site ] , M.S[1][ site ] , bwdH ,
-		  M.GAMMAS , GS , GK ) ;
+		  M.GAMMAS ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride2 ; op++ ) {
 	    M.in[ op + GSRC * stride2 ][ site ] = result[ op ] ;
@@ -120,10 +118,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  for( k = 0 ; k < stride2 ; k++ ) {
 	    result[ k ] = 0.0 ;
 	  }
-	  const size_t GS = GSRC / B_CHANNELS ;
-	  const size_t GK = GSRC % B_CHANNELS ;
 	  // perform contraction, result in result
-	  pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS , GS, GK ) ;
+	  pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ) ;
 	  // put contractions into final correlator object
 	  size_t op ;
 	  for( op = 0 ; op < stride2 ; op++ ) {

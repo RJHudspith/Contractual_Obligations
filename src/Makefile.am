@@ -35,6 +35,7 @@ IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/HIREP.c \
 LINALGFILES= \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
+	./LINALG/Ospinor.c \
 	./LINALG/spinor_ops.c ./LINALG/spinor_ops_SSE.c \
 	./LINALG/spinmatrix_ops.c ./LINALG/spinmatrix_ops_SSE.c
 
@@ -43,8 +44,10 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
 
 ## c files in ./PENTA/
-PENTAFILES=./PENTA/penta_contractions.c ./PENTA/penta_udusb.c \
-	./PENTA/wrap_pentas.c
+PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
+	./PENTA/contract_O2O1.c ./PENTA/contract_O2O2.c \
+	./PENTA/penta_contractions.c \
+	./PENTA/penta_udusb.c ./PENTA/wrap_pentas.c
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/tetra_usbb.c ./TETRA/wrap_tetras.c \
