@@ -125,7 +125,7 @@ baryon_contract_site( double complex **term ,
     OD2 = odc % NS ;
     // by hand compute color trace 
     // Tr( ( DiQ_{0,0} + DiQ_{1,1} + ... + DiQ_{NS,NS} ) S3_{OD2,OD1}^T ) for term[0]
-    double complex *C = (double complex*)S3.D[ OD2 ][ OD1 ].C ;
+    const double complex *C = (const double complex*)S3.D[ OD2 ][ OD1 ].C ;
     for( i = 0 ; i < NCNC ; i++ ) {
       term[0][ odc ] += t[ i ] * ( *C ) ; C++ ;
     }

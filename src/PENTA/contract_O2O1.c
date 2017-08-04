@@ -108,7 +108,8 @@ contract_colors_O2O1( const double complex *F )
 // 
 void
 contract_O2O1( struct spinmatrix *P ,
-	       const struct spinor L ,
+	       const struct spinor U ,
+	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
 	       const struct gamma *GAMMAS )
@@ -117,20 +118,20 @@ contract_O2O1( struct spinmatrix *P ,
   struct gamma CG5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
   struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
   
-  // compute the common spinor "M"
+  // compute the common spinor "M" is like the meson again
   struct spinor M = S ;
   gamma_mul_lr( &M , G5 , tCG5t ) ;
   spinmul_atomic_left( &M , B ) ;
   gamma_mul_l( &M , GAMMAS[ GAMMA_T ] ) ;
   
   // precompute
-  struct spinor Temp = L ;
+  struct spinor Temp = D ;
   gamma_mul_lr( &Temp , CG5 , tCG5t ) ;
 
   struct Ospinor OM  = spinor_to_Ospinor( M ) ;
-  struct Ospinor OU1 = spinor_to_Ospinor( transpose_spinor( L ) ) ;
+  struct Ospinor OU1 = spinor_to_Ospinor( transpose_spinor( U ) ) ;
   struct Ospinor OD  = spinor_to_Ospinor( Temp ) ;
-  struct Ospinor OU2 = spinor_to_Ospinor( L ) ;
+  struct Ospinor OU2 = spinor_to_Ospinor( U ) ;
 
   double complex **F = precompute_F_O2O1( OM , OU1 , OD , OU2 ) ;
 

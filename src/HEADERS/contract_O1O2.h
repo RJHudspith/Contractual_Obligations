@@ -6,12 +6,13 @@
 #define CONTRACT_O1O2_H
 
 /**
-   @fn void contract_O1O2( struct spinmatrix *P , const struct spinor L , const struct spinor S , const struct spinor B , const struct gamma *GAMMAS )
+   @fn void contract_O1O2( struct spinmatrix *P , const struct spinor U , const struct spinor D , const struct spinor S , const struct spinor B , const struct gamma *GAMMAS )
    @brief contract the diquarks - Baryon-Meson operators
  */
 void
 contract_O1O2( struct spinmatrix *P ,
-	       const struct spinor L ,
+	       const struct spinor U ,
+	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
 	       const struct gamma *GAMMAS ) ;

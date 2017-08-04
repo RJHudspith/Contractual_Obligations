@@ -83,14 +83,14 @@ pentaquark_udusb( struct propagator prop1 , // L
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
-      #pragma omp for private(site) schedule(dynamic)
+      #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 	// precompute backward bottom propagator
 	struct spinor bwdH ;
 	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
 	// pentaquark contractions stored in result
-	double complex result[ stride2 ] ;
+	double complex *result = malloc( stride2 * sizeof( double complex ) ) ;
 	size_t GSRC , op ;
 	for( op = 0 ; op < stride2 ; op++ ) {
 	  result[ op ] = 0.0 ;
@@ -106,6 +106,7 @@ pentaquark_udusb( struct propagator prop1 , // L
 	    M.in[ op + GSRC * stride2 ][ site ] = result[ op ] ;
 	  }
 	}
+	free( result ) ;
       }
 
       // wall-wall contractions

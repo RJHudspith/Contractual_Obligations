@@ -27,7 +27,7 @@ baryon_contract_site( double complex **term ,
 		      const struct spinor S2 , 
 		      const struct spinor S3 , 
 		      const struct gamma Cgmu ,
-		      const struct gamma CgmuT ) ;
+		      const struct gamma CgmuD ) ;
 
 /**
    @fn void baryon_contract_site_mom( double complex **in , const struct spinor S1 , const struct spinor S2 , const struct spinor S3 , const struct gamma Cgmu , const struct gamma CgmuT , const size_t GSGK , const size_t site )
@@ -39,7 +39,7 @@ baryon_contract_site_mom( double complex **in ,
 			  const struct spinor S2 , 
 			  const struct spinor S3 , 
 			  const struct gamma Cgmu ,
-			  const struct gamma CgmuT ,
+			  const struct gamma CgmuD ,
 			  const size_t GSGK ,
 			  const size_t site ) ;
 

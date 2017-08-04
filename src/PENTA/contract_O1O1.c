@@ -127,7 +127,8 @@ contract_colors( const double complex *F ,
 // (ud)(us)\bar{b} with ud us diquarks
 void
 contract_O1O1( struct spinmatrix *P ,
-	       const struct spinor L ,
+	       const struct spinor U ,
+	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor bwdH ,
 	       const struct gamma *GAMMAS )
@@ -137,9 +138,9 @@ contract_O1O1( struct spinmatrix *P ,
   struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
 
   // temporary spinors
-  struct spinor U1 = transpose_spinor( L ) ,
-    U2 = transpose_spinor( L ) ,
-    Dt = L , St = S , Bt = bwdH ;
+  struct spinor U1 = transpose_spinor( U ) ,
+    U2 = transpose_spinor( U ) ,
+    Dt = D , St = S , Bt = bwdH ;
 
   // perform some gamma multiplications
   gamma_mul_r( &U1 , CG5 ) ;

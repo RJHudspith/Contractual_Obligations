@@ -45,7 +45,10 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 
 ## c files in ./PENTA/
 PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
-	./PENTA/contract_O2O1.c ./PENTA/contract_O2O2.c \
+	./PENTA/contract_O1O3.c ./PENTA/contract_O2O1.c \
+	./PENTA/contract_O2O2.c ./PENTA/contract_O2O3.c \
+	./PENTA/contract_O3O1.c ./PENTA/contract_O3O2.c \
+	./PENTA/contract_O3O3.c \
 	./PENTA/penta_contractions.c \
 	./PENTA/penta_udusb.c ./PENTA/wrap_pentas.c
 
