@@ -30,7 +30,8 @@ void (*contract[9])( struct spinmatrix *P ,
   contract_O2O1 , contract_O2O2 , contract_O2O3 ,
   contract_O3O1 , contract_O3O2 , contract_O3O3 } ;
 
-// get our idx from individual colors
+// get our idx from individual colors, for some reason I wrote this with
+// the bs running fastest
 size_t
 idx( const size_t b , const size_t bp ,
      const size_t c , const size_t cp ,

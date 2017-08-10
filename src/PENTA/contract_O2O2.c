@@ -38,7 +38,7 @@ contract_O2O2( struct spinmatrix *P ,
   baryon_contract_site( term , U , U , D , Cgmu , CgmuD ) ;
   
   const double complex T =
-    simple_meson_contract( tG5t , B , G5 , S ) ;
+    -simple_meson_contract( tG5t , B , G5 , S ) ;
 
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) { 

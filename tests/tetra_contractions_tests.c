@@ -29,21 +29,22 @@ compare_spinmatrix_to_gamma( double complex *s ,
 			     const struct gamma G )
 {
   size_t d1 , d2 ;
+  int flag = 0 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) {
       if( G.ig[ d1 ] == d2 ) {
 	switch( G.g[d1] ) {
-	case 0 : if( cabs( s[d2+NS*d1] - 1 ) > FLTOL ) ; return 1 ;
-	case 1 : if( cabs( s[d2+NS*d1] - I ) > FLTOL ) ; return 1 ;
-	case 2 : if( cabs( s[d2+NS*d1] + 1 ) > FLTOL ) ; return 1 ;
-	case 3 : if( cabs( s[d2+NS*d1] + I ) > FLTOL ) ; return 1 ;
+	case 0 : return cabs( s[d2+NS*d1] - 1 ) < FLTOL ;
+	case 1 : return cabs( s[d2+NS*d1] - I ) < FLTOL ;
+	case 2 : return cabs( s[d2+NS*d1] + 1 ) < FLTOL ;
+	case 3 : return cabs( s[d2+NS*d1] + I ) < FLTOL ;
 	}
       } else {
-	if( cabs( s[d2+NS*d1] ) > FLTOL ) ; return 1 ;
+	return cabs( s[d2+NS*d1] ) < FLTOL ;
       }
     }
   }
-  return 0 ;
+  return flag ;
 }
 
 // compute the trace of a gamma object
@@ -114,16 +115,17 @@ precompute_block_test( void )
   
       size_t abcd , a , b , c , d , d1d2 ;
       for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
+	
 	get_abcd( &a , &b , &c , &d , abcd ) ;
 	// if we hit the identity components we compare to
 	// the product of gammas
 	if( a == b && c == d ) {
-	  mu_assert( "[UNIT] error : precompute_block broken\n" ,
+	  mu_assert( "[UNIT] error : precompute_block (diag) broken\n" ,
 		     compare_spinmatrix_to_gamma( C1[abcd].M , prod ) ) ;
 	} else {
 	  // should be zero
 	  for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
-	    mu_assert( "[UNIT] error : precompute_block broken\n" ,
+	    mu_assert( "[UNIT] error : precompute_block (zero) broken\n" ,
 		       cabs( C1[abcd].M[d1d2] ) < FLTOL ) ;
 	  }
 	}

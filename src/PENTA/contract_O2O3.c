@@ -13,9 +13,9 @@
 
 // precompute the F-tensor
 static double complex**
-precompute_F_O2O3( const struct Ospinor OU1 ,
-		   const struct Ospinor OM ,
-		   const struct Ospinor OU2 )
+precompute_F_O2O3_v2( const struct Ospinor OU1 ,
+		      const struct Ospinor OM ,
+		      const struct Ospinor OU2 )
 {
   double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
   size_t i ;
@@ -23,6 +23,22 @@ precompute_F_O2O3( const struct Ospinor OU1 ,
     F[i] = malloc( 729 * sizeof( double complex ) ) ;
   }
 
+  struct spinmatrix temp4[ 9 ][ 9 ] ;
+  size_t c1 , c2 , c3 , c4 ;
+  for( c1 = 0 ; c1 < NC ; c1++ ) {
+    for( c2 = 0 ; c2 < NC ; c2++ ) {
+      struct spinmatrix t1 = OU1.C[ c1 ][ c2 ] ;
+      for( c3 = 0 ; c3 < NC ; c3++ ) {
+	for( c4 = 0 ; c4 < NC ; c4++ ) {
+	  struct spinmatrix t2 = OM.C[ c3 ][ c4 ] ;
+	  spinmatrix_multiply( temp4[c2+c1*NC][c4+c3*NC].D ,
+			       t1.D , t2.D ) ;
+	}
+      }
+    }
+  }
+
+  // loop possible index combinations
   for( i = 0 ; i < 729 ; i++ ) {
     
     // map the indices
@@ -34,13 +50,11 @@ precompute_F_O2O3( const struct Ospinor OU1 ,
     }
     
     // preset the spinmatrices
-    struct spinmatrix
-      temp1 = OU1.C[ idx[0] ][ idx[1] ] ,
-      temp2 = OM.C[ idx[2] ][ idx[3] ] ,
-      temp3 = OU2.C[ idx[4] ][ idx[5] ] ,
-      temp4 , temp5 ;
+    const struct spinmatrix temp3 = OU2.C[ idx[4] ][ idx[5] ] ;
+    struct spinmatrix temp5 ;
 
-    const double complex tr = trace_prod_spinmatrices( temp1.D , temp2.D ) ;
+    const double complex tr =
+      spinmatrix_trace( temp4[idx[1]+idx[0]*NC][idx[3]+idx[2]*NC].D ) ;
 
     size_t d1 , d2 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
@@ -49,8 +63,9 @@ precompute_F_O2O3( const struct Ospinor OU1 ,
       }
     }
 
-    spinmatrix_multiply( temp4.D , temp1.D , temp2.D ) ;
-    spinmatrix_multiply( temp5.D , temp4.D , temp3.D ) ;
+    spinmatrix_multiply( temp5.D ,
+			 temp4[idx[1]+idx[0]*NC][idx[3]+idx[2]*NC].D ,
+			 temp3.D ) ;
 
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
@@ -58,9 +73,9 @@ precompute_F_O2O3( const struct Ospinor OU1 ,
       }
     }
   }
+
   return F ;
 }
-
 
 // contract the colors of the F-tensor
 static double complex
@@ -69,8 +84,8 @@ contract_colors_O2O3( const double complex *F )
   register double complex sum = 0.0 ;
   size_t a , b , c ;
   for( a = 0 ; a < NC ; a++ ) {
-    for( b = 0 ; b < NC ; b++ ) {
-      for( c = 0 ; c < NC ; c++ ) {
+    for( c = 0 ; c < NC ; c++ ) {
+      for( b = 0 ; b < NC ; b++ ) {
 	// first set of epsilon identities
 	sum += ( +F[ idx2( b , b , c , c , a , a ) ] 
 		 -F[ idx2( c , b , c , b , a , a ) ]
@@ -97,7 +112,7 @@ contract_O2O3( struct spinmatrix *P ,
   struct gamma G5 = GAMMAS[ GAMMA_5 ] ;
   struct gamma tG5t = gt_Gdag_gt( G5 , GAMMAS[ GAMMA_T ] ) ;
   
-  struct gamma CG5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
+  struct gamma CG5 = CGmu( G5 , GAMMAS ) ;
   struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
 
   // precompute [ (Cg5 D tg5t) B (g5 S tCg5t) ]
@@ -111,9 +126,9 @@ contract_O2O3( struct spinmatrix *P ,
 
   const struct Ospinor OU1 = spinor_to_Ospinor( U ) ;
   const struct Ospinor OU2 = spinor_to_Ospinor( U ) ;
-  const struct Ospinor OM = spinor_to_Ospinor( U ) ;
-  
-  double complex **F = precompute_F_O2O3( OU1 , OM , OU2 ) ;
+  const struct Ospinor OM = spinor_to_Ospinor( M ) ;
+
+  double complex **F = precompute_F_O2O3_v2( OU1 , OM , OU2 ) ;
 
   // compute the color contraction
   size_t d1 , d2 ;

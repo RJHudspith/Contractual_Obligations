@@ -29,8 +29,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 		  const char *outfile )
 {
   // counters
-  const size_t stride1 = 1 ;
-  const size_t stride2 = 2 * PENTA_NOPS ;
+  const size_t stride1 = 2 ;
+  const size_t stride2 = PENTA_NOPS ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -90,42 +90,39 @@ pentaquark_udusb( struct propagator prop1 , // L
 	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
 	// pentaquark contractions stored in result
-	double complex *result = malloc( stride2 * sizeof( double complex ) ) ;
-	size_t GSRC , op ;
-	for( op = 0 ; op < stride2 ; op++ ) {
+	double complex *result = malloc( 2 * stride2 * sizeof( double complex ) ) ;
+	size_t op ;
+	for( op = 0 ; op < 2 * stride2 ; op++ ) {
 	  result[ op ] = 0.0 ;
 	}
 
-	// loop gamma source
-	for( GSRC = 0 ; GSRC < stride1 ; GSRC++ ) {
-	  // perform contraction, result in result
-	  pentas( result , M.S[0][ site ] , M.S[1][ site ] , bwdH ,
-		  M.GAMMAS ) ;
-	  // put contractions into flattend array for FFT
-	  for( op = 0 ; op < stride2 ; op++ ) {
-	    M.in[ op + GSRC * stride2 ][ site ] = result[ op ] ;
-	  }
+	// perform contraction, result in result
+	pentas( result , M.S[0][ site ] , M.S[1][ site ] , bwdH ,
+		M.GAMMAS ) ;
+	
+	// put contractions into flattend array for FFT
+	for( op = 0 ; op < stride2 ; op++ ) {
+	  M.in[ op ][ site ] = result[ op ] ;
+	  M.in[ op + stride2 ][ site ] = result[ op + stride2 ] ;
 	}
+
 	free( result ) ;
       }
 
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
-	size_t GSRC  ;
-        #pragma omp for private(GSRC)
-	for( GSRC = 0 ; GSRC < stride1 ; GSRC++ ) {
-	  double complex result[ stride2 ] ;
-	  size_t k ;
-	  for( k = 0 ; k < stride2 ; k++ ) {
-	    result[ k ] = 0.0 ;
-	  }
-	  // perform contraction, result in result
-	  pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ) ;
-	  // put contractions into final correlator object
-	  size_t op ;
-	  for( op = 0 ; op < stride2 ; op++ ) {
-	    M.wwcorr[ GSRC ][ op ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
-	  }
+	double complex result[ 2 * stride2 ] ;
+	size_t k ;
+	for( k = 0 ; k < 2 * stride2 ; k++ ) {
+	  result[ k ] = 0.0 ;
+	}
+	// perform contraction, result in result
+	pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ) ;
+	// put contractions into final correlator object
+	size_t op ;
+	for( op = 0 ; op < stride2 ; op++ ) {
+	  M.wwcorr[ 0 ][ site ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
+	  M.wwcorr[ 1 ][ site ].mom[ 0 ].C[ tshifted ] = result[ op + stride2 ] ;
 	}
       }
       // end of wall-wall stuff

@@ -13,12 +13,37 @@
 
 // precompute the F-tensor
 static double complex*
-precompute_F_O1O1( const struct Ospinor OU1 ,
-		   const struct Ospinor OU2 ,
-		   const struct Ospinor OD ,
-		   const struct Ospinor OS )
+precompute_F_O1O1_v2( const struct Ospinor OU1 ,
+		      const struct Ospinor OU2 ,
+		      const struct Ospinor OD ,
+		      const struct Ospinor OS )
 {
   double complex *F = malloc( 6561 * sizeof( double complex ) ) ;
+
+  // precompute all sub-spinmatrices
+  struct spinmatrix temp5[9][9] , temp6[9][9] ;
+	    
+  size_t c1 , c2 , c3 , c4 ;
+  for( c1 = 0 ; c1 < NC ; c1++ ) {
+    for( c2 = 0 ; c2 < NC ; c2++ ) {
+      
+      const struct spinmatrix t1 = OU1.C[ c1 ][ c2 ] ;
+      const struct spinmatrix t3 = OU2.C[ c1 ][ c2 ] ;
+      
+      for( c3 = 0 ; c3 < NC ; c3++ ) {
+        for( c4 = 0 ; c4 < NC ; c4++ ) {
+
+	  const struct spinmatrix t2 = OD.C[ c3 ][ c4 ] ;
+	  const struct spinmatrix t4 = OS.C[ c3 ][ c4 ] ;
+	  
+	  spinmatrix_multiply( temp5[c2+NC*c1][c4+NC*c3].D , t1.D , t2.D ) ;
+	  
+	  spinmatrix_multiply( temp6[c2+NC*c1][c4+NC*c3].D , t3.D , t4.D ) ;
+	}
+      }
+    }
+  }
+  
   size_t i ;
   for( i = 0 ; i < 6561 ; i++ ) {
 
@@ -34,30 +59,14 @@ precompute_F_O1O1( const struct Ospinor OU1 ,
       div *= NC ;
     }
 
-    // this is the first contraction
-    // T_S[ U_{bb'} G1 D_{cc'} ~G1 ] T_S[ U_{gg'} G2 S_{hh'} ~G2 ]
-    struct spinmatrix
-      temp1 = OU1.C[ idx[0] ][ idx[1] ] ,
-      temp2 =  OD.C[ idx[2] ][ idx[3] ] ,
-      temp3 = OU2.C[ idx[4] ][ idx[5] ] ,
-      temp4 =  OS.C[ idx[6] ][ idx[7] ] ;
     
     F[i] =
-      trace_prod_spinmatrices( temp1.D , temp2.D ) *
-      trace_prod_spinmatrices( temp3.D , temp4.D ) ;
+      spinmatrix_trace( temp5[ idx[1] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ) *
+      spinmatrix_trace( temp6[ idx[5] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
 
-    // T_S[ U_{bg'} G1 D_{cc'} ~G1 U_{gb'} G2 S_{hh'} ~G2 ]
-    temp1 = OU1.C[ idx[0] ][ idx[5] ] ;
-    temp2 =  OD.C[ idx[2] ][ idx[3] ] ;
-    temp3 = OU2.C[ idx[4] ][ idx[1] ] ;
-    temp4 =  OS.C[ idx[6] ][ idx[7] ] ;
-
-    // multiplty all of these together
-    struct spinmatrix temp5 , temp6 ;
-    spinmatrix_multiply( temp5.D , temp1.D , temp2.D ) ;
-    spinmatrix_multiply( temp6.D , temp3.D , temp4.D ) ;
-    
-    F[i] -= trace_prod_spinmatrices( temp5.D , temp6.D ) ;
+    F[i] -=
+      trace_prod_spinmatrices( temp5[ idx[5] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ,
+			       temp6[ idx[1] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
   }
   
   return F ;
@@ -73,12 +82,12 @@ contract_colors( const double complex *F ,
   // so I stick that out the front, logically there would be
   // 5 color sums for our pentaquark
   register double complex sum = 0.0 ;
-  size_t b , c , g , h , prime ; 
-  for( b = 0 ; b < NC ; b++ ) {
-    for( prime = 0 ; prime < NC ; prime++ ) {   
+  size_t b , c , g , h , prime ;
+  for( h = 0 ; h < NC ; h++ ) {
+    for( g = 0 ; g < NC ; g++ ) {
       for( c = 0 ; c < NC ; c++ ) {
-	for( g = 0 ; g < NC ; g++ ) {
-	  for( h = 0 ; h < NC ; h++ ) {
+	for( prime = 0 ; prime < NC ; prime++ ) {
+	  for( b = 0 ; b < NC ; b++ ) {
 	    // op1
 	    sum +=
 	      ( F[ idx( b , prime , c , c , g , g , h , h ) ] -
@@ -147,7 +156,7 @@ contract_O1O1( struct spinmatrix *P ,
   gamma_mul_r( &Dt , tCG5t ) ;
   gamma_mul_r( &U2 , CG5 ) ;
   gamma_mul_r( &St , tCG5t ) ;
-  gamma_mul_l( &Bt , GAMMAS[ GAMMA_T ] ) ;
+  //gamma_mul_l( &Bt , GAMMAS[ GAMMA_T ] ) ;
 
   // switch to a color - dirac structure for much better
   // cache coherence
@@ -157,8 +166,8 @@ contract_O1O1( struct spinmatrix *P ,
   struct Ospinor OS  = spinor_to_Ospinor( St ) ;
   
   // pre-compute all possible indices
-  double complex *F = precompute_F_O1O1( OU1 , OU2 , OD , OS ) ;
-  
+  double complex *F = precompute_F_O1O1_v2( OU1 , OU2 , OD , OS ) ;
+
   size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) { 
