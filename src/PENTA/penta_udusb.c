@@ -111,7 +111,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
-	double complex result[ 2 * stride2 ] ;
+	double complex *result =
+	  malloc( 2 * stride2 * sizeof( double complex ) )  ;
 	size_t k ;
 	for( k = 0 ; k < 2 * stride2 ; k++ ) {
 	  result[ k ] = 0.0 ;
@@ -121,9 +122,10 @@ pentaquark_udusb( struct propagator prop1 , // L
 	// put contractions into final correlator object
 	size_t op ;
 	for( op = 0 ; op < stride2 ; op++ ) {
-	  M.wwcorr[ 0 ][ site ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
-	  M.wwcorr[ 1 ][ site ].mom[ 0 ].C[ tshifted ] = result[ op + stride2 ] ;
+	  M.wwcorr[ 0 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
+	  M.wwcorr[ 1 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op + stride2 ] ;
 	}
+	free( result ) ;
       }
       // end of wall-wall stuff
     }
