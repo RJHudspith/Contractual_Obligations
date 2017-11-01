@@ -199,7 +199,7 @@ spinmatrix_trace( const void *spinmatrix )
 {
   const double complex *s = (const double complex *)spinmatrix ;
   register double complex sum = 0.0 ;
-  int i ;
+  size_t i ;
   for( i = 0 ; i < NS ; i++ ) {
     sum += s[ i * ( NS + 1 ) ] ;
   }

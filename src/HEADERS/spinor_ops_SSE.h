@@ -9,6 +9,14 @@
 #ifdef HAVE_EMMINTRIN_H
 
 /**
+   @fn void add_spinors( struct spinor *A , const struct spinor B )
+   @brief atomically add spinors A += B
+ */
+void
+add_spinors( struct spinor *A ,
+	     const struct spinor B ) ;
+
+/**
    @fn void colortrace_spinor( void *S1 , const void *S2 )
    @brief trace the color indices of our spinor
  */
@@ -74,12 +82,28 @@ void
 identity_spinor( struct spinor *__restrict res ) ;
 
 /**
+   @fn void sub_spinors( struct spinor *A , const struct spinor B )
+   @brief atomically subtract spinors A -= B
+ */
+void
+sub_spinors( struct spinor *A ,
+	     const struct spinor B ) ;
+
+/**
    @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
    @brief atomically left multiply spinor A by spinor B ( A = B * A )
  */
 void
 spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B ) ;
+
+/**
+   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
+   @brief atomically left multiply spinor A by spinor B ( A = A * B )
+ */
+void
+spinmul_atomic_right( struct spinor *A ,
+		      const struct spinor B ) ;
 
 /**
    @fn void spinor_gauge( struct spinor *__restrict res , const struct spinor S , const double complex link[ NCNC ] ) 

@@ -9,10 +9,10 @@
 
 #ifdef HAVE_EMMINTRIN_H
 
-// atomically add two spinors
+// sum a propagator
 static void
-add_spinors( __m128d *SUM ,
-	     const __m128d *S )
+sum_spinor( __m128d *SUM ,
+	    const __m128d *S )
 {
   size_t i ;
 #if NC == 3 
@@ -72,6 +72,20 @@ zero_spinor( __m128d *S )
     *S = zero ; S++ ;
   }
 #endif
+}
+
+// atomically add spinors
+void
+add_spinors( struct spinor *A ,
+	     const struct spinor B )
+{
+  __m128d *s1 = (__m128d*)A -> D ;
+  const __m128d *s2 = (const __m128d*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 = _mm_add_pd( *s1 , *s2 ) ; s1++ ; s2++ ;
+  }
+  return ;
 }
 
 // colortrace our spinor into a dirac matrix
@@ -379,6 +393,34 @@ spinmul_atomic_left( struct spinor *A ,
   return ;
 }
 
+// multiplies two spinors A = A * B
+void
+spinmul_atomic_right( struct spinor *A ,
+		      const struct spinor B )
+{
+  struct spinor tmp = *A ;
+  size_t d1 , d2 , d3 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      __m128d link[ NCNC ] , sum[ NCNC ] ;
+      // zero
+      for( d3 = 0 ; d3 < NCNC ; d3++ ) { 
+	sum[ d3 ] = _mm_setzero_pd( ) ;
+      }
+      // color matrix multiply
+      for( d3 = 0 ; d3 < NS ; d3++ ) { 
+	multab( link , 
+		(const __m128d*)tmp.D[ d1 ][ d3 ].C , 
+		(const __m128d*)B.D[ d3 ][ d2 ].C ) ;
+	add_mat( sum , link ) ;
+      }
+      colormatrix_equiv( (double complex*)A -> D[d1][d2].C ,
+			 (const double complex*)sum ) ;
+    }
+  }
+  return ;
+}
+
 // trace out our dirac indices
 void
 spintrace( void *S ,
@@ -405,6 +447,20 @@ spintrace( void *S ,
   }
 }
 
+// atomically add spinors
+void
+sub_spinors( struct spinor *A ,
+	     const struct spinor B )
+{
+  __m128d *s1 = (__m128d*)A -> D ;
+  const __m128d *s2 = (const __m128d*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 = _mm_sub_pd( *s1 , *s2 ) ; s1++ ; s2++ ;
+  }
+  return ;
+}
+
 // sums a propagator over a timeslice
 void
 sumprop( void *SUM ,
@@ -415,7 +471,7 @@ sumprop( void *SUM ,
   const __m128d *tS = (const __m128d*)S ;
   size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
-    add_spinors( tSUM , tS ) ; tS += NSNS*NCNC ;
+    sum_spinor( tSUM , tS ) ; tS += NSNS*NCNC ;
   }
   return ;
 }

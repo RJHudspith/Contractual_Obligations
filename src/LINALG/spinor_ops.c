@@ -9,9 +9,9 @@
 
 #ifndef HAVE_EMMINTRIN_H
 
-// atomically add two spinors
+// sum over a spinor
 static void
-add_spinors( double complex *SUM ,
+sum_spinor( double complex *SUM ,
 	     const double complex *S ) 
 {
   size_t i ;
@@ -21,6 +21,7 @@ add_spinors( double complex *SUM ,
   return ;
 }
 
+
 // inline zero a spinor
 static void
 zero_spinor( double complex *S ) 
@@ -28,6 +29,20 @@ zero_spinor( double complex *S )
   size_t i ;
   for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
     *S = 0.0 ; S++ ;
+  }
+  return ;
+}
+
+// atomically add spinors
+void
+add_spinors( struct spinor *A ,
+	     const struct spinor B )
+{
+  double complex *s1 = (double complex*)A -> D ;
+  double complex *s2 = (double complex*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 += *s2 ; s1++ ; s2++ ;
   }
   return ;
 }
@@ -152,6 +167,20 @@ identity_spinor( struct spinor *__restrict res )
   return ;
 }
 
+// atomically subtract two spinors
+void
+sub_spinors( struct spinor *A ,
+	      const struct spinor B )
+{
+  double complex *s1 = (double complex*)A -> D ;
+  double complex *s2 = (double complex*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 -= *s2 ; s1++ ; s2++ ;
+  }
+  return ;
+}
+
 // multiply by a link :: res = S * link
 void
 spinor_gauge( struct spinor *__restrict res ,  
@@ -228,6 +257,31 @@ spinmul_atomic_left( struct spinor *A ,
   return ;
 }
 
+// multiplies two spinors A = A * B
+void
+spinmul_atomic_right( struct spinor *A ,
+		      const struct spinor B )
+{
+  struct spinor tmp = *A ; // memcpy a spinor here
+  size_t d1 , d2 , d3 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      double complex link[ NCNC ] , sum[ NCNC ] ;
+      // zero
+      for( d3 = 0 ; d3 < NCNC ; d3++ ) { sum[ d3 ] = 0.0 ; }
+      // spin-color matrix multiply
+      for( d3 = 0 ; d3 < NS ; d3++ ) {
+	multab( link ,
+		(const double complex*)tmp.D[d1][d3].C ,
+		(const double complex*)B.D[d3][d2].C ) ;
+	add_mat( sum , link ) ;
+      }
+      colormatrix_equiv( (double complex*)A -> D[d1][d2].C , sum ) ;
+    }
+  }
+  return ;
+}
+
 // zero a spinor
 void
 spinor_zero( void *S )
@@ -280,7 +334,7 @@ sumprop( void *SUM ,
   const double complex *s = (const double complex*)S ;
   size_t i ;
   for( i = 0 ; i < LCU ; i++ ) {
-    add_spinors( sum , s ) ; s += NSNS*NCNC ;
+    sum_spinor( sum , s ) ; s += NSNS*NCNC ;
   }
   return ;
 }

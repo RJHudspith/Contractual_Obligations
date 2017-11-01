@@ -15,13 +15,13 @@ int
 read_propheader( struct propagator *prop ) ;
 
 /**
-   @fn int read_propheaders( struct propagator *prop , const struct input_info inputs )
+   @fn int read_propheaders( struct propagator *prop , const size_t nprops )
    @brief open and check our propagator files
    @param prop :: propagator file
    @return #SUCCESS or #FAILURE
  */
 int
 read_propheaders( struct propagator *prop ,
-		  const struct input_info inputs ) ;
+		  const size_t nprops ) ;
 
 #endif

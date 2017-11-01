@@ -200,6 +200,9 @@ process_file( struct veclist **momentum ,
   if( FREAD32( NGSRC , 1 , infile ) == FAILURE ) return NULL ;
   if( FREAD32( NGSNK , 1 , infile ) == FAILURE ) return NULL ;
 
+  fprintf( stdout , "[NGAMMAS] NGSRC :: %u NGSNK :: %u \n" ,
+	   NGSRC[0] , NGSNK[0] ) ;
+
   // read in an LT
   uint32_t L0[ 1 ] ;
   if( FREAD32( L0 , 1 , infile ) == FAILURE ) return NULL ;

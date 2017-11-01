@@ -13,7 +13,27 @@ static struct spinor A ;         // single spinor storage
 static double complex *C ;
 static double complex *D ;
 
-#define FTOL ( NC * 1.E-14 ) 
+#define FTOL ( NC * 1.E-14 )
+
+// check that (A += A) == 2A
+static char*
+add_spinors_test( void )
+{
+  
+  struct spinor B = A ;
+  add_spinors( &B , A ) ;
+  
+  const double complex *c = (const double complex*)A.D ;
+  const double complex *d = (const double complex*)B.D ;
+  
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    mu_assert( "[UNIT] error : spinor ops add_spinors broken " , 
+	       !( cabs( 2*(*c) - *d ) > FTOL ) ) ;
+    c++ ; d++ ;
+  }
+  return NULL ;
+}
 
 static char*
 colortrace_spinor_test( void )
@@ -258,6 +278,22 @@ spinor_gaugedag_test( void )
   return NULL ;
 }
 
+// check that (A -= A) == 0
+static char*
+sub_spinors_test( void )
+{
+  struct spinor B = A ;
+  sub_spinors( &B , A ) ;
+  const double complex *c = (double complex*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    mu_assert( "[UNIT] error : spinor ops sub_spinors broken " , 
+	       !( cabs( *c ) > FTOL ) ) ;
+    c++ ;
+  }
+  return NULL ;
+}
+
 // sum of a timeslice test
 static char*
 sumprop_test( void )
@@ -274,9 +310,51 @@ sumprop_test( void )
   return NULL ;
 }
 
-// compute Id = ( Id * A ) using full spinor multiply
+// full open index multiply check
 static char*
 spinmul_atomic_left_test( void )
+{
+ // grisly test
+  size_t i , j , k , c1 , c2 , c3 ;
+  struct spinor B , Id = A ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  B.D[i][j].C[c1][c2] = c2 + I*c1 ;
+	}
+      }
+    }
+  }
+
+  spinmul_atomic_left( &Id , B ) ;
+  
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+
+	  // inner summation indices
+	  double complex sum = 0.0 ;
+	  for( k = 0 ; k < NS ; k++ ) {
+	    for( c3 = 0 ; c3 < NC ; c3++ ) {
+	      sum += B.D[i][k].C[c1][c3] * A.D[k][j].C[c3][c2] ;
+	    }
+	  }
+
+	  // check
+	  mu_assert( "[UNIT] error : spinmul_atomic_left broken " , 
+		     !( fabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
+	}
+      }
+    }
+  }
+  return NULL ;
+}
+
+// compute A = ( Id * A ) using full left-spinor multiply
+static char*
+spinmul_atomic_left_ID_test( void )
 {
   struct spinor Id ;
   spinor_zero_site( &Id ) ; // this MUST get tested befor this function call
@@ -293,6 +371,97 @@ spinmul_atomic_left_test( void )
   size_t i ;
   for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
     mu_assert( "[UNIT] error : spinmul_atomic_left broken " , 
+	       !( fabs( *a - *id ) > FTOL ) ) ; 
+    a++ , id++ ;
+  }
+
+  return NULL ;
+}
+// compute A = ( A * Id ) using full right-spinor multiply
+static char*
+spinmul_atomic_right_ID_test( void )
+{
+  struct spinor Id ;
+  spinor_zero_site( &Id ) ; // this MUST get tested befor this function call
+  // maybe we should have this as identity spinor?
+  size_t d1d2 , c1c2 ;
+  for( d1d2 = 0 ; d1d2 < NS ; d1d2++ ) {
+    for( c1c2 = 0 ; c1c2 < NC ; c1c2++ ) {
+      Id.D[d1d2][d1d2].C[c1c2][c1c2] = 1.0 ;
+    }
+  }
+  spinmul_atomic_right( &Id , A ) ;
+  const double *id = (const double *)Id.D ;
+  const double *a = (const double *)A.D ;
+  size_t i ;
+  for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
+    mu_assert( "[UNIT] error : spinmul_atomic_right broken " , 
+	       !( fabs( *a - *id ) > FTOL ) ) ; 
+    a++ , id++ ;
+  }
+  
+  return NULL ;
+}
+
+// compute A = ( A * B ) using full open index multiply
+static char*
+spinmul_atomic_right_test( void )
+{
+ // grisly test
+  size_t i , j , k , c1 , c2 , c3 ;
+  struct spinor B , Id = A ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+	  B.D[i][j].C[c1][c2] = c2 + I*c1 ;
+	}
+      }
+    }
+  }
+
+  spinmul_atomic_right( &Id , B ) ;
+  
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      for( c1 = 0 ; c1 < NC ; c1++ ) {
+	for( c2 = 0 ; c2 < NC ; c2++ ) {
+
+	  // inner summation indices
+	  double complex sum = 0.0 ;
+	  for( k = 0 ; k < NS ; k++ ) {
+	    for( c3 = 0 ; c3 < NC ; c3++ ) {
+	      sum += A.D[i][k].C[c1][c3] * B.D[k][j].C[c3][c2] ;
+	    }
+	  }
+
+	  // check
+	  mu_assert( "[UNIT] error : spinmul_atomic_right broken " , 
+		     !( fabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
+	}
+      }
+    }
+  }
+  return NULL ;
+}
+  
+// test that A^2 == A^2 with A^2 computed by atomic left mul
+// or by atomic right multiply
+static char*
+spinmul_atomics_test( void )
+{
+  // test that A^2 left and A^2 right agree
+  struct spinor Id = A ;
+  spinmul_atomic_right( &Id , A ) ;
+
+  struct spinor Id2 = A ;
+  spinmul_atomic_left( &Id2 , A ) ;
+  
+  const double *id = (const double *)Id.D ;
+  const double *a = (const double *)Id2.D ;
+  size_t i ;
+  for( i = 0 ; i < 2*NSNS*NCNC ; i++ ) {
+    mu_assert( "[UNIT] error : spinmul_atomics broken " , 
 	       !( fabs( *a - *id ) > FTOL ) ) ; 
     a++ , id++ ;
   }
@@ -369,6 +538,7 @@ spinops_test( void )
   }
 
   // run spinor ops tests
+  mu_run_test( add_spinors_test ) ;
   mu_run_test( colortrace_spinor_test ) ;
   mu_run_test( equate_minus_test ) ;
   mu_run_test( flipsign_test ) ;
@@ -379,8 +549,13 @@ spinops_test( void )
   mu_run_test( spinor_gauge_test ) ;
   mu_run_test( spinordag_gauge_test ) ;
   mu_run_test( spinor_gaugedag_test ) ;
+  mu_run_test( sub_spinors_test ) ;
   mu_run_test( sumprop_test ) ;
+  mu_run_test( spinmul_atomic_left_ID_test ) ;
   mu_run_test( spinmul_atomic_left_test ) ;
+  mu_run_test( spinmul_atomic_right_ID_test ) ;
+  mu_run_test( spinmul_atomic_right_test ) ;
+  mu_run_test( spinmul_atomics_test ) ;
   mu_run_test( spinor_zero_test ) ;
   mu_run_test( spintrace_test ) ;
   mu_run_test( transpose_spinor_test ) ;

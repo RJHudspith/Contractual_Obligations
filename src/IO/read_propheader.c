@@ -294,10 +294,10 @@ read_propheader( struct propagator *prop )
 // open the files and parse the header
 int
 read_propheaders( struct propagator *prop ,
-		  const struct input_info inputs )
+		  const size_t nprops )
 {
   size_t i ;
-  for( i = 0 ; i < inputs.nprops ; i++ ) {
+  for( i = 0 ; i < nprops ; i++ ) {
     // read and check 'em
     if( read_propheader( &prop[ i ] ) == FAILURE ) {
       return FAILURE ;

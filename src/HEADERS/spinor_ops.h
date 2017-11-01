@@ -15,6 +15,15 @@
 #else
 
 /**
+   @fn void add_spinors( struct spinor *A , const struct spinor B )
+   @brief atomically add two spinors A += B
+ */
+void
+add_spinors( struct spinor *A ,
+	     const struct spinor B ) ;
+
+
+/**
    @fn void colortrace_spinor( void *S1 , const void *S2 )
    @brief trace the color indices of our spinor
  */
@@ -97,6 +106,14 @@ spinmul_atomic_left( struct spinor *A ,
 		     const struct spinor B ) ;
 
 /**
+   @fn void spinmul_atomic_left( struct spinor *A , const struct spinor B )
+   @brief atomically left multiply spinor A by spinor B ( A = A * B )
+ */
+void
+spinmul_atomic_right( struct spinor *A ,
+		      const struct spinor B ) ;
+
+/**
    @fn void spinor_zero( void *S )
    @brief zero a spinor over the timeslice
    @warning is threaded
@@ -138,6 +155,14 @@ spinor_zero_site( void *S ) ;
 void
 spintrace( void *S ,
 	   const void *S2 ) ;
+
+/**
+   @fn void sub_spinors( struct spinor *A , const struct spinor B )
+   @brief atomically subtract two spinors A -= B
+ */
+void
+sub_spinors( struct spinor *A ,
+	     const struct spinor B ) ;
 
 /**
    @fn void sumprop( void* SUM , const void* S )
