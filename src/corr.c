@@ -76,7 +76,7 @@ main( const int argc,
 
   // open up some propagator files and parse the
   // header checking the geometry
-  if( read_propheaders( prop , inputs ) == FAILURE ) {
+  if( read_propheaders( prop , inputs.nprops ) == FAILURE ) {
     if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
     free_props( prop , inputs.nprops ) ;
     free_inputs( inputs ) ;
