@@ -38,6 +38,39 @@ get_tag( char line[ MAX_LINE_LENGTH ] )
   return strtok( line , " " ) ;
 }
 
+// get the initial source position
+// this is really gross as strcmp doesn't play nice with the hyphen
+// so I split the string again and look for anti
+static int
+get_propbounds( boundaries *bound ) 
+{
+  char *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    if( are_equal( token , "periodic" ) ) {
+      bound[ N ] = PERIODIC ;
+    } else if( are_equal( token , "PplusA" ) ) {
+      bound[ N ] = PPLUSA ;
+    } else if( are_equal( token , "PminusA" ) ) {
+      bound[ N ] = PMINUSA ;
+    } else if( are_equal( token , "PmulA" ) ) {
+      bound[ N ] = PMULA ;
+    } else {
+      char *tok2 = strtok( token , "-" ) ;
+      if( are_equal( "anti" , tok2 ) ) {
+	bound[ N ] = ANTIPERIODIC ;
+      } else {
+	fprintf( stderr , "[IO] propheader I don't understand boundary %s\n" ,
+		 token ) ;
+	return FAILURE ;
+      }
+    }
+    if( ++N == ND ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
 // get the propagator dims
 static int
 get_propdims( size_t *dims ) 
@@ -63,7 +96,7 @@ get_propdims( size_t *dims )
     if( ++N == ND ) return SUCCESS ;
   }
   return FAILURE ;
-} 
+}
 
 // get the initial source position
 static int
@@ -208,7 +241,7 @@ read_propheader( struct propagator *prop )
   // error flags
   int n = 0 , dimsflag = 0 , originflag = 0 ;
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
-  int basisflag = 0 ;
+  int basisflag = 0 , boundsflag = 0 ;
 
   // loop up to some large number of possible tags
   while( n < MAX_HEADER_LINES ) {
@@ -262,6 +295,13 @@ read_propheader( struct propagator *prop )
       }
       basisflag ++ ;
     }
+    // propagator boundaries
+    if( are_equal( tag , "Boundaries:" ) ) {
+      if( get_propbounds( prop -> bound ) == FAILURE ) {
+	return tagfailure( "Boundaries:" , line ) ;
+      }
+      boundsflag ++ ;
+    }
     // break when we hit the desired end_header
     if( are_equal( line , "<end_header>\n" ) ) {
       break ;
@@ -276,6 +316,7 @@ read_propheader( struct propagator *prop )
   if( precflag == 0 ) return nonexistent_record( "Precision:" ) ;
   if( srcflag == 0 ) return nonexistent_record( "Source:" ) ;
   if( basisflag == 0 ) return nonexistent_record( "Basis:" ) ;
+  if( boundsflag == 0 ) return nonexistent_record( "Boundaries:" ) ;
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
   // the NRQCD code counts from 1 instead of zero, shift to c-counting

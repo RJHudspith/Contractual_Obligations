@@ -201,6 +201,7 @@ struct propagator {
   proptype basis ;
   sourcetype source ;
   size_t origin[ ND ] ;
+  boundaries bound[ ND ] ;
   fp_precision precision ;
   endianness endian ;
   size_t t ;

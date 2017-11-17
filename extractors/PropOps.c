@@ -32,10 +32,18 @@ struct site *lat = NULL ;
 static int
 are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str_2 ) ; }
 
+// enumerate the inputs
+enum{ DIMS = 1 , PROP1 = 2 , OP = 3 , PROP2 = 4 , OUTPROP = 5 } ;
+
+// enumerate the propagator operation
+typedef enum{ ADD , SUB , MUL } Optype ;
+
 // write a propagator header file
 static void
 write_propheader( FILE *outfile ,
-		  const struct propagator prop )
+		  const struct propagator prop1 ,
+		  const struct propagator prop2 ,
+		  const Optype Op )
 {
   size_t mu ;
   // write out usual header stuff
@@ -47,12 +55,12 @@ write_propheader( FILE *outfile ,
   fprintf( outfile , "\n" ) ;
   fprintf( outfile , "SrcPos:" ) ;
   for( mu = 0 ; mu < NS ; mu++ ) {
-    fprintf( outfile , " %zu" , prop.origin[mu] ) ;
+    fprintf( outfile , " %zu" , prop1.origin[mu] ) ;
   }
   fprintf( outfile , "\n" ) ;
   // basis
   fprintf( outfile , "Basis: " ) ;
-  switch( prop.basis ) {
+  switch( prop1.basis ) {
   case NREL_FWD : fprintf( outfile , "Nrel_fwd\n" ) ; break ;
   case NREL_BWD : fprintf( outfile , "Nrel_bwd\n" ) ; break ;
   case STATIC : fprintf( outfile , "Nrel_fwd\n" ) ; break ;
@@ -60,7 +68,7 @@ write_propheader( FILE *outfile ,
   }
   // source type
   fprintf( outfile , "Source: " ) ;
-  switch( prop.source ) {
+  switch( prop1.source ) {
   case POINT : fprintf( outfile , "Point\n" ) ; break ;
   case WALL : fprintf( outfile , "Wall\n" ) ; break ;
   }
@@ -72,12 +80,39 @@ write_propheader( FILE *outfile ,
   }
   // Precision will always be single!
   fprintf( outfile , "Precision: Single\n" ) ;
+
+  // write out the boundaries if they are different we
+  // call them one of the special types, this could change but at
+  // the moment it will do
+  fprintf( outfile , "Boundaries:" ) ;
+  if( ( prop1.bound[ND-1] == PERIODIC &&
+	prop2.bound[ND-1] == ANTIPERIODIC ) ||
+      ( prop1.bound[ND-1] == ANTIPERIODIC &&
+	prop2.bound[ND-1] == PERIODIC ) ) { 
+    for( mu = 0 ; mu < NS ; mu++ ) {
+      switch( Op ) {
+      case ADD : fprintf( outfile , " PplusA" ) ; break ;
+      case SUB : fprintf( outfile , " PminusA" ) ; break ;
+      case MUL : fprintf( outfile , " PmulA" ) ; break ;
+      }
+    }
+  } else {
+    for( mu = 0 ; mu < NS ; mu++ ) {
+      switch( prop1.bound[mu] ) {
+      case PERIODIC : fprintf( outfile , " periodic" ) ; break ;
+      case ANTIPERIODIC : fprintf( outfile , " anti-periodic" ) ; break ;
+      case PPLUSA : fprintf( outfile , " PplusA" ) ; break ;
+      case PMINUSA : fprintf( outfile , " PminusA" ) ; break ;
+      case PMULA : fprintf( outfile , " PmulA" ) ; break ;
+      }
+    }
+  }
+  fprintf( outfile , "\n" ) ;
+
+  
   fprintf( outfile , "<end_header>\n" ) ;
   return ;
 }
-
-// enumerate the inputs
-enum{ DIMS = 1 , PROP1 = 2 , OP = 3 , PROP2 = 4 , OUTPROP = 5 } ;
 
 // main file
 int 
@@ -86,17 +121,17 @@ main( const int argc,
 {
   // usual check for command-line arguments
   if( argc != 6 ) {
-    fprintf( stderr , "USAGE :: ./PROPOPS Lx,Ly,Lz,Lt prop1 op prop2 outprop\n"
+    fprintf( stderr , "USAGE :: ./PROPOPS Lx,Ly,Lz,Lt Peri_Prop op Aperi_Prop outprop\n"
 	     "Where op is either +,- or *\n" ) ;
     return FAILURE ;
   }
 
   // normal allocations and stuff
-  void (*f)( struct spinor *A , const struct spinor B ) ;
   struct spinor *S1 = NULL , *S2 = NULL ;
   struct propagator *prop = NULL ;
   FILE *outfile = NULL ;
   int error_code = SUCCESS ;
+  Optype Op ; // operator type we will use
 
   // parse the lattice dimensions
   char *tok = strtok( (char*)argv[ DIMS ] , "," ) , *endptr ;
@@ -110,11 +145,11 @@ main( const int argc,
 
   // parse the operator and create a function pointer
   if( are_equal( argv[ OP ] , "+" ) ) {
-    f = add_spinors ;
+    Op = ADD ;
   } else if( are_equal( argv[ OP ] , "-" ) ) {
-    f = sub_spinors ;
+    Op = SUB ;
   } else if( are_equal( argv[ OP ] , "*" ) ) {
-    f = spinmul_atomic_right ;
+    Op = MUL ;
   } else {
     fprintf( stderr , "[OP] operator %s not recognised\n" , argv[ OP ] ) ;
     error_code = FAILURE ; goto end ;
@@ -165,13 +200,33 @@ main( const int argc,
 
   // result will be in S1
   fprintf( stdout , "[IO] writing operation to %s \n" , argv[ OUTPROP ] ) ;
-  
+
+  // write the propheader
   outfile = fopen( argv[ OUTPROP ] , "wb" ) ;
-  write_propheader( outfile , prop[0] ) ;
+  write_propheader( outfile , prop[0] , prop[1] , Op ) ;
 
   float complex *s = malloc( LCU*NSNS*NCNC * sizeof( float complex ) ) ;
   size_t t ;
   for( t = 0 ; t < LT ; t++ ) {
+
+    // by convention the second prop is Anti
+    void (*f)( struct spinor *A , const struct spinor B ) ;
+    // check if we have gone through a boundary and that the boundaries
+    // on the two props are different, if so we flip a sign in prop[1]
+    if( ( t + prop[0].origin[ND-1] ) >= Latt.dims[ND-1] &&
+	( prop[0].bound[ND-1] != prop[1].bound[ND-1] ) ) {
+      switch( Op ) {
+      case ADD : f = sub_spinors ; break ;
+      case SUB : f = add_spinors ; break ;
+      case MUL : f = spinmul_atomic_right ; break ;
+      }
+    } else {
+      switch( Op ) {
+      case ADD : f = add_spinors ; break ;
+      case SUB : f = sub_spinors ; break ;
+      case MUL : f = spinmul_atomic_right ; break ;
+      }
+    }
     
     read_prop( prop[0] , S1 ) ;
     read_prop( prop[1] , S2 ) ;
@@ -190,7 +245,9 @@ main( const int argc,
     progress_bar( t , LT ) ;
   }
 
-  free( s ) ;
+  if( s != NULL ) {
+    free( s ) ;
+  }
   
   fclose( outfile ) ;
 

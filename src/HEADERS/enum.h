@@ -15,6 +15,18 @@ typedef enum {
   UUU_BARYON } baryon_type ;
 
 /**
+   @enum boundaries
+   @brief supported boundaries
+ */
+typedef enum {
+  PERIODIC ,
+  ANTIPERIODIC ,
+  PPLUSA ,
+  PMINUSA ,
+  PMULA ,
+} boundaries ;
+
+/**
    @enum bprojection
    @brief choices for baryon parity projections
  */
