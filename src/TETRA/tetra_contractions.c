@@ -28,21 +28,30 @@ contract_O1O1( const struct block *C1 ,
 	       const struct block *C2 ,
 	       const GLU_bool H1H2_degenerate )
 {
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  register double complex sum = 0.0 ;
   size_t abcd , a , b , c , d ;
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
-    // usual forward streaming term
-    sum1 += 
-      spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) *
+
+    // Hsum is the sum of heavy contractions
+    register double complex Hsum =
       spinmatrix_trace( C2[ element( c , a , d , b ) ].M ) ;
-    // cross color term by interchanging Bs
-    sum2 += 
-      spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * 
-      spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
+    
+    // cross color term by interchanging Bs picks up a minus
+    if( H1H2_degenerate == GLU_TRUE ) {
+      Hsum -= spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
+    // second terms come from epsilon identity
+    } else {
+      Hsum -= spinmatrix_trace( C2[ element( d , a , c , b ) ].M ) ;
+      Hsum -= spinmatrix_trace( C2[ element( c , b , d , a ) ].M ) ;
+      Hsum += spinmatrix_trace( C2[ element( d , b , c , a ) ].M ) ;
+    }
+
+    // multiply by the light contraction
+    sum += spinmatrix_trace( C1[ element( a , c , b , d ) ].M ) * Hsum ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 4*( sum1 - sum2 ) : 4*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 4*sum : sum ;
 }
 
 // diquark-dimeson cross term
@@ -51,21 +60,22 @@ contract_O1O2_1( const struct block *C1 ,
 		 const struct block *C2 ,
 		 const GLU_bool H1H2_degenerate )
 {
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  register double complex sum = 0.0 ;
   size_t abcd , a , b , c , d ;
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
+
     // single dirac trace
-    sum1 += 
+    sum += 
       trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
 			       C2[ element( d , a , c , b ) ].M ) ;
     // cross term
-    sum2 +=
+    sum -=
       trace_prod_spinmatrices( C1[ element( a , c , b , d ) ].M ,
 			       C2[ element( d , b , c , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*sum : sum ;
 }
 
 // diquark-dimeson cross term
@@ -74,21 +84,20 @@ contract_O1O2_2( const struct block *C1 ,
 		 const struct block *C2 ,
 		 const GLU_bool H1H2_degenerate )
 {
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  register double complex sum = 0.0 ;
   size_t abcd , a , b , c , d ;
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // single dirac trace
-    sum1 += 
+    sum += 
       trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
 			       C2[ element( c , a , d , b ) ].M ) ;
-    // cross term
-    sum2 +=
+    sum -=
       trace_prod_spinmatrices( C1[ element( a , d , b , c ) ].M ,
 			       C2[ element( c , b , d , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*sum : sum ;
 }
 
 // dimeson-diquark cross term
@@ -97,21 +106,20 @@ contract_O2O1_1( const struct block *C1 ,
 		 const struct block *C2 ,
 		 const GLU_bool H1H2_degenerate )
 {
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  register double complex sum = 0.0 ;
   size_t abcd , a , b , c , d ;
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // usual meson product
-    sum1 += 
+    sum += 
       trace_prod_spinmatrices( C1[ element( c , b , b , d ) ].M ,
 			       C2[ element( a , c , d , a ) ].M ) ;
-    // cross term
-    sum2 += 
+    sum -= 
       trace_prod_spinmatrices( C1[ element( d , b , b , d ) ].M ,
 			       C2[ element( a , c , c , a ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*sum : sum ;
 }
 
 // dimeson-diquark cross term
@@ -120,21 +128,21 @@ contract_O2O1_2( const struct block *C1 ,
 		 const struct block *C2 ,
 		 const GLU_bool H1H2_degenerate )
 {
-  register double complex sum1 = 0.0 , sum2 = 0.0 ;
+  register double complex sum = 0.0 ;
   size_t abcd , a , b , c , d ;
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &c , &d , abcd ) ;
     // usual meson product
-    sum1 += 
+    sum += 
       trace_prod_spinmatrices( C1[ element( c , a , a , d ) ].M ,
 			       C2[ element( b , c , d , b ) ].M ) ;
     // cross term
-    sum2 += 
+    sum -= 
       trace_prod_spinmatrices( C1[ element( d , a , a , d ) ].M ,
 			       C2[ element( b , c , c , b ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? 2*( sum1 - sum2 ) : 2*sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? 2*sum : sum ;
 }
 
 static double complex
@@ -151,7 +159,7 @@ contract_O2O2_1( const struct block *C1 ,
       spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
       spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
     // cross term
-    sum2 += 
+    sum2 -= 
       trace_prod_spinmatrices( C1[ element( d , a , a , c ) ].M ,
 			       C2[ element( c , b , b , d ) ].M ) ;
   }
