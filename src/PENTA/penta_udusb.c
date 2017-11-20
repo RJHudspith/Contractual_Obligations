@@ -30,7 +30,7 @@ pentaquark_udusb( struct propagator prop1 , // L
 {
   // counters
   const size_t stride1 = 2 ;
-  const size_t stride2 = PENTA_NOPS ;
+  const size_t stride2 = PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;

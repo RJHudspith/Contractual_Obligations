@@ -13,8 +13,10 @@ contract_O1O3( struct spinmatrix *P ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
+	       const struct gamma OP1 ,
+	       const struct gamma OP2 ,
 	       const struct gamma *GAMMAS )
 {
-  contract_O1O2( P , U , S , D , B , GAMMAS ) ;
+  contract_O1O2( P , U , S , D , B , OP1 , OP2 , GAMMAS ) ;
   return ;
 }

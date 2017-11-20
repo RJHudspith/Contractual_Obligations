@@ -140,11 +140,15 @@ contract_O1O1( struct spinmatrix *P ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor bwdH ,
+	       const struct gamma OP1 ,
+	       const struct gamma OP2 ,
 	       const struct gamma *GAMMAS )
 {
   // Idea:: create a huge array with all the possible color components
-  struct gamma CG5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma C1 = CGmu( OP1 , GAMMAS ) ;
+
+  struct gamma tC2t = gt_Gdag_gt( CGmu( OP2 , GAMMAS ) ,
+				  GAMMAS[ GAMMA_T ] ) ;
 
   // temporary spinors
   struct spinor U1 = transpose_spinor( U ) ,
@@ -152,10 +156,10 @@ contract_O1O1( struct spinmatrix *P ,
     Dt = D , St = S , Bt = bwdH ;
 
   // perform some gamma multiplications
-  gamma_mul_r( &U1 , CG5 ) ;
-  gamma_mul_r( &Dt , tCG5t ) ;
-  gamma_mul_r( &U2 , CG5 ) ;
-  gamma_mul_r( &St , tCG5t ) ;
+  gamma_mul_r( &U1 , C1 ) ;
+  gamma_mul_r( &Dt , tC2t ) ;
+  gamma_mul_r( &U2 , C1 ) ;
+  gamma_mul_r( &St , tC2t ) ;
   //gamma_mul_l( &Bt , GAMMAS[ GAMMA_T ] ) ;
 
   // switch to a color - dirac structure for much better

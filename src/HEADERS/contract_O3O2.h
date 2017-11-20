@@ -6,7 +6,7 @@
 #define CONTRACT_O3O2_H
 
 /**
-   @fn void contract_O3O2( struct spinmatrix *P , const struct spinor U , const struct spinor D , const struct spinor S , const struct spinor B , const struct gamma *GAMMAS )
+   @fn void contract_O3O2( struct spinmatrix *P , const struct spinor U , const struct spinor D , const struct spinor S , const struct spinor B , const struct gamma OP1 , const struct gamma OP2 , const struct gamma *GAMMAS )
    @brief baryon-meson mixing contraction
  */
 void
@@ -15,6 +15,8 @@ contract_O3O2( struct spinmatrix *P ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
+	       const struct gamma OP1 ,
+	       const struct gamma OP2 ,
 	       const struct gamma *GAMMAS ) ;
 
 #endif

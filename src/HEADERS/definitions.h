@@ -128,6 +128,12 @@
 #define PENTA_NOPS (9)
 
 /**
+   @def PENTA_NBLOCK
+   @brief number of different gamma combinations for the penta operator
+ */
+#define PENTA_NBLOCK (2)
+
+/**
    @def TETRA_NBLOCK
    @brief number of different tetraquark blocks we will use
  */

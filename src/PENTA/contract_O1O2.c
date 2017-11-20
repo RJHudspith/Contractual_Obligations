@@ -130,22 +130,26 @@ contract_O1O2( struct spinmatrix *P ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
+	       const struct gamma OP1 ,
+	       const struct gamma OP2 ,
 	       const struct gamma *GAMMAS )
 {
   // precompute some gammas
-  struct gamma CG5 = CGmu( GAMMAS[ GAMMA_5 ] , GAMMAS ) ;
-  struct gamma tG5t = gt_Gdag_gt( GAMMAS[ GAMMA_5 ] , GAMMAS[ GAMMA_T ] ) ;
-  struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma C1 = CGmu( OP1 , GAMMAS ) ;
+
+  struct gamma C2 = CGmu( OP2 , GAMMAS ) ;
+  struct gamma t2t = gt_Gdag_gt( OP2 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma tC2t = gt_Gdag_gt( C2 , GAMMAS[ GAMMA_T ] ) ;
   
   // compute the common spinor "M" is like a b_s meson kinda
   struct spinor Temp = S ;
   struct spinor M = B ;
-  gamma_mul_lr( &Temp , CG5 , tG5t ) ;
+  gamma_mul_lr( &Temp , C1 , t2t ) ;
   spinmul_atomic_left( &M , Temp ) ;
 
   // precompute CG5 D \tilde{CG5}
   Temp = D ;
-  gamma_mul_lr( &Temp , CG5 , tCG5t ) ;
+  gamma_mul_lr( &Temp , C1 , tC2t ) ;
 
   // convert to cache-friendly Ospinors
   struct Ospinor OU1 = spinor_to_Ospinor( U ) ;

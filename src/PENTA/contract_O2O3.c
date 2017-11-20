@@ -106,20 +106,23 @@ contract_O2O3( struct spinmatrix *P ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
+	       const struct gamma OP1 ,
+	       const struct gamma OP2 ,
 	       const struct gamma *GAMMAS )
 {
   // precompute some gammas
-  struct gamma G5 = GAMMAS[ GAMMA_5 ] ;
-  struct gamma tG5t = gt_Gdag_gt( G5 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma G5 = OP1 ;
+  struct gamma C1 = CGmu( G5 , GAMMAS ) ;
   
-  struct gamma CG5 = CGmu( G5 , GAMMAS ) ;
-  struct gamma tCG5t = gt_Gdag_gt( CG5 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma t2t = gt_Gdag_gt( OP1 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma tC2t = gt_Gdag_gt( CGmu( OP2 , GAMMAS ) ,
+				  GAMMAS[ GAMMA_T ] ) ;
 
   // precompute [ (Cg5 D tg5t) B (g5 S tCg5t) ]
   struct spinor M = S ;
-  gamma_mul_lr( &M , G5 , tCG5t ) ;
+  gamma_mul_lr( &M , G5 , tC2t ) ;
   struct spinor temp = D ;
-  gamma_mul_lr( &temp , CG5 , tG5t ) ;
+  gamma_mul_lr( &temp , C1 , t2t ) ;
   
   spinmul_atomic_left( &M , B ) ;
   spinmul_atomic_left( &M , temp ) ;
