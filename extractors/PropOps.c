@@ -213,7 +213,7 @@ main( const int argc,
     void (*f)( struct spinor *A , const struct spinor B ) ;
     // check if we have gone through a boundary and that the boundaries
     // on the two props are different, if so we flip a sign in prop[1]
-    if( ( t + prop[0].origin[ND-1] ) >= Latt.dims[ND-1] &&
+    if( ( t >= prop[0].origin[ND-1] ) &&
 	( prop[0].bound[ND-1] != prop[1].bound[ND-1] ) ) {
       switch( Op ) {
       case ADD : f = sub_spinors ; break ;

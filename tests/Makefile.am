@@ -13,4 +13,4 @@ UNIT_SOURCES = unit.c contract_tests.c matops_tests.c \
 	gamma_tests.c utils_tests.c \
 	SSE_tests.c
 UNIT_CFLAGS = -I${TOPDIR}/src/HEADERS/
-UNIT_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} 
+UNIT_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm

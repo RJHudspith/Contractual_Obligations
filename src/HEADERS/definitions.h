@@ -9,7 +9,7 @@
    @def B_CHANNELS
    @brief number of baryon channels we look at
  */
-#define B_CHANNELS (6)
+#define B_CHANNELS (16)
 
 /**
    @def CONDOR_MODE

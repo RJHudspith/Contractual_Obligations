@@ -221,7 +221,7 @@ AC_ARG_WITH([TETRA_NBLOCK],
 ])
 
 ## C standard libraries
-AC_CHECK_HEADERS([math.h],[LDFLAGS="$LDFLAGS -lm" ])
+AC_CHECK_HEADERS([math.h],[],AC_MSG_ERROR([We need math.h]))
 
 ## C standard library 
 AC_CHECK_HEADERS([stdint.h],[])

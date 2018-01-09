@@ -91,8 +91,14 @@ pentas( double complex *result ,
 	const struct spinor bwdH ,
 	const struct gamma *GAMMAS )
 {
-  struct gamma GBLOCK[ PENTA_NBLOCK ] = { GAMMAS[ GAMMA_5 ] ,
-					  GAMMAS[ IDENTITY ] } ;
+#if PENTA_NBLOCK > 4
+  fprintf( stderr , "[PENTA] compiled PENTA_NBLOCK greater than we allow\n" ) ;
+  return FAILURE ;
+#endif
+  struct gamma GBLOCK[ 4 ] = { GAMMAS[ GAMMA_5 ] ,
+			       GAMMAS[ IDENTITY ] ,
+			       GAMMAS[ AT ] ,
+			       GAMMAS[ GAMMA_T ] } ;
 
   // traces
   size_t i , b1 , b2 ;

@@ -39,8 +39,9 @@ get_tag( char line[ MAX_LINE_LENGTH ] )
 }
 
 // get the initial source position
-// this is really gross as strcmp doesn't play nice with the hyphen
-// so I split the string again and look for anti
+// this is really gross as strcmp doesn't play nice with the hyphen or a
+// newline so I split the string again and look for anti
+// also there appears to be different capitalisations in the props!
 static int
 get_propbounds( boundaries *bound ) 
 {
@@ -48,17 +49,26 @@ get_propbounds( boundaries *bound )
   size_t N = 0 ;
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    if( are_equal( token , "periodic" ) ) {
+    if( are_equal( token , "periodic" ) || are_equal( token , "periodic\n" ) ||
+	are_equal( token , "Periodic" ) || are_equal( token , "Periodic\n" ) ) {
+      printf( "Peri\n" ) ;
       bound[ N ] = PERIODIC ;
-    } else if( are_equal( token , "PplusA" ) ) {
+    } else if( are_equal( token , "PplusA" ) ||
+	       are_equal( token , "PplusA\n" ) ) {
+      printf( "P+A\n" ) ;
       bound[ N ] = PPLUSA ;
-    } else if( are_equal( token , "PminusA" ) ) {
+    } else if( are_equal( token , "PminusA" ) ||
+	       are_equal( token , "PminusA\n" ) ) {
+      printf( "P-A\n" ) ;
       bound[ N ] = PMINUSA ;
-    } else if( are_equal( token , "PmulA" ) ) {
+    } else if( are_equal( token , "PmulA" ) ||
+	       are_equal( token , "PmulA\n" ) ) {
+      printf( "P*A\n" ) ;
       bound[ N ] = PMULA ;
     } else {
       char *tok2 = strtok( token , "-" ) ;
-      if( are_equal( "anti" , tok2 ) ) {
+      if( are_equal( "anti" , tok2 ) || are_equal( "Anti" , tok2 )) {
+	printf( "anti\n" ) ;
 	bound[ N ] = ANTIPERIODIC ;
       } else {
 	fprintf( stderr , "[IO] propheader I don't understand boundary %s\n" ,
@@ -296,7 +306,7 @@ read_propheader( struct propagator *prop )
       basisflag ++ ;
     }
     // propagator boundaries
-    if( are_equal( tag , "Boundaries:" ) ) {
+    if( are_equal( tag , "Boundaries:" ) || are_equal( tag , "Boundary:" )) {
       if( get_propbounds( prop -> bound ) == FAILURE ) {
 	return tagfailure( "Boundaries:" , line ) ;
       }
@@ -316,7 +326,7 @@ read_propheader( struct propagator *prop )
   if( precflag == 0 ) return nonexistent_record( "Precision:" ) ;
   if( srcflag == 0 ) return nonexistent_record( "Source:" ) ;
   if( basisflag == 0 ) return nonexistent_record( "Basis:" ) ;
-  if( boundsflag == 0 ) return nonexistent_record( "Boundaries:" ) ;
+  if( boundsflag == 0 ) return nonexistent_record( "Boundaries: or Boundary:" ) ;
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
   // the NRQCD code counts from 1 instead of zero, shift to c-counting
