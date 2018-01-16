@@ -7,8 +7,10 @@
 #include "correlators.h"       // for allocate_corrs and free_corrs
 #include "cut_routines.h"      // veclist
 #include "gammas.h"            // gamma matrices
+#include "geometry.h"          // compute_spacing()
 #include "plan_ffts.h"         // ND-1 FFTS
 #include "setup.h"             // alphabetising
+#include "spinor_ops.h"        // spinor_zero_site()
 
 // free our ffts
 static int
@@ -63,26 +65,36 @@ free_ffts( double complex **in ,
 
 // allocate and initialise the usual cruft
 static int
-init_moms( int **NMOM , 
-	   int **wwNMOM ,
-	   struct veclist **list ,
-	   struct veclist **wwlist ,
-	   const struct cut_info CUTINFO , 
-	   const GLU_bool is_wall )
-{
-  *(NMOM) = malloc( sizeof( int ) ) ;
-  *(wwNMOM) = malloc( sizeof( int ) ) ;
-#ifdef HAVE_FFTW3_H
-  *(list) = (struct veclist*)compute_veclist( *NMOM , CUTINFO , ND-1 , 
-					      CUTINFO.configspace ) ;
-#else
-  *(list) = (struct veclist*)zero_veclist( *NMOM , ND-1 , 
-					   CUTINFO.configspace ) ;
-#endif
-  if( is_wall == GLU_TRUE ) {
-    *(wwlist) = (struct veclist*)zero_veclist( *wwNMOM , ND-1 , 
+init_moms( struct measurements *M ,
+	   const struct cut_info CUTINFO )
+{  
+  M -> nmom = malloc( sizeof( int ) ) ;
+  M -> wwnmom = malloc( sizeof( int ) ) ;
+
+  if( M -> is_wall == GLU_TRUE ) {
+    M -> list = (struct veclist*)zero_veclist( M -> nmom , ND-1 , 
 					       CUTINFO.configspace ) ;
+    M -> wwlist = (struct veclist*)zero_veclist( M -> wwnmom , ND-1 , 
+						 CUTINFO.configspace ) ;
+  } else {
+#ifdef HAVE_FFTW3_H
+    M -> list = (struct veclist*)compute_veclist( M -> nmom , CUTINFO , ND-1 , 
+						  CUTINFO.configspace ) ;
+#else
+    M -> list = (struct veclist*)zero_veclist( M -> nmom , ND-1 , 
+					       CUTINFO.configspace ) ;
+#endif
   }
+
+  // initialise spatial summation list
+  const struct cut_info ORBITS = \
+    { .type = CUTINFO.type ,
+      .max_mom = ( M -> is_wall == GLU_TRUE ? CUTINFO.max_r2 : 0 ) ,
+      .cyl_width = CUTINFO.cyl_width ,
+      .configspace = GLU_TRUE } ;
+  
+  M -> rlist = compute_veclist( &(M->NR) , ORBITS , ND-1 , GLU_TRUE ) ;
+  
   return SUCCESS ;
 }
 
@@ -182,6 +194,11 @@ free_measurements( struct measurements *M ,
   // free our GAMMAS
   free( M->GAMMAS ) ;
 
+  // free the summation list
+  if( M->rlist != NULL ) {
+    free( (void*)M->rlist ) ;
+  }
+
   // free our spinors
   size_t mu ;
   for( mu = 0 ; mu < Nprops ; mu++ ) {
@@ -216,6 +233,7 @@ init_measurements( struct measurements *M ,
   M -> nmom = NULL ; M -> wwnmom = NULL ;
   M -> list = NULL ; M -> wwlist = NULL ;
   M -> corr = NULL ; M -> wwcorr = NULL ;
+  M -> rlist = NULL ;
   M -> GAMMAS = NULL ;
   M -> in = NULL ; M -> out = NULL ;
   M -> forward = NULL ; M -> backward = NULL ;
@@ -287,9 +305,9 @@ init_measurements( struct measurements *M ,
   }
 
   // initialise momentum lists
-  init_moms( &M -> nmom , &M -> wwnmom , 
-	     &M -> list , &M -> wwlist , 
-	     CUTINFO , M -> is_wall ) ;
+  if( init_moms( M , CUTINFO ) == FAILURE ) {
+    error_code = FAILURE ; goto end ;
+  }
 
   // allocate correlators
   M -> corr = allocate_momcorrs( stride1 , stride2 , M -> nmom[0] ) ;
@@ -307,3 +325,19 @@ init_measurements( struct measurements *M ,
   return error_code ;
 }
 
+// sum over spatial indices a spinor
+struct spinor
+sum_spatial_sep( const struct measurements M ,
+		 const size_t site1 ,
+		 const size_t prop_idx )
+{
+  size_t r ;
+  struct spinor SUM ;
+  spinor_zero_site( &SUM ) ;
+  for( r = 0 ; r < M.NR ; r++ ) {
+    const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
+					  ND-1 ) ;
+    add_spinors( &SUM , M.S[prop_idx][site2] ) ;
+  }
+  return SUM ;
+}

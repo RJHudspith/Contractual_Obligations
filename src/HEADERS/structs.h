@@ -51,6 +51,7 @@ struct cut_info{
   size_t max_mom ; // maximum momentum allowed for the cut
   double cyl_width ; // cylinder with
   GLU_bool configspace ; // are we doing configuration space analysis
+  size_t max_r2 ; // maximum r^2 we will sum to
 } ;
 
 /**
@@ -147,6 +148,8 @@ struct measurements {
   struct gamma *GAMMAS ;
   struct veclist *list ;
   struct veclist *wwlist ;
+  struct veclist *rlist ;
+  int NR ;
   int *nmom ;
   int *wwnmom ;
   double complex **in ;

@@ -36,7 +36,7 @@ mesons_offdiagonal( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // loop counters
-  size_t t , GSGK ;
+  size_t t , site ;
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
@@ -77,23 +77,32 @@ mesons_offdiagonal( struct propagator prop1 ,
       if( t < ( LT - 1 ) ) {
 	error_code = read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
+
       // parallelise the furthest out loop :: flatten the gammas
-      #pragma omp for private(GSGK) schedule(dynamic)
+      #pragma omp for private(site1)
+      for( site = 0 ; site < LCU ; site++ ) {
+
+	// sum over possible rs
+	struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+      
+	size_t GSGK ;
+	for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
+	  const size_t GSRC = GSGK / stride1 ;
+	  const size_t GSNK = GSGK % stride2 ;
+	  const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
+							 M.GAMMAS[ GAMMA_T ] ) ;
+	  M.in[ GSGK ][ site ] = 
+	    meson_contract( gt_GSNKdag_gt  , M.S[1][ site ] , 
+			    M.GAMMAS[ GSRC ] , SUM0_r2 , 
+			    M.GAMMAS[ GAMMA_5 ] ) ;
+	}
+      }
+      size_t GSGK ;
       for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
 						       M.GAMMAS[ GAMMA_T ] ) ;
-
-	// loop spatial hypercube
-	size_t site ;
-	for( site = 0 ; site < LCU ; site++ ) {
-	  M.in[ GSGK ][ site ] = 
-	    meson_contract( gt_GSNKdag_gt  , M.S[1][ site ] , 
-			    M.GAMMAS[ GSRC ] , M.S[0][ site ] , 
-			    M.GAMMAS[ GAMMA_5 ] ) ;
-	}
-
 	// and contract the walls
 	if( M.is_wall == GLU_TRUE ) {
 	  M.wwcorr[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] =	\

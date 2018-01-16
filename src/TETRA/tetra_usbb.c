@@ -96,11 +96,13 @@ tetraquark_usbb( struct propagator prop1 ,
 	for( op = 0 ; op < stride1 ; op++ ) {
 	  result[ op ] = 0.0 ;
 	}
+
+	struct spinor SUM1_r2 = sum_spatial_sep( M , site , 0 ) ;
 	
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , M.S[0][ site ] , M.S[1][ site ] , bwdH , bwdH ,
+	  tetras( result , M.S[0][site] , SUM1_r2 , bwdH , bwdH ,
 		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {

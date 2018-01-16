@@ -83,8 +83,10 @@ baryons_diagonal( struct propagator prop1 ,
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
-      #pragma omp for private(site) schedule(dynamic)
+      #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
+
+	struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
 	
 	size_t GSGK ; // combined gamma source and sink indices
 	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {
@@ -94,9 +96,10 @@ baryons_diagonal( struct propagator prop1 ,
 	  const size_t GSNK = GSGK % B_CHANNELS ;
 	  
 	  // Wall-Local
-	  baryon_contract_site_mom( M.in , M.S[0][site] , M.S[0][site] , 
-				    M.S[0][site] , Cgmu[ GSRC ] , 
-				    Cgnu[ GSNK ] , GSGK , site ) ;
+	  baryon_contract_site_mom( M.in ,
+				    M.S[0][site] , SUM0_r2 , SUM0_r2 ,
+				    Cgmu[ GSRC ] , Cgnu[ GSNK ] , GSGK ,
+				    site ) ;
 	}
       }
       // loop over open indices performing wall contraction

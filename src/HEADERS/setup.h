@@ -49,4 +49,14 @@ init_measurements( struct measurements *M ,
 		   const size_t stride2 ,
 		   const size_t flat_dirac ) ;
 
+/**
+   @fn struct spinor sum_spatial_sep( const struct measurements M , const size_t site1 , const size_t prop_idx )
+   @brief spatially sum a propagator up to a maximum r^2
+   @return the spinor sum
+ */
+struct spinor
+sum_spatial_sep( const struct measurements M ,
+		 const size_t site1 ,
+		 const size_t prop_idx ) ;
+
 #endif

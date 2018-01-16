@@ -344,7 +344,7 @@ spinmul_atomic_left_test( void )
 
 	  // check
 	  mu_assert( "[UNIT] error : spinmul_atomic_left broken " , 
-		     !( fabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
+		     !( cabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
 	}
       }
     }
@@ -437,7 +437,7 @@ spinmul_atomic_right_test( void )
 
 	  // check
 	  mu_assert( "[UNIT] error : spinmul_atomic_right broken " , 
-		     !( fabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
+		     !( cabs( Id.D[i][j].C[c1][c2] - sum ) > FTOL ) ) ; 
 	}
       }
     }
