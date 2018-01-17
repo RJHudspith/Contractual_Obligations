@@ -145,14 +145,14 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   if( momcut_idx == FAILURE ) { return tag_failure( "MOM_CUT" ) ; }
   if ( are_equal( INPUT[momcut_idx].VALUE , "HYPERCUBIC_CUT" ) ) {
     CUTINFO -> type = HYPERCUBIC_CUT ; 
-  } else if ( are_equal( INPUT[momcut_idx].VALUE , "SPHERICAL_CUT" ) ) {
+  } else if ( are_equal( INPUT[momcut_idx].VALUE , "PSQ_CUT" ) ) {
     CUTINFO -> type = PSQ_CUT ; 
   } else if ( are_equal( INPUT[momcut_idx].VALUE , "CYLINDER_CUT" ) ) {
     CUTINFO -> type = CYLINDER_CUT ; 
   } else {
     fprintf( stderr , "[IO] Unrecognised type [%s] \n" , 
 	     INPUT[momcut_idx].VALUE ) ; 
-    fprintf( stderr , "[IO] Defaulting to SPHERICAL_CUT \n" ) ; 
+    fprintf( stderr , "[IO] Defaulting to PSQ_CUT \n" ) ; 
     CUTINFO -> type = PSQ_CUT ; 
   }
   // minmom, maxmom angle and cylinder width
@@ -160,8 +160,7 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   if( maxmom_idx == FAILURE ) { return tag_failure( "MAXMOM" ) ; }
   errno = 0 ;
   CUTINFO -> max_mom = (int)strtol( INPUT[maxmom_idx].VALUE , &endptr , 10 ) ;
-  if( endptr == INPUT[maxmom_idx].VALUE || errno == ERANGE || 
-      CUTINFO -> max_mom < 1 ) {
+  if( endptr == INPUT[maxmom_idx].VALUE || errno == ERANGE ) {
     printf( "[IO] non-sensical maximum momentum %zu \n" , CUTINFO -> max_mom ) ;
     return FAILURE ;
   }  
@@ -184,5 +183,14 @@ read_cuts_struct( struct cut_info *CUTINFO ,
     fprintf( stdout , "[IO] computing momentum space correlators\n" ) ;
     CUTINFO -> configspace = GLU_FALSE ;
   }
+  // maximum R2
+  const int maxr2_idx = tag_search( "MAXR2" ) ;
+  errno = 0 ;
+  CUTINFO -> max_r2 = (int)strtol( INPUT[maxr2_idx].VALUE , &endptr , 10 ) ;
+  if( endptr == INPUT[maxr2_idx].VALUE || errno == ERANGE ) {
+    printf( "[IO] non-sensical maximum r^2 %zu \n" , CUTINFO -> max_r2 ) ;
+    return FAILURE ;
+  }
+
   return SUCCESS ;
 }

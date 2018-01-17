@@ -51,24 +51,19 @@ get_propbounds( boundaries *bound )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     if( are_equal( token , "periodic" ) || are_equal( token , "periodic\n" ) ||
 	are_equal( token , "Periodic" ) || are_equal( token , "Periodic\n" ) ) {
-      printf( "Peri\n" ) ;
       bound[ N ] = PERIODIC ;
     } else if( are_equal( token , "PplusA" ) ||
 	       are_equal( token , "PplusA\n" ) ) {
-      printf( "P+A\n" ) ;
       bound[ N ] = PPLUSA ;
     } else if( are_equal( token , "PminusA" ) ||
 	       are_equal( token , "PminusA\n" ) ) {
-      printf( "P-A\n" ) ;
       bound[ N ] = PMINUSA ;
     } else if( are_equal( token , "PmulA" ) ||
 	       are_equal( token , "PmulA\n" ) ) {
-      printf( "P*A\n" ) ;
       bound[ N ] = PMULA ;
     } else {
       char *tok2 = strtok( token , "-" ) ;
       if( are_equal( "anti" , tok2 ) || are_equal( "Anti" , tok2 )) {
-	printf( "anti\n" ) ;
 	bound[ N ] = ANTIPERIODIC ;
       } else {
 	fprintf( stderr , "[IO] propheader I don't understand boundary %s\n" ,
