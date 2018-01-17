@@ -79,7 +79,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       }
 
       // parallelise the furthest out loop :: flatten the gammas
-      #pragma omp for private(site1)
+      #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 
 	// sum over possible rs
