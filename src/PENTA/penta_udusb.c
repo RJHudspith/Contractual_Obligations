@@ -96,11 +96,11 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  result[ op ] = 0.0 ;
 	}
 
-	struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
 
 	// perform contraction, result in result
-	pentas( result , M.S[0][ site ] , SUM1_r2 , bwdH ,
-		M.GAMMAS ) ;
+	pentas( result , SUM0_r2 , SUM1_r2 , bwdH , M.GAMMAS ) ;
 	
 	// put contractions into flattend array for FFT
 	for( op = 0 ; op < stride2 ; op++ ) {

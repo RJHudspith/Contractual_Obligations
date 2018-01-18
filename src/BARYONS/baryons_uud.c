@@ -90,8 +90,8 @@ baryons_2fdiagonal( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-	struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
 	
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {

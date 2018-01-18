@@ -86,7 +86,7 @@ baryons_diagonal( struct propagator prop1 ,
       #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
 	
 	size_t GSGK ; // combined gamma source and sink indices
 	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {

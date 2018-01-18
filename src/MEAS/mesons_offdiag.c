@@ -83,7 +83,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       for( site = 0 ; site < LCU ; site++ ) {
 
 	// sum over possible rs
-	struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
       
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
