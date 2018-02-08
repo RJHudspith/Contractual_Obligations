@@ -100,11 +100,14 @@ tetraquark_usbb( struct propagator prop1 ,
 	// like the udbb I just spread out the light quarks
 	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
 	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	const struct spinor SUM2_r2 = sum_spatial_sep( M , site , 2 ) ;
+	struct spinor bwdH_r2 ;
+	full_adj( &bwdH_r2 , SUM2_r2 , M.GAMMAS[ GAMMA_5 ] ) ;
 	
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , SUM0_r2 , SUM1_r2 , bwdH , bwdH ,
+	  tetras( result , SUM0_r2 , SUM1_r2 , bwdH_r2 , bwdH ,
 		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {

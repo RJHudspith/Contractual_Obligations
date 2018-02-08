@@ -88,8 +88,7 @@ tetraquark_udcb( struct propagator prop1 , // L1
       for( site = 0 ; site < LCU ; site++ ) {
 
 	// precompute backward bottom propagator
-	struct spinor bwdH1 , bwdH2 ;
-	full_adj( &bwdH1 , M.S[1][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
+	struct spinor bwdH1_r2 , bwdH2 ;
 	full_adj( &bwdH2 , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 
 	// tetraquark contractions stored in result
@@ -100,11 +99,13 @@ tetraquark_udcb( struct propagator prop1 , // L1
 	}
 
 	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
+	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	full_adj( &bwdH1_r2 , SUM1_r2 , M.GAMMAS[ GAMMA_5 ] ) ;
 
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , SUM0_r2 , SUM0_r2 , bwdH1 , bwdH2 ,
+	  tetras( result , SUM0_r2 , SUM0_r2 , bwdH1_r2 , bwdH2 ,
 		  M.GAMMAS , GSRC , GLU_TRUE , GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {

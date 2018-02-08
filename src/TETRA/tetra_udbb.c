@@ -98,11 +98,14 @@ tetraquark_udbb( struct propagator prop1 ,
 	}
 	// for now I keep the anti-Bs at x and vary u and d - J
 	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-
+	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	struct spinor bwdH_r2 ;
+	full_adj( &bwdH_r2 , SUM1_r2 , M.GAMMAS[ GAMMA_5 ] ) ;
+	
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , SUM0_r2 , SUM0_r2 , bwdH , bwdH ,
+	  tetras( result , SUM0_r2 , SUM0_r2 , bwdH_r2 , bwdH ,
 		  M.GAMMAS , GSRC , GLU_TRUE , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
