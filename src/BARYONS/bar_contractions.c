@@ -292,7 +292,7 @@ baryon_momentum_project( struct measurements *M ,
   if( configspace == GLU_TRUE ) {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp parallel for private(GSodc)
+    #pragma omp for private(GSodc)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;
@@ -309,7 +309,7 @@ baryon_momentum_project( struct measurements *M ,
   } else {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp parallel for private(GSodc)
+    #pragma omp for private(GSodc)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;

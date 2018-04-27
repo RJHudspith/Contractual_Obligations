@@ -17,7 +17,7 @@ contract_diquarks( struct propagator *prop ,
 		   const struct cut_info CUTINFO ,
 		   const size_t ndiquarks )
 {
-  fprintf( stdout , "\n[DIQUARK] performing %zu"
+  fprintf( stdout , "\n[DIQUARK] performing %zu "
 	   "contraction(s)\n" , ndiquarks ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions

@@ -218,7 +218,7 @@ poly( const struct site *__restrict lat ,
   if( dir > ND ) { dir = ND ; }
   double complex sum = 0.0 ;
   size_t i ; 
-#pragma omp parallel for private(i) reduction(+:sum)
+  //#pragma omp parallel for private(i) reduction(+:sum)
   for( i = 0 ; i < LCU ; i++ ) {
     double complex poly[ NCNC ] ;
     // use the correct site for one of the hypercubes ...

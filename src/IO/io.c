@@ -2,7 +2,6 @@
    @file io.c
    @file readers and alike
  */
-
 #include "common.h"
 
 #include "crc32.h"        // checksum calc
@@ -99,6 +98,11 @@ static int
 read_chiralprop( struct propagator prop ,
 		 struct spinor *S )
 {
+  if( LCU%IO_NBLOCK != 0 ) {
+    fprintf( stderr , "[IO] Local volume not a multiple of IO blocking"
+	     " (IO_BLOCK %d) vs. (LCU %zu)\n" , IO_NBLOCK , LCU ) ;
+    return FAILURE ;
+  }
   const size_t spinsize = NCNC * NSNS ;
 
   // do we need to byte swap?
@@ -108,32 +112,37 @@ read_chiralprop( struct propagator prop ,
   // single precision storage
   float complex *ftmp = NULL ;
   if( prop.precision == SINGLE ) {
-    ftmp = ( float complex* )malloc( spinsize * sizeof( float complex ) ) ;
+    ftmp = ( float complex* )malloc( IO_NBLOCK*spinsize * sizeof( float complex ) ) ;
   }
 
-  size_t i ;
-  for( i = 0 ; i < LCU ; i++ ) {
+  size_t i , mu ;
+  for( i = 0 ; i < LCU ; i += IO_NBLOCK ) {
     // depending on the precision, read in the data
     if( prop.precision == SINGLE ) {
-      if( fread( ftmp , sizeof( float complex ) , spinsize , prop.file ) != 
-	  spinsize ) {
+      if( fread( ftmp , sizeof( float complex ) ,
+		 IO_NBLOCK*spinsize , prop.file ) != IO_NBLOCK*spinsize ) {
 	fprintf( stderr , "[IO] chiral propagator failure single prec (%zu)\n" ,
 		 i ) ;
 	free( ftmp ) ;
 	return FAILURE ;
       }
-      if( must_swap ) bswap_32( 2 * spinsize , ftmp ) ;
+      if( must_swap ) bswap_32( 2 * IO_NBLOCK * spinsize , ftmp ) ;
       // cast our ftmp to double complex spinor
-      fill_spinor( &S[i] , ftmp , NS , 0 , 0 , sizeof( float complex ) ) ;
+      for( mu = 0 ; mu < IO_NBLOCK ; mu++ ) {
+	fill_spinor( &S[i+mu] , ftmp+mu*spinsize ,
+		     NS , 0 , 0 , sizeof( float complex ) ) ;
+      }
     } else {
       // Read in propagator on a timeslice elements of our struct should be byte-compatible
-      if( fread( S[i].D , sizeof( double complex ) , spinsize , prop.file ) != 
-	  spinsize ) {
-	fprintf( stderr , "[IO] chiral propagator failure double prec (%zu)\n" ,
-		 i ) ;
-	return FAILURE ;
+      for( mu = 0 ; mu < IO_NBLOCK ; mu++ ) {
+	if( fread( S[i+mu].D , sizeof( double complex ) , spinsize , prop.file ) != 
+	    spinsize ) {
+	  fprintf( stderr , "[IO] chiral propagator failure double prec (%zu)\n" ,
+		   i ) ;
+	  return FAILURE ;
+	}
+	if( must_swap ) bswap_64( 2 * spinsize , S[i+mu].D ) ;
       }
-      if( must_swap ) bswap_64( 2 * spinsize , S[i].D ) ;
     }
   }
   // free the possibly allocated floating-point storage

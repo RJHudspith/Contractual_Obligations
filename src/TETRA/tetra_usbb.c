@@ -37,9 +37,6 @@ tetraquark_usbb( struct propagator prop1 ,
   // error flag
   int error_code = SUCCESS ;
 
-  // loop counters
-  size_t t ;
-
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
   struct measurements M ;
@@ -53,31 +50,31 @@ tetraquark_usbb( struct propagator prop1 ,
 #pragma omp parallel
   {
     read_ahead( prop , M.S , &error_code , Nprops ) ;
-  }
-  if( error_code == FAILURE ) {
-    goto memfree ;
-  }
 
-  // Time slice loop 
-  for( t = 0 ; t < LT ; t++ ) {
+    // loop counters
+    size_t t ;
+    
+    // Time slice loop 
+    for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
+      
+      // if we are doing nonrel-chiral hadrons we switch chiral to nrel
+      rotate_offdiag( M.S , prop , Nprops ) ;
 
-    // if we are doing nonrel-chiral hadrons we switch chiral to nrel
-    rotate_offdiag( M.S , prop , Nprops ) ;
+      // compute wall sum
+      struct spinor SUMbwdH ;
+      if( M.is_wall == GLU_TRUE ) {
+	#pragma omp single
+	{
+	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
+	}
+	full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
+      }
 
-    // compute wall sum
-    struct spinor SUMbwdH ;
-    if( M.is_wall == GLU_TRUE ) {
-      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-      full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
-    }
-
-    // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ; 
-
-    // strange memory access pattern threads better than what was here before
-    size_t site ;
-    #pragma omp parallel
-    {
+      // assumes all sources are at the same origin, checked in wrap_tetras
+      const size_t tshifted = ( t - prop[0].origin[ND-1] + LT ) % LT ; 
+      
+      // strange memory access pattern threads better than what was here before
+      size_t site ;
       // read on the master and one slave
       if( t < LT-1 ) {
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
@@ -135,24 +132,24 @@ tetraquark_usbb( struct propagator prop1 ,
 	}
 	///
       }
+      
+      // compute the contracted correlator
+      compute_correlator( &M , stride1 , stride2 , tshifted ,
+			  CUTINFO.configspace ) ;
+      
+      #pragma omp single
+      {
+	// copy over the propagators
+	copy_props( &M , Nprops ) ;
+	
+	// status of the computation
+	progress_bar( t , LT ) ;
+      }
     }
-
-    // compute the contracted correlator
-    compute_correlator( &M , stride1 , stride2 , tshifted ,
-			CUTINFO.configspace ) ;
-
-    // if we error we leave
-    if( error_code == FAILURE ) {
-      goto memfree ;
-    }
-
-    // copy over the propagators
-    copy_props( &M , Nprops ) ;
-
-    // status of the computation
-    progress_bar( t , LT ) ;
   }
 
+  if( error_code == FAILURE ) goto memfree ;
+  
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , 
 		 M.list , stride1 , stride2 , M.nmom , "" ) ;

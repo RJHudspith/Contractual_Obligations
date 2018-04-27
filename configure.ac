@@ -3,7 +3,6 @@
 ## --prefix=  :: tell it where to install the binary
 ## --with-NC= :: number of colors, if not specified defaults to 3
 ## --with-ND= :: number of dimensions, if not specified defaults to 4
-
 AC_INIT([CORR], [0.2], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlemail.com])
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
@@ -218,6 +217,17 @@ AC_ARG_WITH([TETRA_NBLOCK],
 	    AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [${with_TETRA_NBLOCK}] , [Compiled TETRA_NBLOCK] )	
 	    ],[
 	    AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, code defaults to 1])	
+])
+
+## Compile a tetra block size
+AC_ARG_WITH([IO_NBLOCK],
+	AC_HELP_STRING([--with-IO_NBLOCK=],
+		       [IO block fread factor]),
+            [
+	    AC_MSG_NOTICE([User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})])
+	    AC_DEFINE_UNQUOTED([IO_NBLOCK], [${with_IO_NBLOCK}] , [Compiled IO_NBLOCK] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified IO_NBLOCK, code defaults to 1])	
 ])
 
 ## C standard libraries

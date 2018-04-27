@@ -32,6 +32,14 @@
 #define GLU_STR_LENGTH 256
 
 /**
+   @def IO_NBLOCK
+   @brief size of blocking factor in IO
+ */
+#ifndef IO_NBLOCK
+  #define IO_NBLOCK (1)
+#endif
+
+/**
    @def LT
    @brief Length of the time direction
  */

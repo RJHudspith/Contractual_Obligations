@@ -108,7 +108,7 @@ compute_correlator( struct measurements *M ,
 {
   if( configspace == GLU_TRUE ) {
     size_t i ;
-    #pragma omp parallel for private(i)
+    #pragma omp for private(i)
     for( i = 0 ; i < stride1 ; i++ ) {
       size_t j , p ;
       for( j = 0 ; j < stride2 ; j++ ) {
@@ -124,7 +124,7 @@ compute_correlator( struct measurements *M ,
     #endif
     // momentum projection
     size_t i ;
-    #pragma omp parallel for private(i)
+    #pragma omp for private(i)
     for( i = 0 ; i < stride1 ; i++ ) {
       size_t j , p ;
       for( j = 0 ; j < stride2 ; j++ ) {
@@ -254,6 +254,15 @@ init_measurements( struct measurements *M ,
     }
   }
 
+  // are these wall source props
+  M -> is_wall = GLU_FALSE ;
+  for( i = 0 ; i < Nprops ; i++ ) {
+    if( prop[ i ].source == WALL ) {
+      M -> is_wall = GLU_TRUE ;
+      break ;
+    }
+  }
+  
 #ifdef HAVE_FFTW3_H
 
   // fftw aligns these
@@ -279,7 +288,6 @@ init_measurements( struct measurements *M ,
   // create spatial volume fftw plans
   create_plans_DFT( M -> forward , M -> backward , 
 		    M -> in , M -> out , flat_dirac , ND-1 ) ;
-
 #else
 
   // allocate fftw stuff
@@ -289,15 +297,6 @@ init_measurements( struct measurements *M ,
   }
 
 #endif
-
-  // are these wall source props
-  M -> is_wall = GLU_FALSE ;
-  for( i = 0 ; i < Nprops ; i++ ) {
-    if( prop[ i ].source == WALL ) {
-      M -> is_wall = GLU_TRUE ;
-      break ;
-    }
-  }
 
   // allocate the wall sums
   if( M -> is_wall == GLU_TRUE ) {

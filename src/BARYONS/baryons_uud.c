@@ -34,8 +34,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
   // error flag
   int error_code = SUCCESS ;
 
-  // loop counters
-  size_t i , t ;
+  size_t i ;
 
   // gamma LUT
   struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
@@ -60,34 +59,33 @@ baryons_2fdiagonal( struct propagator prop1 ,
 #pragma omp parallel
   {
     read_ahead( prop , M.S , &error_code , Nprops ) ; 
-  }
-  if( error_code == FAILURE ) {
-    goto memfree ;
-  }
 
-  // Time slice loop 
-  for( t = 0 ; t < LT ; t++ ) {
+    size_t t ;
+    
+    // Time slice loop 
+    for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
-    // if we are doing nonrel-chiral mesons we switch chiral to nrel
-    rotate_offdiag( M.S , prop , Nprops ) ;
+      // if we are doing nonrel-chiral mesons we switch chiral to nrel
+      rotate_offdiag( M.S , prop , Nprops ) ;
+      
+      // accumulate wall sum expects both to be walls
+      if( prop1.source == WALL ) {
+	#pragma omp single
+	{
+	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
+	}
+      }
 
-    // accumulate wall sum expects both to be walls
-    if( prop1.source == WALL ) {
-      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-    }
+      // multiple time source support
+      const size_t tshifted = ( t + LT - prop1.origin[ND-1] ) % LT ;
 
-    // multiple time source support
-    const size_t tshifted = ( t + LT - prop1.origin[ND-1] ) % LT ;
-
-    // strange memory access pattern threads better than what was here before
-    size_t site ;
-    #pragma omp parallel
-    {
+      // strange memory access pattern threads better than what was here before
+      size_t site ;
       if( t < ( LT - 1 ) ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+        read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
-      #pragma omp for private(site) schedule(dynamic)
+      #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 
 	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
@@ -112,23 +110,24 @@ baryons_2fdiagonal( struct propagator prop1 ,
 			       M.SUM[0] , M.SUM[0] , M.SUM[1] , 
 			       Cgmu , Cgnu , tshifted , UUD_BARYON ) ;
       }
+
+      baryon_momentum_project( &M , stride1 , stride2 ,
+			       tshifted , UUD_BARYON ,
+			       CUTINFO.configspace ) ;
+      
+#pragma omp single
+      {
+	// copy over the propagators
+	copy_props( &M , Nprops ) ;
+	
+	// status of the computation
+	progress_bar( t , LT ) ;
+      }
     }
-
-    baryon_momentum_project( &M , stride1 , stride2 , tshifted , UUD_BARYON ,
-			     CUTINFO.configspace ) ;
-
-    // if we error we leave
-    if( error_code == FAILURE ) {
-      goto memfree ;
-    }
-
-    // copy over the propagators
-    copy_props( &M , Nprops ) ;
-
-    // status of the computation
-    progress_bar( t , LT ) ;
   }
 
+  if( error_code == FAILURE ) goto memfree ;
+  
   // write out the baryons wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
 		 stride1 , stride2 , M.nmom , "uud" ) ;

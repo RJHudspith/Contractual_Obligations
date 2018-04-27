@@ -294,7 +294,7 @@ tetras( double complex *result ,
       { .G5 = GAMMAS[ GAMMA_5 ]  , .Gi = GAMMAS[ numap_Vi[ mu ] ] }  , // P V_mu
       { .G5 = GAMMAS[ IDENTITY ] , .Gi = GAMMAS[ numap_Ai[ mu ] ] }  , // I A_mu
       { .G5 = GAMMAS[ AT ]       , .Gi = GAMMAS[ numap_Tit[ mu ] ] } , // At Sigma_mut
-      { .G5 = GAMMAS[ GAMMA_T ]  , .Gi = GAMMAS[ numap_Tij[ mu ] ] } , // V_t T_muj
+      { .G5 = GAMMAS[ GAMMA_T ]  , .Gi = GAMMAS[ numap_Tij[ mu ] ] } , // V_t T_ij
       // second block have me swapping the gammas for the heavy diquark
       { .G5 = GAMMAS[ GAMMA_5 ] ,  .Gi = GAMMAS[ numap_Tit[ mu ] ] } , // P Sigma_mut
       { .G5 = GAMMAS[ IDENTITY ] , .Gi = GAMMAS[ numap_Tij[ mu ] ] } , // I T_ij

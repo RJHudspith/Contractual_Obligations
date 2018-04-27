@@ -45,7 +45,7 @@ static void
 nrel_rotate_slice( struct spinor *S )
 {
   size_t site ;
-#pragma omp parallel for private(site) 
+#pragma omp for private(site) 
   for( site = 0 ; site < LCU ; site++ ) {
     chiral_to_nrel( &S[ site ] ) ;
   }
