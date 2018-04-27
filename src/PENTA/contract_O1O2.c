@@ -11,7 +11,8 @@
 #include "spinmatrix_ops.h"     // spinmatrix_multiply()
 #include "spinor_ops.h"         // spinmul_atomic_left()
 
-// precompute the F-tensor
+// precompute the F-tensor, this is BY FAR the hottest part of this code
+// any good ideas here would be more than welcome!
 static double complex**
 precompute_F_O1O2_v2( const struct Ospinor OU1 ,
 		      const struct Ospinor OD ,
@@ -21,7 +22,7 @@ precompute_F_O1O2_v2( const struct Ospinor OU1 ,
   double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
   size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
-    F[i] = malloc( 6561 * sizeof( double complex ) ) ;
+    F[i] = calloc( 6561 , sizeof( double complex ) ) ;
   }
 
   // precompute all sub-spinmatrices
@@ -30,18 +31,13 @@ precompute_F_O1O2_v2( const struct Ospinor OU1 ,
   size_t c1 , c2 , c3 , c4 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
     for( c2 = 0 ; c2 < NC ; c2++ ) {
-      
       const struct spinmatrix t1 = OU1.C[ c1 ][ c2 ] ;
-      const struct spinmatrix t3 = OU2.C[ c1 ][ c2 ] ;
-      
+      const struct spinmatrix t3 = OU2.C[ c1 ][ c2 ] ; 
       for( c3 = 0 ; c3 < NC ; c3++ ) {
         for( c4 = 0 ; c4 < NC ; c4++ ) {
-
 	  const struct spinmatrix t2 = OD.C[ c3 ][ c4 ] ;
 	  const struct spinmatrix t4 = OM.C[ c3 ][ c4 ] ;
-	  
 	  spinmatrix_multiply( temp5[c2+NC*c1][c4+NC*c3].D , t1.D , t2.D ) ;
-	  
 	  spinmatrix_multiply( temp6[c2+NC*c1][c4+NC*c3].D , t3.D , t4.D ) ;
 	}
       }
@@ -49,44 +45,36 @@ precompute_F_O1O2_v2( const struct Ospinor OU1 ,
   }
 
   for( i = 0 ; i < 6561 ; i++ ) {
-
+    
     // map the indices correctly
     // b = idx[0] , b' = idx[1]
     // c = idx[2] , c' = idx[3]
     // g = idx[4] , g' = idx[5]
     // h = idx[6] , h' = idx[7]
-    size_t j , idx[ 8 ] , sub = NC , div = 1 ;
+    size_t j , id[ 8 ] , sub = NC , div = 1 ;
     for( j = 8 ; j > 0 ; j-- ) {
-      idx[ 8 - j ] = ( i % sub ) / div ;
+      id[ 8 - j ] = ( i % sub ) / div ;
       sub *= NC ;
       div *= NC ;
     }
 
     // preset the spinmatrices
-    struct spinmatrix temp7 ;
-
+    struct spinmatrix temp7 ;    
     spinmatrix_multiply( temp7.D ,
-			 temp5[ idx[1] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ,
-			 temp6[ idx[5] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
+			 temp5[ id[1] + NC*id[0] ][ id[3] + NC*id[2] ].D ,
+			 temp6[ id[5] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
+
+    const size_t idx1 = i ;
+    const size_t idx2 = idx( id[5] , id[0] , id[3] , id[2] ,
+			     id[1] , id[4] , id[7] , id[6] ) ;
     
     size_t d1 , d2 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
-	F[ d2 + d1*NS ][i] = temp7.D[d1][d2] ;
+	F[ d2 + d1*NS ][idx1] += temp7.D[d1][d2] ;
+	F[ d2 + d1*NS ][idx2] -= temp7.D[d1][d2] ;
       }
     }
-
-    spinmatrix_multiply( temp7.D ,
-			 temp5[ idx[5] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ,
-			 temp6[ idx[1] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
-
-    for( d1 = 0 ; d1 < NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NS ; d2++ ) {
-	F[ d2 + d1*NS ][i] -= temp7.D[d1][d2] ;
-      }
-    }
-
-    
   }
   
   return F ;
@@ -136,7 +124,6 @@ contract_O1O2( struct spinmatrix *P ,
 {
   // precompute some gammas
   struct gamma C1 = CGmu( OP1 , GAMMAS ) ;
-
   struct gamma C2 = CGmu( OP2 , GAMMAS ) ;
   struct gamma t2t = gt_Gdag_gt( OP2 , GAMMAS[ GAMMA_T ] ) ;
   struct gamma tC2t = gt_Gdag_gt( C2 , GAMMAS[ GAMMA_T ] ) ;

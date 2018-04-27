@@ -60,6 +60,8 @@ baryons_2fdiagonal( struct propagator prop1 ,
   {
     read_ahead( prop , M.S , &error_code , Nprops ) ; 
 
+    #pragma omp barrier
+    
     size_t t ;
     
     // Time slice loop 

@@ -11,7 +11,6 @@
 #include "spinmatrix_ops.h"     // spinmatrix_multiply()
 #include "spinor_ops.h"         // spinmul_atomic_left()
 
-
 // precompute the F-tensor
 static double complex**
 precompute_F_O2O1_v2( const struct Ospinor OM ,
@@ -22,26 +21,21 @@ precompute_F_O2O1_v2( const struct Ospinor OM ,
   double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
   size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
-    F[i] = malloc( 6561 * sizeof( double complex ) ) ;
+    F[i] = calloc( 6561 , sizeof( double complex ) ) ;
   }
 
   // precompute the spinmatrix sub-matrices
-  struct spinmatrix temp5[ 9 ][ 9 ] , temp6[ 9 ][ 9 ] , temp7 ;
+  struct spinmatrix temp5[ 9 ][ 9 ] , temp6[ 9 ][ 9 ] ;
   size_t c1 , c2 , c3 , c4 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
     for( c2 = 0 ; c2 < NC ; c2++ ) {
-      
       const struct spinmatrix t1 = OM.C[ c1 ][ c2 ] ;
       const struct spinmatrix t3 = OD.C[ c1 ][ c2 ] ;
-      
       for( c3 = 0 ; c3 < NC ; c3++ ) {
         for( c4 = 0 ; c4 < NC ; c4++ ) {
-
 	  const struct spinmatrix t2 = OU1.C[ c3 ][ c4 ] ;
 	  const struct spinmatrix t4 = OU2.C[ c3 ][ c4 ] ;
-	  
-	  spinmatrix_multiply( temp5[c2+NC*c1][c4+NC*c3].D , t1.D , t2.D ) ;
-	  
+	  spinmatrix_multiply( temp5[c2+NC*c1][c4+NC*c3].D , t1.D , t2.D ) ;  
 	  spinmatrix_multiply( temp6[c2+NC*c1][c4+NC*c3].D , t3.D , t4.D ) ;
 	}
       }
@@ -55,31 +49,29 @@ precompute_F_O2O1_v2( const struct Ospinor OM ,
     // c = idx[2] , c' = idx[3]
     // g = idx[4] , g' = idx[5]
     // h = idx[6] , h' = idx[7]
-    size_t j , idx[ 8 ] , sub = NC , div = 1 ;
+    size_t j , id[ 8 ] , sub = NC , div = 1 ;
     for( j = 8 ; j > 0 ; j-- ) {
-      idx[ 8 - j ] = ( i % sub ) / div ;
+      id[ 8 - j ] = ( i % sub ) / div ;
       sub *= NC ;
       div *= NC ;
     }
 
+    // there is a reproduction of results here that we can utilise
+    // as this one is computed with swapped indices in a later evaluation
+    struct spinmatrix temp7 ;
     spinmatrix_multiply( temp7.D ,
-			 temp5[ idx[1] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ,
-			 temp6[ idx[5] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
+			 temp5[ id[1] + NC*id[0] ][ id[3] + NC*id[2] ].D ,
+			 temp6[ id[5] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
 
+    const size_t idx1 = i ;
+    const size_t idx2 = idx( id[1] , id[0] , id[7] , id[2] ,
+			     id[5] , id[4] , id[3] , id[6] ) ; 
+    
     size_t d1 , d2 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
-	F[ d2 + d1*NS ][i] = temp7.D[d1][d2] ;
-      }
-    }
-
-    spinmatrix_multiply( temp7.D ,
-			 temp5[ idx[1] + NC*idx[0] ][ idx[7] + NC*idx[2] ].D ,
-			 temp6[ idx[5] + NC*idx[4] ][ idx[3] + NC*idx[6] ].D ) ;
-
-    for( d1 = 0 ; d1 < NS ; d1++ ) {
-      for( d2 = 0 ; d2 < NS ; d2++ ) {
-	F[ d2 + d1*NS ][i] -= temp7.D[d1][d2] ;
+	F[ d2 + d1*NS ][idx1] += temp7.D[d1][d2] ;
+	F[ d2 + d1*NS ][idx2] -= temp7.D[d1][d2] ;
       }
     }
   }

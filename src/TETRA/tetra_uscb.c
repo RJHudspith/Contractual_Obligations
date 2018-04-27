@@ -51,6 +51,8 @@ tetraquark_uscb( struct propagator prop1 ,
   {
     read_ahead( prop , M.S , &error_code , Nprops ) ;
 
+    #pragma omp barrier
+    
     // loop counters
     size_t t ;
 

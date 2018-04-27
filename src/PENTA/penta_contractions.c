@@ -34,26 +34,6 @@ void (*contract[9])( struct spinmatrix *P ,
   contract_O2O1 , contract_O2O2 , contract_O2O3 ,
   contract_O3O1 , contract_O3O2 , contract_O3O3 } ;
 
-// get our idx from individual colors, for some reason I wrote this with
-// the bs running fastest
-size_t
-idx( const size_t b , const size_t bp ,
-     const size_t c , const size_t cp ,
-     const size_t g , const size_t gp ,
-     const size_t h , const size_t hp )
-{
-  return b + NC * ( bp + NC * ( c + NC * ( cp + NC * ( g + NC * ( gp + NC * ( h + NC * hp ) ) ) ) ) ) ;
-}
-
-// get our idx from individual colors shortened for 6 indices
-size_t
-idx2( const size_t b , const size_t bp ,
-      const size_t c , const size_t cp ,
-      const size_t g , const size_t gp )
-{
-  return b + NC * ( bp + NC * ( c + NC * ( cp + NC * ( g + NC * gp ) ) ) ) ;
-}
-
 // project to a particular parity
 void
 project_parity( double complex *pos ,

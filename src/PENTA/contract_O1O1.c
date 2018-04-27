@@ -52,21 +52,21 @@ precompute_F_O1O1_v2( const struct Ospinor OU1 ,
     // c = idx[2] , c' = idx[3]
     // g = idx[4] , g' = idx[5]
     // h = idx[6] , h' = idx[7]
-    size_t j , idx[ 8 ] , sub = NC , div = 1 ;
+    size_t j , id[ 8 ] , sub = NC , div = 1 ;
     for( j = 8 ; j > 0 ; j-- ) {
-      idx[ 8 - j ] = ( i % sub ) / div ;
+      id[ 8 - j ] = ( i % sub ) / div ;
       sub *= NC ;
       div *= NC ;
     }
 
     
     F[i] =
-      spinmatrix_trace( temp5[ idx[1] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ) *
-      spinmatrix_trace( temp6[ idx[5] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
+      spinmatrix_trace( temp5[ id[1] + NC*id[0] ][ id[3] + NC*id[2] ].D ) *
+      spinmatrix_trace( temp6[ id[5] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
 
     F[i] -=
-      trace_prod_spinmatrices( temp5[ idx[5] + NC*idx[0] ][ idx[3] + NC*idx[2] ].D ,
-			       temp6[ idx[1] + NC*idx[4] ][ idx[7] + NC*idx[6] ].D ) ;
+      trace_prod_spinmatrices( temp5[ id[5] + NC*id[0] ][ id[3] + NC*id[2] ].D ,
+			       temp6[ id[1] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
   }
   
   return F ;

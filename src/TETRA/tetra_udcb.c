@@ -52,6 +52,8 @@ tetraquark_udcb( struct propagator prop1 , // L1
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops ) ;
 
+    #pragma omp barrier
+    
     // loop counters
     size_t t ;
 

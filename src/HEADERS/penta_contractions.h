@@ -6,23 +6,29 @@
 #define PENTA_CONTRACTIONS_H
 
 /**
-   @fn size_t idx( const size_t b , const size_t bp , const size_t c , const size_t cp , const size_t g , const size_t gp , const size_t h , const size_t hp )
+   @fn static inline size_t idx( const size_t b , const size_t bp , const size_t c , const size_t cp , const size_t g , const size_t gp , const size_t h , const size_t hp )
    @brief return a linearised index from a tensor with 8 indices
  */
-size_t
+static inline size_t
 idx( const size_t b , const size_t bp ,
      const size_t c , const size_t cp ,
      const size_t g , const size_t gp ,
-     const size_t h , const size_t hp ) ;
+     const size_t h , const size_t hp )
+{
+  return b + NC * ( bp + NC * ( c + NC * ( cp + NC * ( g + NC * ( gp + NC * ( h + NC * hp ) ) ) ) ) ) ;
+}
 
 /**
-   @fn size_t idx( const size_t b , const size_t bp , const size_t c , const size_t cp , const size_t g , const size_t gp , const size_t h , const size_t hp )
+   @fn static inline size_t idx( const size_t b , const size_t bp , const size_t c , const size_t cp , const size_t g , const size_t gp , const size_t h , const size_t hp )
    @brief return a linearised index from a tensor with 6 indices
  */
-size_t
+static inline size_t
 idx2( const size_t b , const size_t bp ,
       const size_t c , const size_t cp ,
-      const size_t g , const size_t gp ) ;
+      const size_t g , const size_t gp )
+{
+  return b + NC * ( bp + NC * ( c + NC * ( cp + NC * ( g + NC * gp ) ) ) ) ;
+}
 
 /**
    @fn int pentas( double complex *result , const struct spinor L , const struct spinor S , const struct spinor bwdH , const struct gamma *GAMMAS )
