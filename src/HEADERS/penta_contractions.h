@@ -6,9 +6,10 @@
 #define PENTA_CONTRACTIONS_H
 
 // alignments for the spinmatrix multiplies
-#if (defined __AVX512__)
-#define SPINT_ALIGNMENT (64)
-#elif (defined __AVX__)
+//#if (defined __AVX512__)
+//#define SPINT_ALIGNMENT (64)
+//#elif (defined __AVX__)
+#if (defined __AVX__)
 #define SPINT_ALIGNMENT (32)
 #else
 #define SPINT_ALIGNMENT (16)
@@ -50,6 +51,7 @@ spinmatrix_multiply_T_avx( void *a ,
 			   const void *b ,
 			   const void *c )
 {
+  /*
 #if (defined __AVX512__)
   __m512d *A = (__m512d*)a ;
   const double *B = (const double*)b ;
@@ -96,6 +98,8 @@ spinmatrix_multiply_T_avx( void *a ,
   A[3] = _mm512_add_pd( _mm512_add_pd( AVX512_MUL( t1 , t5 ) , AVX512_MUL( t2 , t6 ) ) ,
 			_mm512_add_pd( AVX512_MUL( t3 , t7 ) , AVX512_MUL( t4 , t8 ) ) ) ;
 #elif (defined __AVX__)
+  */
+#if (defined __AVX__)
   __m256d *A = (__m256d*)a ;
   const double *B = (const double*)b ;
   const double *C = (const double*)c ;
