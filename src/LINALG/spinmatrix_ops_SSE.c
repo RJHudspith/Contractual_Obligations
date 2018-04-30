@@ -390,6 +390,118 @@ spinmatrix_multiply( void *a ,
   return ;
 }
 
+// computes a = b * c^T
+extern inline void
+spinmatrix_multiply_T( void *a ,
+		       const void *b ,
+		       const void *c )
+{
+  __m128d *A = (__m128d*)a ;
+  const __m128d *B = (const __m128d*)b ;
+  const __m128d *C = (const __m128d*)c ;
+#if NS == 4
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x0) , *(C + 0x0) ) ,
+			       SSE2_MUL( *(B + 0x1) , *(C + 0x1) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x2) , *(C + 0x2) ) ,
+			       SSE2_MUL( *(B + 0x3) , *(C + 0x3) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x0) , *(C + 0x4) ) ,
+			       SSE2_MUL( *(B + 0x1) , *(C + 0x5) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x2) , *(C + 0x6) ) ,
+			       SSE2_MUL( *(B + 0x3) , *(C + 0x7) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x0) , *(C + 0x8) ) ,
+			       SSE2_MUL( *(B + 0x1) , *(C + 0x9) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x2) , *(C + 0xa) ) ,
+			       SSE2_MUL( *(B + 0x3) , *(C + 0xb) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x0) , *(C + 0xc) ) ,
+			       SSE2_MUL( *(B + 0x1) , *(C + 0xd) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x2) , *(C + 0xe) ) ,
+			       SSE2_MUL( *(B + 0x3) , *(C + 0xf) ) ) ) ;	    
+  A++ ;
+  // next row
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x4) , *(C + 0x0) ) ,
+			       SSE2_MUL( *(B + 0x5) , *(C + 0x1) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x6) , *(C + 0x2) ) ,
+			       SSE2_MUL( *(B + 0x7) , *(C + 0x3) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x4) , *(C + 0x4) ) ,
+			       SSE2_MUL( *(B + 0x5) , *(C + 0x5) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x6) , *(C + 0x6) ) ,
+			       SSE2_MUL( *(B + 0x7) , *(C + 0x7) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x4) , *(C + 0x8) ) ,
+			       SSE2_MUL( *(B + 0x5) , *(C + 0x9) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x6) , *(C + 0xa) ) ,
+			       SSE2_MUL( *(B + 0x7) , *(C + 0xb) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x4) , *(C + 0xc) ) ,
+			       SSE2_MUL( *(B + 0x5) , *(C + 0xd) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0x6) , *(C + 0xe) ) ,
+			       SSE2_MUL( *(B + 0x7) , *(C + 0xf) ) ) ) ;
+  A++ ;
+  // third row
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x8) , *(C + 0x0) ) ,
+			       SSE2_MUL( *(B + 0x9) , *(C + 0x1) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xa) , *(C + 0x2) ) ,
+			       SSE2_MUL( *(B + 0xb) , *(C + 0x3) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x8) , *(C + 0x4) ) ,
+			       SSE2_MUL( *(B + 0x9) , *(C + 0x5) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xa) , *(C + 0x6) ) ,
+			       SSE2_MUL( *(B + 0xb) , *(C + 0x7) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x8) , *(C + 0x8) ) ,
+			       SSE2_MUL( *(B + 0x9) , *(C + 0x9) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xa) , *(C + 0xa) ) ,
+			       SSE2_MUL( *(B + 0xb) , *(C + 0xb) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0x8) , *(C + 0xc) ) ,
+			       SSE2_MUL( *(B + 0x9) , *(C + 0xd) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xa) , *(C + 0xe) ) ,
+			       SSE2_MUL( *(B + 0xb) , *(C + 0xf) ) ) ) ;
+  A++ ;
+  // fourth row
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0xc) , *(C + 0x0) ) ,
+			       SSE2_MUL( *(B + 0xd) , *(C + 0x1) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xe) , *(C + 0x2) ) ,
+			       SSE2_MUL( *(B + 0xf) , *(C + 0x3) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0xc) , *(C + 0x4) ) ,
+			       SSE2_MUL( *(B + 0xd) , *(C + 0x5) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xe) , *(C + 0x6) ) ,
+			       SSE2_MUL( *(B + 0xf) , *(C + 0x7) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0xc) , *(C + 0x8) ) ,
+			       SSE2_MUL( *(B + 0xd) , *(C + 0x9) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xe) , *(C + 0xa) ) ,
+			       SSE2_MUL( *(B + 0xf) , *(C + 0xb) ) ) ) ;
+  A++ ;
+  *A = _mm_add_pd( _mm_add_pd( SSE2_MUL( *(B + 0xc) , *(C + 0xc) ) ,
+			       SSE2_MUL( *(B + 0xd) , *(C + 0xd) ) ) ,
+		   _mm_add_pd( SSE2_MUL( *(B + 0xe) , *(C + 0xe) ) ,
+			       SSE2_MUL( *(B + 0xf) , *(C + 0xf) ) ) ) ;
+#else
+  __m128d *A = (__m128d*)a ;
+  const __m128d *B = (const __m128d*)b ;
+  const __m128d *C = (const __m128d*)c ;
+  register __m128d sum ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      sum = _mm_setzero_pd( ) ;
+      size_t m ;
+      for( m = 0 ; m < NS ; m++  ) {
+	sum = _mm_add_pd( sum , SSE2_MUL( B[ m + i * NS ] , C[ m + j * NS ] ) );
+      }
+      *A = sum , A++ ;
+    }
+  }
+#endif
+  return ;
+}
+
 // atomically multiply a spinmatrix by a constant factor
 void
 spinmatrix_mulconst( void *spinmatrix , 
@@ -478,14 +590,30 @@ trace_prod_spinmatrices( const void *a ,
   return csum ;
 }
 
+// transpose a spinmatrix
+void
+transpose_spinmatrix( void *a )
+{
+  __m128d *A = (__m128d*)a ;
+  register __m128d tmp ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = i+1 ; j < NS ; j++ ) {
+      tmp = A[ j + NS*i ] ;
+      A[ j + NS*i ] = A[ i + NS*j ] ;
+      A[ i + NS*j ] = tmp ;
+    }
+  }
+}
+
 // set spinmatrix to zero
 void
-zero_spinmatrix( void *spinmatrix )
+zero_spinmatrix( void *a )
 {
-  __m128d *s = (__m128d*)spinmatrix ;
+  __m128d *A = (__m128d*)a ;
   size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
-    *s = _mm_setzero_pd( ) , s++ ;
+    *A = _mm_setzero_pd( ) , A++ ;
   }
   return ;
 }

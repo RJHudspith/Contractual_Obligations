@@ -5,6 +5,8 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#define ALIGNMENT (16)
+
 /**
    @struct baryon_info
    @brief baryon contraction info
@@ -21,7 +23,7 @@ struct baryon_info {
    @brief wrapper for flattened spinmatrix
  */
 struct block {
-  double complex M[ NSNS ] __attribute__((aligned(16))) ;
+  double complex M[ NSNS ] __attribute__((aligned(ALIGNMENT))) ;
 } ;
 
 /**
@@ -29,7 +31,7 @@ struct block {
    @brief color matrix
 */
 struct colormatrix {
-  double complex C[ NC ][ NC ] __attribute__((aligned(16))) ;
+  double complex C[ NC ][ NC ] __attribute__((aligned(ALIGNMENT))) ;
 } ;
 
 /**
@@ -226,7 +228,7 @@ struct QCDheader {
    @brief the gauge field format
  */
 struct site {
-  double complex O[ ND ][ NCNC ] __attribute__((aligned(16))) ;
+  double complex O[ ND ][ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   int neighbor[ ND ] ;
   int back[ ND ] ;
 } ;
@@ -236,7 +238,7 @@ struct site {
    @brief dirac components
 */
 struct spinmatrix {
-  double complex D[ NS ][ NS ] __attribute__((aligned(16))) ;
+  double complex D[ NS ][ NS ] __attribute__((aligned(ALIGNMENT))) ;
 } ;
 
 /**
@@ -244,7 +246,7 @@ struct spinmatrix {
    @brief spinor is a spinmatrix of colormatrices
 */
 struct spinor{
-  struct colormatrix D[ NS ][ NS ] __attribute__((aligned(16))) ;
+  struct colormatrix D[ NS ][ NS ] __attribute__((aligned(ALIGNMENT))) ;
 } ;
 
 /**
@@ -252,7 +254,7 @@ struct spinor{
    @brief opposite-ordering spinor
  */
 struct Ospinor {
-  struct spinmatrix C[ NC ][ NC ] __attribute__((aligned(16))) ;
+  struct spinmatrix C[ NC ][ NC ] __attribute__((aligned(ALIGNMENT))) ;
 } ;
 
 /**

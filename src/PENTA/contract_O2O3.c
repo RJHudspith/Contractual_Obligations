@@ -12,17 +12,12 @@
 #include "spinor_ops.h"         // spinmul_atomic_left()
 
 // precompute the F-tensor
-static double complex**
-precompute_F_O2O3_v2( const struct Ospinor OU1 ,
+static void
+precompute_F_O2O3_v2( double complex **F ,
+		      const struct Ospinor OU1 ,
 		      const struct Ospinor OM ,
 		      const struct Ospinor OU2 )
 {
-  double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
-  size_t i ;
-  for( i = 0 ; i < NSNS ; i++ ) {
-    F[i] = malloc( 729 * sizeof( double complex ) ) ;
-  }
-
   struct spinmatrix temp4[ 9 ][ 9 ] ;
   size_t c1 , c2 , c3 , c4 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
@@ -39,6 +34,7 @@ precompute_F_O2O3_v2( const struct Ospinor OU1 ,
   }
 
   // loop possible index combinations
+  size_t i ;
   for( i = 0 ; i < 729 ; i++ ) {
     
     // map the indices
@@ -69,12 +65,12 @@ precompute_F_O2O3_v2( const struct Ospinor OU1 ,
 
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
-	F[ d2 + d1*NS ][i] = temp5.D[d2][d1] ;
+	F[ d2 + d1*NS ][i] -= temp5.D[d2][d1] ;
       }
     }
   }
 
-  return F ;
+  return ;
 }
 
 // contract the colors of the F-tensor
@@ -102,13 +98,15 @@ contract_colors_O2O3( const double complex *F )
 // 
 void
 contract_O2O3( struct spinmatrix *P ,
+	       double complex **F ,
 	       const struct spinor U ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor B ,
 	       const struct gamma OP1 ,
 	       const struct gamma OP2 ,
-	       const struct gamma *GAMMAS )
+	       const struct gamma *GAMMAS ,
+	       const uint8_t **loc )
 {
   // precompute some gammas
   struct gamma G5 = OP1 ;
@@ -131,7 +129,7 @@ contract_O2O3( struct spinmatrix *P ,
   const struct Ospinor OU2 = spinor_to_Ospinor( U ) ;
   const struct Ospinor OM = spinor_to_Ospinor( M ) ;
 
-  double complex **F = precompute_F_O2O3_v2( OU1 , OM , OU2 ) ;
+  precompute_F_O2O3_v2( F , OU1 , OM , OU2 ) ;
 
   // compute the color contraction
   size_t d1 , d2 ;
@@ -141,10 +139,5 @@ contract_O2O3( struct spinmatrix *P ,
     }
   }
   
-  // free the F-tensor
-  for( d1 = 0 ; d1 < NSNS ; d1++ ) {
-    free( F[ d1 ] ) ;
-  }
-  free( F ) ;
   return ;
 }

@@ -4,7 +4,6 @@
 
    more or less exactly the same as the tetraquark one
 */
-
 #include "common.h"
 
 #include "basis_conversions.h"  // nrel_rotate_slice()
@@ -38,6 +37,18 @@ pentaquark_udusb( struct propagator prop1 , // L
   // error flag
   int error_code = SUCCESS ;
 
+  uint8_t **loc = malloc( 6561 * sizeof( uint8_t* ) ) ;
+  size_t j , k ;
+  for( j = 0 ; j < 6561 ; j++ ) {
+    loc[ j ] = malloc( 8 * sizeof( uint8_t ) ) ;
+    size_t sub = NC , div = 1 ; 
+    for( k = 8 ; k > 0 ; k-- ) {
+      loc[ j ][ 8 - k ] = (uint8_t)( ( j % sub ) / div ) ;
+      sub *= NC ;
+      div *= NC ;
+    }
+  }
+  
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
   struct measurements M ;
@@ -50,6 +61,13 @@ pentaquark_udusb( struct propagator prop1 , // L
   // init the parallel region
 #pragma omp parallel
   {
+    // each thread gets a copy
+    double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
+    size_t i ;
+    for( i = 0 ; i < NSNS ; i++ ) {
+      F[i] = malloc( 6561*sizeof( double complex ) ) ;
+    }
+    
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops ) ;
 
@@ -83,7 +101,7 @@ pentaquark_udusb( struct propagator prop1 , // L
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
-      #pragma omp for private(site)
+#pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 	// precompute backward bottom propagator
 	struct spinor bwdH ;
@@ -100,7 +118,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
 
 	// perform contraction, result in result
-	pentas( result , SUM0_r2 , SUM1_r2 , bwdH , M.GAMMAS ) ;
+	pentas( result , F , SUM0_r2 , SUM1_r2 , bwdH , M.GAMMAS ,
+		(const uint8_t**)loc ) ;
 	
 	// put contractions into flattend array for FFT
 	for( op = 0 ; op < stride2 ; op++ ) {
@@ -120,7 +139,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  result[ k ] = 0.0 ;
 	}
 	// perform contraction, result in result
-	pentas( result , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ) ;
+	pentas( result , F , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ,
+		(const uint8_t**)loc ) ;
 	// put contractions into final correlator object
 	size_t op ;
 	for( op = 0 ; op < stride2 ; op++ ) {
@@ -144,6 +164,11 @@ pentaquark_udusb( struct propagator prop1 , // L
 	progress_bar( t , LT ) ;
       }
     }
+
+    for( i = 0 ; i < NSNS ; i++ ) {
+      free( F[ i ] ) ;
+    }
+    free( F ) ;
   }
 
   // skip writing the files out if we fucked up

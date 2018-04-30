@@ -5,6 +5,8 @@
 #ifndef TETRA_CONTRACTIONS_H
 #define TETRA_CONTRACTIONS_H
 
+extern uint8_t **loc ;
+
 /**
    @fn size_t element( const size_t a , const size_t b , const size_t c , const size_t d ) 
    @brief given certain color components returns the linearised index

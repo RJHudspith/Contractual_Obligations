@@ -5,7 +5,7 @@
 #ifndef MATRIX_OPS_SSE_H
 #define MATRIX_OPS_SSE_H
 
-#ifdef HAVE_EMMINTRIN_H
+#ifdef HAVE_IMMINTRIN_H
 
 /**
    @fn void add_mat( __m128d *a , const __m128d *b )

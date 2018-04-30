@@ -180,6 +180,32 @@ spinmatrix_multiply( void *a ,
   return ;
 }
 
+// computes a = b * c^T
+void
+spinmatrix_multiply_T( void *a ,
+		       const void *b ,
+		       const void *c )
+{
+  double complex *A = (double complex*)a ;
+  const double complex *B = (double complex*)b ;
+  const double complex *C = (double complex*)c ;
+  int i , j , m ;
+  register double complex sum ;
+  register double REB , IMB , REC , IMC ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      sum = 0.0 ;
+      for( m = 0 ; m < NS ; m++  ) {
+	REB = creal( B[ m + NS*i ] ) ; IMB = cimag( B[ m + NS*i ] ) ;
+	REC = creal( C[ m + NS*j ] ) ; IMC = cimag( C[ m + NS*j ] ) ;
+	sum += REB * REC - IMB * IMC + I * ( REB * IMC + IMB * REC ) ; 
+      }
+      A[ j + NS*i ] = sum ;
+    }
+  }
+  return ;
+}
+
 // atomically multiply a spinmatrix by a constant factor
 void
 spinmatrix_mulconst( void *spinmatrix , 
@@ -231,14 +257,30 @@ trace_prod_spinmatrices( const void *a ,
 #endif
 }
 
+// transpose a matrix
+void
+transpose_spinmatrix( void *a )
+{
+  double complex *A = (double complex*)a ;
+  register double complex tmp ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = i+1 ; j < NS ; j++ ) {
+      tmp = A[ j + NS*i ] ;
+      A[ j + NS*i ] = A[ i + NS*j ] ;
+      A[ i + NS*j ] = tmp ;
+    }
+  }
+}
+
 // zero a spinmatrix
 void
-zero_spinmatrix( void *spinmatrix )
+zero_spinmatrix( void *a )
 {
-  double complex *s = (double complex*)spinmatrix ;
+  double complex *A = (double complex*)a ;
   size_t i ;
   for( i = 0 ; i < NSNS ; i++ ) {
-    *s = 0.0 , s++ ;
+    *A = 0.0 , A++ ;
   }
   return ;
 }

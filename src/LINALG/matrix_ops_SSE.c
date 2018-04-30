@@ -168,7 +168,7 @@ dagger_gauge( __m128d *__restrict res ,
 double complex
 LU_det( const size_t N , const double complex U[ N*N ] )
 {
-  double complex a[ N*N ] __attribute__((aligned(16))) ;
+  double complex a[ N*N ] __attribute__((aligned(ALIGNMENT))) ;
   memcpy( a , U , N*N * sizeof( double complex) ) ;
   return LU_det_overwrite( N , a ) ;
 }

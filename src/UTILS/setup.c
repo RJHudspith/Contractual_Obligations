@@ -248,8 +248,8 @@ init_measurements( struct measurements *M ,
   size_t i ;
   for( i = 0 ; i < Nprops ; i++ ) {
     M -> S[i] = M -> Sf[i] = NULL ;
-    if( corr_malloc( (void**)&M -> S[ i ]  , 16 , LCU * sizeof( struct spinor ) ) != 0 ||
-	corr_malloc( (void**)&M -> Sf[ i ] , 16 , LCU * sizeof( struct spinor ) ) != 0 ) {
+    if( corr_malloc( (void**)&M -> S[ i ]  , ALIGNMENT , LCU * sizeof( struct spinor ) ) != 0 ||
+	corr_malloc( (void**)&M -> Sf[ i ] , ALIGNMENT , LCU * sizeof( struct spinor ) ) != 0 ) {
       error_code = FAILURE ; goto end ;
     }
   }

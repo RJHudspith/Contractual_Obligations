@@ -80,13 +80,20 @@ spinmatrix_multiply( void *a ,
 		     const void *c ) ;
 
 /**
+   @fn void spinmatrix_multiply_T( void *a , const void *b , const void *c )
+   @brief multiply two spinmatrices where the second is transposed a = b * c^T
+*/
+void
+spinmatrix_multiply_T( void *a ,
+		       const void *b ,
+		       const void *c ) ;
+/**
    @fn void spinmatrix_mulconst( void *spinmatrix , const double factor )
    @brief atomically multiply a spinmatrix by a scalar
  */
 void
 spinmatrix_mulconst( void *spinmatrix , 
 		     const double factor ) ;
-
 
 /**
    @fn double complex spinmatrix_trace( const void *spinmatrix )
@@ -105,11 +112,18 @@ trace_prod_spinmatrices( const void *a ,
 			 const void *b ) ;
 
 /**
+   @fn transpose_spinmatrix( void *a )
+   @brief transpose a spinmatrix
+*/
+void
+transpose_spinmatrix( void *a ) ;
+
+/**
    @fn void zero_spinmatrix( void *spinmatrix )
    @brief zero a spinmatrix
  */
 void
-zero_spinmatrix( void *spinmatrix ) ;
+zero_spinmatrix( void *a ) ;
 
 #endif // SSE enabler
 

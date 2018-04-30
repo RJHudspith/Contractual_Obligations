@@ -12,17 +12,35 @@
 #define SSE_FLIP(a) ( _mm256_xor_pd( a , _mm256_set1_pd( -0.0 ) ) )
 #endif
 
+#ifdef __FMA__
+#define AVX_MUL(a,b) ( _mm256_fmaddsub_pd(  _mm256_movedup_pd( a ) , b , \
+					    _mm256_mul_pd( _mm256_unpackhi_pd( a , a ) , \
+							   _mm256_shuffle_pd( b , b , 0x5 ) ) ) )
+#else
 #define AVX_MUL(a,b) ( _mm256_addsub_pd( _mm256_mul_pd( _mm256_movedup_pd( a ) , b ) , \
 					 _mm256_mul_pd( _mm256_unpackhi_pd( a , a ) , \
 							 _mm256_shuffle_pd( b , b , 0x5 ) ) ) )
+#endif
 
+#ifdef __FMA__
+#define AVX_MULCONJ(a,b) ( _mm256_fmadd_pd( _mm256_movedup_pd( a ) , b , \
+					    _mm256_mul_pd( _mm256_unpackhi_pd( a , SSE_FLIP(a) ) , \
+							   _mm256_shuffle_pd( b , b , 0x5 ) ) ) )
+#else
 #define AVX_MULCONJ(a,b) ( _mm256_add_pd( _mm256_mul_pd( _mm256_movedup_pd( a ) , b ) , \
 					  _mm256_mul_pd( _mm256_unpackhi_pd( a , SSE_FLIP(a) ) , \
 							 _mm256_shuffle_pd( b , b , 0x5 ) ) ) )
+#endif
 
+#ifdef __FMA__
+#define AVX_MUL_CONJ(a,b) ( _mm256_fmaddsub_pd( _mm256_unpackhi_pd( a , a ) , \
+						_mm256_shuffle_pd( b , b , 0x5 ) , \
+						_mm256_mul_pd( _mm256_movedup_pd( a ) , SSE_FLIP( b ) ) ) )
+#else
 #define AVX_MUL_CONJ(a,b) ( _mm256_addsub_pd( _mm256_mul_pd( _mm256_unpackhi_pd( a , a ) , \
 							     _mm256_shuffle_pd( b , b , 0x5 ) ) , \
 					      _mm256_mul_pd( _mm256_movedup_pd( a ) , SSE_FLIP( b ) ) ) )
+#endif
 
 #define AVX_MUL_CONJCONJ(a,b) ( _mm256_hsub_pd( _mm256_mul_pd( a , b ) , \
 						_mm256_mul_pd( a , _mm256_shuffle_pd( SSE_FLIP(b) , b , 0x5 ) ) ) )

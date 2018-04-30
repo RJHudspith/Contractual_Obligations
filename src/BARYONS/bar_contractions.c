@@ -97,7 +97,7 @@ baryon_contract_site( double complex **term ,
 
   // term[0] can be simplified by precomputing the diagonal sum 
   // of the DiQuark piece, this then gets color traced with S3
-  double complex t[ NCNC ] __attribute__((aligned(16))) ;
+  double complex t[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     const size_t c1 = i / NC ;
@@ -174,7 +174,7 @@ baryon_contract_site_mom( double complex **in ,
 
   // term[0] can be simplified by precomputing the diagonal sum 
   // of the DiQuark piece, this then gets color traced with S3
-  double complex t[ NCNC ] __attribute__((aligned(16))) ;
+  double complex t[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
     const size_t c1 = i / NC ;

@@ -88,10 +88,10 @@ precompute_poly_lines( const struct site *__restrict lat ,
 		       const size_t length )
 {
   // allocate the lines, there will be LVOLUME of these
-  corr_malloc( (void**)&lines , 16 , LVOLUME ) ;
+  corr_malloc( (void**)&lines , ALIGNMENT , LVOLUME ) ;
   size_t i ;
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    corr_malloc( (void**)lines[i] , 16 , NCNC ) ;
+    corr_malloc( (void**)lines[i] , ALIGNMENT , NCNC ) ;
   }
 
   // loop sub volume, multiplying the time like links of the previous timeslice
@@ -108,9 +108,9 @@ precompute_poly_lines( const struct site *__restrict lat ,
 	      (__m128d*)lines[ j + prev ] ,
 	      (__m128d*)lat[ j + idx ].O[ ND-1 ] ) ;
       #else
-      multab( (__m128d*)lines[ j + idx ] ,
-	      (__m128d*)lines[ j + prev ] ,
-	      (__m128d*)lat[ j + idx ].O[ ND-1 ] ) ;
+      multab( lines[ j + idx ] ,
+	      lines[ j + prev ] ,
+	      lat[ j + idx ].O[ ND-1 ] ) ;
       #endif
     }
     prev = idx ;
@@ -228,9 +228,9 @@ poly( const struct site *__restrict lat ,
     small_poly( poly , lat , k , dir , GLU_TRUE , Latt.dims[dir] ) ;
     double complex s ;
     #ifdef HAVE_IMMINTRIN_H
-    _mm_store_pd( (void*)&s , colortrace( (const __m128d*)poly ) ) ;
+    //_mm_store_pd( (void*)&s , colortrace( (const __m128d*)poly ) ) ;
     #else
-    s = colortrace( poly ) ;
+    //s = colortrace( poly ) ;
     #endif
     sum = sum + s ;
   }

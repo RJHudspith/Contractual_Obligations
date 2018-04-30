@@ -9,7 +9,10 @@
    __m128d ma = _mm_setr_pd( creal(a) , cimag(a) )
 
    Some of the SSE3 intrinsics have a shorter number of instructions compiled under gcc
-   so I would recommend using -msse3 instead of -msse2 wherever possible
+   so I would recommend using -msse4.2 instead of -msse2 wherever possible
+
+   I also just added FMA instructions into the mix which should reduce the number of ops
+   wherever your CPU supports -mfma (INTEL >= 2014 or so)
 
    These are macros which are expanded in the code to ensure inlining
  */
@@ -25,9 +28,15 @@
 
 // performs conj(a) * b using intrinsics
 #ifdef __SSE3__
-#define SSE2_MULCONJ(a,b) ( _mm_add_pd( _mm_mul_pd( _mm_movedup_pd( a ) , b ) , \
-					_mm_mul_pd( _mm_unpackhi_pd( a , SSE_FLIP(a) ) , \
-						    _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #ifdef __FMA__
+  #define SSE2_MULCONJ(a,b) ( _mm_fmadd_pd(  _mm_movedup_pd( a ) , b , \
+					     _mm_mul_pd( _mm_unpackhi_pd( a , SSE_FLIP(a) ) , \
+							 _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #else
+  #define SSE2_MULCONJ(a,b) ( _mm_add_pd( _mm_mul_pd( _mm_movedup_pd( a ) , b ) , \
+					  _mm_mul_pd( _mm_unpackhi_pd( a , SSE_FLIP(a) ) , \
+						      _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #endif
 #else
 #define SSE2_MULCONJ(a,b) ( _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) , \
 					_mm_mul_pd( _mm_unpackhi_pd( a , SSE_FLIP(a) ) , \
@@ -36,9 +45,15 @@
 
 // performs a * b using intrinsics
 #ifdef __SSE3__
-#define SSE2_MUL(a,b) ( _mm_addsub_pd( _mm_mul_pd( _mm_movedup_pd( a ) , b ) , \
-				       _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \
-						   _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #ifdef __FMA__
+  #define SSE2_MUL(a,b) ( _mm_fmaddsub_pd( _mm_movedup_pd( a ) , b , \
+					   _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \
+						       _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #else
+  #define SSE2_MUL(a,b) ( _mm_addsub_pd( _mm_mul_pd( _mm_movedup_pd( a ) , b ) , \
+					 _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \
+						     _mm_shuffle_pd( b , b , 1 ) ) ) )
+  #endif
 #else
 #define SSE2_MUL(a,b) ( _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , a ) , b ) , \
 				    _mm_mul_pd( _mm_unpackhi_pd( SSE_FLIP(a) , a ) , \
@@ -47,9 +62,15 @@
 
 // performs a * conj( b ) using intrinsics
 #ifdef __SSE3__
-#define SSE2_MUL_CONJ(a,b) ( _mm_addsub_pd( _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \
-							_mm_shuffle_pd( b , b , 1 ) ) , \
-					    _mm_mul_pd( _mm_movedup_pd( a ) , SSE_FLIP( b ) ) ) )
+  #ifdef __FMA__
+  #define SSE2_MUL_CONJ(a,b) ( _mm_fmaddsub_pd(  _mm_unpackhi_pd( a , a ) , \
+						 _mm_shuffle_pd( b , b , 1 ) , \
+						 _mm_mul_pd( _mm_movedup_pd( a ) , SSE_FLIP( b ) ) ) )
+  #else
+  #define SSE2_MUL_CONJ(a,b) ( _mm_addsub_pd( _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \
+							  _mm_shuffle_pd( b , b , 1 ) ) , \
+					      _mm_mul_pd( _mm_movedup_pd( a ) , SSE_FLIP( b ) ) ) )
+  #endif
 #else
 #define SSE2_MUL_CONJ(a,b) ( _mm_add_pd( _mm_mul_pd( _mm_unpacklo_pd( a , SSE_FLIP(a) ) , b ) , \
 					 _mm_mul_pd( _mm_unpackhi_pd( a , a ) , \

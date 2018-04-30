@@ -23,13 +23,15 @@
 // assumes OP1 is the gamma matrix for the forward propagating state
 // and OP2 is the gamma for the backward propagating state
 void (*contract[9])( struct spinmatrix *P ,
+		     double complex **F ,
 		     const struct spinor U ,
 		     const struct spinor D ,
 		     const struct spinor S ,
 		     const struct spinor B ,
 		     const struct gamma OP1 ,
 		     const struct gamma OP2 ,
-		     const struct gamma *GAMMAS ) = {
+		     const struct gamma *GAMMAS ,
+		     const uint8_t **loc ) = {
   contract_O1O1 , contract_O1O2 , contract_O1O3 ,
   contract_O2O1 , contract_O2O2 , contract_O2O3 ,
   contract_O3O1 , contract_O3O2 , contract_O3O3 } ;
@@ -66,10 +68,12 @@ project_parity( double complex *pos ,
 // so it has similar block matrix structure as the TETRA contractions
 int
 pentas( double complex *result ,
+	double complex **F ,
 	const struct spinor L , 
 	const struct spinor S ,
 	const struct spinor bwdH ,
-	const struct gamma *GAMMAS )
+	const struct gamma *GAMMAS ,
+	const uint8_t **loc )
 {
 #if PENTA_NBLOCK > 4
   fprintf( stderr , "[PENTA] compiled PENTA_NBLOCK greater than we allow\n" ) ;
@@ -80,24 +84,27 @@ pentas( double complex *result ,
 			       GAMMAS[ AT ] ,
 			       GAMMAS[ GAMMA_T ] } ;
 
-  // traces
   size_t i , b1 , b2 ;
+  
+  // traces
   for( b1 = 0 ; b1 < PENTA_NBLOCK ; b1++ ) {
     for( b2 = 0 ; b2 < PENTA_NBLOCK ; b2++ ) {
 	
       for( i = 0 ; i < PENTA_NOPS ; i++ ) {
 	
 	struct spinmatrix P ;
-	contract[i]( &P , L , L , S , bwdH ,
+	contract[i]( &P , F , L , L , S , bwdH ,
 		     GBLOCK[ b1 ] ,
 		     GBLOCK[ b2 ] ,
-		     GAMMAS ) ;
+		     GAMMAS ,
+		     loc ) ;
 
 	// get the map correct
 	const size_t irow = i/3 ;
 	const size_t idx = i*2 + irow*PENTA_NBLOCK*3 + b2 + b1*PENTA_NBLOCK*3 ;
 	
-	project_parity( result + idx , result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
+	project_parity( result + idx ,
+			result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
 			P , GAMMAS[ GAMMA_T ] ) ;
       }
     }

@@ -2,11 +2,10 @@
    @file matrix_ops.c
    @brief simple matrix multiplies
  */
-
 #include "common.h"
 #include "matrix_ops.h"
 
-#ifndef HAVE_EMMINTRIN_H
+#ifndef HAVE_IMMINTRIN_H
 
 // add two color matrices
 void
@@ -393,7 +392,7 @@ print_colormatrix( const double complex a[ NCNC ] )
   fprintf( stdout , "\n" ) ;
   for( i = 0 ; i < NC ; i++ ) {
     for( j = 0 ; j < NC ; j++ ) {
-      fprintf( stdout  "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
+      fprintf( stdout ,  "%f %f " , creal( a[j+i*NC] ) , cimag( a[j+i*NC] ) ) ;
     }
     fprintf( stdout , "\n" ) ;
   }

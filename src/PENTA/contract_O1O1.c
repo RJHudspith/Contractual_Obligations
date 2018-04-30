@@ -12,14 +12,14 @@
 #include "spinor_ops.h"         // transpose_spinor()
 
 // precompute the F-tensor
-static double complex*
-precompute_F_O1O1_v2( const struct Ospinor OU1 ,
+static void
+precompute_F_O1O1_v2( double complex *F ,
+		      const struct Ospinor OU1 ,
 		      const struct Ospinor OU2 ,
 		      const struct Ospinor OD ,
-		      const struct Ospinor OS )
+		      const struct Ospinor OS ,
+		      const uint8_t **loc )
 {
-  double complex *F = malloc( 6561 * sizeof( double complex ) ) ;
-
   // precompute all sub-spinmatrices
   struct spinmatrix temp5[9][9] , temp6[9][9] ;
 	    
@@ -46,30 +46,17 @@ precompute_F_O1O1_v2( const struct Ospinor OU1 ,
   
   size_t i ;
   for( i = 0 ; i < 6561 ; i++ ) {
-
-    // map the indices correctly
-    // b = idx[0] , b' = idx[1]
-    // c = idx[2] , c' = idx[3]
-    // g = idx[4] , g' = idx[5]
-    // h = idx[6] , h' = idx[7]
-    size_t j , id[ 8 ] , sub = NC , div = 1 ;
-    for( j = 8 ; j > 0 ; j-- ) {
-      id[ 8 - j ] = ( i % sub ) / div ;
-      sub *= NC ;
-      div *= NC ;
-    }
-
     
     F[i] =
-      spinmatrix_trace( temp5[ id[1] + NC*id[0] ][ id[3] + NC*id[2] ].D ) *
-      spinmatrix_trace( temp6[ id[5] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
+      spinmatrix_trace( temp5[ loc[i][1] + NC*loc[i][0] ][ loc[i][3] + NC*loc[i][2] ].D ) *
+      spinmatrix_trace( temp6[ loc[i][5] + NC*loc[i][4] ][ loc[i][7] + NC*loc[i][6] ].D ) ;
 
     F[i] -=
-      trace_prod_spinmatrices( temp5[ id[5] + NC*id[0] ][ id[3] + NC*id[2] ].D ,
-			       temp6[ id[1] + NC*id[4] ][ id[7] + NC*id[6] ].D ) ;
+      trace_prod_spinmatrices( temp5[ loc[i][5] + NC*loc[i][0] ][ loc[i][3] + NC*loc[i][2] ].D ,
+			       temp6[ loc[i][1] + NC*loc[i][4] ][ loc[i][7] + NC*loc[i][6] ].D ) ;
   }
   
-  return F ;
+  return ;
 }
 
 // perform a color contraction
@@ -136,13 +123,15 @@ contract_colors( const double complex *F ,
 // (ud)(us)\bar{b} with ud us diquarks
 void
 contract_O1O1( struct spinmatrix *P ,
+	       double complex **F ,
 	       const struct spinor U ,
 	       const struct spinor D ,
 	       const struct spinor S ,
 	       const struct spinor bwdH ,
 	       const struct gamma OP1 ,
 	       const struct gamma OP2 ,
-	       const struct gamma *GAMMAS )
+	       const struct gamma *GAMMAS ,
+	       const uint8_t **loc )
 {
   // Idea:: create a huge array with all the possible color components
   struct gamma C1 = CGmu( OP1 , GAMMAS ) ;
@@ -170,14 +159,14 @@ contract_O1O1( struct spinmatrix *P ,
   struct Ospinor OS  = spinor_to_Ospinor( St ) ;
   
   // pre-compute all possible indices
-  double complex *F = precompute_F_O1O1_v2( OU1 , OU2 , OD , OS ) ;
+  precompute_F_O1O1_v2( F[0] , OU1 , OU2 , OD , OS , loc ) ;
 
   size_t d1 , d2 ;
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) { 
-      P -> D[d1][d2] = contract_colors( F , Bt.D[d1][d2] ) ;
+      P -> D[d1][d2] = contract_colors( F[0] , Bt.D[d1][d2] ) ;
     }
   } 
-  free( F ) ;
+
   return ;
 }
