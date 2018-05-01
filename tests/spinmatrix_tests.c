@@ -166,7 +166,7 @@ spinmatrix_mulconst_test( void )
 static char*
 spinmatrix_multiply_test( void )
 {
-  double complex A[ NSNS ] ;
+  double complex A[ NSNS ] __attribute__((aligned(ALIGNMENT)));
 
   // compute C = D^{T}
   size_t d1 , d2 ;
@@ -196,6 +196,28 @@ spinmatrix_multiply_test( void )
   return NULL ;
 }
 
+// test against transpose and multiply
+static char*
+spinmatrix_multiply_T_test( void )
+{
+  spinmatrix_multiply_T( C , D , D ) ;
+
+  double complex A[ NSNS ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex B[ NSNS ] __attribute__((aligned(ALIGNMENT))) ;
+
+  memcpy( A , D , NSNS * sizeof( double complex ) ) ;
+  transpose_spinmatrix( A ) ;
+
+  spinmatrix_multiply( B , D , A ) ;
+
+  size_t i ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+      mu_assert( "[UNIT] error : spinmatrix ops spinmatrix_multiply_T broken " , 
+		 !( cabs( B[i] - C[i] ) > PREC_TOL ) ) ;
+  }
+  return NULL ;
+}
+
 // trace test uses an identity
 static char*
 spinmatrix_trace_test( void )
@@ -217,6 +239,22 @@ trace_prod_spinmatrices_test( void )
   const double complex tr2 = spinmatrix_trace( C ) ;
   mu_assert( "[UNIT] error : spinmatric ops trace_prod_spinmatrices"
 	     " broken" , !( cabs( tr1 - tr2 ) > FTOL ) ) ;
+  return NULL ;
+}
+
+// test we can do a transpose right
+static char*
+transpose_spinmatrix_test( void )
+{
+  memcpy( C , D , NSNS * sizeof( double complex ) ) ;
+  transpose_spinmatrix( C ) ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      mu_assert( "[UNIT] error : spinmatric ops transpose_spinmatrix"
+		 " broken" , !( cabs( C[j+i*NS] - D[i+j*NS] ) > FTOL ) ) ;
+    }
+  }
   return NULL ;
 }
 
@@ -253,6 +291,7 @@ spinmatrices_test( void )
   mu_run_test( spinmatrix_mulconst_test ) ;
   mu_run_test( spinmatrix_multiply_test ) ;
   mu_run_test( spinmatrix_trace_test ) ;
+  mu_run_test( transpose_spinmatrix_test ) ;
   mu_run_test( zero_spinmatrix_test ) ;
 
   // relies on spinmatrix multiply and spinmatrix trace
@@ -260,6 +299,9 @@ spinmatrices_test( void )
   mu_run_test( gammaspinmatrix_trace_test ) ;
   mu_run_test( compute_pslash_test ) ;
 
+  // relies on transpose and spinmatrix multiply
+  mu_run_test( spinmatrix_multiply_T_test ) ;
+  
   return NULL ;
 }
 
@@ -273,8 +315,8 @@ spinmatrix_test_driver( void )
   // precompute the gamma basis
   GAMMA = malloc( NSNS * sizeof( struct gamma ) ) ;
 
-  corr_malloc( (void**)&C , 16 , NSNS * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&C , ALIGNMENT , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&D , ALIGNMENT , NSNS * sizeof( double complex ) ) ;
 
   make_gammas( GAMMA , CHIRAL ) ;
 

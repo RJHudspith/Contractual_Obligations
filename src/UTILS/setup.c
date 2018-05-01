@@ -107,15 +107,15 @@ compute_correlator( struct measurements *M ,
 		    const GLU_bool configspace )
 {
   if( configspace == GLU_TRUE ) {
-    size_t i ;
-    #pragma omp for private(i)
-    for( i = 0 ; i < stride1 ; i++ ) {
-      size_t j , p ;
-      for( j = 0 ; j < stride2 ; j++ ) {
-	for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	  M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	    M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
-	}
+    size_t idx ;
+    #pragma omp for nowait private(idx) schedule(dynamic)
+    for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+      const size_t i = idx/stride2 ;
+      const size_t j = idx%stride2 ;
+      size_t p ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	  M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
       }
     }
   } else {
@@ -123,25 +123,25 @@ compute_correlator( struct measurements *M ,
     fftw_plan *fwd = (fftw_plan*)M -> forward ;
     #endif
     // momentum projection
-    size_t i ;
-    #pragma omp for private(i)
-    for( i = 0 ; i < stride1 ; i++ ) {
-      size_t j , p ;
-      for( j = 0 ; j < stride2 ; j++ ) {
-        #ifdef HAVE_FFTW3_H
-	fftw_execute( fwd[ j + stride2*i ] ) ;
-	for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	  M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	    M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
-	}
-        #else
-	register double complex sum = 0.0 ;
-	for( p = 0 ; p < LCU ; p++ ) {
-	  sum += M -> in[ j + stride2*i ][ p ] ;
-	}
-	M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
-        #endif
+    size_t idx ;
+    #pragma omp for nowait private(idx) schedule(dynamic)
+    for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+      const size_t i = idx/stride2 ;
+      const size_t j = idx%stride2 ;
+      size_t p ;
+      #ifdef HAVE_FFTW3_H
+      fftw_execute( fwd[ j + stride2*i ] ) ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	  M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
       }
+      #else
+      register double complex sum = 0.0 ;
+      for( p = 0 ; p < LCU ; p++ ) {
+	sum += M -> in[ j + stride2*i ][ p ] ;
+      }
+      M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
+      #endif
     }
   }
   return SUCCESS ;

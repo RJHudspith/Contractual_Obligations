@@ -63,7 +63,7 @@ mesons_offdiagonal( struct propagator prop1 ,
 
       // compute wall-wall sum
       if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single
+	#pragma omp single nowait
 	{
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 	}

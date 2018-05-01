@@ -28,12 +28,7 @@
 
 // fftw instructions
 #ifdef HAVE_FFTW3_H
-#include <fftw3.h>
-#endif
-
-// do we have openmp access
-#ifdef HAVE_OMP_H
-#include <omp.h>
+  #include <fftw3.h>
 #endif
 
 // 

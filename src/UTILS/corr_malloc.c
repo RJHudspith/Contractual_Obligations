@@ -2,6 +2,8 @@
    @file corr_malloc.c
    @brief memory allocation wrapper
  */
+#define _POSIX_C_SOURCE 200809L
+
 #include "common.h"
 
 // memalign wrapper

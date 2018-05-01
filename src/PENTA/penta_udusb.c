@@ -67,6 +67,9 @@ pentaquark_udusb( struct propagator prop1 , // L
     for( i = 0 ; i < NSNS ; i++ ) {
       F[i] = malloc( 6561*sizeof( double complex ) ) ;
     }
+
+    // result storage
+    double complex *result = malloc( 2 * stride2 * sizeof( double complex ) ) ;
     
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops ) ;
@@ -83,13 +86,11 @@ pentaquark_udusb( struct propagator prop1 , // L
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall sum
-      struct spinor SUMbwdH ;
       if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single
+	#pragma omp single nowait
 	{
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 	}
-	full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
       }
     
       // assumes all sources are at the same origin, checked in wrap_tetras
@@ -101,14 +102,14 @@ pentaquark_udusb( struct propagator prop1 , // L
 	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
       }
       // Loop over spatial volume threads better
-#pragma omp for private(site) schedule(dynamic)
+      #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
+	
 	// precompute backward bottom propagator
 	struct spinor bwdH ;
 	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
 	// pentaquark contractions stored in result
-	double complex *result = malloc( 2 * stride2 * sizeof( double complex ) ) ;
 	size_t op ;
 	for( op = 0 ; op < 2 * stride2 ; op++ ) {
 	  result[ op ] = 0.0 ;
@@ -126,28 +127,29 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  M.in[ op ][ site ] = result[ op ] ;
 	  M.in[ op + stride2 ][ site ] = result[ op + stride2 ] ;
 	}
-
-	free( result ) ;
       }
 
       // wall-wall contractions
-      if( M.is_wall == GLU_TRUE ) {
-	double complex *result =
-	  malloc( 2 * stride2 * sizeof( double complex ) )  ;
-	size_t k ;
-	for( k = 0 ; k < 2 * stride2 ; k++ ) {
-	  result[ k ] = 0.0 ;
+      #pragma omp single nowait
+      {
+	if( M.is_wall == GLU_TRUE ) {
+	  struct spinor SUMbwdH ;
+	  full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
+	  
+	  size_t k ;
+	  for( k = 0 ; k < 2 * stride2 ; k++ ) {
+	    result[ k ] = 0.0 ;
+	  }
+	  // perform contraction, result in result
+	  pentas( result , F , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ,
+		  (const uint8_t**)loc ) ;
+	  // put contractions into final correlator object
+	  size_t op ;
+	  for( op = 0 ; op < stride2 ; op++ ) {
+	    M.wwcorr[ 0 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
+	    M.wwcorr[ 1 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op + stride2 ] ;
+	  }
 	}
-	// perform contraction, result in result
-	pentas( result , F , M.SUM[0] , M.SUM[1] , SUMbwdH , M.GAMMAS ,
-		(const uint8_t**)loc ) ;
-	// put contractions into final correlator object
-	size_t op ;
-	for( op = 0 ; op < stride2 ; op++ ) {
-	  M.wwcorr[ 0 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
-	  M.wwcorr[ 1 ][ op ].mom[ 0 ].C[ tshifted ] = result[ op + stride2 ] ;
-	}
-	free( result ) ;
       }
       // end of wall-wall stuff
       
@@ -165,6 +167,10 @@ pentaquark_udusb( struct propagator prop1 , // L
       }
     }
 
+    // frees from within the parallel region
+    free( result ) ;
+
+    // free the f-tensor
     for( i = 0 ; i < NSNS ; i++ ) {
       free( F[ i ] ) ;
     }

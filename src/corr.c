@@ -63,6 +63,16 @@ main( const int argc,
   }
   init_geom( ) ;
 
+  // tell us how many threads we are using if we have openmp
+  #ifdef HAVE_OMP_H
+  #pragma omp parallel
+  {
+    #pragma omp master
+    fprintf( stdout , "\n[THREADS] CORR using %d thread(s)\n" ,
+	     omp_get_num_threads() ) ;
+  }
+  #endif
+  
   // my gauge field code requires us to read in the whole config
   struct head_data HEAD_DATA ;
   if( MODE == GAUGE_AND_PROPS ) {
