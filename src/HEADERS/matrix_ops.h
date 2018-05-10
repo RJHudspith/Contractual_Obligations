@@ -119,6 +119,13 @@ multab_dagdag( double complex a[ NCNC ] ,
 void
 print_colormatrix( const double complex a[ NCNC ] ) ;
 
+/**
+   @fn void zero_colormatrix( const double complex a[ NCNC ] )
+   @brief zero a colormatrix
+ */
+void
+zero_colormatrix( const double complex a[ NCNC ] ) ;
+
 #endif
 
 #endif

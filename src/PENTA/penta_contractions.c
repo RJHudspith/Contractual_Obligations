@@ -84,30 +84,30 @@ pentas( double complex *result ,
 			       GAMMAS[ AT ] ,
 			       GAMMAS[ GAMMA_T ] } ;
 
-  size_t i , b1 , b2 ;
-  
-  // traces
-  for( b1 = 0 ; b1 < PENTA_NBLOCK ; b1++ ) {
-    for( b2 = 0 ; b2 < PENTA_NBLOCK ; b2++ ) {
-	
-      for( i = 0 ; i < PENTA_NOPS ; i++ ) {
-	
-	struct spinmatrix P ;
-	contract[i]( &P , F , L , L , S , bwdH ,
-		     GBLOCK[ b1 ] ,
-		     GBLOCK[ b2 ] ,
-		     GAMMAS ,
-		     loc ) ;
+  size_t idx ;
+  for( idx = 0 ; idx < (PENTA_NBLOCK*PENTA_NBLOCK*PENTA_NOPS) ; idx++ ) {
+    
+    // indexing                                                                 
+    const size_t b1 = (idx/(PENTA_NOPS*PENTA_NBLOCK)) ;
+    const size_t b2 = (idx/PENTA_NOPS)%PENTA_NBLOCK ;
+    const size_t i  = (idx)%PENTA_NOPS ;
 
-	// get the map correct
-	const size_t irow = i/3 ;
-	const size_t idx = i*2 + irow*PENTA_NBLOCK*3 + b2 + b1*PENTA_NBLOCK*3 ;
 	
-	project_parity( result + idx ,
-			result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
-			P , GAMMAS[ GAMMA_T ] ) ;
-      }
-    }
+    // do the contractions
+    struct spinmatrix P ;
+    contract[i]( &P , F , L , L , S , bwdH ,
+		 GBLOCK[ b1 ] ,
+		 GBLOCK[ b2 ] ,
+		 GAMMAS ,
+		 loc ) ;
+    
+    // get the map correct
+    const size_t irow = i/3 ;
+    const size_t idx = i*2 + irow*PENTA_NBLOCK*3 + b2 + b1*PENTA_NBLOCK*3 ;
+    
+    project_parity( result + idx ,
+		    result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
+		    P , GAMMAS[ GAMMA_T ] ) ;
   }
 
   return SUCCESS ;

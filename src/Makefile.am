@@ -43,6 +43,10 @@ LINALGFILES= \
 MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
 
+## c files in ./NRQCD
+NRQCDFILES=./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
+	./NRQCD/clover.c ./NRQCD/derivs.c ./NRQCD/spin_dependent.c 
+
 ## c files in ./PENTA/
 PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O1O3.c ./PENTA/contract_O2O1.c \
@@ -82,6 +86,7 @@ libCORR_a_SOURCES = \
 	${IOFILES} \
 	${LINALGFILES} \
 	${MEASFILES} \
+	${NRQCDFILES} \
 	${PENTAFILES} \
 	${TETRAFILES} \
 	${UTILSFILES} \
@@ -97,6 +102,7 @@ include_HEADERS = \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(LINALGFILES:./LINALG/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
+	$(NRQCDFILES:./NRQCD/%.c=./HEADERS/%.h) \
 	$(PENTAFILES:./PENTA/%.c=./HEADERS/%.h) \
 	$(TETRAFILES:./TETRA/%.c=./HEADERS/%.h) \
 	$(UTILSSFILES:./UTILS/%.c=./HEADERS/%.h) \

@@ -172,7 +172,10 @@ am__objects_6 = ./LINALG/contractions.$(OBJEXT) \
 	./LINALG/spinmatrix_ops_SSE.$(OBJEXT)
 am__objects_7 = ./MEAS/correlators.$(OBJEXT) ./MEAS/mesons.$(OBJEXT) \
 	./MEAS/mesons_offdiag.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT)
-am__objects_8 = ./PENTA/contract_O1O1.$(OBJEXT) \
+am__objects_8 = ./NRQCD/nrqcd.$(OBJEXT) ./NRQCD/sources.$(OBJEXT) \
+	./NRQCD/spin_independent.$(OBJEXT) ./NRQCD/clover.$(OBJEXT) \
+	./NRQCD/derivs.$(OBJEXT) ./NRQCD/spin_dependent.$(OBJEXT)
+am__objects_9 = ./PENTA/contract_O1O1.$(OBJEXT) \
 	./PENTA/contract_O1O2.$(OBJEXT) \
 	./PENTA/contract_O1O3.$(OBJEXT) \
 	./PENTA/contract_O2O1.$(OBJEXT) \
@@ -183,30 +186,30 @@ am__objects_8 = ./PENTA/contract_O1O1.$(OBJEXT) \
 	./PENTA/contract_O3O3.$(OBJEXT) \
 	./PENTA/penta_contractions.$(OBJEXT) \
 	./PENTA/penta_udusb.$(OBJEXT) ./PENTA/wrap_pentas.$(OBJEXT)
-am__objects_9 = ./TETRA/tetra_usbb.$(OBJEXT) \
+am__objects_10 = ./TETRA/tetra_usbb.$(OBJEXT) \
 	./TETRA/wrap_tetras.$(OBJEXT) \
 	./TETRA/tetra_contractions.$(OBJEXT) \
 	./TETRA/tetra_udbb.$(OBJEXT) ./TETRA/tetra_udcb.$(OBJEXT) \
 	./TETRA/tetra_uscb.$(OBJEXT)
-am__objects_10 = ./UTILS/basis_conversions.$(OBJEXT) \
+am__objects_11 = ./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/corr_malloc.$(OBJEXT) ./UTILS/corr_sort.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/crc32c.$(OBJEXT) \
 	./UTILS/cut_routines.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
 	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
 	./UTILS/progress_bar.$(OBJEXT) ./UTILS/setup.$(OBJEXT)
-am__objects_11 = ./VPF/cl_diagonal.$(OBJEXT) \
+am__objects_12 = ./VPF/cl_diagonal.$(OBJEXT) \
 	./VPF/cl_offdiagonal.$(OBJEXT) ./VPF/currents.$(OBJEXT) \
 	./VPF/ll_diagonal.$(OBJEXT) ./VPF/ll_offdiagonal.$(OBJEXT) \
 	./VPF/momspace_PImunu.$(OBJEXT) \
 	./VPF/PImunu_projections.$(OBJEXT) \
 	./VPF/tmoments_PImunu.$(OBJEXT) ./VPF/WardIdentity.$(OBJEXT) \
 	./VPF/wrap_VPF.$(OBJEXT)
-am__objects_12 = ./WME/WME.$(OBJEXT) ./WME/wrap_WME.$(OBJEXT)
+am__objects_13 = ./WME/WME.$(OBJEXT) ./WME/wrap_WME.$(OBJEXT)
 am_libCORR_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
 	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
 	$(am__objects_9) $(am__objects_10) $(am__objects_11) \
-	$(am__objects_12)
+	$(am__objects_12) $(am__objects_13)
 libCORR_a_OBJECTS = $(am_libCORR_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__CORR_SOURCES_DIST = corr.c
@@ -405,6 +408,9 @@ LINALGFILES = \
 MEASFILES = ./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
 
+NRQCDFILES = ./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
+	./NRQCD/clover.c ./NRQCD/derivs.c ./NRQCD/spin_dependent.c 
+
 PENTAFILES = ./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O1O3.c ./PENTA/contract_O2O1.c \
 	./PENTA/contract_O2O2.c ./PENTA/contract_O2O3.c \
@@ -437,6 +443,7 @@ libCORR_a_SOURCES = \
 	${IOFILES} \
 	${LINALGFILES} \
 	${MEASFILES} \
+	${NRQCDFILES} \
 	${PENTAFILES} \
 	${TETRAFILES} \
 	${UTILSFILES} \
@@ -451,6 +458,7 @@ include_HEADERS = \
 	$(IOFILES:./IO/%.c=./HEADERS/%.h) \
 	$(LINALGFILES:./LINALG/%.c=./HEADERS/%.h) \
 	$(MEASFILES:./MEAS/%.c=./HEADERS/%.h) \
+	$(NRQCDFILES:./NRQCD/%.c=./HEADERS/%.h) \
 	$(PENTAFILES:./PENTA/%.c=./HEADERS/%.h) \
 	$(TETRAFILES:./TETRA/%.c=./HEADERS/%.h) \
 	$(UTILSSFILES:./UTILS/%.c=./HEADERS/%.h) \
@@ -662,6 +670,24 @@ MEAS/$(DEPDIR)/$(am__dirstamp):
 	MEAS/$(DEPDIR)/$(am__dirstamp)
 ./MEAS/wrap_mesons.$(OBJEXT): MEAS/$(am__dirstamp) \
 	MEAS/$(DEPDIR)/$(am__dirstamp)
+NRQCD/$(am__dirstamp):
+	@$(MKDIR_P) ./NRQCD
+	@: > NRQCD/$(am__dirstamp)
+NRQCD/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./NRQCD/$(DEPDIR)
+	@: > NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/nrqcd.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/sources.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/spin_independent.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/clover.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/derivs.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/spin_dependent.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
 PENTA/$(am__dirstamp):
 	@$(MKDIR_P) ./PENTA
 	@: > PENTA/$(am__dirstamp)
@@ -834,6 +860,7 @@ mostlyclean-compile:
 	-rm -f ./IO/*.$(OBJEXT)
 	-rm -f ./LINALG/*.$(OBJEXT)
 	-rm -f ./MEAS/*.$(OBJEXT)
+	-rm -f ./NRQCD/*.$(OBJEXT)
 	-rm -f ./PENTA/*.$(OBJEXT)
 	-rm -f ./TETRA/*.$(OBJEXT)
 	-rm -f ./UTILS/*.$(OBJEXT)
@@ -892,6 +919,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/mesons_offdiag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_mesons.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/clover.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/derivs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/nrqcd.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/sources.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/spin_dependent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/spin_independent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O1O1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O1O2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O1O3.Po@am__quote@
@@ -1114,6 +1147,8 @@ distclean-generic:
 	-rm -f LINALG/$(am__dirstamp)
 	-rm -f MEAS/$(DEPDIR)/$(am__dirstamp)
 	-rm -f MEAS/$(am__dirstamp)
+	-rm -f NRQCD/$(DEPDIR)/$(am__dirstamp)
+	-rm -f NRQCD/$(am__dirstamp)
 	-rm -f PENTA/$(DEPDIR)/$(am__dirstamp)
 	-rm -f PENTA/$(am__dirstamp)
 	-rm -f TETRA/$(DEPDIR)/$(am__dirstamp)
@@ -1134,7 +1169,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./DIQUARKS/$(DEPDIR) ./FIELD/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./LINALG/$(DEPDIR) ./MEAS/$(DEPDIR) ./PENTA/$(DEPDIR) ./TETRA/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./DIQUARKS/$(DEPDIR) ./FIELD/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./LINALG/$(DEPDIR) ./MEAS/$(DEPDIR) ./NRQCD/$(DEPDIR) ./PENTA/$(DEPDIR) ./TETRA/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1180,7 +1215,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./DIQUARKS/$(DEPDIR) ./FIELD/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./LINALG/$(DEPDIR) ./MEAS/$(DEPDIR) ./PENTA/$(DEPDIR) ./TETRA/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./BARYONS/$(DEPDIR) ./DIQUARKS/$(DEPDIR) ./FIELD/$(DEPDIR) ./GEOM/$(DEPDIR) ./IO/$(DEPDIR) ./LINALG/$(DEPDIR) ./MEAS/$(DEPDIR) ./NRQCD/$(DEPDIR) ./PENTA/$(DEPDIR) ./TETRA/$(DEPDIR) ./UTILS/$(DEPDIR) ./VPF/$(DEPDIR) ./WME/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

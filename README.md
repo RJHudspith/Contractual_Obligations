@@ -20,7 +20,7 @@ different you would need to call
 
 --with=NC= --with-ND= --with-NS=
 
-Some codes (such as the Baryons are not yet implemented to be NC-generic
+Some codes (such as the Baryons/Pentas are not yet implemented to be NC-generic)
 
 USAGE
 =====
@@ -39,7 +39,7 @@ INTRINSICS
 ==========
 
 By default, if configure can find SSE headers (immintrin.h) it will
-switch on the code that uses the vector intrinsics.
+switch on the code that uses the vector intrinsics. We align to 16 bytes, and have access to FMA and some small AVX2 usage.
 
 FUNCTIONALITY
 =============
@@ -53,12 +53,14 @@ Baryon contractions for SU(2) and SU(3)
 Limited static quark propagators
 !Untested! Weak matrix element contractions
 
+We now have Tetraquarks and Pentaquarks
+
 TESTS
 =====
 
-We have a fairly limited unit test coverage. We test the most basic
+We have unit test coverage on our linear algebra, testing the most basic
 matrix operations for correctness. So all spinor operations and all
-color matrix operations and all simple (non-baryonic) contractions are
+color matrix operations and all simple contractions are
 covered.
 
 DOCUMENTATION

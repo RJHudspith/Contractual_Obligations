@@ -45,7 +45,7 @@ precompute_F_O1O1_v2( double complex *F ,
   }
   
   size_t i ;
-  for( i = 0 ; i < 6561 ; i++ ) {
+  for( i = 0 ; i < PENTA_NCOLORS ; i++ ) {
     
     F[i] =
       spinmatrix_trace( temp5[ loc[i][1] + NC*loc[i][0] ][ loc[i][3] + NC*loc[i][2] ].D ) *

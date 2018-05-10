@@ -48,7 +48,7 @@ cl_diagonal( struct propagator prop1 ,
   struct PIdata *DATA_VV = NULL ; 
 
   // loop counters
-  size_t x , t ;
+  size_t x , t = 0 ;
   
   // error code
   int error_code = SUCCESS ;
@@ -69,8 +69,8 @@ cl_diagonal( struct propagator prop1 ,
   // Read first timeslice and the one above it
 #pragma omp parallel
   {
-    read_ahead( prop , M.S+0 , &error_code , 1 ) ;
-    read_ahead( prop , M.S+1 , &error_code , 1 ) ;
+    read_ahead( prop , M.S+0 , &error_code , 1 , t ) ;
+    read_ahead( prop , M.S+1 , &error_code , 1 , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -96,7 +96,7 @@ cl_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < ( LT-2 ) ) {
-	read_ahead( prop , M.Sf , &error_code , 1 ) ;
+	read_ahead( prop , M.Sf , &error_code , 1 , t ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
       for( x = 0 ; x < LCU ; x++ ) {

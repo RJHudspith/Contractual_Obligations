@@ -59,7 +59,7 @@ diquark_offdiag( struct propagator prop1 ,
   // read in the files
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -84,7 +84,7 @@ diquark_offdiag( struct propagator prop1 ,
     {
       // read on the master and one slave
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

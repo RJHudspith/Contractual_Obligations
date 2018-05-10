@@ -102,7 +102,7 @@ WME( struct propagator s0 ,
     // read the prop files
 #pragma omp parallel
     {
-      read_ahead( prop , M.S , &error_code , Nprops ) ;
+      read_ahead( prop , M.S , &error_code , Nprops , t ) ;
     }
     if( error_code == FAILURE ) {
       goto memfree ;

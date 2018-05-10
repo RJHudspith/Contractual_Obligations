@@ -46,7 +46,7 @@ cl_offdiagonal( struct propagator prop1 ,
   struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;
 
   // loop counters
-  size_t x , t ;
+  size_t x , t = 0 ;
 
   // error code
   int error_code = SUCCESS ;
@@ -67,7 +67,7 @@ cl_offdiagonal( struct propagator prop1 ,
   // read the first couple of slices
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , 2 ) ;
+    read_ahead( prop , M.S , &error_code , 2 , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -79,7 +79,7 @@ cl_offdiagonal( struct propagator prop1 ,
   // read the first couple of slices
 #pragma omp parallel
   {
-    read_ahead( prop , M.S+2 , &error_code , 2 ) ;
+    read_ahead( prop , M.S+2 , &error_code , 2 , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -110,7 +110,7 @@ cl_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-2 ) {
-	read_ahead( prop , M.Sf , &error_code , 2 ) ;
+	read_ahead( prop , M.Sf , &error_code , 2 , t ) ;
 	rotate_offdiag( M.Sf , prop , 2 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)

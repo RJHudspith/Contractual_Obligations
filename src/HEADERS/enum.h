@@ -188,7 +188,7 @@ typedef enum {
   CHIRAL ,
   NREL_FWD ,
   NREL_BWD ,
-  STATIC } proptype ;
+  NREL_CORR } proptype ;
 
 /**
    @enum spinhalf

@@ -30,7 +30,10 @@ contract_mesons( struct propagator *prop ,
 			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ;
+	read_propheader( &prop[ p1 ] ) ;
+      }
     } else {
       // I can't think of a time when this would be legitimate
       if( prop[ p1 ].source != prop[ p2 ].source ) {
@@ -53,8 +56,12 @@ contract_mesons( struct propagator *prop ,
 			      mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      if( prop[p1].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
+      if( prop[p2].basis != NREL_CORR ) {
+	rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      }
     }
     // loop on measurements
     print_time( ) ;

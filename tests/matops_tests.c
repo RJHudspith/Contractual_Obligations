@@ -195,6 +195,21 @@ multabdagdag_test( void )
   return NULL ;
 }
 
+// zero test
+static char *
+zero_colormatrix_test( void )
+{
+  int i ;
+  zero_colormatrix( (double complex*)res ) ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    const double complex r = dcast( res[ i ] ) ;
+    mu_assert( "[MATOPS UNIT] error : zero_colormatrix broken" , 
+	       !( fabs( creal( r ) ) > FTOL ||
+		  fabs( cimag( r ) ) > FTOL ) ) ;
+  }
+  return NULL ;
+}
+
 // spinor tests
 static char *
 matops_test( void )
@@ -224,7 +239,8 @@ matops_test( void )
   mu_run_test( multabdag_test ) ;
   mu_run_test( multabdagdag_test ) ;
   mu_run_test( colortrace_prod_test ) ;
-
+  mu_run_test( zero_colormatrix_test ) ;
+  
   return NULL ;
 }
 

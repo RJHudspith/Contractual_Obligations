@@ -62,7 +62,9 @@ rotate_offdiag( struct spinor **S ,
   size_t mu ;
   GLU_bool have_NREL = GLU_FALSE ;
   for( mu = 0 ; mu < Nprops ; mu++ ) {
-    if( prop[mu].basis == NREL_FWD || prop[mu].basis == NREL_BWD ) {
+    if( prop[mu].basis == NREL_FWD ||
+	prop[mu].basis == NREL_BWD ||
+	prop[mu].basis == NREL_CORR ) {
       have_NREL = GLU_TRUE ;
     }
   }

@@ -57,12 +57,12 @@ baryons_diagonal( struct propagator prop1 ,
 
 #pragma omp parallel
   {
+    size_t t = 0 ;
+    
     // read in the first timeslice
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
     #pragma omp barrier
-
-    size_t t ;
     
     // Time slice loop 
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
@@ -81,7 +81,7 @@ baryons_diagonal( struct propagator prop1 ,
       // strange memory access pattern threads better than what was here before
       size_t site ;
       if( t < ( LT - 1 ) ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site)

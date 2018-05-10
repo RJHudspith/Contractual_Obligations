@@ -246,17 +246,24 @@ baryon_contract_walls( struct mcorr **corr ,
   case UUU_BARYON : f = uuu ; break ;
   }
 
+  // some temporary storage
+  double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
+  term[0] = malloc( NSNS * sizeof( double complex ) ) ;
+  term[1] = malloc( NSNS * sizeof( double complex ) ) ;
+  
   // accumulate the sums with open dirac indices
   size_t GSGK ;
-#pragma omp for private(GSGK)
+  #pragma omp for nowait private(GSGK) schedule(dynamic)
   for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
     // source and sink indices
     const size_t GSRC = GSGK / B_CHANNELS ;
     const size_t GSNK = GSGK % B_CHANNELS ;
-    // allocate these locally
-    double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
-    term[0] = calloc( NSNS , sizeof( double complex ) ) ;
-    term[1] = calloc( NSNS , sizeof( double complex ) ) ;
+    // set terms to zero
+    size_t d1d2 ;
+    for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
+      term[0][d1d2] = 0.0 ;
+      term[1][d1d2] = 0.0 ;
+    }
     // comtract
     baryon_contract_site( term , SUM1 , SUM2 , SUM3 , 
 			  Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
@@ -265,8 +272,8 @@ baryon_contract_walls( struct mcorr **corr ,
     for( odc = 0 ; odc < NSNS ; odc++ ) {
       corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( term[0][odc] , term[1][odc] ) ;
     }
-    free( term[0] ) ; free( term[1] ) ; free( term ) ;
   }
+  free( term[0] ) ; free( term[1] ) ; free( term ) ;
   return ;
 }
 
@@ -292,7 +299,7 @@ baryon_momentum_project( struct measurements *M ,
   if( configspace == GLU_TRUE ) {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp for private(GSodc)
+    #pragma omp for nowait private(GSodc) schedule(dynamic)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;
@@ -309,7 +316,7 @@ baryon_momentum_project( struct measurements *M ,
   } else {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp for private(GSodc)
+    #pragma omp for nowait private(GSodc) schedule(dynamic)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;

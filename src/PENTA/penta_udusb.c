@@ -37,9 +37,10 @@ pentaquark_udusb( struct propagator prop1 , // L
   // error flag
   int error_code = SUCCESS ;
 
-  uint8_t **loc = malloc( 6561 * sizeof( uint8_t* ) ) ;
+  // each thread gets a copy
+  uint8_t **loc = malloc( PENTA_NCOLORS * sizeof( uint8_t* ) ) ;
   size_t j , k ;
-  for( j = 0 ; j < 6561 ; j++ ) {
+  for( j = 0 ; j < PENTA_NCOLORS ; j++ ) {
     loc[ j ] = malloc( 8 * sizeof( uint8_t ) ) ;
     size_t sub = NC , div = 1 ; 
     for( k = 8 ; k > 0 ; k-- ) {
@@ -61,24 +62,24 @@ pentaquark_udusb( struct propagator prop1 , // L
   // init the parallel region
 #pragma omp parallel
   {
-    // each thread gets a copy
+    // F-tensor
     double complex **F = malloc( NSNS * sizeof( double complex* ) ) ;
     size_t i ;
     for( i = 0 ; i < NSNS ; i++ ) {
-      F[i] = malloc( 6561*sizeof( double complex ) ) ;
+      F[i] = malloc( PENTA_NCOLORS * sizeof( double complex ) ) ;
     }
 
     // result storage
     double complex *result = malloc( 2 * stride2 * sizeof( double complex ) ) ;
+
+    // loop counters
+    size_t t = 0 ;
     
     // read in the first timeslice
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
     #pragma omp barrier
-    
-    // loop counters
-    size_t t ;
-  
+      
     // Time slice loop 
     for( t = 0 ; t < LT ; t++ ) {
       
@@ -86,9 +87,9 @@ pentaquark_udusb( struct propagator prop1 , // L
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall sum
-      if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single nowait
-	{
+      #pragma omp single nowait
+      {
+	if( M.is_wall == GLU_TRUE ) {
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 	}
       }
@@ -99,8 +100,9 @@ pentaquark_udusb( struct propagator prop1 , // L
       size_t site ;
       // read on the master and slaves
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
+
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
@@ -151,7 +153,6 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  }
 	}
       }
-      // end of wall-wall stuff
       
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ,
@@ -191,6 +192,14 @@ pentaquark_udusb( struct propagator prop1 , // L
   // memfree sink
  memfree :
 
+  // free the lookup table
+  if( loc != NULL ) {
+    for( j = 0 ; j < PENTA_NCOLORS ; j++ ) {
+      free( loc[j] ) ;
+    }
+    free( loc ) ;
+  }
+  
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
 

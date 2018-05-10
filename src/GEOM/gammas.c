@@ -200,8 +200,9 @@ make_gammas( struct gamma *GAMMA ,
 	     const proptype prop )
 {
   switch( prop ) {
-  case NREL_FWD :
+  case NREL_CORR :
   case NREL_BWD :
+  case NREL_FWD :
     // gamma_0 -- x direction
     GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] = 3 ;
     GAMMA[0].ig[1] = 2 ; GAMMA[0].g[1] = 3 ;
@@ -228,7 +229,6 @@ make_gammas( struct gamma *GAMMA ,
     GAMMA[5].ig[2] = 0 ; GAMMA[5].g[2] = 2 ;
     GAMMA[5].ig[3] = 1 ; GAMMA[5].g[3] = 2 ;
     break ;
-  case STATIC :
   case CHIRAL :
     // gamma_0
     GAMMA[0].ig[0] = 3 ; GAMMA[0].g[0] = 3 ;
@@ -343,7 +343,9 @@ setup_gamma( struct gamma *GAMMAS ,
   size_t mu ;
   for( mu = 0 ; mu < Nprops ; mu++ ) {
     // if we hit a single NREL prop we set gamma basis to NREL
-    if( prop[mu].basis == NREL_FWD || prop[mu].basis == NREL_BWD ) {
+    if( prop[mu].basis == NREL_FWD ||
+	prop[mu].basis == NREL_BWD ||
+	prop[mu].basis == NREL_CORR ) {
       basis = NREL_FWD ;
       break ;
     }

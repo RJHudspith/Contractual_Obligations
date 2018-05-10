@@ -224,31 +224,27 @@ read_nrprop( struct propagator prop ,
   return SUCCESS ;
 }
 
-// timeslice counter
-static size_t T = 0 ;
-
-// Read a static propagator on this slice 
-static int 
-read_staticprop( struct propagator prop , 
-		 struct spinor *S )
+int
+compute_nrprop( struct propagator prop , 
+		struct spinor *S ,
+		const size_t t )
 {
-  // if we haven't read the gauge field we can't do this
-  if( lat == NULL ) {
-    fprintf( stderr , "[IO] Empty gauge field! Cannot compute static\n" ) ;
-    return FAILURE ;
+  // copy from the prop
+  size_t i ;
+  spinor_zero( S ) ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    if( prop.NRQCD.backward == GLU_TRUE ) {
+      colormatrix_equiv( (void*)S[i].D[0][0].C , (void*)prop.H[i+LCU*t].D[0] ) ;
+      colormatrix_equiv( (void*)S[i].D[0][1].C , (void*)prop.H[i+LCU*t].D[1] ) ;
+      colormatrix_equiv( (void*)S[i].D[1][0].C , (void*)prop.H[i+LCU*t].D[2] ) ;
+      colormatrix_equiv( (void*)S[i].D[1][1].C , (void*)prop.H[i+LCU*t].D[3] ) ;
+    } else {
+      colormatrix_equiv( (void*)S[i].D[2][2].C , (void*)prop.H[i+LCU*t].D[0] ) ;
+      colormatrix_equiv( (void*)S[i].D[2][3].C , (void*)prop.H[i+LCU*t].D[1] ) ;
+      colormatrix_equiv( (void*)S[i].D[3][2].C , (void*)prop.H[i+LCU*t].D[2] ) ;
+      colormatrix_equiv( (void*)S[i].D[3][3].C , (void*)prop.H[i+LCU*t].D[3] ) ;
+    }
   }
-
-  // make the gammas
-  struct gamma *GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
-  make_gammas( GAMMAS , CHIRAL ) ;
-
-  // poke into struct S
-  static_quark( S , GAMMAS[ GAMMA_T ] , T , GLU_TRUE ) ;
-  free( GAMMAS ) ;
-
-  // increment our timeslice counter
-  T++ ;
-
   return SUCCESS ;
 }
 
@@ -257,12 +253,13 @@ int
 read_ahead( struct propagator *prop ,
 	    struct spinor **S , 
 	    int *error_code ,
-	    const size_t Nprops )
-{
+	    const size_t Nprops ,
+	    const size_t t )
+{ 
   // loops for IO
 #pragma omp master
   {
-    if( read_prop( prop[0] , S[0] ) == FAILURE ) {
+    if( read_prop( prop[0] , S[0] , t ) == FAILURE ) {
       *error_code = FAILURE ;
     }
   }
@@ -270,7 +267,7 @@ read_ahead( struct propagator *prop ,
   for( mu = 1 ; mu < Nprops ; mu++ ) {
 #pragma omp single nowait
     {
-      if( read_prop( prop[mu] , S[mu] ) == FAILURE ) {
+      if( read_prop( prop[mu] , S[mu] , t ) == FAILURE ) {
 	*error_code = FAILURE ;
       }
     }
@@ -281,16 +278,17 @@ read_ahead( struct propagator *prop ,
 // thin wrapper for propagator reading
 int
 read_prop( struct propagator prop ,
-	   struct spinor *S )
+	   struct spinor *S ,
+	   const size_t t )
 {
   switch( prop.basis ) {
   case CHIRAL :
     return read_chiralprop( prop , S ) ;
+  case NREL_CORR :
+    return compute_nrprop( prop , S , t ) ;
   case NREL_FWD :
   case NREL_BWD :
     return read_nrprop( prop , S , prop.basis ) ;
-  case STATIC :
-    return read_staticprop( prop , S ) ;
   }
   return FAILURE ;
 }

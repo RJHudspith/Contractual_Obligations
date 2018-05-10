@@ -42,7 +42,7 @@ precompute_F_O1O2_v2( double complex **F ,
   }
 
   size_t i ;
-  for( i = 0 ; i < 6561 ; i++ ) {
+  for( i = 0 ; i < PENTA_NCOLORS ; i++ ) {
         
     // preset the spinmatrices
     struct spinmatrix
@@ -54,8 +54,8 @@ precompute_F_O1O2_v2( double complex **F ,
 			       temp6[ loc[i][5] + NC*loc[i][4] ][ loc[i][7] + NC*loc[i][6] ].D ) ;
       
     spinmatrix_multiply_T_avx( temp8.D ,
-			   temp5[ loc[i][5] + NC*loc[i][0] ][ loc[i][3] + NC*loc[i][2] ].D ,
-			   temp6[ loc[i][1] + NC*loc[i][4] ][ loc[i][7] + NC*loc[i][6] ].D ) ;   
+			       temp5[ loc[i][5] + NC*loc[i][0] ][ loc[i][3] + NC*loc[i][2] ].D ,
+			       temp6[ loc[i][1] + NC*loc[i][4] ][ loc[i][7] + NC*loc[i][6] ].D ) ;
 
     size_t d1 , d2 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {

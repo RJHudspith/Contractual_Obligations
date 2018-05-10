@@ -19,6 +19,12 @@
 #include "wrap_VPF.h"        // VPF contraction wrapper
 #include "wrap_WME.h"        // VPF contraction wrapper
 
+#ifdef HAVE_OMP_H
+#include <omp.h>
+#endif
+
+#include "nrqcd.h"           // compute_nrqcd_props()
+
 // lattice information holds dimensions and other stuff
 // to be taken from the gauge configuration file OR the input file
 struct latt_info Latt ;
@@ -87,10 +93,12 @@ main( const int argc,
   // open up some propagator files and parse the
   // header checking the geometry
   if( read_propheaders( prop , inputs.nprops ) == FAILURE ) {
-    if( MODE == GAUGE_AND_PROPS ) free( lat ) ;
-    free_props( prop , inputs.nprops ) ;
-    free_inputs( inputs ) ;
-    return FAILURE ;
+    goto FREES ;
+  }
+
+  // compute the NRQCD props
+  if( compute_nrqcd_props( prop , inputs.nprops ) == FAILURE ) {
+    goto FREES ;
   }
 
   start_timer( ) ;
@@ -144,6 +152,9 @@ main( const int argc,
   // we will have to move this around only place where this is freed
   free( lat ) ;
 
+  // free the computed NRQCD propagators
+  free_nrqcd_props( prop , inputs.nprops ) ;
+  
   // free the propagators
   free_props( prop , inputs.nprops ) ;
 

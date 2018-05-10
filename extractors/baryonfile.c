@@ -30,7 +30,7 @@ help( void )
   usage( ) ;
   fprintf( stdout , "\nI list the various options for this code, I give the \n" 
 	   "OPTION :: {then a brief description} 'AND'|'THEN'|'THE'|'POSSIBLE'|'OPTIONS' \n\n" ) ;
-  fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'STATIC'|'NREL' \n" ) ;
+  fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'NREL' \n" ) ;
   fprintf( stdout , "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
   fprintf( stdout , "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
   fprintf( stdout , "TFLIP :: {time axis flip} true|false" ) ;
@@ -91,8 +91,6 @@ main( const int argc ,
   // set the basis
   if( are_equal( argv[ GAMMA_BASIS ] , "NREL" ) ) {
     basis = NREL_FWD ;
-  } else if( are_equal( argv[ GAMMA_BASIS ] , "STATIC" ) ) {
-    basis = STATIC ;
   } else if( are_equal( argv[ GAMMA_BASIS ] , "CHIRAL" ) ) {
     basis = CHIRAL ;
   } else {

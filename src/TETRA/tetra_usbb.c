@@ -49,12 +49,12 @@ tetraquark_usbb( struct propagator prop1 ,
   // read in the first timeslice
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    // loop counters
+    size_t t = 0 ;
+    
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
     #pragma omp barrier
-    
-    // loop counters
-    size_t t ;
     
     // Time slice loop 
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
@@ -63,13 +63,11 @@ tetraquark_usbb( struct propagator prop1 ,
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall sum
-      struct spinor SUMbwdH ;
       if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single
+	#pragma omp single nowait
 	{
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 	}
-	full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
       }
 
       // assumes all sources are at the same origin, checked in wrap_tetras
@@ -79,7 +77,7 @@ tetraquark_usbb( struct propagator prop1 ,
       size_t site ;
       // read on the master and one slave
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
@@ -116,6 +114,9 @@ tetraquark_usbb( struct propagator prop1 ,
       }
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
+	struct spinor SUMbwdH ;
+       	full_adj( &SUMbwdH , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
+	
 	size_t GSRC  ;
         #pragma omp for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {

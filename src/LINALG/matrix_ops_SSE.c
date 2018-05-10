@@ -520,4 +520,32 @@ print_colormatrix( const double complex a[ NCNC ] )
   return ;
 }
 
+// zero a colormatrix
+void
+zero_colormatrix( const double complex a[ NCNC ] )
+{
+  __m128d *pA = (__m128d*)a ;
+#if NC == 3
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+#elif NC == 2
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; pA++ ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    *pA = _mm_setzero_pd() ; pA++ ;
+  }
+#endif
+}
+
 #endif

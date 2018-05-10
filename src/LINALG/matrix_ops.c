@@ -384,6 +384,25 @@ multab_dagdag( double complex a[ NCNC ] ,
   return ;
 }
 
+// zeros a colormatrix
+void
+zero_colormatrix( double complex a[ NCNC ] )
+{
+#if NC == 3
+  a[0] = 0.0 ; a[1] = 0.0 ; a[2] = 0.0 ;
+  a[3] = 0.0 ; a[4] = 0.0 ; a[5] = 0.0 ;
+  a[6] = 0.0 ; a[7] = 0.0 ; a[8] = 0.0 ;
+#elif NC == 2
+  a[0] = 0.0 ; a[1] = 0.0 ;
+  a[2] = 0.0 ; a[3] = 0.0 ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    a[j] = 0.0 ;
+  }
+#endif
+}
+
 // print a to stdout
 void
 print_colormatrix( const double complex a[ NCNC ] )

@@ -35,6 +35,14 @@ struct colormatrix {
 } ;
 
 /**
+   @struct halfspinor
+   @brief heavy prop
+ */
+struct halfspinor {
+  double complex D[ ND ][ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+} ;
+
+/**
    @struct correlator
    @brief correlator data storage
  */
@@ -186,6 +194,19 @@ struct mcorr {
 } ;
 
 /**
+   @struct NRQCD_params
+   @brief various NRQCD params storage
+ */
+struct NRQCD_params {
+  double U0 ;  // tadpole
+  // correction terms
+  double C0 , C1 , C2 , C3 , C4 , C5 , C6 , C7 , C8 , C9E , C9EB , C10E , C10EB , C11 ;
+  double M_0 ; // bare heavy quark mass
+  size_t N ;   // number of hamiltonian applications
+  GLU_bool backward ;
+} ;
+
+/**
    @struct PIdata
    @brief VPF storage
  */
@@ -207,6 +228,8 @@ struct propagator {
   sourcetype source ;
   size_t origin[ ND ] ;
   boundaries bound[ ND ] ;
+  struct halfspinor *H ;
+  struct NRQCD_params NRQCD ;
   fp_precision precision ;
   endianness endian ;
   size_t t ;
@@ -319,6 +342,22 @@ struct WME_info {
   proptype proptype3 ;
   proptype proptype4 ;
   char outfile[ 256 ] ;
+} ;
+
+// allocation of a field
+struct field {
+  double complex **O ;
+} ;
+
+// little struct for the NRQCD temporaries
+struct NRQCD_fields {
+  struct halfspinor *S ;
+  struct halfspinor *S1 ;
+  struct halfspinor *S2 ;
+  struct halfspinor *S3 ;
+  struct halfspinor *S4 ;
+  struct halfspinor *H ;
+  struct field *Fmunu ;
 } ;
 
 #endif

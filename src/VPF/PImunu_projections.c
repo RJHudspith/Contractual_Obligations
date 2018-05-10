@@ -88,7 +88,7 @@ projection( const struct PIdata *data ,
 	const double pmunu = p[i][mu] * p[i][nu] * spsq ;
 	const double fac = ( mu != nu ) ? -pmunu : 1.0 - pmunu ;
 	sumtrans += creal( data[list_idx].PI[mu][nu] ) * fac ;
-	sumlong  += creal( data[list_idx].PI[mu][nu] ) * pmunu ;
+	sumlong  += creal( data[list_idx].PI[mu][nu] ) * -pmunu ;
       }
     }
     trans[ i ] = sumtrans * ( spsq * NORM ) ;

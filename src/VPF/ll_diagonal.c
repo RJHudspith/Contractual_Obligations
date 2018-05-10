@@ -15,6 +15,8 @@
 #include "tmoments_PImunu.h"   // time moments calculations
 #include "setup.h"             // initialising and stuff
 
+#include "geometry.h"
+
 // number of propagators
 #define Nprops (1)
 
@@ -24,7 +26,7 @@ ll_diagonal( struct propagator prop1 ,
 	     const struct site *lat ,
 	     const struct cut_info CUTINFO ,
 	     const char *outfile )
-{
+{ 
   // vector gamma map
   const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
@@ -39,7 +41,7 @@ ll_diagonal( struct propagator prop1 ,
   const size_t flat_dirac = stride1 * stride2 ;
 
   // loop counters
-  size_t t , x ;
+  size_t t = 0 , x ;
 
   // error code
   int error_code = SUCCESS ;
@@ -63,7 +65,7 @@ ll_diagonal( struct propagator prop1 ,
   // initially read a timeslice
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -79,7 +81,7 @@ ll_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {
@@ -114,10 +116,10 @@ ll_diagonal( struct propagator prop1 ,
     tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
     
     // do all the momspace stuff away from the contractions
-    if( prop1.source == POINT ) {
+    //if( prop1.source == POINT ) {
       momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
 		       LOCAL_LOCAL ) ;
-    }
+      //}
   }
 
   // free the AA & VV data

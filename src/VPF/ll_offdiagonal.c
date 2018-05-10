@@ -39,7 +39,7 @@ ll_offdiagonal( struct propagator prop1 ,
   const size_t flat_dirac = stride1 * stride2 ;
 
   // loop counters
-  size_t x , t ;
+  size_t x , t = 0 ;
 
   // error code
   int error_code = SUCCESS ;
@@ -63,7 +63,7 @@ ll_offdiagonal( struct propagator prop1 ,
   // initially read a timeslice
 #pragma omp parallel
   {
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -82,7 +82,7 @@ ll_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       // loop spatial volume
       #pragma omp for private(x)

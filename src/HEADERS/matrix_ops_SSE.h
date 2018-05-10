@@ -125,6 +125,13 @@ multab_dagdag( __m128d *__restrict a ,
 void
 print_colormatrix( const double complex a[ NCNC ] ) ;
 
+/**
+   @fn void zero_colormatrix( const double complex a[ NCNC ] )
+   @brief zero a colormatrix
+ */
+void
+zero_colormatrix( const double complex a[ NCNC ] ) ;
+
 #endif
 
 #endif

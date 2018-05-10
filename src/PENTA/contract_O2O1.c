@@ -40,7 +40,7 @@ precompute_F_O2O1_v2( double complex **F ,
   }
 
   size_t i ;
-  for( i = 0 ; i < 6561 ; i++ ) {
+  for( i = 0 ; i < PENTA_NCOLORS ; i++ ) {
 
     // there is a reproduction of results here that we can utilise
     // as this one is computed with swapped indices in a later evaluation

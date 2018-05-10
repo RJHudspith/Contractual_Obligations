@@ -47,14 +47,14 @@ mesons_offdiagonal( struct propagator prop1 ,
   // open the parallel region
 #pragma omp parallel
   {
+    // loop counters
+    size_t t = 0 , site ;
+    
     // initial read of a timeslice
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
     #pragma omp barrier
-    
-    // loop counters
-    size_t t , site ;
-    
+        
     // Time slice loop 
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
@@ -74,7 +74,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       
       // master-slave the IO and perform each FFT in parallel
       if( t < ( LT - 1 ) ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
 
       // parallelise the furthest out loop :: flatten the gammas

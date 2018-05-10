@@ -49,13 +49,13 @@ tetraquark_udcb( struct propagator prop1 , // L1
   // init the parallel region
 #pragma omp parallel
   {
+    // loop counters
+    size_t t = 0 ;
+    
     // read in the first timeslice
-    read_ahead( prop , M.S , &error_code , Nprops ) ;
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
     #pragma omp barrier
-    
-    // loop counters
-    size_t t ;
 
     // Time slice loop 
     for( t = 0 ; t < LT ; t++ ) {
@@ -64,14 +64,11 @@ tetraquark_udcb( struct propagator prop1 , // L1
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall sum
-      struct spinor SUMbwdH1 , SUMbwdH2 ;
       if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single
+	#pragma omp single nowait
 	{
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 	}
-	full_adj( &SUMbwdH1 , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
-	full_adj( &SUMbwdH2 , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
       }
 
       // assumes all sources are at the same origin, checked in wrap_tetras
@@ -81,7 +78,7 @@ tetraquark_udcb( struct propagator prop1 , // L1
       size_t site ;
       // read on the master and slaves
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
@@ -115,6 +112,9 @@ tetraquark_udcb( struct propagator prop1 , // L1
       }
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
+	struct spinor SUMbwdH1 , SUMbwdH2 ;
+	full_adj( &SUMbwdH1 , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
+	full_adj( &SUMbwdH2 , M.SUM[2] , M.GAMMAS[ GAMMA_5 ] ) ;
 	size_t GSRC  ;
         #pragma omp for private(GSRC)
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {

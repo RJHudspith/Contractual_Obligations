@@ -190,6 +190,63 @@ get_propsource( sourcetype *source )
   return FAILURE ;
 }
 
+static int
+get_double( double *result )
+{
+  char *endptr , *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    result[ N ] = strtod( token , &endptr ) ;
+    if( token == endptr || errno == ERANGE ) {
+      fprintf( stderr , "[IO] misread double %zu read %f \n" , 
+	       N , result[ N ] ) ;
+      return FAILURE ;
+    }
+    if( ++N == 1 ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
+static int
+get_size_t( size_t *result )
+{
+  char *endptr , *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    result[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
+    if( token == endptr || errno == ERANGE ) {
+      fprintf( stderr , "[IO] misread size_t %zu read %zu \n" , 
+	       N , result[ N ] ) ;
+      return FAILURE ;
+    }
+    if( ++N == 1 ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
+static int
+get_GLU_bool( GLU_bool *result )
+{
+  char *token ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    if( are_equal( token , "GLU_TRUE" ) ) {
+      *result = GLU_TRUE ;
+      return SUCCESS ;
+    } else if( are_equal( token , "GLU_FALSE" ) ) {
+      *result = GLU_FALSE ;
+      return SUCCESS ;
+    } else {
+      fprintf( stderr , "[IO] I don't understand bool %s, please make"
+	       " GLU_FALSE or GLU_TRUE\n" , token ) ;
+      return FAILURE ;
+    }
+  }
+  return FAILURE ;
+}
+
+
 // get the propagator source type
 static int
 get_proptype( proptype *basis )
@@ -204,8 +261,8 @@ get_proptype( proptype *basis )
     } else if( are_equal( token , "Nrel_bwd\n" ) ) {
       *basis = NREL_BWD ;
       return SUCCESS ;
-    } else if( are_equal( token , "Static\n" ) ) {
-      *basis = STATIC ;
+    } else if( are_equal( token , "Nrel_CORR\n" ) ) {
+      *basis = NREL_CORR ;
       return SUCCESS ;
     } else if( are_equal( token , "Chiral\n" ) ) {
       *basis = CHIRAL ;
@@ -234,13 +291,42 @@ nonexistent_record( const char *message )
   return FAILURE ;
 }
 
+// 
+static void
+summarize_NRQCD_params( struct NRQCD_params NRQCD )
+{
+  fprintf( stdout , "\n[IO] NRQCD bare mass %f\n" , NRQCD.M_0 ) ;
+  fprintf( stdout , "[IO] NRQCD tadpole %f\n" , NRQCD.U0 ) ;
+  fprintf( stdout , "[IO] NRQCD %zu applications of hamiltonian\n" , NRQCD.N ) ;
+  if( NRQCD.backward == GLU_TRUE ) {
+    fprintf( stdout , "[IO] NRQCD backward propagator\n" ) ;
+  } else {
+    fprintf( stdout , "[IO] NRQCD forward propagator\n" ) ;
+  }
+  fprintf( stdout , "[IO] NRQCD coefficient C0 %f\n" , NRQCD.C0 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C1 %f\n" , NRQCD.C1 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C2 %f\n" , NRQCD.C2 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C3 %f\n" , NRQCD.C3 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C4 %f\n" , NRQCD.C4 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C5 %f\n" , NRQCD.C5 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C6 %f\n" , NRQCD.C6 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C7 %f\n" , NRQCD.C7 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C8 %f\n" , NRQCD.C8 ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C9E %f\n" , NRQCD.C9E ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C9EB %f\n" , NRQCD.C9EB ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C10E %f\n" , NRQCD.C10E ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C10EB %f\n" , NRQCD.C10EB ) ;
+  fprintf( stdout , "[IO] NRQCD coefficient C11 %f\n" , NRQCD.C11 ) ;
+  return ;
+}
+
 //
 int
 read_propheader( struct propagator *prop )
 {
   // dimensions in the file
   size_t dims[ ND ] ;
-  const int MAX_HEADER_LINES = 32 ;
+  const int MAX_HEADER_LINES = 64 ;
   char line[ MAX_LINE_LENGTH ] ;
 
   // error flags
@@ -248,6 +334,20 @@ read_propheader( struct propagator *prop )
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
   int basisflag = 0 , boundsflag = 0 ;
 
+  // set this to NULL
+  prop -> H = NULL ;
+  
+  // initialise NRQCD parameters regardless of if we use them
+  prop -> NRQCD.C0    = 0.0 ; prop -> NRQCD.C1   = 0.0 ;
+  prop -> NRQCD.C2    = 0.0 ; prop -> NRQCD.C3   = 0.0 ;
+  prop -> NRQCD.C4    = 0.0 ; prop -> NRQCD.C5   = 0.0 ;
+  prop -> NRQCD.C6    = 0.0 ; prop -> NRQCD.C7   = 0.0 ;
+  prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9E  = 0.0 ;
+  prop -> NRQCD.C9EB  = 0.0 ; prop -> NRQCD.C10E = 0.0 ;
+  prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
+  prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
+  prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ; 
+  
   // loop up to some large number of possible tags
   while( n < MAX_HEADER_LINES ) {
 
@@ -305,8 +405,29 @@ read_propheader( struct propagator *prop )
       if( get_propbounds( prop -> bound ) == FAILURE ) {
 	return tagfailure( "Boundaries:" , line ) ;
       }
-      boundsflag ++ ;
+      boundsflag++ ;
     }
+    
+    // look for some NRQCD parameters
+    if( are_equal( tag , "NRQCD_C0" ) ) get_double( &prop -> NRQCD.C0 ) ;
+    if( are_equal( tag , "NRQCD_C1" ) ) get_double( &prop -> NRQCD.C1 ) ;
+    if( are_equal( tag , "NRQCD_C2" ) ) get_double( &prop -> NRQCD.C2 ) ;
+    if( are_equal( tag , "NRQCD_C3" ) ) get_double( &prop -> NRQCD.C3 ) ;
+    if( are_equal( tag , "NRQCD_C4" ) ) get_double( &prop -> NRQCD.C4 ) ;
+    if( are_equal( tag , "NRQCD_C5" ) ) get_double( &prop -> NRQCD.C5 ) ;
+    if( are_equal( tag , "NRQCD_C6" ) ) get_double( &prop -> NRQCD.C6 ) ;
+    if( are_equal( tag , "NRQCD_C7" ) ) get_double( &prop -> NRQCD.C7 ) ;
+    if( are_equal( tag , "NRQCD_C8" ) ) get_double( &prop -> NRQCD.C8 ) ;
+    if( are_equal( tag , "NRQCD_C9E" ) ) get_double( &prop -> NRQCD.C9E ) ;
+    if( are_equal( tag , "NRQCD_C9EB" ) ) get_double( &prop -> NRQCD.C9EB ) ;
+    if( are_equal( tag , "NRQCD_C10E" ) ) get_double( &prop -> NRQCD.C10E ) ;
+    if( are_equal( tag , "NRQCD_C10EB" ) ) get_double( &prop -> NRQCD.C10EB ) ;
+    if( are_equal( tag , "NRQCD_C11" ) ) get_double( &prop -> NRQCD.C11 ) ;
+    if( are_equal( tag , "NRQCD_U0" ) ) get_double( &prop -> NRQCD.U0 ) ;
+    if( are_equal( tag , "NRQCD_M_0" ) ) get_double( &prop -> NRQCD.M_0 ) ;
+    if( are_equal( tag , "NRQCD_N" ) ) get_size_t( &prop -> NRQCD.N ) ;
+    if( are_equal( tag , "NRQCD_backward" ) ) get_GLU_bool( &prop -> NRQCD.backward ) ;
+    
     // break when we hit the desired end_header
     if( are_equal( line , "<end_header>\n" ) ) {
       break ;
@@ -324,6 +445,10 @@ read_propheader( struct propagator *prop )
   if( boundsflag == 0 ) return nonexistent_record( "Boundaries: or Boundary:" ) ;
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
+  if( prop -> basis == NREL_CORR ) {
+    summarize_NRQCD_params( prop -> NRQCD ) ;
+  }
+
   // the NRQCD code counts from 1 instead of zero, shift to c-counting
   // instead of Fortran counting
   if( prop -> basis == NREL_FWD || prop -> basis == NREL_BWD ) {
@@ -332,7 +457,7 @@ read_propheader( struct propagator *prop )
       prop -> origin[ mu ] -= 1 ;
     }
   }
-
+  
   // if everything is kosher we leave successfully
   return SUCCESS ;
 }

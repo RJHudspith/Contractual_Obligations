@@ -63,7 +63,7 @@ write_propheader( FILE *outfile ,
   switch( prop1.basis ) {
   case NREL_FWD : fprintf( outfile , "Nrel_fwd\n" ) ; break ;
   case NREL_BWD : fprintf( outfile , "Nrel_bwd\n" ) ; break ;
-  case STATIC : fprintf( outfile , "Nrel_fwd\n" ) ; break ;
+  case NREL_CORR : fprintf( outfile , "Nrel_fwd\n" ) ; break ;
   case CHIRAL : fprintf( outfile , "Chiral\n" ) ; break ;
   }
   // source type
@@ -228,8 +228,8 @@ main( const int argc,
       }
     }
     
-    read_prop( prop[0] , S1 ) ;
-    read_prop( prop[1] , S2 ) ;
+    read_prop( prop[0] , S1 , t ) ;
+    read_prop( prop[1] , S2 , t ) ;
     size_t site ;
     for( site = 0 ; site < LCU ; site++ ) {
       f( &S1[site] , S2[site] ) ;

@@ -168,4 +168,10 @@
  */
 #define VPF_MAGIC (717685)
 
+/**
+   @def PENTA_NCOLORS
+   @brief number of colour indices we use in the penta contractions
+ **/
+#define PENTA_NCOLORS (6561)
+  
 #endif
