@@ -312,9 +312,7 @@ summarize_NRQCD_params( struct NRQCD_params NRQCD )
   fprintf( stdout , "[IO] NRQCD coefficient C6 %f\n" , NRQCD.C6 ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C7 %f\n" , NRQCD.C7 ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C8 %f\n" , NRQCD.C8 ) ;
-  fprintf( stdout , "[IO] NRQCD coefficient C9E %f\n" , NRQCD.C9E ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C9EB %f\n" , NRQCD.C9EB ) ;
-  fprintf( stdout , "[IO] NRQCD coefficient C10E %f\n" , NRQCD.C10E ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C10EB %f\n" , NRQCD.C10EB ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C11 %f\n" , NRQCD.C11 ) ;
   return ;
@@ -342,8 +340,7 @@ read_propheader( struct propagator *prop )
   prop -> NRQCD.C2    = 0.0 ; prop -> NRQCD.C3   = 0.0 ;
   prop -> NRQCD.C4    = 0.0 ; prop -> NRQCD.C5   = 0.0 ;
   prop -> NRQCD.C6    = 0.0 ; prop -> NRQCD.C7   = 0.0 ;
-  prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9E  = 0.0 ;
-  prop -> NRQCD.C9EB  = 0.0 ; prop -> NRQCD.C10E = 0.0 ;
+  prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9EB  = 0.0 ; 
   prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
   prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
   prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ; 
@@ -418,9 +415,7 @@ read_propheader( struct propagator *prop )
     if( are_equal( tag , "NRQCD_C6" ) ) get_double( &prop -> NRQCD.C6 ) ;
     if( are_equal( tag , "NRQCD_C7" ) ) get_double( &prop -> NRQCD.C7 ) ;
     if( are_equal( tag , "NRQCD_C8" ) ) get_double( &prop -> NRQCD.C8 ) ;
-    if( are_equal( tag , "NRQCD_C9E" ) ) get_double( &prop -> NRQCD.C9E ) ;
     if( are_equal( tag , "NRQCD_C9EB" ) ) get_double( &prop -> NRQCD.C9EB ) ;
-    if( are_equal( tag , "NRQCD_C10E" ) ) get_double( &prop -> NRQCD.C10E ) ;
     if( are_equal( tag , "NRQCD_C10EB" ) ) get_double( &prop -> NRQCD.C10EB ) ;
     if( are_equal( tag , "NRQCD_C11" ) ) get_double( &prop -> NRQCD.C11 ) ;
     if( are_equal( tag , "NRQCD_U0" ) ) get_double( &prop -> NRQCD.U0 ) ;

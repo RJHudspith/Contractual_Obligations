@@ -11,6 +11,7 @@
 
 #include "clover.h"
 #include "GLU_timer.h"
+#include "halfspinor_ops.h"
 #include "matrix_ops.h"
 #include "progress_bar.h"
 #include "sources.h"
@@ -37,46 +38,35 @@ evolve_H( struct NRQCD_fields *F ,
     double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
 
     const size_t idx = i + t*LCU ;
+    size_t mu , d ;
     
     // set hamiltonian storage to zero
-    size_t mu , d , j ;
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> H[i].D[0][j] = 0.0 ;
-      F -> H[i].D[1][j] = 0.0 ;
-      F -> H[i].D[2][j] = 0.0 ;
-      F -> H[i].D[3][j] = 0.0 ;
-    }
+    zero_colormatrix( F -> H[i].D[0] ) ;
+    zero_colormatrix( F -> H[i].D[1] ) ;
+    zero_colormatrix( F -> H[i].D[2] ) ;
+    zero_colormatrix( F -> H[i].D[3] ) ;
 
     // inner mu sum much more cache friendly
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      const size_t bck  = lat[ i ].neighbor[mu] ;
-      const size_t fwd  = lat[ i ].back[mu] ;
+      const size_t fwd  = lat[ i ].neighbor[mu] ;
+      const size_t bck  = lat[ i ].back[mu] ;
       const size_t bck2 = lat[idx].back[mu] ;
       
       for( d = 0 ; d < NS ; d++ ) {
 	multab( (void*)A , (void*)lat[idx].O[mu] , (void*)F->S[fwd].D[d] ) ;
 	multabdag( (void*)B , (void*)lat[bck2].O[mu] , (void*)F->S[bck].D[d] ) ;
-	for( j = 0 ; j < NCNC ; j++ ) {
-	  F -> H[i].D[d][j] += C0 * ( A[j] + B[j] - 2*F->S[i].D[d][j] ) ;
-	}
+	// A = A + B 
+	add_mat( (void*)A , (void*)B ) ;
+	// A = A + B - 2 F -> S[i].D[d]
+	colormatrix_Saxpy( A , F->S[i].D[d], -2. ) ;
+	// F = C0 * ( A + B - 2 F -> S[i].D[d] )
+	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
       }
     }
   }
 
-  // usual factor for this part as we are in the multiply exponentiation loop
-  const double expfac = 1./(2.*NRQCD.N) ;
-  
-  // set S1 && S2 to ( 1 - H/(2N) ) G(t)
-  for( i = 0 ; i < LCU ; i++ ) {
-    size_t j ;
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> S[i].D[0][j] -= F -> H[i].D[0][j] * expfac ;
-      F -> S[i].D[1][j] -= F -> H[i].D[1][j] * expfac ;
-      F -> S[i].D[2][j] -= F -> H[i].D[2][j] * expfac ;
-      F -> S[i].D[3][j] -= F -> H[i].D[3][j] * expfac ;
-    }
-  }
-  
+  halfspinor_Saxpy( F -> S , F -> H , -1./(2.*NRQCD.N) ) ;
+    
   return ;
 }
 
@@ -86,16 +76,8 @@ evolve_dH( struct NRQCD_fields *F ,
 	   const size_t t ,
 	   const struct NRQCD_params NRQCD )
 {
-  size_t i , j ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> H[i].D[0][j] = 0.0 ;
-      F -> H[i].D[1][j] = 0.0 ;
-      F -> H[i].D[2][j] = 0.0 ;
-      F -> H[i].D[3][j] = 0.0 ;
-    }
-  }
-
+  zero_halfspinor( F -> H ) ;
+  
   // atomically accumulate result into F -> H
   term_C1_C6( F , t , NRQCD ) ;
   term_C2( F , t , NRQCD ) ;
@@ -104,17 +86,12 @@ evolve_dH( struct NRQCD_fields *F ,
   term_C5( F , t , NRQCD ) ;
   term_C7( F , t , NRQCD ) ;
   term_C8( F , t , NRQCD ) ;
+  term_C9EB( F , t , NRQCD ) ;
+  term_C10EB( F , t , NRQCD ) ;
+  term_C11( F , t , NRQCD ) ;
   
-  // set S to ( 1 - dH/2 ) G(t)
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> S[i].D[0][j] -= F -> H[i].D[0][j] ;
-      F -> S[i].D[1][j] -= F -> H[i].D[1][j] ;
-      F -> S[i].D[2][j] -= F -> H[i].D[2][j] ;
-      F -> S[i].D[3][j] -= F -> H[i].D[3][j] ;
-    }
-  }
-  
+  halfspinor_Saxpy( F -> S , F -> H , -1. ) ;
+    
   return ;
 }
 
@@ -128,6 +105,8 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   size_t n , i ;
 
   evolve_dH( F , t , NRQCD ) ;
+
+  // evolve just with C0 term
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
@@ -145,7 +124,6 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
-  evolve_dH( F , t , NRQCD ) ;
   
   return SUCCESS ;
 }
@@ -160,6 +138,7 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   size_t n , i ;
   
   evolve_dH( F , t , NRQCD ) ;
+  
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }

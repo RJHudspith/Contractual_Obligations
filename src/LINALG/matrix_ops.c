@@ -66,6 +66,42 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// computes A[i] = S*b + A[i]
+void
+colormatrix_iSaxpy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S )
+{
+#if NC == 3
+  a[0] += I*S*b[0] ; a[1] += I*S*b[1] ; a[2] += I*S*b[2] ;
+  a[3] += I*S*b[3] ; a[4] += I*S*b[4] ; a[5] += I*S*b[5] ;
+  a[6] += I*S*b[6] ; a[7] += I*S*b[7] ; a[8] += I*S*b[8] ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    a[j] += I*S*b[j] ;
+  }
+#endif
+}
+
+// computes A[i] = S*b + A[i]
+void
+colormatrix_Saxpy( double complex a[ NCNC ] ,
+		   const double complex b[ NCNC ] ,
+		   const double S )
+{
+#if NC == 3
+  a[0] += S*b[0] ; a[1] += S*b[1] ; a[2] += S*b[2] ;
+  a[3] += S*b[3] ; a[4] += S*b[4] ; a[5] += S*b[5] ;
+  a[6] += S*b[6] ; a[7] += S*b[7] ; a[8] += S*b[8] ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    a[j] += S*b[j] ;
+  }
+#endif
+}
+
 // compute the trace
 double complex
 colortrace( const double complex a[ NCNC ] )

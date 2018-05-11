@@ -7,44 +7,35 @@
 #include "derivs.h"
 #include "matrix_ops.h"
 
-// set s-matrix to zero
-static void
-set_S_to_zero( struct halfspinor *S )
-{
-  size_t i , j ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S[i].D[0][j] = 0.0 ;
-      S[i].D[1][j] = 0.0 ;
-      S[i].D[2][j] = 0.0 ;
-      S[i].D[3][j] = 0.0 ;
-    }
-  }
-  return ;
-}
-
-static void
-update_H( struct halfspinor *H ,
-	  const double fac ,
-	  const struct halfspinor *S )
-{
-  size_t i , j ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      H[i].D[0][j] += fac * S[i].D[0][j] ;
-      H[i].D[1][j] += fac * S[i].D[1][j] ;
-      H[i].D[2][j] += fac * S[i].D[2][j] ;
-      H[i].D[3][j] += fac * S[i].D[3][j] ;
-    }
-  }
-}
+#include "halfspinor_ops.h"
 
 // puts result in F -> S3
+// computes \grad x E, which is the determinant of
+//
+// |  x   y   z  |
+// | dx  dy  dz  |
+// | Fxt Fyt Fzt |
+//
+// dy Fzt - dz Fyt for the x - direction
+// dz Fxt - dx Fzt for the y - direction
+// dx Fyt - dy Fxt for the z - direction
+//
+// For the terms that are E x \grad we have the reverse
+//
+// |  x   y   z  |
+// | Fxt Fyt Fzt |
+// | dx  dy  dz  |
+//
+// Fyt dz - Fzt dy Fyt for the x - direction
+// Fzt dx - Fxt dz Fzt for the y - direction
+// Fxt dy - Fyt dx Fxt for the z - direction
+//
+// I then dot in whichever sigma matrix we are using in this round
 static void
 sigma_dot_grad_x_E( struct halfspinor *S3 ,
 		    struct halfspinor *S2 ,
 		    struct halfspinor *S1 ,
-		    struct field *Fmunu ,
+		    const struct field *Fmunu ,
 		    const struct halfspinor *S ,
 		    const size_t t ,
 		    const size_t Fidx1 ,
@@ -52,84 +43,44 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
 		    const size_t mu1 ,
 		    const size_t mu2 ,
 		    const size_t sigma_map[ NS ] ,
-		    const double complex mult_map[ NS ] )
+		    const uint8_t imap[ NS ] )
 {
-  size_t i , j ;
+  const uint8_t mimap[ NS ] = { (imap[0]+2)%4 , (imap[1]+2)%4 ,
+				(imap[2]+2)%4 , (imap[3]+2)%4 } ;
+  size_t i ;
+  // first term is \grad x E
   for( i = 0 ; i < LCU ; i++ ) {
-    multab( (void*)S1[i].D[0] , (void*)Fmunu[i].O[Fidx1] , (void*)S[i].D[0] ) ;
-    multab( (void*)S1[i].D[1] , (void*)Fmunu[i].O[Fidx1] , (void*)S[i].D[1] ) ;
-    multab( (void*)S1[i].D[2] , (void*)Fmunu[i].O[Fidx1] , (void*)S[i].D[2] ) ;
-    multab( (void*)S1[i].D[3] , (void*)Fmunu[i].O[Fidx1] , (void*)S[i].D[3] ) ;
+    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx1] , S[i] ) ;
   }
-  set_S_to_zero( S2 ) ;
-  grad( S2 , S1 , t , mu1 ) ;
-  // multiply by sigma
+  grad_imp( S2 , S1 , t , mu1 ) ;
+  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , imap ) ;
+    
+  // and then do the minus term
   for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S3[i].D[0][j] += mult_map[0] * S2[i].D[ sigma_map[0] ][j] ;
-      S3[i].D[1][j] += mult_map[1] * S2[i].D[ sigma_map[1] ][j] ;
-      S3[i].D[2][j] += mult_map[2] * S2[i].D[ sigma_map[2] ][j] ;
-      S3[i].D[3][j] += mult_map[3] * S2[i].D[ sigma_map[3] ][j] ;
-    }
+    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx2] , S[i] ) ;
   }
-  // do the minus term
-  for( i = 0 ; i < LCU ; i++ ) {
-    multab( (void*)S1[i].D[0] , (void*)Fmunu[i].O[Fidx2] , (void*)S[i].D[0] ) ;
-    multab( (void*)S1[i].D[1] , (void*)Fmunu[i].O[Fidx2] , (void*)S[i].D[1] ) ;
-    multab( (void*)S1[i].D[2] , (void*)Fmunu[i].O[Fidx2] , (void*)S[i].D[2] ) ;
-    multab( (void*)S1[i].D[3] , (void*)Fmunu[i].O[Fidx2] , (void*)S[i].D[3] ) ;
-  }
-  set_S_to_zero( S2 ) ;
-  grad( S2 , S1 , t , mu2 ) ;
-  // multiply by -sigma
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S3[i].D[0][j] -= mult_map[0] * S2[i].D[ sigma_map[0] ][j] ;
-      S3[i].D[1][j] -= mult_map[1] * S2[i].D[ sigma_map[1] ][j] ;
-      S3[i].D[2][j] -= mult_map[2] * S2[i].D[ sigma_map[2] ][j] ;
-      S3[i].D[3][j] -= mult_map[3] * S2[i].D[ sigma_map[3] ][j] ;
-    }
-  }
+  grad_imp( S2 , S1 , t , mu2 ) ;
+  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , mimap ) ;
+
   ////////////////////////////////////////////////////////////////////////
   // do E x \grad here also
-  set_S_to_zero( S2 ) ;
-  grad( S1 , S , t , mu1 ) ;
+  grad_imp( S1 , S , t , mu1 ) ;
   for( i = 0 ; i < LCU ; i++ ) {
-    multab( (void*)S2[i].D[0] , (void*)Fmunu[i].O[Fidx1] , (void*)S1[i].D[0] ) ;
-    multab( (void*)S2[i].D[1] , (void*)Fmunu[i].O[Fidx1] , (void*)S1[i].D[1] ) ;
-    multab( (void*)S2[i].D[2] , (void*)Fmunu[i].O[Fidx1] , (void*)S1[i].D[2] ) ;
-    multab( (void*)S2[i].D[3] , (void*)Fmunu[i].O[Fidx1] , (void*)S1[i].D[3] ) ;
+    colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx1] , S1[i] ) ;
   }
-  // multiply by sigma
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S3[i].D[0][j] += mult_map[0] * S2[i].D[ sigma_map[0] ][j] ;
-      S3[i].D[1][j] += mult_map[1] * S2[i].D[ sigma_map[1] ][j] ;
-      S3[i].D[2][j] += mult_map[2] * S2[i].D[ sigma_map[2] ][j] ;
-      S3[i].D[3][j] += mult_map[3] * S2[i].D[ sigma_map[3] ][j] ;
-    }
-  }
+  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , imap ) ;
+
   // and the minus term
-  set_S_to_zero( S2 ) ;
-  grad( S1 , S , t , mu2 ) ;
+  grad_imp( S1 , S , t , mu2 ) ;
   for( i = 0 ; i < LCU ; i++ ) {
-    multab( (void*)S2[i].D[0] , (void*)Fmunu[i].O[Fidx2] , (void*)S1[i].D[0] ) ;
-    multab( (void*)S2[i].D[1] , (void*)Fmunu[i].O[Fidx2] , (void*)S1[i].D[1] ) ;
-    multab( (void*)S2[i].D[2] , (void*)Fmunu[i].O[Fidx2] , (void*)S1[i].D[2] ) ;
-    multab( (void*)S2[i].D[3] , (void*)Fmunu[i].O[Fidx2] , (void*)S1[i].D[3] ) ;
+    colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx2] , S1[i] ) ;
   }
-  // multiply by sigma
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S3[i].D[0][j] += mult_map[0] * S2[i].D[ sigma_map[0] ][j] ;
-      S3[i].D[1][j] += mult_map[1] * S2[i].D[ sigma_map[1] ][j] ;
-      S3[i].D[2][j] += mult_map[2] * S2[i].D[ sigma_map[2] ][j] ;
-      S3[i].D[3][j] += mult_map[3] * S2[i].D[ sigma_map[3] ][j] ;
-    }
-  }
+  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , mimap ) ;
+
   return ;
 }
 
+// computes \sigma.B G
 static void
 sigmaB_G( struct halfspinor *H ,
 	  struct halfspinor *S1 ,
@@ -137,11 +88,8 @@ sigmaB_G( struct halfspinor *H ,
 	  const struct halfspinor S ,
 	  const double fac )
 {
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex sum[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-    
   // initialise sigma.B into S1
-  size_t d1 , d2 , d3 , j ;
+  size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
     S1 -> D[0][j] =  Fmunu.O[2][j] ;
     S1 -> D[1][j] =  Fmunu.O[0][j] - I * Fmunu.O[1][j] ;
@@ -149,25 +97,15 @@ sigmaB_G( struct halfspinor *H ,
     S1 -> D[3][j] = -Fmunu.O[2][j] ;
   }
 
-  // multiply this guy with F -> S
-  for( d1 = 0 ; d1 < 2 ; d1++ ) {
-    for( d2 = 0 ; d2 < 2 ; d2++ ) {
-	
-      for( d3 = 0 ; d3 < NCNC ; d3++ ) { sum[ d3 ] = 0.0 ; }
-
-      multab( (void*)A , (void*)S1 -> D[ d1 ] , (void*)S.D[ 2*d2 ] ) ;
-      add_mat( (void*)sum , (void*)A ) ;
-
-      multab( (void*)A , (void*)S1 -> D[ d1 + 2 ] , (void*)S.D[ 1 + 2*d2 ] ) ;
-      add_mat( (void*)sum , (void*)A ) ;
-      
-      // update the hamiltonian
-      for( j = 0 ; j < NCNC ; j++ ) {
-	H -> D[ d2 + d1*2 ][j] += fac * sum[ j ] ;
-      }
-    }
-  }
+  // multiply S on the left by this result
+  struct halfspinor res ;
+  halfspinor_multiply( &res , *S1 , S ) ;
   
+  colormatrix_Saxpy( H -> D[0] , res.D[0] , fac ) ;
+  colormatrix_Saxpy( H -> D[1] , res.D[1] , fac ) ;
+  colormatrix_Saxpy( H -> D[2] , res.D[2] , fac ) ;
+  colormatrix_Saxpy( H -> D[3] , res.D[3] , fac ) ;
+       
   return ;
 }
 
@@ -176,29 +114,29 @@ static void
 sigma_gradxE( struct halfspinor *S3 ,
 	      struct halfspinor *S2 ,
 	      struct halfspinor *S1 ,
-	      struct field *Fmunu ,
+	      const struct field *Fmunu ,
 	      const struct halfspinor *S ,
 	      const size_t t )
 {
-  set_S_to_zero( S3 ) ;
+  zero_halfspinor( S3 ) ;
 
   // does \sigma_x ( \grad_1 F_23 - \grad_2 F_13 )
   const size_t sigma_x[NS] = { 2 , 3 , 0 , 1 } ;
-  const double complex multx[NS] = { 1 , 1 , 1 , 1 } ;
+  const uint8_t imapx[NS] = { 0 , 0 , 0 , 0 } ;
   sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
-		      t , 5 , 4 , 1 , 2 , sigma_x , multx ) ;
+		      t , 5 , 4 , 1 , 2 , sigma_x , imapx ) ;
   
   // does \sigma_y ( \grad_2 F_03 - \grad_0 F_23 )
   const size_t sigma_y[NS] = { 2 , 3 , 0 , 1 } ;
-  const double complex multy[ND] = { -I ,-I ,I ,I } ;
-  sigma_dot_grad_x_E(  S3 , S2 , S1 , Fmunu , S ,
-		       t , 3 , 5 , 2 , 0 , sigma_y , multy ) ;
+  const uint8_t imapy[ND] = { 3 , 3 , 1 , 1 } ;
+  sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
+		      t , 3 , 5 , 2 , 0 , sigma_y , imapy ) ;
   
   // does \sigma_z ( \grad_0 F_13 - \grad_1 F_03 )
   const size_t sigma_z[NS] = { 0 , 1 , 2 , 3} ;
-  const double complex multz[ND] = { 1 , 1 ,-1 ,-1 } ;
+  const uint8_t imapz[ND] = { 0 , 0 , 2 , 2 } ;
   sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
-		      t , 4 , 3 , 0 , 1 , sigma_z , multz ) ;
+		      t , 4 , 3 , 0 , 1 , sigma_z , imapz ) ;
   return ;
 }
 
@@ -215,7 +153,7 @@ term_C3( struct NRQCD_fields *F ,
 
   sigma_gradxE( F -> S3 , F -> S2 , F -> S1 , F -> Fmunu , F -> S , t ) ;
 
-  update_H( F -> H , fac , F -> S3 ) ;
+  halfspinor_Saxpy( F -> H , F -> S3 , fac ) ;
   
   return ;
 }
@@ -247,26 +185,20 @@ term_C7( struct NRQCD_fields *F ,
   
   const double fac = -NRQCD.C7 / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
 
-  size_t i , mu ;
-  // first term \grad^2(sigma.B.G)
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S1 , F -> S , t , mu ) ;
-  }
+  size_t i ;
+  grad_sq_imp( F -> S1 , F -> S , t ) ;
   for ( i = 0  ; i < LCU ; i++ ) {
     sigmaB_G( &F -> H[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S1[i] , fac ) ;
   }
-
+  
   // second term sigma.B.\grad^2(G)
-  set_S_to_zero( F -> S1 ) ;
-  set_S_to_zero( F -> S2 ) ;
+  zero_halfspinor( F -> S1 ) ;
   for ( i = 0  ; i < LCU ; i++ ) {
-    sigmaB_G( &F -> S2[i] , &F -> S1[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
+    sigmaB_G( &F -> S1[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
   }
-  set_S_to_zero( F -> S2 ) ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S2 , F -> S1 , t , mu ) ;
-  }
-  update_H( F -> H , fac , F -> S2 ) ;
+  grad_sq_imp( F -> S2 , F -> S1 , t ) ;
+
+  halfspinor_Saxpy( F -> H , F -> S2 , fac ) ;
   
   return ;
 }
@@ -281,22 +213,66 @@ term_C8( struct NRQCD_fields *F ,
   
   const double fac = -3.0 * NRQCD.C8 / ( 4. * pow( 2*NRQCD.M_0 , 4 ) ) ;
 
-  size_t mu ;
+  // does \sigma.\grad.E.\grad^2
   sigma_gradxE( F -> S3 , F -> S2 , F -> S1 , F -> Fmunu , F -> S , t ) ;
-  
-  set_S_to_zero( F -> S4 ) ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S4 , F -> S3 , t , mu ) ;
-  }
-  update_H( F -> H , fac , F -> S4 ) ;
+  grad_sq( F -> S4 , F -> S3 , t ) ;
+  halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
 
-  set_S_to_zero( F -> S3 ) ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S3 , F -> S , t , mu ) ;
-  }
+  // does \grad^2.\sigma.\grad.E
+  grad_sq( F -> S3 , F -> S , t ) ;
   sigma_gradxE( F -> S4 , F -> S2 , F -> S1 , F -> Fmunu , F -> S3 , t ) ;
-
-  update_H( F -> H , fac , F -> S4 ) ;
+  halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
   
+  return ;
+}
+
+// term is i\sigma.(ExE + BxB)
+// in Randy's code the coefficients are split up, I won't do that for the moment
+void
+term_C9EB( struct NRQCD_fields *F ,
+	   const size_t t ,
+	   const struct NRQCD_params NRQCD )
+{
+  if( fabs( NRQCD.C9EB ) < 1E-12 ) return ;
+  
+  const double fac = -NRQCD.C9EB / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
+  size_t i ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    size_t j ;
+    // x direction is F_13 F_23 - F_23 F_13
+    multab( (void*)A , (void*)F -> Fmunu[i].O[4] , (void*)F -> Fmunu[i].O[5] ) ;
+    multab( (void*)B , (void*)F -> Fmunu[i].O[5] , (void*)F -> Fmunu[i].O[4] ) ;
+    multab( (void*)C , (void*)F -> Fmunu[i].O[1] , (void*)F -> Fmunu[i].O[2] ) ;
+    multab( (void*)D , (void*)F -> Fmunu[i].O[2] , (void*)F -> Fmunu[i].O[1] ) ;
+    for( j = 0 ; j < NCNC ; j++ ) {
+      F -> S1[i].D[1][j] = I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+      F -> S1[i].D[2][j] = F -> S1[i].D[1][j] ;
+    }
+    // y direction is F_23 F_03 - F_03 F_23
+    multab( (void*)A , (void*)F -> Fmunu[i].O[5] , (void*)F -> Fmunu[i].O[3] ) ;
+    multab( (void*)B , (void*)F -> Fmunu[i].O[3] , (void*)F -> Fmunu[i].O[5] ) ;
+    multab( (void*)C , (void*)F -> Fmunu[i].O[2] , (void*)F -> Fmunu[i].O[0] ) ;
+    multab( (void*)D , (void*)F -> Fmunu[i].O[0] , (void*)F -> Fmunu[i].O[2] ) ;
+    for( j = 0 ; j < NCNC ; j++ ) {
+      F -> S1[i].D[1][j] =  ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+      F -> S1[i].D[2][j] = -( F -> S1[i].D[1][j] ) ;
+    }
+    // z direction is F_03 F_13 - F_13 F_03
+    multab( (void*)A , (void*)F -> Fmunu[i].O[3] , (void*)F -> Fmunu[i].O[4] ) ;
+    multab( (void*)B , (void*)F -> Fmunu[i].O[4] , (void*)F -> Fmunu[i].O[3] ) ;
+    multab( (void*)C , (void*)F -> Fmunu[i].O[0] , (void*)F -> Fmunu[i].O[1] ) ;
+    multab( (void*)D , (void*)F -> Fmunu[i].O[1] , (void*)F -> Fmunu[i].O[0] ) ;
+    for( j = 0 ; j < NCNC ; j++ ) {
+      F -> S1[i].D[0][j] = I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+      F -> S1[i].D[3][j] = F -> S1[i].D[0][j] ;
+    }
+    // halfspinor multiply put into F -> S2
+    halfspinor_multiply( &F -> S2[i] , F -> S1[i] , F -> S[i] ) ;
+  }
+  halfspinor_Saxpy( F -> H , F -> S2 , fac ) ;
   return ;
 }

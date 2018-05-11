@@ -6,38 +6,7 @@
 
 #include "derivs.h"
 #include "matrix_ops.h"
-
-// set s-matrix to zero
-static void
-set_S_to_zero( struct halfspinor *S )
-{
-  size_t i , j ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      S[i].D[0][j] = 0.0 ;
-      S[i].D[1][j] = 0.0 ;
-      S[i].D[2][j] = 0.0 ;
-      S[i].D[3][j] = 0.0 ;
-    }
-  }
-  return ;
-}
-
-static void
-update_H( struct halfspinor *H ,
-	  const double fac ,
-	  const struct halfspinor *S )
-{
-  size_t i , j ;
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      H[i].D[0][j] += fac * S[i].D[0][j] ;
-      H[i].D[1][j] += fac * S[i].D[1][j] ;
-      H[i].D[2][j] += fac * S[i].D[2][j] ;
-      H[i].D[3][j] += fac * S[i].D[3][j] ;
-    }
-  }
-}
+#include "halfspinor_ops.h"
 
 // This part computes -C_0 * ( grad^2 / 2*M_0 ) S(x,t) 
 void
@@ -49,11 +18,9 @@ term_C0( struct NRQCD_fields *F ,
   
   const double fac = -NRQCD.C0 / ( 2. * NRQCD.M_0 ) ;
 
-  set_S_to_zero( F -> S1 ) ;
-
   grad_sq( F -> S1 , F -> S , t ) ;
-  
-  update_H( F -> H , fac , F -> S1 ) ;
+
+  halfspinor_Saxpy( F -> H , F -> S1 , fac ) ;
 
   return ;
 }
@@ -69,31 +36,12 @@ term_C1_C6( struct NRQCD_fields *F ,
   // C6 has a factor of the power of the hamiltonian in it
   const double fac = -NRQCD.C1 / pow( 2*NRQCD.M_0 , 3 ) -
     NRQCD.C6 / ( 4. * NRQCD.N * pow( 2*NRQCD.M_0 , 2 ) ) ;
-
-  const double unicf = 0.0 ;
   
-  set_S_to_zero( F -> S1 ) ;
-  set_S_to_zero( F -> S2 ) ;
-
-  size_t i , mu , j ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S1 , F -> S , t , mu ) ;
-  }
-
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( F -> S2  , F -> S1 , t , mu ) ;
-  }
-
-  // multiply by factor
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> H[i].D[0][j] += fac * ( F -> S2[i].D[0][j] + unicf * F->S[i].D[0][j] ) ;
-      F -> H[i].D[1][j] += fac * ( F -> S2[i].D[1][j] + unicf * F->S[i].D[1][j] ) ;
-      F -> H[i].D[2][j] += fac * ( F -> S2[i].D[2][j] + unicf * F->S[i].D[2][j] ) ;
-      F -> H[i].D[3][j] += fac * ( F -> S2[i].D[3][j] + unicf * F->S[i].D[3][j] ) ;
-    }
-  }
-    
+  grad_sq( F -> S1 , F -> S , t ) ;
+  grad_sq( F -> S2 , F -> S1 , t ) ;
+  
+  halfspinor_Saxpy( F -> H , F -> S2 , fac ) ;
+  
   return ;
 }
 
@@ -106,56 +54,30 @@ term_C2( struct NRQCD_fields *F ,
   if( fabs( NRQCD.C2 ) < 1E-12 ) return ;
   
   const double fac = NRQCD.C2 / ( 2. * pow( 2*NRQCD.M_0 , 2 ) ) ;
-
-  set_S_to_zero( F -> S1 ) ;
-  set_S_to_zero( F -> S2 ) ;
   
-  size_t mu , i , j ;
-  // compute i.Delta.E - E.Delta
+  size_t mu , i ;
+  // first term is \grad.E
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    // E * prop
     for( i = 0 ; i < LCU ; i++ ) {
-      multab( (void*)F -> S1[i].D[0] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] , (void*)F -> S[i].D[0] ) ;
-      multab( (void*)F -> S1[i].D[1] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] , (void*)F -> S[i].D[1] ) ;
-      multab( (void*)F -> S1[i].D[2] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] , (void*)F -> S[i].D[2] ) ;
-      multab( (void*)F -> S1[i].D[3] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] , (void*)F -> S[i].D[3] ) ;
+      colormatrix_halfspinor( &F -> S1[i] , F -> Fmunu[i].O[ (ND-1) + mu ] , F -> S[i] ) ;
     }
-    // call derivative into S2
-    grad( F -> S2 , F -> S1 , t , mu ) ;
-    
-    // update the Hamiltonian
-    for( i = 0 ; i < LCU ; i++ ) {
-      for( j = 0 ; j < NCNC ; j++ ) {
-	F -> H[i].D[0][j] += I * fac * F -> S2[i].D[0][j] ;
-	F -> H[i].D[1][j] += I * fac * F -> S2[i].D[1][j] ;
-	F -> H[i].D[2][j] += I * fac * F -> S2[i].D[2][j] ;
-	F -> H[i].D[3][j] += I * fac * F -> S2[i].D[3][j] ;
-      }
-    }
+    // accumulate derivative into S2
+    grad_imp( F -> S2 , F -> S1 , t , mu ) ;
+    halfspinor_iSaxpy( F -> H , F -> S2 , fac ) ;
   }
 
-  set_S_to_zero( F -> S1 ) ;
-  
+  // second term is E.\grad
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    // call improved derivative into S1
-    grad( F -> S1 , F -> S , t , mu ) ;
-    // E * prop
+    // call derivative into S1
+    grad_imp( F -> S1 , F -> S , t , mu ) ;
+    // E * prop goes into S2
     for( i = 0 ; i < LCU ; i++ ) {
-      multab( (void*)F -> S2[i].D[0] , (void*)F -> S[i].D[0] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
-      multab( (void*)F -> S2[i].D[1] , (void*)F -> S[i].D[1] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
-      multab( (void*)F -> S2[i].D[2] , (void*)F -> S[i].D[2] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
-      multab( (void*)F -> S2[i].D[3] , (void*)F -> S[i].D[3] , (void*)F -> Fmunu[i].O[ (ND-1) + mu ] ) ;  
+      halfspinor_colormatrix( &F -> S2[i] , F -> S1[i] , F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
     }
     // update the Hamiltonian
-    for( i = 0 ; i < LCU ; i++ ) {
-      for( j = 0 ; j < NCNC ; j++ ) {
-	F -> H[i].D[0][j] -= I * fac * F -> S2[i].D[0][j] ;
-	F -> H[i].D[1][j] -= I * fac * F -> S2[i].D[1][j] ;
-	F -> H[i].D[2][j] -= I * fac * F -> S2[i].D[2][j] ;
-	F -> H[i].D[3][j] -= I * fac * F -> S2[i].D[3][j] ;
-      }
-    }
+    halfspinor_iSaxpy( F -> H , F -> S2 , -fac ) ;
   }
+
   return ;
 }
 
@@ -169,26 +91,55 @@ term_C5( struct NRQCD_fields *F ,
   
   const double fac = NRQCD.C5 / ( 24. * NRQCD.M_0 ) ;
 
-  const double unicf = 0.0 ;
-
-  set_S_to_zero( F -> S1 ) ;
-  set_S_to_zero( F -> S2 ) ;
-  
-  size_t i , mu , j ;
+  size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
     grad2( F -> S1 , F -> S , t , mu ) ;
     grad2( F -> S2 , F -> S1 , t , mu ) ;
-  }
-
-  // multiply by factor
-  for( i = 0 ; i < LCU ; i++ ) {
-    for( j = 0 ; j < NCNC ; j++ ) {
-      F -> H[i].D[0][j] += fac * ( F -> S2[i].D[0][j] + unicf * F->S[i].D[0][j] ) ;
-      F -> H[i].D[1][j] += fac * ( F -> S2[i].D[1][j] + unicf * F->S[i].D[1][j] ) ;
-      F -> H[i].D[2][j] += fac * ( F -> S2[i].D[2][j] + unicf * F->S[i].D[2][j] ) ;
-      F -> H[i].D[3][j] += fac * ( F -> S2[i].D[3][j] + unicf * F->S[i].D[3][j] ) ;
-    }
+    halfspinor_Saxpy( F -> H , F -> S2 , fac ) ;
   }
   
   return ;
+}
+
+// this term is E.E + B.B
+void
+term_C10EB( struct NRQCD_fields *F ,
+	    const size_t t ,
+	    const struct NRQCD_params NRQCD )
+{
+  if( fabs( NRQCD.C10EB ) < 1E-12 ) return ;
+  
+  const double fac = -NRQCD.C10EB / ( pow( 2 * NRQCD.M_0 , 3 ) ) ;
+
+  size_t i ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    size_t d ;
+    multab( (void*)A , (void*)F -> Fmunu[i].O[0] , (void*)F -> Fmunu[i].O[0] ) ;
+    for( d = 1 ; d < (ND-1)*(ND-2) ; d++ ) {
+      multab( (void*)B , (void*)F -> Fmunu[i].O[d] , (void*)F -> Fmunu[i].O[d] ) ;
+      add_mat( (void*)A , (void*)B ) ;
+    }
+    colormatrix_halfspinor( &F -> S1[i] , A , F -> S[i] ) ;
+  }
+  halfspinor_Saxpy( F -> H , F -> S1 , fac ) ;
+  
+  return ;
+}
+
+void
+term_C11( struct NRQCD_fields *F ,
+	  const size_t t ,
+	  const struct NRQCD_params NRQCD )
+{
+  if( fabs( NRQCD.C11 ) < 1E-12 ) return ;
+  
+  const double fac = -NRQCD.C11 / ( 192. * pow( NRQCD.N , 2 ) * pow( NRQCD.M_0 , 3 ) ) ;
+  
+  grad_sq( F -> S1 , F -> S , t ) ;
+  grad_sq( F -> S2 , F -> S1 , t ) ;
+  grad_sq( F -> S3 , F -> S2 , t ) ;
+
+  halfspinor_Saxpy( F -> H , F -> S3 , fac ) ;
 }

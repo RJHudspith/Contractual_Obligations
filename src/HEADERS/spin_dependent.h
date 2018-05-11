@@ -21,4 +21,9 @@ term_C8( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD ) ;
 
+void
+term_C9EB( struct NRQCD_fields *F ,
+	   const size_t t ,
+	   const struct NRQCD_params NRQCD ) ;
+
 #endif

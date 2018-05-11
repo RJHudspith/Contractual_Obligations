@@ -70,12 +70,12 @@ main( const int argc,
   init_geom( ) ;
 
   // tell us how many threads we are using if we have openmp
-  #ifdef HAVE_OMP_H
+  #if (defined HAVE_OMP_H) && (defined _OPENMP)
   #pragma omp parallel
   {
     #pragma omp master
     fprintf( stdout , "\n[THREADS] CORR using %d thread(s)\n" ,
-	     omp_get_num_threads() ) ;
+    	     omp_get_num_threads() ) ;
   }
   #endif
   

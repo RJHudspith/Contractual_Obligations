@@ -36,6 +36,24 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
 /**
+   @fn void colormatrix_iSaxpy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
+   @brief computes a += S*(i*b) where a and b are colormatrices and S is a scalar
+ */
+void
+colormatrix_iSaxpy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S ) ;
+
+/**
+   @fn void colormatrix_Saxpy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
+   @brief computes a += S*b where a and b are colormatrices and S is a scalar
+ */
+void
+colormatrix_Saxpy( double complex a[ NCNC ] ,
+		   const double complex b[ NCNC ] ,
+		   const double S ) ;
+
+/**
    @fn double complex colortrace( const double complex a[ NCNC ] )
    @brief compute the trace of a color matrix
  */

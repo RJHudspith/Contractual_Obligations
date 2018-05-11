@@ -174,7 +174,8 @@ am__objects_7 = ./MEAS/correlators.$(OBJEXT) ./MEAS/mesons.$(OBJEXT) \
 	./MEAS/mesons_offdiag.$(OBJEXT) ./MEAS/wrap_mesons.$(OBJEXT)
 am__objects_8 = ./NRQCD/nrqcd.$(OBJEXT) ./NRQCD/sources.$(OBJEXT) \
 	./NRQCD/spin_independent.$(OBJEXT) ./NRQCD/clover.$(OBJEXT) \
-	./NRQCD/derivs.$(OBJEXT) ./NRQCD/spin_dependent.$(OBJEXT)
+	./NRQCD/derivs.$(OBJEXT) ./NRQCD/spin_dependent.$(OBJEXT) \
+	./NRQCD/halfspinor_ops.$(OBJEXT)
 am__objects_9 = ./PENTA/contract_O1O1.$(OBJEXT) \
 	./PENTA/contract_O1O2.$(OBJEXT) \
 	./PENTA/contract_O1O3.$(OBJEXT) \
@@ -409,7 +410,8 @@ MEASFILES = ./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 	./MEAS/wrap_mesons.c
 
 NRQCDFILES = ./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
-	./NRQCD/clover.c ./NRQCD/derivs.c ./NRQCD/spin_dependent.c 
+	./NRQCD/clover.c ./NRQCD/derivs.c ./NRQCD/spin_dependent.c \
+	./NRQCD/halfspinor_ops.c
 
 PENTAFILES = ./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O1O3.c ./PENTA/contract_O2O1.c \
@@ -688,6 +690,8 @@ NRQCD/$(DEPDIR)/$(am__dirstamp):
 	NRQCD/$(DEPDIR)/$(am__dirstamp)
 ./NRQCD/spin_dependent.$(OBJEXT): NRQCD/$(am__dirstamp) \
 	NRQCD/$(DEPDIR)/$(am__dirstamp)
+./NRQCD/halfspinor_ops.$(OBJEXT): NRQCD/$(am__dirstamp) \
+	NRQCD/$(DEPDIR)/$(am__dirstamp)
 PENTA/$(am__dirstamp):
 	@$(MKDIR_P) ./PENTA
 	@: > PENTA/$(am__dirstamp)
@@ -921,6 +925,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./MEAS/$(DEPDIR)/wrap_mesons.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/clover.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/derivs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/halfspinor_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/nrqcd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/sources.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/spin_dependent.Po@am__quote@

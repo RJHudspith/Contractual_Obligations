@@ -69,6 +69,62 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// computes A[i] = S*(i*b) + A[i]
+void
+colormatrix_iSaxpy( double complex a[ NCNC ] ,
+		   const double complex b[ NCNC ] ,
+		   const double S )
+{
+  __m128d *pA = (__m128d*)a ;
+  const __m128d *pB = (const __m128d*)b ;
+  const __m128d s = _mm_set_pd( S , S ) ;
+  // this is basically an FMA - should update the instruction
+#if NC == 3
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  }
+#endif
+}
+
+// computes A[i] = S*b + A[i]
+void
+colormatrix_Saxpy( double complex a[ NCNC ] ,
+		   const double complex b[ NCNC ] ,
+		   const double S )
+{
+  __m128d *pA = (__m128d*)a ;
+  const __m128d *pB = (const __m128d*)b ;
+  const __m128d s = _mm_set_pd( S , S ) ;
+  // this is basically an FMA - should update the instruction
+#if NC == 3
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  }
+#endif
+}
+
 // trace of a color matrix
 __m128d
 colortrace( const __m128d *a )

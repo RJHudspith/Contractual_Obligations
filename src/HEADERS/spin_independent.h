@@ -21,4 +21,14 @@ term_C5( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 struct NRQCD_params NRQCD ) ;
 
+void
+term_C10EB( struct NRQCD_fields *F ,
+	    const size_t t ,
+	    struct NRQCD_params NRQCD ) ;
+
+void
+term_C11( struct NRQCD_fields *F ,
+	  const size_t t ,
+	  struct NRQCD_params NRQCD ) ;
+
 #endif

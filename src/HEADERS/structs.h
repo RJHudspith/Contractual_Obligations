@@ -200,7 +200,7 @@ struct mcorr {
 struct NRQCD_params {
   double U0 ;  // tadpole
   // correction terms
-  double C0 , C1 , C2 , C3 , C4 , C5 , C6 , C7 , C8 , C9E , C9EB , C10E , C10EB , C11 ;
+  double C0 , C1 , C2 , C3 , C4 , C5 , C6 , C7 , C8 , C9EB , C10EB , C11 ;
   double M_0 ; // bare heavy quark mass
   size_t N ;   // number of hamiltonian applications
   GLU_bool backward ;
