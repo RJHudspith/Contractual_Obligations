@@ -24,12 +24,12 @@ add_mat( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
-  *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
+  *a = _mm_add_pd( *a , *b ) ; 
 #elif NC == 2
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
   *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
-  *a = _mm_add_pd( *a , *b ) ; a++ ; b++ ;
+  *a = _mm_add_pd( *a , *b ) ; 
 #else
   size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
@@ -69,6 +69,34 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// computes A[i] = S*( a[i] - b[i] )
+void
+colormatrix_Sa_xmy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S )
+{
+  __m128d *pA = (__m128d*)a ;
+  const __m128d *pB = (const __m128d*)b ;
+  const __m128d s = _mm_set_pd( S , S ) ;
+  // this is basically an FMA - should update the instruction
+#if NC == 3
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    *pA =  _mm_mul_pd( s , _mm_sub_pd( *pA , *pB ) ) ; pA++ ; pB++ ;
+  }
+#endif
+}
+
 // computes A[i] = S*(i*b) + A[i]
 void
 colormatrix_iSaxpy( double complex a[ NCNC ] ,
@@ -88,7 +116,7 @@ colormatrix_iSaxpy( double complex a[ NCNC ] ,
   *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
   *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
   *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; 
 #else
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
@@ -116,7 +144,7 @@ colormatrix_Saxpy( double complex a[ NCNC ] ,
   *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
   *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
   *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; 
 #else
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
@@ -203,12 +231,12 @@ dagger_gauge( __m128d *__restrict res ,
   *res = SSE2_CONJ( *( U + 7 ) ) ; res++ ; 
   *res = SSE2_CONJ( *( U + 2 ) ) ; res++ ; 
   *res = SSE2_CONJ( *( U + 5 ) ) ; res++ ; 
-  *res = SSE2_CONJ( *( U + 8 ) ) ; res++ ; 
+  *res = SSE2_CONJ( *( U + 8 ) ) ; 
 #elif NC == 2
   *res = SSE2_CONJ( *( U + 0 ) ) ; res++ ; 
   *res = SSE2_CONJ( *( U + 2 ) ) ; res++ ; 
   *res = SSE2_CONJ( *( U + 1 ) ) ; res++ ; 
-  *res = SSE2_CONJ( *( U + 3 ) ) ; res++ ; 
+  *res = SSE2_CONJ( *( U + 3 ) ) ; 
 #else
   size_t i , j ;
   for( i = 0 ; i < NC ; i++ ) {
@@ -327,7 +355,7 @@ multab( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 7 ) ) ) ; a++ ;
   *a = _mm_add_pd( SSE2_MUL( *( b + 6 ) , *( c + 2 ) ) , 
 		   SSE2_MUL( *( b + 7 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 8 ) ) ) ; a++ ;
+  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 8 ) ) ) ;
 #elif NC == 2
   // a[0] = b[0] * c[0] + b[1] * c[2]
   *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 0 ) ) , 
@@ -340,7 +368,7 @@ multab( __m128d *__restrict a ,
 		   SSE2_MUL( *( b + 3 ) , *( c + 2 ) ) ) ; a++ ;
   // a[3] = b[2] * c[1] + b[3] * c[3]
   *a = _mm_add_pd( SSE2_MUL( *( b + 2 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 3 ) , *( c + 3 ) ) ) ; a++ ;
+		   SSE2_MUL( *( b + 3 ) , *( c + 3 ) ) ) ; 
 #else
   int i , j , m ;
   register __m128d sum ;
@@ -393,7 +421,7 @@ multabdag( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 7 ) ) ) ; a++ ;
   *a = _mm_add_pd( SSE2_MULCONJ( *( b + 2 ) , *( c + 2 ) ) , 
 		   SSE2_MULCONJ( *( b + 5 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 8 ) ) ) ; a++ ;
+  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 8 ) ) ) ; 
 #elif NC == 2
   // a[0] = conj( b[0] ) * c[0] + conj( b[2] ) * c[2]
   *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 0 ) ) , 
@@ -406,7 +434,7 @@ multabdag( __m128d *__restrict a ,
 		   SSE2_MULCONJ( *( b + 3 ) , *( c + 2 ) ) ) ; a++ ;
   // a[3] = conj( b[1] ) * c[1] + conj( b[3] ) * c[3]
   *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 3 ) ) ) ; a++ ;
+		   SSE2_MULCONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
 #else
   int i , j , m ;
   register __m128d sum ;
@@ -472,7 +500,7 @@ multab_dag( __m128d *__restrict a ,
 		   SSE2_MUL_CONJ( *( b + 3 ) , *( c + 1 ) ) ) ; a++ ;
   //a[3] = b[2] * conj( c[2] ) + b[3] * conj( c[3] )
   *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 2 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 3 ) , *( c + 3 ) ) ) ; a++ ;
+		   SSE2_MUL_CONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
 #else 
   int i , j , m ;
   register __m128d sum ;
@@ -526,7 +554,7 @@ multab_dagdag( __m128d *__restrict a ,
   *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 5 ) ) ) ; a++ ;
   *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 6 ) ) , 
 		   SSE2_MUL_CONJCONJ( *( b + 5 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 8 ) ) ) ; a++ ;
+  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 8 ) ) ) ;
 #elif NC == 2
   //a[0] = conj( b[0] ) * conj( c[0] ) + conj( b[2] ) * conj( c[1] )
   *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 0 ) ) , 
@@ -539,7 +567,7 @@ multab_dagdag( __m128d *__restrict a ,
 		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 1 ) ) ) ; a++ ;
   //a[3] = conj( b[1] ) * conj( c[2] ) + conj( b[3] ) * conj( c[3] )
   *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 3 ) ) ) ; a++ ;
+		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
 #else
   int i , j , m ;
   register __m128d sum ;
@@ -590,12 +618,12 @@ zero_colormatrix( const double complex a[ NCNC ] )
   *pA = _mm_setzero_pd() ; pA++ ;
   *pA = _mm_setzero_pd() ; pA++ ;
   *pA = _mm_setzero_pd() ; pA++ ;
-  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; 
 #elif NC == 2
   *pA = _mm_setzero_pd() ; pA++ ;
   *pA = _mm_setzero_pd() ; pA++ ;
   *pA = _mm_setzero_pd() ; pA++ ;
-  *pA = _mm_setzero_pd() ; pA++ ;
+  *pA = _mm_setzero_pd() ; 
 #else
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {

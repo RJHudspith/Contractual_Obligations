@@ -33,7 +33,7 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 
 /**
    @fn void colormatrix_iSaxpy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
-   @brief computes a[i] += S*(I*b[i]) ;
+   @brief computes a[i] += S*(I*b[i]), not a real saxpy but an atomic one
  */
 void
 colormatrix_iSaxpy( double complex a[ NCNC ] ,
@@ -42,12 +42,21 @@ colormatrix_iSaxpy( double complex a[ NCNC ] ,
 
 /**
    @fn void colormatrix_Saxpy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
-   @brief computes a[i] += S*b[i] ;
+   @brief computes a[i] += S*b[i], not a real saxpy but an atomic one
  */
 void
 colormatrix_Saxpy( double complex a[ NCNC ] ,
 		   const double complex b[ NCNC ] ,
 		   const double S ) ;
+
+/**
+   @fn void colormatrix_Sa_xmy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
+   @brief computes a[i] = S*( a[i] - b[i] )
+ */
+void
+colormatrix_Sa_xmy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S ) ;
 
 /**
    @fn __m128d colortrace( const __m128d *a )

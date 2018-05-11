@@ -36,7 +36,7 @@ term_C1_C6( struct NRQCD_fields *F ,
   // C6 has a factor of the power of the hamiltonian in it
   const double fac = -NRQCD.C1 / pow( 2*NRQCD.M_0 , 3 ) -
     NRQCD.C6 / ( 4. * NRQCD.N * pow( 2*NRQCD.M_0 , 2 ) ) ;
-  
+
   grad_sq( F -> S1 , F -> S , t ) ;
   grad_sq( F -> S2 , F -> S1 , t ) ;
   
@@ -58,24 +58,27 @@ term_C2( struct NRQCD_fields *F ,
   size_t mu , i ;
   // first term is \grad.E
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    #pragma omp for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      colormatrix_halfspinor( &F -> S1[i] , F -> Fmunu[i].O[ (ND-1) + mu ] , F -> S[i] ) ;
+      colormatrix_halfspinor( &F -> S1[i] ,
+			      F -> Fmunu[i].O[ (ND-1) + mu ] ,
+			      F -> S[i] ) ;
     }
     // accumulate derivative into S2
     grad_imp( F -> S2 , F -> S1 , t , mu ) ;
     halfspinor_iSaxpy( F -> H , F -> S2 , fac ) ;
-  }
 
-  // second term is E.\grad
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
     // call derivative into S1
-    grad_imp( F -> S1 , F -> S , t , mu ) ;
+    grad_imp( F -> S3 , F -> S , t , mu ) ;
     // E * prop goes into S2
+    #pragma omp for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      halfspinor_colormatrix( &F -> S2[i] , F -> S1[i] , F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
+      halfspinor_colormatrix( &F -> S4[i] ,
+			      F -> S3[i] ,
+			      F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
     }
     // update the Hamiltonian
-    halfspinor_iSaxpy( F -> H , F -> S2 , -fac ) ;
+    halfspinor_iSaxpy( F -> H , F -> S3 , -fac ) ;
   }
 
   return ;
@@ -112,6 +115,7 @@ term_C10EB( struct NRQCD_fields *F ,
   const double fac = -NRQCD.C10EB / ( pow( 2 * NRQCD.M_0 , 3 ) ) ;
 
   size_t i ;
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;

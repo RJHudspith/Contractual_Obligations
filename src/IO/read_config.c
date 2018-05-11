@@ -33,7 +33,7 @@
 #include "Scidac.h"        // Scidac header reading
 
 // identity matrix
-static inline void
+static void
 identity( double complex a[ NCNC ] )
 {
 #if NC == 3

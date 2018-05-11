@@ -11,6 +11,7 @@ void
 zero_halfspinor( struct halfspinor *S )
 {
   size_t i ;
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     zero_colormatrix( S[i].D[0] ) ;
     zero_colormatrix( S[i].D[1] ) ;
@@ -26,6 +27,7 @@ halfspinor_Saxpy( struct halfspinor *H ,
 		  const double fac )
 {
   size_t i ;
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_Saxpy( H[i].D[0] , S[i].D[0] , fac ) ;
     colormatrix_Saxpy( H[i].D[1] , S[i].D[1] , fac ) ;
@@ -42,6 +44,7 @@ halfspinor_iSaxpy( struct halfspinor *H ,
 		   const double fac )
 {
   size_t i ;
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_iSaxpy( H[i].D[0] , S[i].D[0] , fac ) ;
     colormatrix_iSaxpy( H[i].D[1] , S[i].D[1] , fac ) ;
@@ -61,21 +64,25 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
   for( d = 0 ; d < NS ; d++ ) {
     switch( imap[d]%NS ) {
     case 0 :
+      #pragma omp for private(i)
       for( i = 0 ; i < LCU ; i++ ) {
 	colormatrix_Saxpy( H[i].D[d] , S[i].D[ sigma_map[d] ] , 1. ) ;
       }
       break ;
     case 1 :
+      #pragma omp for private(i)
       for( i = 0 ; i < LCU ; i++ ) {
 	colormatrix_iSaxpy( H[i].D[d] , S[i].D[ sigma_map[d] ] , 1. ) ;
       }
       break ;
     case 2 :
+      #pragma omp for private(i)
       for( i = 0 ; i < LCU ; i++ ) {
 	colormatrix_Saxpy( H[i].D[d] , S[i].D[ sigma_map[d] ] , -1. ) ;
       }
       break ;
     case 3 :
+      #pragma omp for private(i)
       for( i = 0 ; i < LCU ; i++ ) {
 	colormatrix_iSaxpy( H[i].D[d] , S[i].D[ sigma_map[d] ] , -1. ) ;
       }

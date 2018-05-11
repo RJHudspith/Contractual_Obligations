@@ -221,9 +221,10 @@ compute_clovers( struct NRQCD_fields *F ,
 {
   const size_t idx = LCU*t ;
   size_t i ;
-  
+
   // precompute field strength tensor if this is really expensive
   // we can do it elsewhere
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     // B fields
     compute_clover( F -> Fmunu[i].O[0] , lat , i + idx , 0 , 1 ) ;
@@ -233,11 +234,10 @@ compute_clovers( struct NRQCD_fields *F ,
     compute_clover( F -> Fmunu[i].O[3] , lat , i + idx , 0 , 3 ) ;
     compute_clover( F -> Fmunu[i].O[4] , lat , i + idx , 1 , 3 ) ;
     compute_clover( F -> Fmunu[i].O[5] , lat , i + idx , 2 , 3 ) ;
-	
   }
-
   // do the clover field improvement, put it into S3 and S4 as they
   // are sinks for temporaries anyway
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     // bfields are easier
     improve_cloverB( F -> S3[i].D[0] , F -> Fmunu , lat , i , t , 0 , 1 ) ;
@@ -248,7 +248,7 @@ compute_clovers( struct NRQCD_fields *F ,
     improve_cloverE( F -> S4[i].D[1] , F -> Fmunu , lat , i , t , 1 , 3 ) ;
     improve_cloverE( F -> S4[i].D[2] , F -> Fmunu , lat , i , t , 2 , 3 ) ;
   }
-
+#pragma omp for private(i)
   // copy back into Fmunu
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_equiv( (void*)F -> Fmunu[i].O[0] , (void*)F -> S3[i].D[0] ) ;
@@ -259,28 +259,7 @@ compute_clovers( struct NRQCD_fields *F ,
     colormatrix_equiv( (void*)F -> Fmunu[i].O[4] , (void*)F -> S4[i].D[1] ) ;
     colormatrix_equiv( (void*)F -> Fmunu[i].O[5] , (void*)F -> S4[i].D[2] ) ;
   }
-
-  // do a test
-#if 0
-  double complex temp1[ NCNC ] __attribute__((aligned(ALIGNMENT)));
-  double complex temp2[ NCNC ] __attribute__((aligned(ALIGNMENT)));
-  double complex sum[ NCNC ] __attribute__((aligned(ALIGNMENT)));
-  zero_colormatrix( sum ) ;
   
-  size_t mu , nu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    for( nu = mu+1 ; nu < ND ; nu++ ) {
-      compute_clover( temp1 , lat , i , mu , nu ) ;
-      compute_clover( temp2 , lat , i , nu , mu ) ;
-      add_mat( (void*)sum , temp1 ) ;
-      add_mat( (void*)sum , temp2 ) ;
-      print_colormatrix( temp1 ) ;
-      print_colormatrix( temp2 ) ;
-      print_colormatrix( sum ) ;
-    }
-  }
-#endif
-
   return ;
 }
 

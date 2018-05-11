@@ -35,9 +35,6 @@ initialise_source( struct halfspinor *S ,
 		   const sourcetype source ,
 		   const size_t origin[ ND ]  )
 {
-  // initiallise to zero
-  memset( S , 0.0 , LVOLUME * sizeof( struct halfspinor ) ) ;
-
   size_t i ;
   int or[ ND ] ;
   for( i = 0 ; i < ND ; i++ ) {
@@ -55,6 +52,7 @@ initialise_source( struct halfspinor *S ,
   case WALL :
     fprintf( stdout , "[NRQCD] computing a Wall source at t_0 %zu\n" ,
 	     origin[ND-1] ) ;
+
     for( i = 0 ; i < LCU ; i++ ) {
       set_prop_to_constant( &S[ i + origin[ND-1]*LCU ] , 1.0 ) ;
     }

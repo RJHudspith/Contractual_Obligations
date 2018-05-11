@@ -30,14 +30,16 @@ evolve_H( struct NRQCD_fields *F ,
   const double C0 = -NRQCD.C0 / ( 2. * NRQCD.M_0 ) ;
 
   // simplest hamiltonian term first \grad^2 / 2M_0
+  // grad^2 is inlined from derivs.c
   size_t i ;
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
 
     // temporary storage matrices
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
 
-    const size_t idx = i + t*LCU ;
+    const size_t Uidx = i + t*LCU ;
     size_t mu , d ;
     
     // set hamiltonian storage to zero
@@ -48,25 +50,31 @@ evolve_H( struct NRQCD_fields *F ,
 
     // inner mu sum much more cache friendly
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      const size_t fwd  = lat[ i ].neighbor[mu] ;
-      const size_t bck  = lat[ i ].back[mu] ;
-      const size_t bck2 = lat[idx].back[mu] ;
+      const size_t Sfwd = lat[ i ].neighbor[mu] ;
+      const size_t Sbck = lat[ i ].back[mu] ;
+      const size_t Ubck = lat[ Uidx ].back[mu] ;
       
       for( d = 0 ; d < NS ; d++ ) {
-	multab( (void*)A , (void*)lat[idx].O[mu] , (void*)F->S[fwd].D[d] ) ;
-	multabdag( (void*)B , (void*)lat[bck2].O[mu] , (void*)F->S[bck].D[d] ) ;
+	// computes A = U(x) S(x+\mu)
+	multab( (void*)A ,
+		(void*)lat[ Uidx ].O[mu] ,
+		(void*)F -> S[ Sfwd ].D[d] ) ;
+	// computes B = U^\dag(x-\mu) S(x-\mu)
+	multabdag( (void*)B ,
+		   (void*)lat[ Ubck ].O[mu] ,
+		   (void*)F -> S[ Sbck ].D[d] ) ;
 	// A = A + B 
 	add_mat( (void*)A , (void*)B ) ;
-	// A = A + B - 2 F -> S[i].D[d]
-	colormatrix_Saxpy( A , F->S[i].D[d], -2. ) ;
-	// F = C0 * ( A + B - 2 F -> S[i].D[d] )
+	// A = A - 2 F -> S[i].D[d]
+	colormatrix_Saxpy( A , F -> S[i].D[d] , -2. ) ;
+	// der2 = A + der2
 	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
       }
     }
   }
-
+  
   halfspinor_Saxpy( F -> S , F -> H , -1./(2.*NRQCD.N) ) ;
-    
+
   return ;
 }
 
@@ -81,6 +89,7 @@ evolve_dH( struct NRQCD_fields *F ,
   // atomically accumulate result into F -> H
   term_C1_C6( F , t , NRQCD ) ;
   term_C2( F , t , NRQCD ) ;
+  term_C5( F , t , NRQCD ) ;
   term_C3( F , t , NRQCD ) ;
   term_C4( F , t , NRQCD ) ;
   term_C5( F , t , NRQCD ) ;
@@ -105,21 +114,31 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   size_t n , i ;
 
   evolve_dH( F , t , NRQCD ) ;
-
+  
   // evolve just with C0 term
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
+
   // mutliply by temporal link
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {    
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     const size_t idx = i + t*LCU ;
     size_t d ;
     for( d = 0 ; d < NS ; d++ ) {
       colormatrix_equiv( (void*)A , (void*)F -> S[i].D[d] ) ;
-      multabdag( (void*)F -> S[i].D[d] , (void*)lat[idx].O[ ND-1 ] , (void*)A ) ; 
+      multabdag( (void*)F -> S1[i].D[d] , (void*)lat[idx].O[ ND-1 ] , (void*)A ) ; 
     }
   }
+  #pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    colormatrix_equiv( F -> S[i].D[0] , F -> S1[i].D[0] ) ;
+    colormatrix_equiv( F -> S[i].D[1] , F -> S1[i].D[1] ) ;
+    colormatrix_equiv( F -> S[i].D[2] , F -> S1[i].D[2] ) ;
+    colormatrix_equiv( F -> S[i].D[3] , F -> S1[i].D[3] ) ;
+  }
+
   // evolve again
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
@@ -136,12 +155,13 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
-  
+
   evolve_dH( F , t , NRQCD ) ;
   
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
+    
   // mutliply by temporal link
   for( i = 0 ; i < LCU ; i++ ) {    
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
@@ -152,6 +172,7 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
       multab( (void*)F -> S[i].D[d] , (void*)lat[idx].O[ ND-1 ] , (void*)A ) ; 
     }
   }
+
   // evolve again
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
@@ -164,13 +185,102 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 static void
 tadpole_improve( const double tadpole )
 {
-  size_t i , mu , j ;
+  size_t i ;
+#pragma omp for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
+    size_t mu , j ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       for( j = 0 ; j < NCNC ; j++ ) {
 	lat[i].O[mu][j] *= tadpole ;
       }
     }
+  }
+  return ;
+}
+
+static void
+compute_props( struct propagator *prop ,
+	       struct NRQCD_fields *F ,
+	       struct site *lat ,
+	       const size_t nprops ,
+	       const double tadref )
+{
+  // initialise the timer
+  start_timer() ;
+
+#pragma omp parallel
+  {
+    // do the tadpole improvement on the gauge field
+    tadpole_improve( 1./tadref ) ;
+
+    size_t i , n ;
+    // loop N props this far out as we might want to have different source
+    // positions
+    //size_t n ;
+    for( n = 0 ; n < nprops ; n++ ) {
+
+      if( prop[n].basis != NREL_CORR ) continue ;
+      
+      
+      // evolve for all timeslices can we parallelise this? - nope
+      size_t t , tnew , tprev = ( prop[n].origin[ND-1] )%LT ;
+      for( t = 0 ; t < LT-1 ; t++ ) {
+	
+	// are we going backward or forward?
+	if( prop[n].NRQCD.backward == GLU_TRUE ) {
+	  tnew = ( tprev + LT - 1 )%LT ;
+	} else {
+	  tnew = ( tprev + LT + 1 )%LT ;
+	}
+
+	// compute the lattice clovers
+	compute_clovers( F , lat , tprev ) ;
+      
+	// do a copy in here
+        #pragma omp for private(i)
+	for( i = 0 ; i < LCU ; i++ ) {
+	  const size_t idx = LCU*tprev ;
+	  size_t k ;
+	  for( k = 0 ; k < NCNC ; k++ ) {
+	    F -> S[i].D[0][k] = prop[n].H[i+idx].D[0][k] ;
+	    F -> S[i].D[1][k] = prop[n].H[i+idx].D[1][k] ;
+	    F -> S[i].D[2][k] = prop[n].H[i+idx].D[2][k] ;
+	    F -> S[i].D[3][k] = prop[n].H[i+idx].D[3][k] ;
+	  }
+	}
+	
+	// compute the propagator
+	if( prop[n].NRQCD.backward == GLU_TRUE ) {
+	  nrqcd_prop_bwd( F , tprev , prop[n].NRQCD ) ;
+	} else {
+	  nrqcd_prop_fwd( F , tprev , prop[n].NRQCD ) ;
+	}
+    	
+	// set G(t+1) from temp1
+        #pragma omp for private(i)
+	for( i = 0 ; i < LCU ; i++ ) {
+	  const size_t shift = LCU*tnew ;
+	  size_t k ;
+	  for( k = 0 ; k < NCNC ; k++ ) {
+	    prop[n].H[i+shift].D[0][k] = F -> S[i].D[0][k] ;
+	    prop[n].H[i+shift].D[1][k] = F -> S[i].D[1][k] ;
+	    prop[n].H[i+shift].D[2][k] = F -> S[i].D[2][k] ;
+	    prop[n].H[i+shift].D[3][k] = F -> S[i].D[3][k] ;
+	  }
+	}
+
+        // set the time index
+	tprev = tnew ;
+
+        #pragma omp single nowait
+	{
+	  progress_bar( t , LT-1 ) ;
+	}
+      }
+    }
+    
+    // tadpole unimprove the gauge field
+    tadpole_improve( tadref ) ;
   }
   return ;
 }
@@ -188,6 +298,12 @@ compute_nrqcd_props( struct propagator *prop ,
   for( n = 0 ; n < nprops ; n++ ) {
     if( prop[n].basis == NREL_CORR ) {
       FLY_NREL = GLU_TRUE ;
+
+      // allocate the heavy propagator
+      corr_malloc( (void**)&prop[n].H , ALIGNMENT , LVOLUME*sizeof( struct halfspinor ) ) ;
+      // set up the source
+      initialise_source( prop[n].H , prop[n].source , prop[n].origin ) ;
+    
       if( fabs( tadref ) < 1E-12 ) {
 	tadref = prop[n].NRQCD.U0 ;
       } else {
@@ -221,89 +337,19 @@ compute_nrqcd_props( struct propagator *prop ,
   corr_malloc( (void**)&F.H  , ALIGNMENT , LCU*sizeof( struct halfspinor ) ) ;
   corr_malloc( (void**)&F.Fmunu , ALIGNMENT , LCU*sizeof( struct field ) ) ;
   
-  size_t i , j ;
+  size_t i  ;
   for( i = 0 ; i < LCU ; i++ ) {
     corr_malloc( (void**)&F.Fmunu[i].O , ALIGNMENT , 6*sizeof( double complex* ) ) ;
+    size_t j ;
     for( j = 0 ; j < 6 ; j++ ) {
       corr_malloc( (void**)&F.Fmunu[i].O[j] , ALIGNMENT , NCNC*sizeof( double complex ) ) ;
     }
   }
 
-  // initialise the timer
-  start_timer() ;
+  // compute the propagators
+  compute_props( prop , &F , lat , nprops , tadref ) ;
 
-  // do the tadpole improvement on the gauge field
-  tadpole_improve( 1./tadref ) ;
-
-  // loop N props this far out as we might want to have different source
-  // positions
-  for( n = 0 ; n < nprops ; n++ ) {
-
-    if( prop[n].basis != NREL_CORR ) continue ;
-    
-    // allocate the heavy propagator
-    corr_malloc( (void**)&prop[n].H , ALIGNMENT , LVOLUME*sizeof( struct halfspinor ) ) ;
-    
-    // set up the source
-    initialise_source( prop[n].H , prop[n].source , prop[n].origin ) ;
-    
-    // evolve for all timeslices can we parallelise this? - nope
-    size_t t , tnew , tprev = ( prop[n].origin[ND-1] )%LT ;
-    for( t = 0 ; t < LT-1 ; t++ ) {
-      
-      // are we going backward or forward?
-      if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	tnew = ( tprev + LT - 1 )%LT ;
-      } else {
-	tnew = ( tprev + LT + 1 )%LT ;
-      }
-
-      // compute the lattice clovers
-      compute_clovers( &F , lat , tprev ) ;
-
-      // do a copy in here
-      for( i = 0 ; i < LCU ; i++ ) {
-	const size_t idx = LCU*tprev ;
-	size_t k ;
-	for( k = 0 ; k < NCNC ; k++ ) {
-	  F.S[i].D[0][k] = prop[n].H[i+idx].D[0][k] ;
-	  F.S[i].D[1][k] = prop[n].H[i+idx].D[1][k] ;
-	  F.S[i].D[2][k] = prop[n].H[i+idx].D[2][k] ;
-	  F.S[i].D[3][k] = prop[n].H[i+idx].D[3][k] ;
-	}
-      }
-      
-      // compute the propagator
-      if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( &F , tprev , prop[n].NRQCD ) ;
-      } else {
-	nrqcd_prop_fwd( &F , tprev , prop[n].NRQCD ) ;
-      }
-      
-      // set G(t+1) from temp1
-      for( i = 0 ; i < LCU ; i++ ) {
-	const size_t shift = LCU*tnew ;
-	size_t k ;
-	for( k = 0 ; k < NCNC ; k++ ) {
-	  prop[n].H[i+shift].D[0][k] = F.S[i].D[0][k] ;
-	  prop[n].H[i+shift].D[1][k] = F.S[i].D[1][k] ;
-	  prop[n].H[i+shift].D[2][k] = F.S[i].D[2][k] ;
-	  prop[n].H[i+shift].D[3][k] = F.S[i].D[3][k] ;
-	}
-      }
-
-      // set the time index
-      tprev = tnew ;
-
-      progress_bar( t , LT-1 ) ;
-    }
-    // end the loop on propagators
-  }
-
-  // tadpole unimprove the gauge field
-  tadpole_improve( tadref ) ;
-  
-  // tell us the time
+  // tell us the time it took
   print_time() ;
 
   // memory frees
@@ -312,6 +358,7 @@ compute_nrqcd_props( struct propagator *prop ,
 
   // free the field strength tensor
   for( i = 0 ; i < LCU ; i++ ) {
+    size_t j ;
     for( j = 0 ; j < 6 ; j++ ) {
       free( F.Fmunu[i].O[j] ) ;
     }

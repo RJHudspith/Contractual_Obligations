@@ -49,6 +49,7 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
 				(imap[2]+2)%4 , (imap[3]+2)%4 } ;
   size_t i ;
   // first term is \grad x E
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx1] , S[i] ) ;
   }
@@ -56,6 +57,7 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
   halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , imap ) ;
     
   // and then do the minus term
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx2] , S[i] ) ;
   }
@@ -65,6 +67,7 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
   ////////////////////////////////////////////////////////////////////////
   // do E x \grad here also
   grad_imp( S1 , S , t , mu1 ) ;
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx1] , S1[i] ) ;
   }
@@ -72,6 +75,7 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
 
   // and the minus term
   grad_imp( S1 , S , t , mu2 ) ;
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx2] , S1[i] ) ;
   }
@@ -169,6 +173,7 @@ term_C4( struct NRQCD_fields *F ,
   const double fac = -NRQCD.C4 / ( 2. * NRQCD.M_0 ) ;
 
   size_t i ;
+#pragma omp for private(i)
   for ( i = 0  ; i < LCU ; i++ ) {
     sigmaB_G( &F -> H[i] , &F -> S1[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
   }
@@ -187,12 +192,14 @@ term_C7( struct NRQCD_fields *F ,
 
   size_t i ;
   grad_sq_imp( F -> S1 , F -> S , t ) ;
+#pragma omp for private(i)
   for ( i = 0  ; i < LCU ; i++ ) {
     sigmaB_G( &F -> H[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S1[i] , fac ) ;
   }
   
   // second term sigma.B.\grad^2(G)
   zero_halfspinor( F -> S1 ) ;
+#pragma omp for private(i)
   for ( i = 0  ; i < LCU ; i++ ) {
     sigmaB_G( &F -> S1[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
   }
@@ -237,6 +244,7 @@ term_C9EB( struct NRQCD_fields *F ,
   
   const double fac = -NRQCD.C9EB / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
   size_t i ;
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
