@@ -84,7 +84,6 @@ evolve_dH( struct NRQCD_fields *F ,
   // atomically accumulate result into F -> H
   term_C1_C6( F , t , NRQCD ) ;
   term_C2( F , t , NRQCD ) ;
-  term_C5( F , t , NRQCD ) ;
   term_C3( F , t , NRQCD ) ;
   term_C4( F , t , NRQCD ) ;
   term_C5( F , t , NRQCD ) ;
