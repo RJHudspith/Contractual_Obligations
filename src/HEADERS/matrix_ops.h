@@ -62,6 +62,15 @@ colormatrix_Saxpy( double complex a[ NCNC ] ,
 		   const double S ) ;
 
 /**
+   @fn void colormatrix_Sa_xmy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
+   @brief computes a[i] = S*( a[i] - b[i] )
+ */
+void
+colormatrix_Sa_xmy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S ) ;
+
+/**
    @fn double complex colortrace( const double complex a[ NCNC ] )
    @brief compute the trace of a color matrix
  */
@@ -150,7 +159,7 @@ print_colormatrix( const double complex a[ NCNC ] ) ;
    @brief zero a colormatrix
  */
 void
-zero_colormatrix( const double complex a[ NCNC ] ) ;
+zero_colormatrix( double complex a[ NCNC ] ) ;
 
 #endif
 

@@ -76,12 +76,91 @@ colormatrix_equiv_f2d_test( void )
   double complex W[ NCNC ] ;
   colormatrix_equiv_f2d( W , v ) ;
   for( i = 0 ; i < NCNC ; i++ ) {
-    mu_assert( "[MATOPS UNIT] error : colormatrix_equiv broken" , 
+    mu_assert( "[MATOPS UNIT] error : colormatrix_equiv_f2d broken" , 
 	       !( fabs( creal( W[i] ) - creal( U[i] ) ) > 1E-6 ||
 		  fabs( cimag( W[i] ) - cimag( U[i] ) ) > 1E-6 ) ) ;
   }
   return NULL ;
 }
+
+// tests equiv U - V = 0
+static char *
+colormatrix_equiv_d2f_test( void )
+{
+  double complex W[ NCNC ] ;
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    W[ i ] = U[ i ] ;
+  }
+  float complex v[ NCNC ] ;
+  colormatrix_equiv_d2f( v , W ) ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    mu_assert( "[MATOPS UNIT] error : colormatrix_equiv_d2f broken" , 
+	       !( fabs( creal( v[i] ) - creal( U[i] ) ) > 1E-6 ||
+		  fabs( cimag( v[i] ) - cimag( U[i] ) ) > 1E-6 ) ) ;
+  }
+  return NULL ;
+}
+
+// check that 1+(I*I) = 0
+static char *
+colormatrix_iSaxpy_test( void )
+{
+  double complex a[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[i] = 1.  ;
+    b[i] = 2*I ;
+  }
+  colormatrix_iSaxpy( a , b , 0.5 ) ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    mu_assert( "[MATOPS UNIT] error : colormatrix_iSaxpy broken" , 
+	       !( cabs( a[i] ) > FTOL ) ) ;
+  }
+  return NULL ;
+}
+
+// check that 1+(-0.5*(2)) = 0
+static char *
+colormatrix_Saxpy_test( void )
+{
+  double complex a[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[i] = 1. ;
+    b[i] = 2. ;
+  }
+  colormatrix_Saxpy( a , b , -0.5 ) ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    mu_assert( "[MATOPS UNIT] error : colormatrix_Saxpy broken" , 
+	       !( cabs( a[i] ) > FTOL ) ) ;
+  }
+  return NULL ;
+}
+// check that 0.5(1+1) = 1
+static char *
+colormatrix_Sa_xmy_test( void )
+{
+  double complex a[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[i] = +1. ;
+    b[i] = -1. ;
+  }
+  colormatrix_Sa_xmy( a , b , 0.5 ) ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    mu_assert( "[MATOPS UNIT] error : colormatrix_Saxpy broken" , 
+	       !( cabs( a[i] - 1.0 ) > FTOL ) ) ;
+  }
+  return NULL ;
+}
+
 
 // trace of a matrix
 static char *
@@ -231,6 +310,10 @@ matops_test( void )
   // tests
   mu_run_test( colormatrix_equiv_test ) ;
   mu_run_test( colormatrix_equiv_f2d_test ) ;
+  mu_run_test( colormatrix_equiv_d2f_test ) ;
+  mu_run_test( colormatrix_iSaxpy_test ) ;
+  mu_run_test( colormatrix_Saxpy_test ) ;
+  mu_run_test( colormatrix_Sa_xmy_test ) ;
   mu_run_test( add_mat_test ) ;
   mu_run_test( colortrace_test ) ;
   mu_run_test( dagger_test ) ;

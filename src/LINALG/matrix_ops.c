@@ -123,6 +123,30 @@ colormatrix_Saxpy( double complex a[ NCNC ] ,
 #endif
 }
 
+// computes a[i] = S*( a[i] - b[i] )
+void
+colormatrix_Sa_xmy( double complex a[ NCNC ] ,
+		    const double complex b[ NCNC ] ,
+		    const double S )
+{
+#if NC == 3
+  a[0] = S*( a[0] - b[0] ) ;
+  a[1] = S*( a[1] - b[1] ) ;
+  a[2] = S*( a[2] - b[2] ) ;
+  a[3] = S*( a[3] - b[3] ) ;
+  a[4] = S*( a[4] - b[4] ) ;
+  a[5] = S*( a[5] - b[5] ) ;
+  a[6] = S*( a[6] - b[6] ) ;
+  a[7] = S*( a[7] - b[7] ) ;
+  a[8] = S*( a[8] - b[8] ) ;
+#else
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    a[j] = S*( a[j] - b[j] ) ;
+  }
+#endif
+}
+
 // compute the trace
 double complex
 colortrace( const double complex a[ NCNC ] )

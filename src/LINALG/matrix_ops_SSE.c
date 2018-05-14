@@ -90,7 +90,7 @@ colormatrix_equiv_d2f( float complex a[ NCNC ] ,
   return ;
 }
 
-// computes A[i] = S*( a[i] - b[i] )
+// computes a[i] = S*( a[i] - b[i] )
 void
 colormatrix_Sa_xmy( double complex a[ NCNC ] ,
 		    const double complex b[ NCNC ] ,
