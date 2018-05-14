@@ -1,6 +1,17 @@
 /**
    @file spin_dependent.c
-   @brief spin dependent terms in NRQCD action C_3, C_4, C_7 , C_8, C_9 ..
+   @brief spin dependent terms in NRQCD action C_3, C_4, C_7 , C_8, C_9 
+
+   Pauli matrix definition
+
+   \sigma_x = | 0 1 |
+              | 1 0 |
+
+   \sigma_y = |  0 -I |
+              |  I  0 |
+
+   \sigma_z = | 1  0 |
+              | 0 -1 |
  **/
 #include "common.h"
 
@@ -32,14 +43,13 @@
 //
 // I then dot in whichever sigma matrix we are using in this round
 static void
-sigma_dot_grad_x_E( struct halfspinor *S3 ,
+sigma_dot_grad_x_E( struct halfspinor *H ,
+		    struct halfspinor *S3 ,
 		    struct halfspinor *S2 ,
 		    struct halfspinor *S1 ,
 		    const struct field *Fmunu ,
 		    const struct halfspinor *S ,
 		    const size_t t ,
-		    const size_t Fidx1 ,
-		    const size_t Fidx2 ,
 		    const size_t mu1 ,
 		    const size_t mu2 ,
 		    const size_t sigma_map[ NS ] ,
@@ -51,35 +61,35 @@ sigma_dot_grad_x_E( struct halfspinor *S3 ,
   // first term is \grad x E
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx1] , S[i] ) ;
+    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[3+mu2] , S[i] ) ;
   }
-  grad_imp( S2 , S1 , t , mu1 ) ;
-  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , imap ) ;
+  grad_imp( S3 , S2 , S1 , t , mu1 ) ;
+  halfspinor_sigma_Saxpy( H , S3 , sigma_map , imap ) ;
     
   // and then do the minus term
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[Fidx2] , S[i] ) ;
+    colormatrix_halfspinor( &S1[i] , Fmunu[i].O[3+mu1] , S[i] ) ;
   }
-  grad_imp( S2 , S1 , t , mu2 ) ;
-  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , mimap ) ;
+  grad_imp( S3 , S2 , S1 , t , mu2 ) ;
+  halfspinor_sigma_Saxpy( H , S3 , sigma_map , mimap ) ;
 
   ////////////////////////////////////////////////////////////////////////
-  // do E x \grad here also
-  grad_imp( S1 , S , t , mu1 ) ;
+  // do E x \grad here also -> Signs are correct as \grad x E = -E x \grad 
+  grad_imp( S2 , S1 , S , t , mu1 ) ;
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx1] , S1[i] ) ;
+    colormatrix_halfspinor( &S3[i] , Fmunu[i].O[3+mu2] , S2[i] ) ;
   }
-  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , imap ) ;
+  halfspinor_sigma_Saxpy( H , S3 , sigma_map , imap ) ;
 
   // and the minus term
-  grad_imp( S1 , S , t , mu2 ) ;
+  grad_imp( S2 , S1 , S , t , mu2 ) ;
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_halfspinor( &S2[i] , Fmunu[i].O[Fidx2] , S1[i] ) ;
+    colormatrix_halfspinor( &S3[i] , Fmunu[i].O[3+mu1] , S2[i] ) ;
   }
-  halfspinor_sigma_Saxpy( S3 , S2 , sigma_map , mimap ) ;
+  halfspinor_sigma_Saxpy( H , S3 , sigma_map , mimap ) ;
 
   return ;
 }
@@ -114,50 +124,52 @@ sigmaB_G( struct halfspinor *H ,
 }
 
 // result is in F -> S3
+// does \sigma_i ( \grad x E - E x \grad ) S
 static void
-sigma_gradxE( struct halfspinor *S3 ,
+sigma_gradxE( struct halfspinor *H , 
+	      struct halfspinor *S3 ,
 	      struct halfspinor *S2 ,
 	      struct halfspinor *S1 ,
 	      const struct field *Fmunu ,
 	      const struct halfspinor *S ,
 	      const size_t t )
 {
-  zero_halfspinor( S3 ) ;
+  zero_halfspinor( H ) ;
 
   // does \sigma_x ( \grad_1 F_23 - \grad_2 F_13 )
   const size_t sigma_x[NS] = { 2 , 3 , 0 , 1 } ;
   const uint8_t imapx[NS] = { 0 , 0 , 0 , 0 } ;
-  sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
-		      t , 5 , 4 , 1 , 2 , sigma_x , imapx ) ;
+  sigma_dot_grad_x_E( H , S3 , S2 , S1 , Fmunu , S ,
+		      t , 1 , 2 , sigma_x , imapx ) ;
   
   // does \sigma_y ( \grad_2 F_03 - \grad_0 F_23 )
   const size_t sigma_y[NS] = { 2 , 3 , 0 , 1 } ;
-  const uint8_t imapy[ND] = { 3 , 3 , 1 , 1 } ;
-  sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
-		      t , 3 , 5 , 2 , 0 , sigma_y , imapy ) ;
+  const uint8_t imapy[NS] = { 3 , 3 , 1 , 1 } ;
+  sigma_dot_grad_x_E( H , S3 , S2 , S1 , Fmunu , S ,
+		      t , 2 , 0 , sigma_y , imapy ) ;
   
   // does \sigma_z ( \grad_0 F_13 - \grad_1 F_03 )
   const size_t sigma_z[NS] = { 0 , 1 , 2 , 3} ;
-  const uint8_t imapz[ND] = { 0 , 0 , 2 , 2 } ;
-  sigma_dot_grad_x_E( S3 , S2 , S1 , Fmunu , S ,
-		      t , 4 , 3 , 0 , 1 , sigma_z , imapz ) ;
+  const uint8_t imapz[NS] = { 0 , 0 , 2 , 2 } ;
+  sigma_dot_grad_x_E( H , S3 , S2 , S1 , Fmunu , S ,
+		      t , 0 , 1 , sigma_z , imapz ) ;
   return ;
 }
 
-// this one seems tricky \sigma.( E x \grad - \grad x E ) G
-// important to note that the indices have incorporated the implicit minus sign!
+// 
 void
 term_C3( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C3 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C3 ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C3 / ( 2. * pow( 2*NRQCD.M_0 , 2 ) ) ;
 
-  sigma_gradxE( F -> S3 , F -> S2 , F -> S1 , F -> Fmunu , F -> S , t ) ;
+  sigma_gradxE( F -> S4 , F -> S3 , F -> S2 , F -> S1 ,
+		F -> Fmunu , F -> S , t ) ;
 
-  halfspinor_Saxpy( F -> H , F -> S3 , fac ) ;
+  halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
   
   return ;
 }
@@ -168,7 +180,7 @@ term_C4( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C4 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C4 ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C4 / ( 2. * NRQCD.M_0 ) ;
 
@@ -186,15 +198,15 @@ term_C7( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C7 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C7 ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C7 / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
 
   size_t i ;
-  grad_sq_imp( F -> S1 , F -> S , t ) ;
+  grad_sq_imp( F -> S3 , F -> S2 , F -> S1 , F -> S , t ) ;
 #pragma omp for private(i)
   for ( i = 0  ; i < LCU ; i++ ) {
-    sigmaB_G( &F -> H[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S1[i] , fac ) ;
+    sigmaB_G( &F -> H[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S3[i] , fac ) ;
   }
   
   // second term sigma.B.\grad^2(G)
@@ -203,9 +215,9 @@ term_C7( struct NRQCD_fields *F ,
   for ( i = 0  ; i < LCU ; i++ ) {
     sigmaB_G( &F -> S1[i] , &F -> S2[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
   }
-  grad_sq_imp( F -> S2 , F -> S1 , t ) ;
+  grad_sq_imp( F -> S4 , F -> S3 , F -> S2 , F -> S1 , t ) ;
 
-  halfspinor_Saxpy( F -> H , F -> S2 , fac ) ;
+  halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
   
   return ;
 }
@@ -216,18 +228,20 @@ term_C8( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C8 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C8 ) < NRQCD_TOL ) return ;
   
   const double fac = -3.0 * NRQCD.C8 / ( 4. * pow( 2*NRQCD.M_0 , 4 ) ) ;
 
   // does \sigma.\grad.E.\grad^2
-  sigma_gradxE( F -> S3 , F -> S2 , F -> S1 , F -> Fmunu , F -> S , t ) ;
-  grad_sq( F -> S4 , F -> S3 , t ) ;
-  halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
+  sigma_gradxE( F -> S4 , F -> S3 , F -> S2 , F -> S1 ,
+		F -> Fmunu , F -> S , t ) ;
+  grad_sq( F -> S1 , F -> S4 , t ) ;
+  halfspinor_Saxpy( F -> H , F -> S1 , fac ) ;
 
   // does \grad^2.\sigma.\grad.E
-  grad_sq( F -> S3 , F -> S , t ) ;
-  sigma_gradxE( F -> S4 , F -> S2 , F -> S1 , F -> Fmunu , F -> S3 , t ) ;
+  grad_sq( F -> S1 , F -> S , t ) ;
+  sigma_gradxE( F -> S4 , F -> S5 , F -> S3 , F -> S2 ,
+		F -> Fmunu , F -> S1 , t ) ;
   halfspinor_Saxpy( F -> H , F -> S4 , fac ) ;
   
   return ;
@@ -240,7 +254,7 @@ term_C9EB( struct NRQCD_fields *F ,
 	   const size_t t ,
 	   const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C9EB ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C9EB ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C9EB / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
   size_t i ;

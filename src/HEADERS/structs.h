@@ -43,6 +43,14 @@ struct halfspinor {
 } ;
 
 /**
+   @struct halfspinorf
+   @brief heavy prop
+ */
+struct halfspinor_f {
+  float complex D[ ND ][ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+} ;
+
+/**
    @struct correlator
    @brief correlator data storage
  */
@@ -217,10 +225,6 @@ struct PIdata {
 /**
    @struct propagator
    @brief container for the propagator
-   @param prop :: propagator file
-   @param basis :: is it chiral or nrel?
-   @param origin :: source position, not used yet
-   @param t :: what timeslice are we reading?
  */
 struct propagator {
   FILE *file ;
@@ -228,7 +232,8 @@ struct propagator {
   sourcetype source ;
   size_t origin[ ND ] ;
   boundaries bound[ ND ] ;
-  struct halfspinor *H ;
+  double twists[ ND ] ;
+  struct halfspinor_f *H ;
   struct NRQCD_params NRQCD ;
   fp_precision precision ;
   endianness endian ;
@@ -356,6 +361,7 @@ struct NRQCD_fields {
   struct halfspinor *S2 ;
   struct halfspinor *S3 ;
   struct halfspinor *S4 ;
+  struct halfspinor *S5 ;
   struct halfspinor *H ;
   struct field *Fmunu ;
 } ;

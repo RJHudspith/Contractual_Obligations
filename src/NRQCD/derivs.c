@@ -15,7 +15,7 @@ gradback( struct halfspinor *der ,
 	  const size_t mu )
 {
   size_t i ;
-  //#pragma omp for private(i)
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     const size_t Uidx = i + t*LCU ;
     const size_t Sbck = lat[i].back[mu] ;
@@ -39,7 +39,7 @@ gradforw( struct halfspinor *der ,
 	  const size_t mu )
 {
   size_t i ;
-  //#pragma omp for private(i)
+#pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     const size_t Uidx = i + t*LCU ;
     const size_t Sfwd  = lat[ i ].neighbor[mu] ;
@@ -177,32 +177,31 @@ grad( struct halfspinor *der ,
 // computes improved derivative of S and puts it in der
 void
 grad_imp( struct halfspinor *der ,
+	  struct halfspinor *temp ,
 	  const struct halfspinor *S ,
 	  const size_t t ,
 	  const size_t mu )
 {
+  // backward derivative on spinor
+  gradback( temp , S , t , mu ) ;
+  // central one
+  grad( der , temp , t , mu ) ;
+  // forward derivate on the previous result
+  gradforw( temp , der , t , mu ) ;
 
   // compute standard derivative
   grad( der , S , t , mu ) ;
 
-  // improvement doesn't work when threaded at the moment!!
-#if 0
-    struct halfspinor t1[ LCU ] , t2[ LCU ] ;
-    // backward derivative on spinor
-    gradback( t1 , S , t , mu ) ;
-    // central one
-    grad( t2 , t1 , t , mu ) ;
-    // forward derivate on the previous result
-    gradforw( t1 , t2 , t , mu ) ;
-  }
-// computes der = der - t3/6
-//halfspinor_Saxpy( der , t1 , -1./6. ) ;
-#endif	   
+  // computes der = der - t3/6
+  halfspinor_Saxpy( der , temp , -1./6. ) ;
+   
   return ;
 }
 
 void
 grad_sq_imp( struct halfspinor *der ,
+	     struct halfspinor *temp1 ,
+	     struct halfspinor *temp2 ,
 	     const struct halfspinor *S ,
 	     const size_t t )
 {
@@ -210,14 +209,12 @@ grad_sq_imp( struct halfspinor *der ,
   grad_sq( der , S , t ) ;
 
   // correction term
-#if 0
-  struct halfspinor t1[ LCU ] , t2[ LCU ] ;
   size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    grad2( t1 , S , t , mu ) ;
-    grad2( t2 , t1 , t , mu ) ;
-    halfspinor_Saxpy( der , t2 , -1./12. ) ;
+    grad2( temp1 , S , t , mu ) ;
+    grad2( temp2 , temp1 , t , mu ) ;
+    halfspinor_Saxpy( der , temp2 , -1./12. ) ;
   }
-#endif
+
   return ;
 }

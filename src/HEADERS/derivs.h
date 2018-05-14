@@ -20,12 +20,15 @@ grad( struct halfspinor *der ,
 
 void
 grad_imp( struct halfspinor *der ,
+	  struct halfspinor *temp ,
 	  const struct halfspinor *S ,
 	  const size_t t ,
 	  const size_t mu ) ;
 
 void
 grad_sq_imp( struct halfspinor *der ,
+	     struct halfspinor *temp1 ,
+	     struct halfspinor *temp2 ,
 	     const struct halfspinor *S ,
 	     const size_t t ) ;
 

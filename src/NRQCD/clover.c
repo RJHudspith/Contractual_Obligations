@@ -240,24 +240,24 @@ compute_clovers( struct NRQCD_fields *F ,
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     // bfields are easier
-    improve_cloverB( F -> S3[i].D[0] , F -> Fmunu , lat , i , t , 0 , 1 ) ;
-    improve_cloverB( F -> S3[i].D[1] , F -> Fmunu , lat , i , t , 1 , 2 ) ;
-    improve_cloverB( F -> S3[i].D[2] , F -> Fmunu , lat , i , t , 2 , 0 ) ;
+    improve_cloverB( F -> S1[i].D[0] , F -> Fmunu , lat , i , t , 0 , 1 ) ;
+    improve_cloverB( F -> S1[i].D[1] , F -> Fmunu , lat , i , t , 1 , 2 ) ;
+    improve_cloverB( F -> S1[i].D[2] , F -> Fmunu , lat , i , t , 2 , 0 ) ;
     // Efields
-    improve_cloverE( F -> S4[i].D[0] , F -> Fmunu , lat , i , t , 0 , 3 ) ;
-    improve_cloverE( F -> S4[i].D[1] , F -> Fmunu , lat , i , t , 1 , 3 ) ;
-    improve_cloverE( F -> S4[i].D[2] , F -> Fmunu , lat , i , t , 2 , 3 ) ;
+    improve_cloverE( F -> S2[i].D[0] , F -> Fmunu , lat , i , t , 0 , 3 ) ;
+    improve_cloverE( F -> S2[i].D[1] , F -> Fmunu , lat , i , t , 1 , 3 ) ;
+    improve_cloverE( F -> S2[i].D[2] , F -> Fmunu , lat , i , t , 2 , 3 ) ;
   }
 #pragma omp for private(i)
   // copy back into Fmunu
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[0] , (void*)F -> S3[i].D[0] ) ;
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[1] , (void*)F -> S3[i].D[1] ) ;
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[2] , (void*)F -> S3[i].D[2] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[0] , (void*)F -> S1[i].D[0] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[1] , (void*)F -> S1[i].D[1] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[2] , (void*)F -> S1[i].D[2] ) ;
     // E fields
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[3] , (void*)F -> S4[i].D[0] ) ;
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[4] , (void*)F -> S4[i].D[1] ) ;
-    colormatrix_equiv( (void*)F -> Fmunu[i].O[5] , (void*)F -> S4[i].D[2] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[3] , (void*)F -> S2[i].D[0] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[4] , (void*)F -> S2[i].D[1] ) ;
+    colormatrix_equiv( (void*)F -> Fmunu[i].O[5] , (void*)F -> S2[i].D[2] ) ;
   }
   
   return ;

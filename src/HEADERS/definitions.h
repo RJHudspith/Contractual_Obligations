@@ -98,6 +98,12 @@
 #endif
 
 /**
+   @def NRQCD_TOL
+   @brief tolerance at which we consider NRQCD parameters to be zero
+ */
+#define NRQCD_TOL (1.E-6)
+
+/**
    @def NS
    @brief number of spins in our theory
  */

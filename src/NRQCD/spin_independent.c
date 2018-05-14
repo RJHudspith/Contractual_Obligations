@@ -14,7 +14,7 @@ term_C0( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C0 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C0 ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C0 / ( 2. * NRQCD.M_0 ) ;
 
@@ -31,11 +31,12 @@ term_C1_C6( struct NRQCD_fields *F ,
 	    const size_t t ,
 	    const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C1 ) < 1E-12 && fabs( NRQCD.C6 ) < 1E-12) return ;
+  if( fabs( NRQCD.C1 ) < NRQCD_TOL &&
+      fabs( NRQCD.C6 ) < NRQCD_TOL ) return ;
 
   // C6 has a factor of the power of the hamiltonian in it
-  const double fac = -NRQCD.C1 / pow( 2*NRQCD.M_0 , 3 ) -
-    NRQCD.C6 / ( 4. * NRQCD.N * pow( 2*NRQCD.M_0 , 2 ) ) ;
+  const double fac = -NRQCD.C1 / pow( 2*NRQCD.M_0 , 3 ) 
+    -NRQCD.C6 / ( 4. * NRQCD.N * pow( 2*NRQCD.M_0 , 2 ) ) ;
 
   grad_sq( F -> S1 , F -> S , t ) ;
   grad_sq( F -> S2 , F -> S1 , t ) ;
@@ -51,8 +52,9 @@ term_C2( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C2 ) < 1E-12 ) return ;
-  
+  if( fabs( NRQCD.C2 ) < NRQCD_TOL ) return ;
+
+  // important to note the + sign for this parameter!
   const double fac = NRQCD.C2 / ( 2. * pow( 2*NRQCD.M_0 , 2 ) ) ;
   
   size_t mu , i ;
@@ -65,16 +67,16 @@ term_C2( struct NRQCD_fields *F ,
 			      F -> S[i] ) ;
     }
     // accumulate derivative into S2
-    grad_imp( F -> S2 , F -> S1 , t , mu ) ;
+    grad_imp( F -> S2 , F -> S3 , F -> S1 , t , mu ) ;
     halfspinor_iSaxpy( F -> H , F -> S2 , fac ) ;
 
     // call derivative into S1
-    grad_imp( F -> S3 , F -> S , t , mu ) ;
+    grad_imp( F -> S2 , F -> S1 , F -> S , t , mu ) ;
     // E * prop goes into S2
     #pragma omp for private(i)
     for( i = 0 ; i < LCU ; i++ ) {
-      halfspinor_colormatrix( &F -> S4[i] ,
-			      F -> S3[i] ,
+      halfspinor_colormatrix( &F -> S3[i] ,
+			      F -> S2[i] ,
 			      F -> Fmunu[i].O[ (ND-1) + mu ] ) ;
     }
     // update the Hamiltonian
@@ -90,8 +92,9 @@ term_C5( struct NRQCD_fields *F ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C5 ) < 1E-12 ) return ;
-  
+  if( fabs( NRQCD.C5 ) < NRQCD_TOL ) return ;
+
+  // important to note the sign on this parameter is +
   const double fac = NRQCD.C5 / ( 24. * NRQCD.M_0 ) ;
 
   size_t mu ;
@@ -110,7 +113,7 @@ term_C10EB( struct NRQCD_fields *F ,
 	    const size_t t ,
 	    const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C10EB ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C10EB ) < NRQCD_TOL ) return ;
   
   const double fac = -NRQCD.C10EB / ( pow( 2 * NRQCD.M_0 , 3 ) ) ;
 
@@ -137,13 +140,15 @@ term_C11( struct NRQCD_fields *F ,
 	  const size_t t ,
 	  const struct NRQCD_params NRQCD )
 {
-  if( fabs( NRQCD.C11 ) < 1E-12 ) return ;
+  if( fabs( NRQCD.C11 ) < NRQCD_TOL ) return ;
   
-  const double fac = -NRQCD.C11 / ( 192. * pow( NRQCD.N , 2 ) * pow( NRQCD.M_0 , 3 ) ) ;
+  const double fac = -NRQCD.C11 / ( 24. * pow( NRQCD.N , 2 ) * pow( 2*NRQCD.M_0 , 3 ) ) ;
   
   grad_sq( F -> S1 , F -> S , t ) ;
   grad_sq( F -> S2 , F -> S1 , t ) ;
-  grad_sq( F -> S3 , F -> S2 , t ) ;
+  grad_sq( F -> S1 , F -> S2 , t ) ;
 
-  halfspinor_Saxpy( F -> H , F -> S3 , fac ) ;
+  halfspinor_Saxpy( F -> H , F -> S1 , fac ) ;
+
+  return ;
 }

@@ -46,7 +46,7 @@ MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
 ## c files in ./NRQCD
 NRQCDFILES=./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
 	./NRQCD/clover.c ./NRQCD/derivs.c ./NRQCD/spin_dependent.c \
-	./NRQCD/halfspinor_ops.c
+	./NRQCD/halfspinor_ops.c ./NRQCD/evolve.c
 
 ## c files in ./PENTA/
 PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \

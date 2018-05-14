@@ -66,6 +66,27 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
   return ;
 }
 
+// double matrix to float
+void
+colormatrix_equiv_d2f( float complex a[ NCNC ] ,
+		       const double complex b[ NCNC ] )
+{
+#if NC == 3
+  a[0] = (float complex)b[0] ; a[1] = (float complex)b[1] ; a[2] = (float complex)b[2] ;
+  a[3] = (float complex)b[3] ; a[4] = (float complex)b[4] ; a[5] = (float complex)b[5] ;
+  a[6] = (float complex)b[6] ; a[7] = (float complex)b[7] ; a[8] = (float complex)b[8] ;
+#elif NC == 2
+  a[0] = (float complex)b[0] ; a[1] = (float complex)b[1] ;
+  a[2] = (float complex)b[2] ; a[3] = (float complex)b[3] ;
+#else
+  size_t i ;
+  for( i = 0 ; i < NCNC ; i++ ) {
+    a[ i ] = (float complex)b[i] ;
+  }
+#endif
+  return ;
+}
+
 // computes A[i] = S*b + A[i]
 void
 colormatrix_iSaxpy( double complex a[ NCNC ] ,

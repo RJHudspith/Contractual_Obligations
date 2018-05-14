@@ -32,6 +32,14 @@ colormatrix_equiv_f2d( double complex a[ NCNC ] ,
 		       const float complex b[ NCNC ] ) ;
 
 /**
+   @fn void colormatrix_equiv_d2f( float complex a[ NCNC ] , const double complex b[ NCNC ] )
+   @brief cast from working (double) precision to a single precision color matrix
+ */
+void
+colormatrix_equiv_d2f( float complex a[ NCNC ] ,
+		       const double complex b[ NCNC ] ) ;
+
+/**
    @fn void colormatrix_iSaxpy( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double S )
    @brief computes a[i] += S*(I*b[i]), not a real saxpy but an atomic one
  */

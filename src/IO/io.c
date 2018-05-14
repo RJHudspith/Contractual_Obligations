@@ -234,15 +234,15 @@ compute_nrprop( struct propagator prop ,
   spinor_zero( S ) ;
   for( i = 0 ; i < LCU ; i++ ) {
     if( prop.NRQCD.backward == GLU_TRUE ) {
-      colormatrix_equiv( (void*)S[i].D[0][0].C , (void*)prop.H[i+LCU*t].D[0] ) ;
-      colormatrix_equiv( (void*)S[i].D[0][1].C , (void*)prop.H[i+LCU*t].D[1] ) ;
-      colormatrix_equiv( (void*)S[i].D[1][0].C , (void*)prop.H[i+LCU*t].D[2] ) ;
-      colormatrix_equiv( (void*)S[i].D[1][1].C , (void*)prop.H[i+LCU*t].D[3] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[0][0].C , (void*)prop.H[i+LCU*t].D[0] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[0][1].C , (void*)prop.H[i+LCU*t].D[1] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[1][0].C , (void*)prop.H[i+LCU*t].D[2] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[1][1].C , (void*)prop.H[i+LCU*t].D[3] ) ;
     } else {
-      colormatrix_equiv( (void*)S[i].D[2][2].C , (void*)prop.H[i+LCU*t].D[0] ) ;
-      colormatrix_equiv( (void*)S[i].D[2][3].C , (void*)prop.H[i+LCU*t].D[1] ) ;
-      colormatrix_equiv( (void*)S[i].D[3][2].C , (void*)prop.H[i+LCU*t].D[2] ) ;
-      colormatrix_equiv( (void*)S[i].D[3][3].C , (void*)prop.H[i+LCU*t].D[3] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[2][2].C , (void*)prop.H[i+LCU*t].D[0] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[2][3].C , (void*)prop.H[i+LCU*t].D[1] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[3][2].C , (void*)prop.H[i+LCU*t].D[2] ) ;
+      colormatrix_equiv_f2d( (void*)S[i].D[3][3].C , (void*)prop.H[i+LCU*t].D[3] ) ;
     }
   }
   return SUCCESS ;

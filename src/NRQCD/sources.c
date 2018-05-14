@@ -5,6 +5,7 @@
 #include "common.h"
 
 #include "geometry.h"
+#include "halfspinor_ops.h" // zero_halfspinor
 
 // set propagator to IdentityxConstant
 static void
@@ -18,7 +19,6 @@ set_prop_to_constant( struct halfspinor *S1 ,
   S1 -> D[3][0] = C ;
   S1 -> D[3][4] = C ;
   S1 -> D[3][8] = C ;
-  return ;
 #else
   size_t d , c ;
   for( d = 0 ; d < NS/2 ; d++ ) {
@@ -27,6 +27,7 @@ set_prop_to_constant( struct halfspinor *S1 ,
     }
   }
 #endif
+  return ;
 }
 
 // for the moment point is at (0,0,0,t)
@@ -36,27 +37,30 @@ initialise_source( struct halfspinor *S ,
 		   const size_t origin[ ND ]  )
 {
   size_t i ;
-  int or[ ND ] ;
-  for( i = 0 ; i < ND ; i++ ) {
+  int or[ NS ] = { 0 , 0 , 0 , 0 } ;
+  for( i = 0 ; i < NS-1 ; i++ ) {
     or[i] = (int)origin[i] ;
   }
+
+  // point source position
+  const size_t idx = gen_site( or ) ;
+
+  // zero all the spinors
+  zero_halfspinor( S ) ;
   
   // initialise source position
-  switch( source ) {
-  case POINT :
-    fprintf( stdout , "[NRQCD] computing a point source at i = %zu\n" ,
-	     gen_site( or ) ) ;
-    set_prop_to_constant( &S[ gen_site( or ) ] , 1.0 ) ;
-    break ;
-    // wall source
-  case WALL :
-    fprintf( stdout , "[NRQCD] computing a Wall source at t_0 %zu\n" ,
-	     origin[ND-1] ) ;
-
-    for( i = 0 ; i < LCU ; i++ ) {
-      set_prop_to_constant( &S[ i + origin[ND-1]*LCU ] , 1.0 ) ;
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    switch( source ) {
+    case POINT :
+      if( i == idx ) {
+	set_prop_to_constant( &S[ i ] , 1.0 ) ;
+      }
+      break ;
+    case WALL :
+      set_prop_to_constant( &S[ i ] , 1.0 ) ;
+      break ;
     }
-    break ;
   }
   return ;
 }
