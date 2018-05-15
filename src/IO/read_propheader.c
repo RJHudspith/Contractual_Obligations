@@ -38,6 +38,44 @@ get_tag( char line[ MAX_LINE_LENGTH ] )
   return strtok( line , " " ) ;
 }
 
+static int
+get_double( double *result )
+{
+  char *endptr , *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    result[ N ] = strtod( token , &endptr ) ;
+    if( token == endptr || errno == ERANGE ) {
+      fprintf( stderr , "[IO] misread double %zu read %f \n" , 
+	       N , result[ N ] ) ;
+      return FAILURE ;
+    }
+    if( ++N == 1 ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
+static int
+get_GLU_bool( GLU_bool *result )
+{
+  char *token ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    if( are_equal( token , "GLU_TRUE" ) ) {
+      *result = GLU_TRUE ;
+      return SUCCESS ;
+    } else if( are_equal( token , "GLU_FALSE" ) ) {
+      *result = GLU_FALSE ;
+      return SUCCESS ;
+    } else {
+      fprintf( stderr , "[IO] I don't understand bool %s, please make"
+	       " GLU_FALSE or GLU_TRUE\n" , token ) ;
+      return FAILURE ;
+    }
+  }
+  return FAILURE ;
+}
+
 // get the initial source position
 // this is really gross as strcmp doesn't play nice with the hyphen or a
 // newline so I split the string again and look for anti
@@ -103,26 +141,6 @@ get_propdims( size_t *dims )
   return FAILURE ;
 }
 
-// get the initial source position
-static int
-get_propsrc( size_t *origin ) 
-{
-  char *endptr , *token ;
-  size_t N = 0 ;
-  errno = 0 ;
-  while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    origin[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
-    if( token == endptr || errno == ERANGE || 
-	origin[ N ] > Latt.dims[ N ] ) {
-      fprintf( stderr , "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
-	       N , origin[ N ] ) ;
-      return FAILURE ;
-    }
-    if( ++N == ND ) return SUCCESS ;
-  }
-  return FAILURE ;
-}
-
 // get the propagator endianness
 static int
 get_propendian( endianness *endian )
@@ -163,6 +181,26 @@ get_propprec( fp_precision *precision )
   return FAILURE ;
 }
 
+// get the initial source position
+static int
+get_propsrc( size_t *origin ) 
+{
+  char *endptr , *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    origin[ N ] = (size_t)strtol( token , &endptr , 10 ) ;
+    if( token == endptr || errno == ERANGE || 
+	origin[ N ] > Latt.dims[ N ] ) {
+      fprintf( stderr , "[IO] propheader SrcPos:[%zu] misread %zu \n" , 
+	       N , origin[ N ] ) ;
+      return FAILURE ;
+    }
+    if( ++N == ND ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
 // get the propagator source type
 static int
 get_propsource( sourcetype *source )
@@ -185,25 +223,53 @@ get_propsource( sourcetype *source )
       *source = WALL ;
       return SUCCESS ;
     }
+  }
+  return FAILURE ;
+}
+
+// get the propagator basis type
+static int
+get_proptype( proptype *basis )
+{
+  char *token ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    // nonrelativistic basis
+    if( are_equal( token , "Nrel_fwd\n" ) ) {
+      *basis = NREL_FWD ;
+      return SUCCESS ;
+    } else if( are_equal( token , "Nrel_bwd\n" ) ) {
+      *basis = NREL_BWD ;
+      return SUCCESS ;
+      // on the fly computed NRQCD tag
+    } else if( are_equal( token , "Nrel_CORR\n" ) ) {
+      *basis = NREL_CORR ;
+      return SUCCESS ;
+    } else if( are_equal( token , "Chiral\n" ) ) {
+      *basis = CHIRAL ;
+      return SUCCESS ;
+    }
     //
   }
   return FAILURE ;
 }
 
+// get propagator twists
 static int
-get_double( double *result )
+get_proptwists( double *twists ) 
 {
   char *endptr , *token ;
   size_t N = 0 ;
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    result[ N ] = strtod( token , &endptr ) ;
+    twists[ N ] = strtod( token , &endptr ) ;
+    fprintf( stdout , "[IO] twist %f \n" , twists[ N ] ) ;
     if( token == endptr || errno == ERANGE ) {
-      fprintf( stderr , "[IO] misread double %zu read %f \n" , 
-	       N , result[ N ] ) ;
+      fprintf( stderr , "[IO] propheader twists[%zu] misread %f \n" , 
+	       N , twists[ N ] ) ;
       return FAILURE ;
     }
-    if( ++N == 1 ) return SUCCESS ;
+    // we have successfully read in all the twist info we need
+    if( ++N == ND ) return SUCCESS ;
   }
   return FAILURE ;
 }
@@ -222,53 +288,6 @@ get_size_t( size_t *result )
       return FAILURE ;
     }
     if( ++N == 1 ) return SUCCESS ;
-  }
-  return FAILURE ;
-}
-
-static int
-get_GLU_bool( GLU_bool *result )
-{
-  char *token ;
-  while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    if( are_equal( token , "GLU_TRUE" ) ) {
-      *result = GLU_TRUE ;
-      return SUCCESS ;
-    } else if( are_equal( token , "GLU_FALSE" ) ) {
-      *result = GLU_FALSE ;
-      return SUCCESS ;
-    } else {
-      fprintf( stderr , "[IO] I don't understand bool %s, please make"
-	       " GLU_FALSE or GLU_TRUE\n" , token ) ;
-      return FAILURE ;
-    }
-  }
-  return FAILURE ;
-}
-
-
-// get the propagator source type
-static int
-get_proptype( proptype *basis )
-{
-  char *token ;
-  while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    // nonrelativistic basis, this may need to become
-    // Nrel_fwd and Nrel_bwd 
-    if( are_equal( token , "Nrel_fwd\n" ) ) {
-      *basis = NREL_FWD ;
-      return SUCCESS ;
-    } else if( are_equal( token , "Nrel_bwd\n" ) ) {
-      *basis = NREL_BWD ;
-      return SUCCESS ;
-    } else if( are_equal( token , "Nrel_CORR\n" ) ) {
-      *basis = NREL_CORR ;
-      return SUCCESS ;
-    } else if( are_equal( token , "Chiral\n" ) ) {
-      *basis = CHIRAL ;
-      return SUCCESS ;
-    }
-    //
   }
   return FAILURE ;
 }
@@ -330,7 +349,7 @@ read_propheader( struct propagator *prop )
   // error flags
   int n = 0 , dimsflag = 0 , originflag = 0 ;
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
-  int basisflag = 0 , boundsflag = 0 ;
+  int basisflag = 0 , boundsflag = 0 , twistsflag = 0 ;
 
   // set this to NULL
   prop -> H = NULL ;
@@ -340,7 +359,7 @@ read_propheader( struct propagator *prop )
   prop -> NRQCD.C2    = 0.0 ; prop -> NRQCD.C3   = 0.0 ;
   prop -> NRQCD.C4    = 0.0 ; prop -> NRQCD.C5   = 0.0 ;
   prop -> NRQCD.C6    = 0.0 ; prop -> NRQCD.C7   = 0.0 ;
-  prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9EB  = 0.0 ; 
+  prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9EB = 0.0 ; 
   prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
   prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
   prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ; 
@@ -404,6 +423,13 @@ read_propheader( struct propagator *prop )
       }
       boundsflag++ ;
     }
+    // propagator boundaries
+    if( are_equal( tag , "Twists:" ) ) {
+      if( get_proptwists( prop -> twists ) == FAILURE ) {
+	return tagfailure( "Twists:" , line ) ;
+      }
+      twistsflag++ ;
+    }
     
     // look for some NRQCD parameters
     if( are_equal( tag , "NRQCD_C0" ) ) get_double( &prop -> NRQCD.C0 ) ;
@@ -438,6 +464,7 @@ read_propheader( struct propagator *prop )
   if( srcflag == 0 ) return nonexistent_record( "Source:" ) ;
   if( basisflag == 0 ) return nonexistent_record( "Basis:" ) ;
   if( boundsflag == 0 ) return nonexistent_record( "Boundaries: or Boundary:" ) ;
+  // I will not complain about twists not being read
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
   if( prop -> basis == NREL_CORR ) {

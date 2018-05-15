@@ -7,6 +7,22 @@
 #include "geometry.h"
 #include "halfspinor_ops.h" // zero_halfspinor
 
+static double
+eipx( const double twists[ ND ] ,
+      const size_t i )
+{
+  int x[ ND ] ;
+  get_mom_2piBZ( x , i , ND-1 ) ;
+  
+  register double p_dot_x = 0.0 ;
+  size_t mu ;
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    p_dot_x += Latt.twiddles[mu] * twists[mu] * x[mu] ;
+  }
+  
+  return cos( p_dot_x ) + I * sin( p_dot_x ) ;
+}
+
 // set propagator to IdentityxConstant
 static void
 set_prop_to_constant( struct halfspinor *S1 ,
@@ -34,7 +50,8 @@ set_prop_to_constant( struct halfspinor *S1 ,
 void
 initialise_source( struct halfspinor *S ,
 		   const sourcetype source ,
-		   const size_t origin[ ND ]  )
+		   const double twists[ ND ] ,
+		   const size_t origin[ ND ] )
 {
   size_t i ;
   int or[ NS ] = { 0 , 0 , 0 , 0 } ;
@@ -58,7 +75,7 @@ initialise_source( struct halfspinor *S ,
       }
       break ;
     case WALL :
-      set_prop_to_constant( &S[ i ] , 1.0 ) ;
+      set_prop_to_constant( &S[ i ] , eipx( twists , i ) ) ;
       break ;
     }
   }

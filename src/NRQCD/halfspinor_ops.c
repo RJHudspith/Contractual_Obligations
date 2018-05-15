@@ -6,19 +6,26 @@
 
 #include "matrix_ops.h"
 
-// set s-matrix to zero
 void
-zero_halfspinor( struct halfspinor *S )
+colormatrix_halfspinor( struct halfspinor *a ,
+			const double complex b[ NCNC ] ,
+			const struct halfspinor c )
 {
-  size_t i ;
-  #pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {
-    zero_colormatrix( S[i].D[0] ) ;
-    zero_colormatrix( S[i].D[1] ) ;
-    zero_colormatrix( S[i].D[2] ) ;
-    zero_colormatrix( S[i].D[3] ) ;
-  }
-  return ;
+  multab( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
+  multab( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
+  multab( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
+  multab( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
+}
+
+void
+colormatrixdag_halfspinor( struct halfspinor *a ,
+			   const double complex b[ NCNC ] ,
+			   const struct halfspinor c )
+{
+  multabdag( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
+  multabdag( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
+  multabdag( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
+  multabdag( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
 }
 
 void
@@ -93,17 +100,6 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
 }
 
 void
-colormatrix_halfspinor( struct halfspinor *a ,
-			const double complex b[ NCNC ] ,
-			struct halfspinor c )
-{
-  multab( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
-  multab( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
-  multab( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
-  multab( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
-}
-
-void
 halfspinor_colormatrix( struct halfspinor *a ,
 			const struct halfspinor b ,
 			const double complex c[ NCNC ] )
@@ -136,5 +132,20 @@ halfspinor_multiply( struct halfspinor *a ,
   multab( (void*)a -> D[3] , (void*)b.D[2] , (void*)c.D[1] ) ;
   multab( (void*)temp , (void*)b.D[3] , (void*)c.D[3] ) ;
   add_mat( (void*)a -> D[3] , (void*)temp ) ;
+  return ;
+}
+
+// set s-matrix to zero
+void
+zero_halfspinor( struct halfspinor *S )
+{
+  size_t i ;
+  #pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    zero_colormatrix( S[i].D[0] ) ;
+    zero_colormatrix( S[i].D[1] ) ;
+    zero_colormatrix( S[i].D[2] ) ;
+    zero_colormatrix( S[i].D[3] ) ;
+  }
   return ;
 }

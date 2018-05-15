@@ -114,23 +114,15 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
     evolve_H( F , t , NRQCD ) ;
   }
 
-  // mutliply by temporal link
+  // mutliply by temporal link and put in temporary S1
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {    
-    double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     const size_t idx = i + t*LCU ;
-    size_t d ;
-    for( d = 0 ; d < NS ; d++ ) {
-      colormatrix_equiv( (void*)A , (void*)F -> S[i].D[d] ) ;
-      multabdag( (void*)F -> S1[i].D[d] , (void*)lat[idx].O[ ND-1 ] , (void*)A ) ; 
-    }
+    colormatrixdag_halfspinor( &F -> S1[i] , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
   }
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_equiv( F -> S[i].D[0] , F -> S1[i].D[0] ) ;
-    colormatrix_equiv( F -> S[i].D[1] , F -> S1[i].D[1] ) ;
-    colormatrix_equiv( F -> S[i].D[2] , F -> S1[i].D[2] ) ;
-    colormatrix_equiv( F -> S[i].D[3] , F -> S1[i].D[3] ) ;
+    F -> S[i] = F -> S1[i] ;
   }
 
   // evolve again
@@ -159,20 +151,12 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   // mutliply by temporal link
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {    
-    double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;
-    size_t d ;
-    for( d = 0 ; d < NS ; d++ ) {
-      colormatrix_equiv( (void*)A , (void*)F -> S[i].D[d] ) ;
-      multab( (void*)F -> S1[i].D[d] , (void*)lat[idx].O[ ND-1 ] , (void*)A ) ;
-    }
+    colormatrix_halfspinor( &F -> S1[i] , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
   }
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    colormatrix_equiv( F -> S[i].D[0] , F -> S1[i].D[0] ) ;
-    colormatrix_equiv( F -> S[i].D[1] , F -> S1[i].D[1] ) ;
-    colormatrix_equiv( F -> S[i].D[2] , F -> S1[i].D[2] ) ;
-    colormatrix_equiv( F -> S[i].D[3] , F -> S1[i].D[3] ) ;
+    F -> S[i] = F -> S1[i] ;
   }
 
   // evolve again
@@ -222,7 +206,10 @@ compute_props( struct propagator *prop ,
     size_t t , tnew , tprev = ( prop[n].origin[ND-1] )%LT ;
 
     // set up the source into F -> S
-    initialise_source( F -> S , prop[n].source , prop[n].origin ) ;
+    initialise_source( F -> S ,
+		       prop[n].source ,
+		       prop[n].twists ,
+		       prop[n].origin ) ;
 
     // do a copy in here
     #pragma omp for private(i)

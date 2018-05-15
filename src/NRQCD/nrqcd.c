@@ -25,7 +25,12 @@ compute_nrqcd_props( struct propagator *prop ,
       FLY_NREL = GLU_TRUE ;
 
       // allocate the heavy propagator
-      corr_malloc( (void**)&prop[n].H , ALIGNMENT , LVOLUME*sizeof( struct halfspinor ) ) ;
+      if( corr_malloc( (void**)&prop[n].H ,
+		       ALIGNMENT ,
+		       LVOLUME*sizeof( struct halfspinor_f ) ) != 0 ) {
+	fprintf( stderr , "[NRQCD] heavy prop allocation failure\n" ) ;
+	goto memfree ;
+      }
 
       // if we don't have these terms we don't need to allocate as
       // many temporary memory halfspinors

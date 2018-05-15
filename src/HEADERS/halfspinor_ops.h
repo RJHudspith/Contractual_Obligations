@@ -11,6 +11,15 @@ colormatrix_halfspinor( struct halfspinor *a ,
 			struct halfspinor c ) ;
 
 /**
+   @fn void colormatrixdag_halfspinor( struct halfspinor *a , const double complex b[ NCNC ] , struct halfspinor c )
+   @brief multiply a halfspinor on the left by the dagger of a color matrix
+ */
+void
+colormatrixdag_halfspinor( struct halfspinor *a ,
+			   const double complex b[ NCNC ] ,
+			   struct halfspinor c ) ;
+
+/**
    @fn void halfspinor_colormatrix( struct halfspinor *a , const struct halfspinor b , const double complex c[ NCNC ] )
    @brief multiply a halfspinor on the right by a colormatrix
  */

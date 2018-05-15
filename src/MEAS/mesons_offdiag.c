@@ -74,7 +74,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       
       // master-slave the IO and perform each FFT in parallel
       if( t < ( LT - 1 ) ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
 
       // parallelise the furthest out loop :: flatten the gammas
