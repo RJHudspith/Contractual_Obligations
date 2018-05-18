@@ -6,13 +6,15 @@
 
 #include "matrix_ops.h"
 
-#include "SSE2_OPS.h"
+#ifdef HAVE_EMMINTRIN_H
 
+// pA = pB.pC where pB is hermitian and pC is an ordinary 3x3 matrix
 static inline void
 herm_multab( __m128d *__restrict pA ,
 	     const __m128d *__restrict pB ,
 	     const __m128d *__restrict pC )
 {
+#if NC == 3 
   register const __m128d reA = _mm_movedup_pd( *( pB + 0 ) ) ;
   register const __m128d reD = _mm_movedup_pd( *( pB + 4 ) ) ;
   register const __m128d reF = SSE_FLIP( _mm_add_pd( reA , reD ) ) ;
@@ -46,7 +48,23 @@ herm_multab( __m128d *__restrict pA ,
   *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 2 ) , *( pC + 2 ) ) , 
 		    SSE2_MULCONJ( *( pB + 5 ) , *( pC + 5 ) ) ) ;
   *pA = _mm_add_pd( *pA , _mm_mul_pd( reF , *( pC + 8 ) ) ) ;
+#else
+  multab( pA , pB , pC ) ;
+#endif
 }
+
+#else
+
+static inline void
+herm_multab( double complex *a ,
+	     const double complex *b ,
+	     const double complex *c )
+{
+  multab( a , b , c ) ;
+  return ;
+}
+
+#endif
 
 // atomically add halfspinors a += b
 void

@@ -1,3 +1,7 @@
+/**
+   @file halfspinor_ops.h
+   @brief prototype declarations for operations on halfspinor type
+ */
 #ifndef HALFSPINOR_OPS_H
 #define HALFSPINOR_OPS_H
 

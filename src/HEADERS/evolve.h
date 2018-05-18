@@ -1,3 +1,7 @@
+/**
+   @file evolve.h
+   @brief prototype declarations for the NRQCD evolution
+ */
 #ifndef EVOLVE_H
 #define EVOLVE_H
 
