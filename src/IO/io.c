@@ -9,7 +9,6 @@
 #include "GLU_bswap.h"    // byteswaps
 #include "io.h"           // alphabetising
 #include "matrix_ops.h"   // matrix equivs
-#include "polyakov.h"     // static quark computation
 #include "spinor_ops.h"   // zero the spinor
 
 // fill our spinor

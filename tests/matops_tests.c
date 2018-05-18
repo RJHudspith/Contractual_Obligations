@@ -7,6 +7,7 @@
 
 #include "minunit.h"     // minimal unit testing framework
 #include "matrix_ops.h"  // matrix operations
+#include "mmul.h"        // matrix multiplies
 
 #ifdef HAVE_IMMINTRIN_H
 typedef __m128d dcomplex ;

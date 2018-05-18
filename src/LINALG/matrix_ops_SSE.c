@@ -4,7 +4,6 @@
 
    LU decomposition taken from my code GLU - J
  */
-
 #include "common.h"
 #include "matrix_ops.h"
 
@@ -222,17 +221,24 @@ constant_mul_gauge( double complex *__restrict res ,
 		    const double complex constant ,
 		    const double complex *__restrict U ) 
 {
+  const __m128d *pU = (const __m128d*)U ;
+  __m128d *pR = (__m128d*)res ;
+  register const __m128d C = _mm_setr_pd( creal( constant ) ,
+					  cimag( constant ) ) ;
 #if NC == 3
-  res[0] = constant * U[0] ; res[1] = constant * U[1] ; res[2] = constant * U[2] ;
-  res[3] = constant * U[3] ; res[4] = constant * U[4] ; res[5] = constant * U[5] ;
-  res[6] = constant * U[6] ; res[7] = constant * U[7] ; res[8] = constant * U[8] ;
-#elif NC == 2
-  res[0] = constant * U[0] ; res[1] = constant * U[1] ; 
-  res[2] = constant * U[2] ; res[3] = constant * U[3] ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
+  *pR = SSE2_MUL( C , *pU ) ;
 #else
   size_t i ;
   for( i = 0 ; i < NCNC ; i++ ) {
-    res[ i ] = constant * U[ i ] ;
+    *pR = SSE2_MUL( C , *pU ) ; pU++ ; pR++ ;
   }
 #endif
   return ;
@@ -338,276 +344,6 @@ LU_det_overwrite( const size_t N , double complex U[ N*N ] )
   determinant = SSE2_MUL( determinant , a[ N*N-1 ] ) ;
   _mm_store_pd( (void*)&s , determinant ) ;
   return perms&1 ? -s : s ;
-}
-
-// simple NxN square matrix multiplication a = b.c
-void 
-multab( __m128d *__restrict a , 
-	const __m128d *__restrict b , 
-	const __m128d *__restrict c )
-{
-#if NC==3
-  // first row
-  *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL( *( b + 1 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 2 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 1 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 2 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 2 ) ) , 
-		   SSE2_MUL( *( b + 1 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 2 ) , *( c + 8 ) ) ) ; a++ ;
-  // second row
-  *a = _mm_add_pd( SSE2_MUL( *( b + 3 ) , *( c + 0 ) ) , 
-		   SSE2_MUL( *( b + 4 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 5 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 3 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 4 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 5 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 3 ) , *( c + 2 ) ) , 
-		   SSE2_MUL( *( b + 4 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 5 ) , *( c + 8 ) ) ) ; a++ ;
-  // third row
-  *a = _mm_add_pd( SSE2_MUL( *( b + 6 ) , *( c + 0 ) ) , 
-		   SSE2_MUL( *( b + 7 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 6 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 7 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL( *( b + 6 ) , *( c + 2 ) ) , 
-		   SSE2_MUL( *( b + 7 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL( *( b + 8 ) , *( c + 8 ) ) ) ;
-#elif NC == 2
-  // a[0] = b[0] * c[0] + b[1] * c[2]
-  *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL( *( b + 1 ) , *( c + 2 ) ) ) ; a++ ;
-  // a[1] = b[0] * c[1] + b[1] * c[3]
-  *a = _mm_add_pd( SSE2_MUL( *( b + 0 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 1 ) , *( c + 3 ) ) ) ; a++ ;
-  // a[2] = b[2] * c[0] + b[3] * c[2]
-  *a = _mm_add_pd( SSE2_MUL( *( b + 2 ) , *( c + 0 ) ) , 
-		   SSE2_MUL( *( b + 3 ) , *( c + 2 ) ) ) ; a++ ;
-  // a[3] = b[2] * c[1] + b[3] * c[3]
-  *a = _mm_add_pd( SSE2_MUL( *( b + 2 ) , *( c + 1 ) ) , 
-		   SSE2_MUL( *( b + 3 ) , *( c + 3 ) ) ) ; 
-#else
-  int i , j , m ;
-  register __m128d sum ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      sum = _mm_setzero_pd( ) ;
-      for( m = 0 ; m < NC ; m++  ) {
-	sum = _mm_add_pd( sum , SSE2_MUL( *( b + m + NC*i ) , *( c + j + m*NC ) ) ) ;
-      }
-      a[ j + NC*i ] = sum ;
-    }
-  }
-#endif
-  return ;
-}
-
-// 3x3 mult a = ( b^{\dagger} ).c 
-void 
-multabdag( __m128d *__restrict a , 
-	   const __m128d *__restrict b , 
-	   const __m128d *__restrict c )
-{
-#if NC == 3
-  // first row
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 6 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 6 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 2 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 6 ) , *( c + 8 ) ) ) ; a++ ;
-  // second
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 0 ) ) , 
-		   SSE2_MULCONJ( *( b + 4 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 7 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 4 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 7 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 2 ) ) , 
-		   SSE2_MULCONJ( *( b + 4 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 7 ) , *( c + 8 ) ) ) ; a++ ;
-  // third
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 2 ) , *( c + 0 ) ) , 
-		   SSE2_MULCONJ( *( b + 5 ) , *( c + 3 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 6 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 2 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 5 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 7 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 2 ) , *( c + 2 ) ) , 
-		   SSE2_MULCONJ( *( b + 5 ) , *( c + 5 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MULCONJ( *( b + 8 ) , *( c + 8 ) ) ) ; 
-#elif NC == 2
-  // a[0] = conj( b[0] ) * c[0] + conj( b[2] ) * c[2]
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MULCONJ( *( b + 2 ) , *( c + 2 ) ) ) ; a++ ;
-  // a[1] = conj( b[0] ) * c[1] + conj( b[2] ) * c[3]
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 0 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 2 ) , *( c + 3 ) ) ) ; a++ ;
-  // a[2] = conj( b[1] ) * c[0] + conj( b[3] ) * c[2]
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 0 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 2 ) ) ) ; a++ ;
-  // a[3] = conj( b[1] ) * c[1] + conj( b[3] ) * c[3]
-  *a = _mm_add_pd( SSE2_MULCONJ( *( b + 1 ) , *( c + 1 ) ) , 
-		   SSE2_MULCONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
-#else
-  int i , j , m ;
-  register __m128d sum ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      sum = _mm_setzero_pd(  ) ;
-      for( m = 0 ; m < NC ; m++ ) {
-	sum = _mm_add_pd( sum , SSE2_MULCONJ( *( b + i + NC*m ) , *( c + j + NC*m ) ) ) ;
-      }
-      *a = sum ; a++ ;
-    }
-  }
-#endif
-  return ;
-}
-
-// a = b * c^{\dagger}
-void 
-multab_dag( __m128d *__restrict a , 
-	    const __m128d *__restrict b , 
-	    const __m128d *__restrict c )
-{
-#if NC == 3
-  // first row
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 1 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 2 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 0 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 1 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 2 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 0 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 1 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 2 ) , *( c + 8 ) ) ) ; a++ ;
-  // second
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 3 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 4 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 5 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 3 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 4 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 5 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 3 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 4 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 5 ) , *( c + 8 ) ) ) ; a++ ;
-  // third
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 6 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 7 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 8 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 6 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 7 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 8 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 6 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 7 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJ( *( b + 8 ) , *( c + 8 ) ) ) ; a++ ;
-#elif NC == 2
-  //a[0] = b[0] * conj( c[0] ) + b[1] * conj( c[1] )
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 1 ) , *( c + 1 ) ) ) ; a++ ;
-  //a[1] = b[0] * conj( c[2] ) + b[1] * conj( c[3] ) 
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 0 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 1 ) , *( c + 3 ) ) ) ; a++ ;
-  //a[2] = b[2] * conj( c[0] ) + b[3] * conj( c[1] ) 
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 2 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 3 ) , *( c + 1 ) ) ) ; a++ ;
-  //a[3] = b[2] * conj( c[2] ) + b[3] * conj( c[3] )
-  *a = _mm_add_pd( SSE2_MUL_CONJ( *( b + 2 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
-#else 
-  int i , j , m ;
-  register __m128d sum ;
-  for( i = 0 ; i < NC ; i++ ) {
-    for( j = 0 ; j < NC ; j++ ) {
-      sum = _mm_setzero_pd( ) ;
-      for( m = 0 ; m < NC ; m++ ) {
-	sum = _mm_add_pd( sum , SSE2_MUL_CONJ( *( b + m + NC*i ) , *( c + m + NC*j ) ) ) ;
-      }
-      *a = sum ; a++ ;
-    }
-  }
-#endif
-  return ;
-}
-
-
-// a = b^{\dagger} * c^{\dagger}
-void 
-multab_dagdag( __m128d *__restrict a , 
-	       const __m128d *__restrict b , 
-	       const __m128d *__restrict c )
-{
-#if NC == 3
-  // first row
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 6 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 6 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 6 ) , *( c + 8 ) ) ) ; a++ ;
-  // second
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 4 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 7 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 4 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 7 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 4 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 7 ) , *( c + 8 ) ) ) ; a++ ;
-  // third
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 5 ) , *( c + 1 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 2 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 3 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 5 ) , *( c + 4 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 5 ) ) ) ; a++ ;
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 6 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 5 ) , *( c + 7 ) ) ) ;
-  *a = _mm_add_pd( *a , SSE2_MUL_CONJCONJ( *( b + 8 ) , *( c + 8 ) ) ) ;
-#elif NC == 2
-  //a[0] = conj( b[0] ) * conj( c[0] ) + conj( b[2] ) * conj( c[1] )
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 1 ) ) ) ; a++ ;
-  //a[1] = conj( b[0] ) * conj( c[2] ) + conj( b[2] ) * conj( c[3] )
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 0 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 2 ) , *( c + 3 ) ) ) ; a++ ;
-  //a[2] = conj( b[1] ) * conj( c[0] ) + conj( b[3] ) * conj( c[1] )
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 0 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 1 ) ) ) ; a++ ;
-  //a[3] = conj( b[1] ) * conj( c[2] ) + conj( b[3] ) * conj( c[3] )
-  *a = _mm_add_pd( SSE2_MUL_CONJCONJ( *( b + 1 ) , *( c + 2 ) ) , 
-		   SSE2_MUL_CONJCONJ( *( b + 3 ) , *( c + 3 ) ) ) ;
-#else
-  int i , j , m ;
-  register __m128d sum ;
-  const __m128d *pC , *pB ;
-  for( i = 0 ; i < NC ; i++ ) {
-    pC = c ;
-    for( j = 0 ; j < NC ; j++ ) {
-      pB = b ;
-      sum = _mm_setzero_pd( ) ;
-      for( m = 0 ; m < NC ; m++ ) {
-	sum = _mm_add_pd( sum , SSE2_MUL_CONJCONJ( *( pB + i ) , *( pC + m ) ) ) ;
-	pB += NC ;
-      }
-      *a = sum ; a++ ;
-      pC += NC ;
-    }
-  }
-#endif
-  return ;
 }
 
 // print "a" to stdout

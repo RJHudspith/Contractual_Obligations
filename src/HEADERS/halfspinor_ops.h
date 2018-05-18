@@ -2,6 +2,14 @@
 #define HALFSPINOR_OPS_H
 
 /**
+   @fn void add_halfspinor( struct halfspinor *a , const struct halfspinor b )
+   @brief atomically add two halfspinors s.t a = a + b
+ */
+void
+add_halfspinor( struct halfspinor *a ,
+		const struct halfspinor b ) ;
+
+/**
    @fn void colormatrix_halfspinor( struct halfspinor *a , const double complex b[ NCNC ] , struct halfspinor c )
    @brief multiply a halfspinor on the left by a colormatrix
  */
@@ -19,22 +27,18 @@ colormatrixdag_halfspinor( struct halfspinor *a ,
 			   const double complex b[ NCNC ] ,
 			   struct halfspinor c ) ;
 
-/**
-   @fn void halfspinor_colormatrix( struct halfspinor *a , const struct halfspinor b , const double complex c[ NCNC ] )
-   @brief multiply a halfspinor on the right by a colormatrix
- */
 void
-halfspinor_colormatrix( struct halfspinor *a ,
-			const struct halfspinor b ,
-			const double complex c[ NCNC ] ) ;
+Fmunu_halfspinor( struct halfspinor *a ,
+		  const double complex *b ,
+		  const struct halfspinor c ) ;
 
 /**
    @fn void halfspinor_iSaxpy( struct halfspinor *H , const struct halfspinor *S , const double fac )
-   @brief computes the operation H += fac * ( I * S ) over #LCU
+   @brief computes the operation H += fac * ( I * S )
  */
 void
 halfspinor_iSaxpy( struct halfspinor *H ,
-		   const struct halfspinor *S ,
+		   const struct halfspinor S ,
 		   const double fac ) ;
 
 /**
@@ -48,11 +52,11 @@ halfspinor_multiply( struct halfspinor *a ,
 
 /**
    @fn void halfspinor_Saxpy( struct halfspinor *H , const struct halfspinor *S , const double fac )
-   @brief computes the operation H += fac * S over #LCU
+   @brief computes the operation H += fac * S over
  */
 void
 halfspinor_Saxpy( struct halfspinor *H ,
-		  const struct halfspinor *S ,
+		  const struct halfspinor S ,
 		  const double fac ) ;
 
 /**
@@ -61,13 +65,13 @@ halfspinor_Saxpy( struct halfspinor *H ,
  */
 void
 halfspinor_sigma_Saxpy( struct halfspinor *H ,
-			const struct halfspinor *S ,
+			const struct halfspinor S ,
 			const size_t sigma_map[ NS ] ,
 			const uint8_t imap[ NS ] ) ;
 
 /**
    @fn void zero_halfspinor( struct halfspinor *S )
-   @brief zero a halfspinor over #LCU
+   @brief zero a halfspinor
  */
 void
 zero_halfspinor( struct halfspinor *S ) ;

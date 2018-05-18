@@ -2,12 +2,18 @@
 #define SPIN_DEPENDENT_H
 
 void
-term_C3( struct NRQCD_fields *F ,
+term_C3( struct halfspinor *H ,
+	 const struct halfspinor *S ,
+	 const struct field *Fmunu ,
+	 const size_t i ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD ) ;
 
 void
-term_C4( struct NRQCD_fields *F ,
+term_C4( struct halfspinor *H ,
+	 const struct halfspinor *S ,
+	 const struct field *Fmunu ,
+	 const size_t i ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD ) ;
 
@@ -22,7 +28,10 @@ term_C8( struct NRQCD_fields *F ,
 	 const struct NRQCD_params NRQCD ) ;
 
 void
-term_C9EB( struct NRQCD_fields *F ,
+term_C9EB( struct halfspinor *H ,
+	   const struct halfspinor *S ,
+	   const struct field *Fmunu ,
+	   const size_t i ,
 	   const size_t t ,
 	   const struct NRQCD_params NRQCD ) ;
 

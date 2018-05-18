@@ -112,42 +112,6 @@ LU_det( const int N ,
 	const double complex U[ N*N ] ) ;
 
 /**
-   @fn void multab( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
-   @brief performs the matrix multiplication \f$ a = b * c \f$
- */
-void 
-multab( double complex a[ NCNC ] , 
-	const double complex b[ NCNC ] , 
-	const double complex c[ NCNC ] ) ;
-
-/**
-   @fn void multabdag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
-   @brief performs the matrix multiplication \f$ a = b^{\dagger} * c \f$
- */
-void 
-multabdag( double complex a[ NCNC ] , 
-	   const double complex b[ NCNC ] , 
-	   const double complex c[ NCNC ] ) ;
-
-/**
-   @fn void multab_dag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
-   @brief performs the matrix multiplication \f$ a = b * c ^{\dagger} \f$
- */
-void 
-multab_dag( double complex a[ NCNC ] , 
-	    const double complex b[ NCNC ] , 
-	    const double complex c[ NCNC ] ) ;
-
-/**
-   @fn void multab_dagdag( double complex a[ NCNC ] , const double complex b[ NCNC ] , const double complex c[ NCNC ] )
-   @brief performs the matrix multiplication \f$ a = b^{\dagger} * c ^{\dagger} \f$
- */
-void 
-multab_dagdag( double complex a[ NCNC ] , 
-	       const double complex b[ NCNC ] , 
-	       const double complex c[ NCNC ] ) ;
-
-/**
    @fn void print_colormatrix( const double complex a[ NCNC ] )
    @brief print to stdout the color matrix a
  */

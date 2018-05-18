@@ -4,6 +4,7 @@
  */
 #include "common.h"
 
+#include "mmul.h"
 #include "matrix_ops.h" // NC*NC multiplies, daggers, sums and traces
 #include "spinor_ops.h" // so that I can alphabetise
 

@@ -4,14 +4,15 @@
  */
 #include "common.h"
 
-#include "clover.h"
-#include "GLU_timer.h"
-#include "halfspinor_ops.h"
-#include "matrix_ops.h"
-#include "progress_bar.h"
-#include "sources.h"
-#include "spin_dependent.h"
-#include "spin_independent.h"
+#include "clover.h"           // O(a^2) improved clover
+#include "GLU_timer.h"        // tells us how long it takes
+#include "halfspinor_ops.h"   // halfspinor_Saxpy
+#include "matrix_ops.h"       // colormatrix_*
+#include "mmul.h"             // multabs
+#include "progress_bar.h"     // show the progress bar
+#include "sources.h"          // initialise the source
+#include "spin_dependent.h"   // spin-dependent NRQCD terms
+#include "spin_independent.h" // spin-independent NRQCD terms
 
 // so in principle this could be checkerboarded and the
 // whole LCU loop could be done in this level in parallel
@@ -38,17 +39,15 @@ evolve_H( struct NRQCD_fields *F ,
     size_t mu , d ;
     
     // set hamiltonian storage to zero
-    zero_colormatrix( F -> H[i].D[0] ) ;
-    zero_colormatrix( F -> H[i].D[1] ) ;
-    zero_colormatrix( F -> H[i].D[2] ) ;
-    zero_colormatrix( F -> H[i].D[3] ) ;
+    zero_halfspinor( &F -> H[i] ) ;
 
     // inner mu sum much more cache friendly
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      
       const size_t Sfwd = lat[ i ].neighbor[mu] ;
       const size_t Sbck = lat[ i ].back[mu] ;
       const size_t Ubck = lat[ Uidx ].back[mu] ;
-      
+
       for( d = 0 ; d < NS ; d++ ) {
 	// computes A = U(x) S(x+\mu)
 	multab( (void*)A ,
@@ -67,34 +66,51 @@ evolve_H( struct NRQCD_fields *F ,
       }
     }
   }
-  
-  halfspinor_Saxpy( F -> S , F -> H , -1./(2.*NRQCD.N) ) ;
 
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1./(2.*NRQCD.N) ) ;
+  }
   return ;
 }
 
-// applies the hamiltonian s.t. S = ( 1 - H/2 ) S
+// applies the hamiltonian s.t. S = ( 1 - dH ) S
 static void
 evolve_dH( struct NRQCD_fields *F ,
 	   const size_t t ,
 	   const struct NRQCD_params NRQCD )
 {
-  zero_halfspinor( F -> H ) ;
+  size_t i ;
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    zero_halfspinor( &F -> H[i] ) ;
   
-  // atomically accumulate result into F -> H
-  term_C1_C6( F , t , NRQCD ) ;
-  term_C2( F , t , NRQCD ) ;
-  term_C3( F , t , NRQCD ) ;
-  term_C4( F , t , NRQCD ) ;
-  term_C5( F , t , NRQCD ) ;
+    // atomically accumulate result into F -> H
+    term_C1_C6( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C2( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C3( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C4( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C5( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C9EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C10EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+  }
+
+  // these three are really tricky to loop-fuse into the above
   term_C7( F , t , NRQCD ) ;
   term_C8( F , t , NRQCD ) ;
-  term_C9EB( F , t , NRQCD ) ;
-  term_C10EB( F , t , NRQCD ) ;
   term_C11( F , t , NRQCD ) ;
 
-  halfspinor_Saxpy( F -> S , F -> H , -1. ) ;
-    
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1. ) ;
+  }
+
   return ;
 }
 
@@ -107,6 +123,7 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
+  // only evolve the spin-dependent terms a little bit
   evolve_dH( F , t , NRQCD ) ;
   
   // evolve just with C0 term
@@ -118,11 +135,9 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {    
     const size_t idx = i + t*LCU ;
-    colormatrixdag_halfspinor( &F -> S1[i] , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
-  }
-  #pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {
-    F -> S[i] = F -> S1[i] ;
+    struct halfspinor res ;
+    colormatrixdag_halfspinor( &res , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
+    F -> S[i] = res ;
   }
 
   // evolve again
@@ -152,11 +167,9 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {    
     const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;
-    colormatrix_halfspinor( &F -> S1[i] , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
-  }
-  #pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {
-    F -> S[i] = F -> S1[i] ;
+    struct halfspinor res ;
+    colormatrix_halfspinor( &res , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
+    F -> S[i] = res ;
   }
 
   // evolve again

@@ -25,7 +25,7 @@
 // multabs and traces
 #if NC > 3
   #include "corr_malloc.h"
-  #include "matrix_ops.h"
+  #include "mmul.h"
 #endif
 
 // the one with the openmp locks, just an excuse to try this out to be honest

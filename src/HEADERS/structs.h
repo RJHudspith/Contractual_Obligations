@@ -359,9 +359,6 @@ struct NRQCD_fields {
   struct halfspinor *S ;
   struct halfspinor *S1 ;
   struct halfspinor *S2 ;
-  struct halfspinor *S3 ;
-  struct halfspinor *S4 ;
-  struct halfspinor *S5 ;
   struct halfspinor *H ;
   struct field *Fmunu ;
 } ;
