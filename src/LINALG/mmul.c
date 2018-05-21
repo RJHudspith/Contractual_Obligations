@@ -47,15 +47,6 @@ multab( double complex a[ NCNC ] ,
   return ;
 }
 
-void 
-multab_suNC( double complex a[ NCNC ] , 
-	     const double complex b[ NCNC ] , 
-	     const double complex c[ NCNC ] )
-{
-  multab( a , b , c ) ;
-  return ;
-}
-
 // 3x3 mult a = ( b^{\dagger} ).c 
 void 
 multabdag( double complex a[ NCNC ] , 
@@ -96,15 +87,6 @@ multabdag( double complex a[ NCNC ] ,
   return ;
 }
 
-void 
-multabdag_suNC( double complex a[ NCNC ] , 
-		const double complex b[ NCNC ] , 
-		const double complex c[ NCNC ] )
-{
-  multabdag( a , b , c ) ;
-  return ;
-}
-
 // a = b * c^{\dagger}
 void 
 multab_dag( double complex a[ NCNC ] , 
@@ -142,15 +124,6 @@ multab_dag( double complex a[ NCNC ] ,
     }
   }
 #endif
-  return ;
-}
-
-void 
-multab_dag_suNC( double complex a[ NCNC ] , 
-		 const double complex b[ NCNC ] , 
-		 const double complex c[ NCNC ] )
-{
-  multab_dag( a , b , c ) ;
   return ;
 }
 
@@ -197,15 +170,6 @@ multab_dagdag( double complex a[ NCNC ] ,
     }
   }
 #endif
-  return ;
-}
-
-void 
-multab_dagdag_suNC( double complex a[ NCNC ] , 
-		    const double complex b[ NCNC ] , 
-		    const double complex c[ NCNC ] )
-{
-  multab_dagdag( a , b , c ) ;
   return ;
 }
 

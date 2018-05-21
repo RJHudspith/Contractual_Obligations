@@ -126,10 +126,10 @@ grad_sqsq( struct halfspinor *der2 ,
       const size_t U_MmMn = lat[ lat[ Uidx ].back[mu] ].back[nu] ;
       
       // precompute these things
-      multab_suNC( (void*)B , (void*)lat[ Uidx ].O[mu] , (void*)lat[ U_Pm ].O[nu] ) ;
-      multabdag_suNC( (void*)C , (void*)lat[ U_Mm ].O[mu] , (void*)lat[ U_Mm ].O[nu] ) ;
-      multab_dag_suNC( (void*)D , (void*)lat[ Uidx ].O[mu] , (void*)lat[ U_PmMn ].O[nu]  ) ;
-      multab_dagdag_suNC( (void*)E , (void*)lat[ U_Mm ].O[mu] , (void*)lat[ U_MmMn ].O[nu] ) ;
+      multab( (void*)B , (void*)lat[ Uidx ].O[mu] , (void*)lat[ U_Pm ].O[nu] ) ;
+      multabdag( (void*)C , (void*)lat[ U_Mm ].O[mu] , (void*)lat[ U_Mm ].O[nu] ) ;
+      multab_dag( (void*)D , (void*)lat[ Uidx ].O[mu] , (void*)lat[ U_PmMn ].O[nu]  ) ;
+      multab_dagdag( (void*)E , (void*)lat[ U_Mm ].O[mu] , (void*)lat[ U_MmMn ].O[nu] ) ;
       
       for( d = 0 ; d < NS ; d++ ) {
 	multab( (void*)A , (void*)B , (void*)S[ S_PmPn ].D[d] ) ;

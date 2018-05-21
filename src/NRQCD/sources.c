@@ -17,7 +17,7 @@ eipx( const double twists[ ND ] ,
   register double p_dot_x = 0.0 ;
   size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    p_dot_x += Latt.twiddles[mu] * twists[mu] * x[mu] ;
+    p_dot_x += x[mu] * twists[mu] * Latt.twiddles[mu] ;
   }
   
   return cos( p_dot_x ) + I * sin( p_dot_x ) ;
@@ -61,13 +61,13 @@ initialise_source( struct halfspinor *S ,
 
   // point source position
   const size_t idx = gen_site( or ) ;
-
-  // zero all the spinors
-  zero_halfspinor( S ) ;
   
   // initialise source position
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
+    // zero all the spinors
+    zero_halfspinor( &S[i] ) ;
+
     switch( source ) {
     case POINT :
       if( i == idx ) {

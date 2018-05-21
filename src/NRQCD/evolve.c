@@ -245,7 +245,7 @@ compute_props( struct propagator *prop ,
       }
 
       // compute the lattice clovers
-      compute_clovers( F , lat , tprev ) ;
+      compute_clovers( F , lat , tprev , tadref ) ;
       	
       // compute the propagator
       if( prop[n].NRQCD.backward == GLU_TRUE ) {

@@ -72,11 +72,10 @@ init_moms( struct measurements *M ,
   M -> wwnmom = malloc( sizeof( int ) ) ;
 
   if( M -> is_wall == GLU_TRUE ) {
-    M -> list = (struct veclist*)zero_veclist( M -> nmom , ND-1 , 
-					       CUTINFO.configspace ) ;
     M -> wwlist = (struct veclist*)zero_veclist( M -> wwnmom , ND-1 , 
 						 CUTINFO.configspace ) ;
-  } else {
+  }
+    //} else {
 #ifdef HAVE_FFTW3_H
     M -> list = (struct veclist*)compute_veclist( M -> nmom , CUTINFO , ND-1 , 
 						  CUTINFO.configspace ) ;
@@ -84,7 +83,6 @@ init_moms( struct measurements *M ,
     M -> list = (struct veclist*)zero_veclist( M -> nmom , ND-1 , 
 					       CUTINFO.configspace ) ;
 #endif
-  }
 
   // initialise spatial summation list
   const struct cut_info ORBITS = \
@@ -308,11 +306,15 @@ init_measurements( struct measurements *M ,
     error_code = FAILURE ; goto end ;
   }
 
+  printf( "MOMCORRS? %zu %zu\n" , M -> nmom[0] , M -> wwnmom[0] ) ;
+  
   // allocate correlators
   M -> corr = allocate_momcorrs( stride1 , stride2 , M -> nmom[0] ) ;
   if( M -> is_wall == GLU_TRUE ) {
     M -> wwcorr = allocate_momcorrs( stride1 , stride2 , M -> wwnmom[0] ) ;
   }
+
+  printf( "MOMCORRS?\n" ) ;
 
   // precompute the gamma basis
   M -> GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;

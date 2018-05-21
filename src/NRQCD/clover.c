@@ -93,33 +93,33 @@ compute_clover( double complex *F ,
   // top right
   s1 = lat[i].neighbor[mu] ;
   s2 = lat[i].neighbor[nu] ;
-  multab_suNC( (void*)u , (void*)lat[i].O[mu] , (void*)lat[s1].O[nu] ) ;
-  multab_dag_suNC( (void*)v , (void*)u , (void*)lat[s2].O[mu] ) ;
-  multab_dag_suNC( (void*)sum , (void*)v , (void*)lat[i].O[nu] ) ;
+  multab( (void*)u , (void*)lat[i].O[mu] , (void*)lat[s1].O[nu] ) ;
+  multab_dag( (void*)v , (void*)u , (void*)lat[s2].O[mu] ) ;
+  multab_dag( (void*)sum , (void*)v , (void*)lat[i].O[nu] ) ;
 
   // bottom right
   s1 = lat[i].back[nu] ;
   s2 = lat[s1].neighbor[mu] ;
-  multabdag_suNC( (void*)u , (void*)lat[s1].O[nu] , (void*)lat[s1].O[mu] ) ;
-  multab_suNC( (void*)v , (void*)u , (void*)lat[s2].O[nu] ) ;
-  multab_dag_suNC( (void*)u , (void*)v , (void*)lat[i].O[mu] ) ;
+  multabdag( (void*)u , (void*)lat[s1].O[nu] , (void*)lat[s1].O[mu] ) ;
+  multab( (void*)v , (void*)u , (void*)lat[s2].O[nu] ) ;
+  multab_dag( (void*)u , (void*)v , (void*)lat[i].O[mu] ) ;
   add_mat( (void*)sum , (void*)u ) ;
 
   // bottom left
   s1 = lat[i].back[mu] ;
   s2 = lat[s1].back[nu] ;
   s3 = lat[i].back[nu] ;
-  multab_dagdag_suNC( (void*)u , (void*)lat[s1].O[mu] , (void*)lat[s2].O[nu] ) ;
-  multab_suNC( (void*)v , (void*)u , (void*)lat[s2].O[mu] ) ;
-  multab_suNC( (void*)u , (void*)v , (void*)lat[s3].O[nu] ) ;
+  multab_dagdag( (void*)u , (void*)lat[s1].O[mu] , (void*)lat[s2].O[nu] ) ;
+  multab( (void*)v , (void*)u , (void*)lat[s2].O[mu] ) ;
+  multab( (void*)u , (void*)v , (void*)lat[s3].O[nu] ) ;
   add_mat( (void*)sum , (void*)u ) ;
 
   // top left
   s2 = lat[i].back[mu] ;
   s1 = lat[s2].neighbor[nu] ;
-  multab_dag_suNC( (void*)u , (void*)lat[i].O[nu] , (void*)lat[s1].O[mu] ) ;
-  multab_dag_suNC( (void*)v , (void*)u , (void*)lat[s2].O[nu] ) ;
-  multab_suNC( (void*)u , (void*)v , (void*)lat[s2].O[mu] ) ;
+  multab_dag( (void*)u , (void*)lat[i].O[nu] , (void*)lat[s1].O[mu] ) ;
+  multab_dag( (void*)v , (void*)u , (void*)lat[s2].O[nu] ) ;
+  multab( (void*)u , (void*)v , (void*)lat[s2].O[mu] ) ;
   add_mat( (void*)sum , (void*)u ) ;
 
   // clover norm, apparently a convention is to give this a minus sign
@@ -138,8 +138,9 @@ improve_clover( double complex *res ,
 		const struct site *lat ,
 		const size_t i ,
 		const size_t mu ,
-		const size_t nu )
-{
+		const size_t nu ,
+		const double efac )
+{  
   double complex sum[ NCNC ] __attribute__((aligned(ALIGNMENT)));
   double complex temp1[ NCNC ] __attribute__((aligned(ALIGNMENT)));
   double complex temp2[ NCNC ] __attribute__((aligned(ALIGNMENT)));
@@ -180,7 +181,7 @@ improve_clover( double complex *res ,
   // improve the clover fields
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    res[j] = 5.*res[j]/3. - sum[j]/6. ;
+    res[j] = efac*res[j] - sum[j]/6. ;
   }
   return ;
 }
@@ -189,18 +190,22 @@ improve_clover( double complex *res ,
 void
 compute_clovers( struct NRQCD_fields *F ,
 		 const struct site *lat ,
-		 const size_t t )
+		 const size_t t ,
+		 const double U_0 )
 {
+  // e-clover factor, second term is to correct for the non-unitary ness
+  const double efac = ( 4. + 1./( U_0 * U_0 ) ) / 3. ;
+  
   const size_t idx = LCU*t ;
   size_t i ;
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    improve_clover( F -> Fmunu[i].O[0] , lat , i + idx , 0 , 1 ) ;
-    improve_clover( F -> Fmunu[i].O[1] , lat , i + idx , 1 , 2 ) ;
-    improve_clover( F -> Fmunu[i].O[2] , lat , i + idx , 2 , 0 ) ;
-    improve_clover( F -> Fmunu[i].O[3] , lat , i + idx , 0 , 3 ) ;
-    improve_clover( F -> Fmunu[i].O[4] , lat , i + idx , 1 , 3 ) ;
-    improve_clover( F -> Fmunu[i].O[5] , lat , i + idx , 2 , 3 ) ;
+    improve_clover( F -> Fmunu[i].O[0] , lat , i + idx , 0 , 1 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[1] , lat , i + idx , 1 , 2 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[2] , lat , i + idx , 2 , 0 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[3] , lat , i + idx , 0 , 3 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[4] , lat , i + idx , 1 , 3 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[5] , lat , i + idx , 2 , 3 , efac ) ;
     // these last ones are used in the improved derivative
     size_t mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
@@ -208,8 +213,8 @@ compute_clovers( struct NRQCD_fields *F ,
       const size_t Ufwd = lat[ Uidx ].neighbor[mu] ;
       const size_t Ubck = lat[ Uidx ].back[mu] ;
       const size_t Ubck2 = lat[ Ubck ].back[mu] ;
-      multab_suNC( (void*)F -> Fmunu[i].O[6+2*mu] , (void*)lat[ Uidx ].O[mu] , (void*)lat[ Ufwd ].O[mu] ) ;
-      multab_suNC( (void*)F -> Fmunu[i].O[7+2*mu] , (void*)lat[ Ubck2 ].O[mu] , (void*)lat[ Ubck ].O[mu] ) ;
+      multab( (void*)F -> Fmunu[i].O[6+2*mu] , (void*)lat[ Uidx ].O[mu] , (void*)lat[ Ufwd ].O[mu] ) ;
+      multab( (void*)F -> Fmunu[i].O[7+2*mu] , (void*)lat[ Ubck2 ].O[mu] , (void*)lat[ Ubck ].O[mu] ) ;
     }
   }
   
