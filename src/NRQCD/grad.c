@@ -75,7 +75,11 @@ grad_imp_FMUNU( struct halfspinor *der ,
   // some temporaries we need
   double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-    
+  double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex E[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex F[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+
   const size_t Uidx = i + t*LCU ;    
   const size_t Ubck = lat[ Uidx ].back[mu] ;
     
@@ -84,35 +88,30 @@ grad_imp_FMUNU( struct halfspinor *der ,
     
   const size_t Sbck = lat[ i ].back[mu] ;
   const size_t Sbck2 = lat[ Sbck ].back[mu] ;
-  
-  // precompute the prop left-multiplied by the clover 
-  struct halfspinor fwd , bwd , fwd2 , bwd2 ;
-  Fmunu_halfspinor( &fwd , Fmunu[ Sfwd ].O[ Fmunu_idx ] , S[ Sfwd ] ) ;
-  Fmunu_halfspinor( &bwd , Fmunu[ Sbck ].O[ Fmunu_idx ] , S[ Sbck ] ) ;
-  Fmunu_halfspinor( &fwd2 , Fmunu[ Sfwd2 ].O[ Fmunu_idx ] , S[ Sfwd2 ] ) ;
-  Fmunu_halfspinor( &bwd2 , Fmunu[ Sbck2 ].O[ Fmunu_idx ] , S[ Sbck2 ] ) ;
-    
+
+  // precompute some common terms here -> products of links and clovers
+  multab( (void*)C , (void*)lat[ Uidx ].O[mu] ,
+	  (void*)Fmunu[ Sfwd ].O[ Fmunu_idx ] ) ;
+  multabdag( (void*)D , (void*)lat[ Ubck ].O[mu] ,
+	     (void*)Fmunu[ Sbck ].O[ Fmunu_idx ] ) ;
+  multab( (void*)E , (void*)Fmunu[i].O[6+2*mu] ,
+	  (void*)Fmunu[ Sfwd2 ].O[ Fmunu_idx ] ) ;
+  multabdag( (void*)F , (void*)Fmunu[i].O[7+2*mu] ,
+	     (void*)Fmunu[ Sbck2 ].O[ Fmunu_idx ] ) ;
+
   size_t d ;
   for( d = 0 ; d < NS ; d++ ) {
     // computes der = U(x) S(x+\mu)
-    multab( (void*)der -> D[d] ,
-	    (void*)lat[ Uidx ].O[mu] ,
-	    (void*)fwd.D[d] ) ;
+    multab( (void*)der -> D[d] , (void*)C , (void*)S[ Sfwd ].D[d] ) ;
     // computes A = U^\dagger (x-\mu ) S(x-\mu)
-    multabdag( (void*)A ,
-	       (void*)lat[ Ubck ].O[mu] ,
-	       (void*)bwd.D[d] ) ;
+    multab( (void*)A , (void*)D , (void*)S[ Sbck ].D[d] ) ;
     // computes der = -( der - A )/2
     colormatrix_Sa_xmy( der -> D[d] , A , 2./3. ) ;
 
     // compute U(x)U(x+\mu)S(x+2\mu)
-    multab( (void*)A ,
-	    (void*)Fmunu[i].O[6+2*mu] ,
-	    (void*)fwd2.D[d] ) ;
+    multab( (void*)A , (void*)E , (void*)S[ Sfwd2 ].D[d] ) ;
     // compute U(x-mu)U(x-2mu)S(x-2\mu)
-    multabdag( (void*)B ,
-	       (void*)Fmunu[i].O[7+2*mu],
-	       (void*)bwd2.D[d] ) ;
+    multab( (void*)B , (void*)F , (void*)S[ Sbck2 ].D[d] ) ;
     colormatrix_Sa_xmy( A , B , -1./12. ) ;
 
     add_mat( (void*)der -> D[d] , (void*)A ) ;
