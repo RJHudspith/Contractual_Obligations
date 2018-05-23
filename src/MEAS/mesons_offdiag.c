@@ -34,9 +34,9 @@ mesons_offdiagonal( struct propagator prop1 ,
 
   // error flag for if the code messes up
   int error_code = SUCCESS ;
-
+  
   // initialise our measurement struct
-  struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  struct propagator prop[ Nprops ] = { prop1 , prop2 } ; 
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
@@ -113,8 +113,7 @@ mesons_offdiagonal( struct propagator prop1 ,
       }
 
       // compute the contracted correlator
-      compute_correlator( &M , stride1 , stride2 , tshifted ,
-			  CUTINFO.configspace ) ;
+      compute_correlator( &M , stride1 , stride2 , tshifted ) ;
       
       #pragma omp single
       {

@@ -180,6 +180,10 @@ struct measurements {
   struct mcorr **corr ;
   struct mcorr **wwcorr ;
   GLU_bool is_wall ;
+  GLU_bool configspace ;
+  double sum_mom[ ND-1 ] ;
+  GLU_bool is_wall_mom ;
+  double complex *wall_mom ;
 } ;
 
 /**

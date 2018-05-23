@@ -75,7 +75,13 @@ init_moms( struct measurements *M ,
     M -> wwlist = (struct veclist*)zero_veclist( M -> wwnmom , ND-1 , 
 						 CUTINFO.configspace ) ;
   }
-    //} else {
+  
+  // if we are doing the Wall momentum DFT we allocate list differently
+  if( M -> is_wall_mom ) {
+    M -> list = (struct veclist*)wall_mom_veclist( M -> nmom ,
+						   M -> sum_mom ,
+						   ND-1 ) ;
+  } else {
 #ifdef HAVE_FFTW3_H
     M -> list = (struct veclist*)compute_veclist( M -> nmom , CUTINFO , ND-1 , 
 						  CUTINFO.configspace ) ;
@@ -83,6 +89,7 @@ init_moms( struct measurements *M ,
     M -> list = (struct veclist*)zero_veclist( M -> nmom , ND-1 , 
 					       CUTINFO.configspace ) ;
 #endif
+  }
 
   // initialise spatial summation list
   const struct cut_info ORBITS = \
@@ -96,15 +103,73 @@ init_moms( struct measurements *M ,
   return SUCCESS ;
 }
 
+// does a DFT with +/- M -> sum_mom
+int
+DFT_correlator( struct measurements *M ,
+		const size_t stride1 ,
+		const size_t stride2 ,
+		const size_t tshifted )
+
+{
+  size_t idx ;
+#pragma omp for nowait private(idx) schedule(dynamic)
+  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+    const size_t i = idx/stride2 ;
+    const size_t j = idx%stride2 ;
+    size_t p ;
+    register double complex pos = 0.0 , neg = 0.0 ;
+    for( p = 0 ; p < LCU ; p++ ) {
+      pos += M -> in[ j + stride2*i ][ p ] * M -> wall_mom[ p ] ;
+      neg += M -> in[ j + stride2*i ][ p ] * conj( M -> wall_mom[ p ] ) ;
+    }
+    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = pos ;
+    M -> corr[ i ][ j ].mom[ 1 ].C[ tshifted ] = neg ;
+  }
+  return SUCCESS ;
+}
+
+// FFT using FFTW OR we just do the zero momentum sum
+int
+FFT_correlator( struct measurements *M ,
+		const size_t stride1 ,
+		const size_t stride2 ,
+		const size_t tshifted )
+{
+#ifdef HAVE_FFTW3_H
+  fftw_plan *fwd = (fftw_plan*)M -> forward ;
+#endif
+  // momentum projection
+  size_t idx ;
+#pragma omp for nowait private(idx) schedule(dynamic)
+  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+    const size_t i = idx/stride2 ;
+    const size_t j = idx%stride2 ;
+    size_t p ;
+    #ifdef HAVE_FFTW3_H
+    fftw_execute( fwd[ j + stride2*i ] ) ;
+    for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+      M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+    }
+    #else
+    register double complex sum = 0.0 ;
+    for( p = 0 ; p < LCU ; p++ ) {
+      sum += M -> in[ j + stride2*i ][ p ] ;
+    }
+    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
+    #endif
+  }
+  return SUCCESS ;
+}
+
 // compute the momentum-projected correlation function
 int
 compute_correlator( struct measurements *M , 
 		    const size_t stride1 , 
 		    const size_t stride2 ,
-		    const size_t tshifted ,
-		    const GLU_bool configspace )
+		    const size_t tshifted )
 {
-  if( configspace == GLU_TRUE ) {
+  if( M -> configspace == GLU_TRUE ) {
     size_t idx ;
     #pragma omp for nowait private(idx) schedule(dynamic)
     for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
@@ -116,31 +181,10 @@ compute_correlator( struct measurements *M ,
 	  M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
       }
     }
+  } else if( M -> is_wall_mom == GLU_TRUE ) {
+    DFT_correlator( M , stride1 , stride2 , tshifted ) ;
   } else {
-    #ifdef HAVE_FFTW3_H
-    fftw_plan *fwd = (fftw_plan*)M -> forward ;
-    #endif
-    // momentum projection
-    size_t idx ;
-    #pragma omp for nowait private(idx) schedule(dynamic)
-    for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
-      const size_t i = idx/stride2 ;
-      const size_t j = idx%stride2 ;
-      size_t p ;
-      #ifdef HAVE_FFTW3_H
-      fftw_execute( fwd[ j + stride2*i ] ) ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	  M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
-      }
-      #else
-      register double complex sum = 0.0 ;
-      for( p = 0 ; p < LCU ; p++ ) {
-	sum += M -> in[ j + stride2*i ][ p ] ;
-      }
-      M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
-      #endif
-    }
+    FFT_correlator( M , stride1 , stride2 , tshifted ) ;
   }
   return SUCCESS ;
 }
@@ -211,6 +255,11 @@ free_measurements( struct measurements *M ,
     free( M -> SUM ) ;
   }
 
+  // free the wall momentum list
+  if( M -> wall_mom != NULL ) {
+    free( M -> wall_mom ) ;
+  }
+
   return ;
 }
 
@@ -237,6 +286,7 @@ init_measurements( struct measurements *M ,
   M -> forward = NULL ; M -> backward = NULL ;
   M -> S = NULL ; M -> Sf = NULL ;
   M -> SUM = NULL ;
+  M -> wall_mom = NULL ;
 
   // allocate S and Sf the forwards prop
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
@@ -301,12 +351,40 @@ init_measurements( struct measurements *M ,
     M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
   }
 
+  // sum the momenta
+  size_t mu ;
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    M -> sum_mom[ mu ] = 0.0 ;
+    for( i = 0 ; i < Nprops ; i++ ) {
+      M -> sum_mom[ mu ] += prop[i].twists[ mu ] ;
+    }
+    // do we do a DFT or not?
+    if( fabs( M -> sum_mom[ mu ] ) > NRQCD_TOL &&
+	M -> is_wall == GLU_TRUE ) {
+      M -> is_wall_mom = GLU_TRUE ;
+    }
+  }
+    
+  // allocate and precompute momentum factors
+  if( M -> is_wall_mom == GLU_TRUE ) {
+    if( corr_malloc( (void**)&M -> wall_mom  , ALIGNMENT , LCU * sizeof( double complex ) ) != 0 ) {
+      error_code = FAILURE ; goto end ;
+    }
+    for( i = 0 ; i < LCU ; i++ ) {
+      int x[ ND ] ;
+      get_mom_2piBZ( x , i , ND-1 ) ;
+      register double p_dot_x = 0.0 ;
+      for( mu = 0 ; mu < ND-1 ; mu++ ) {
+	p_dot_x += Latt.twiddles[mu] * M -> sum_mom[ mu ] * x[ mu ] ;
+      }
+      M -> wall_mom[i] = cos( p_dot_x ) + I*sin( p_dot_x ) ;
+    }
+  }
+
   // initialise momentum lists
   if( init_moms( M , CUTINFO ) == FAILURE ) {
     error_code = FAILURE ; goto end ;
   }
-
-  printf( "MOMCORRS? %zu %zu\n" , M -> nmom[0] , M -> wwnmom[0] ) ;
   
   // allocate correlators
   M -> corr = allocate_momcorrs( stride1 , stride2 , M -> nmom[0] ) ;
@@ -314,13 +392,14 @@ init_measurements( struct measurements *M ,
     M -> wwcorr = allocate_momcorrs( stride1 , stride2 , M -> wwnmom[0] ) ;
   }
 
-  printf( "MOMCORRS?\n" ) ;
-
   // precompute the gamma basis
   M -> GAMMAS = malloc( NSNS * sizeof( struct gamma ) ) ;
   if( setup_gamma( M -> GAMMAS , prop , Nprops ) == FAILURE ) {
     error_code = FAILURE ; goto end ;
   }
+  
+  // copyt this info
+  M -> configspace = CUTINFO.configspace ;
 
  end :
   return error_code ;

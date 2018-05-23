@@ -514,3 +514,25 @@ zero_veclist( int *__restrict list_size ,
   list_size[ 0 ] = 1 ;
   return list ;
 }
+
+// passes a zero'd veclist 
+struct veclist*
+wall_mom_veclist( int *__restrict list_size ,
+		  const double sum_mom[ ND-1 ] ,
+		  const int DIMS )
+{
+  struct veclist *list = calloc( 2 , sizeof( struct veclist ) ) ;
+  list[ 0 ].idx = 0 ;
+  list[ 1 ].idx = 1 ;
+  int mu , nsq = 0 ;
+  // at the moment have this frankly disgusting cast to int
+  for( mu = 0 ; mu < DIMS ; mu++ ) {
+    list[ 0 ].MOM[ mu ] = +(int)( sum_mom[mu] + 0.5 );
+    list[ 1 ].MOM[ mu ] = -list[ 0 ].MOM[ mu ] ;
+    nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
+  }
+  list[ 0 ].nsq = nsq ;
+  list[ 1 ].nsq = nsq ;
+  list_size[ 0 ] = 2 ;
+  return list ;
+}

@@ -135,8 +135,7 @@ tetraquark_uscb( struct propagator prop1 ,
       }
       
       // compute the contracted correlator
-      compute_correlator( &M , stride1 , stride2 , tshifted ,
-			  CUTINFO.configspace ) ;
+      compute_correlator( &M , stride1 , stride2 , tshifted ) ;
 
       #pragma omp single
       {

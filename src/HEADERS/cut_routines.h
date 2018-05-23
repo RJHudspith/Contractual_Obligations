@@ -65,4 +65,13 @@ zero_veclist( int *__restrict list_size ,
 	      const int DIMS ,
 	      const GLU_bool CONFIGSPACE ) ;
 
+/**
+   @fn struct veclist* wall_mom_veclist( int *__restrict list_size , const double sum_mom[ ND-1 ] , const int DIMS )
+   @brief returns a two-element list of momenta for the DFT
+ */
+struct veclist*
+wall_mom_veclist( int *__restrict list_size ,
+		  const double sum_mom[ ND-1 ] ,
+		  const int DIMS ) ;
+
 #endif
