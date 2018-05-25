@@ -43,7 +43,7 @@ simorb_ratios( const int DIMS ,
 	       const GLU_bool configspace ) ;
 
 /**
-   @fn struct veclist* compute_veclist( int *__restrict list_size , const struct cut_info CUTINFO , const int DIMS , const GLU_bool CONFIGSPACE ) ;
+   @fn struct veclist* compute_veclist( int *list_size , const struct cut_info CUTINFO , const int DIMS , const GLU_bool CONFIGSPACE ) ;
    @brief compute the list of momenta, or read it if possible
    @param list_size :: size of the veclist struct
    @param CUTINFO :: momentum cut information
@@ -51,26 +51,40 @@ simorb_ratios( const int DIMS ,
    @param CONFIGSPACE :: Qsusc and Statpot have different momenta look-up
  */
 struct veclist*
-compute_veclist( int *__restrict list_size , 
+compute_veclist( int *list_size , 
 		 const struct cut_info CUTINFO ,
 		 const int DIMS ,
 		 const GLU_bool CONFIGSPACE ) ;
 
 /**
-   @fn struct veclist* zero_veclist( int *__restrict list_size , const int DIMS , const GLU_bool CONFIGSPACE )
+   @fn struct veclist_int* compute_veclist_int( int *list_size , const struct cut_info CUTINFO , const int DIMS , const GLU_bool CONFIGSPACE ) ;
+   @brief compute the list of momenta, or read it if possible
+   @param list_size :: size of the veclist struct
+   @param CUTINFO :: momentum cut information
+   @param DIMS :: dimensions of the problem
+   @param CONFIGSPACE :: Qsusc and Statpot have different momenta look-up
+ */
+struct veclist_int*
+compute_veclist_int( int *list_size , 
+		     const struct cut_info CUTINFO ,
+		     const int DIMS ,
+		     const GLU_bool CONFIGSPACE ) ;
+
+/**
+   @fn struct veclist* zero_veclist( int *list_size , const int DIMS , const GLU_bool CONFIGSPACE )
    @brief returns a zeroed veclist structure
  */
 struct veclist*
-zero_veclist( int *__restrict list_size ,
+zero_veclist( int *list_size ,
 	      const int DIMS ,
 	      const GLU_bool CONFIGSPACE ) ;
 
 /**
-   @fn struct veclist* wall_mom_veclist( int *__restrict list_size , const double sum_mom[ ND-1 ] , const int DIMS )
+   @fn struct veclist* wall_mom_veclist( int *list_size , const double sum_mom[ ND-1 ] , const int DIMS )
    @brief returns a two-element list of momenta for the DFT
  */
 struct veclist*
-wall_mom_veclist( int *__restrict list_size ,
+wall_mom_veclist( int *list_size ,
 		  const double sum_mom[ ND-1 ] ,
 		  const int DIMS ) ;
 

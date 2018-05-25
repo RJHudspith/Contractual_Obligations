@@ -14,17 +14,17 @@
 struct latt_info Latt ;
 
 // n^2 equivalents counter, data must be sorted
-static int
+static uint32_t
 count_equivalents( const struct veclist *list ,
-		   const int NMOM )
+		   const uint32_t NMOM )
 {
-  int m ;
-  int Nequiv = 0 ;
+  uint32_t m ;
+  uint32_t Nequiv = 0 ;
   for( m = 0 ; m < NMOM ; m++ ) {
     int k ;
     for( k = 1 ; k < NMOM ; k++ ) { 
       if( ( m + k ) > ( NMOM  - 1 ) ) break ;
-      if( list[m].nsq != list[k+m].nsq ) {
+      if( fabs( list[m].nsq - list[k+m].nsq ) > PREC_TOL ) {
 	break ;
       }
     }
@@ -47,9 +47,9 @@ lt_nsq( const void *a ,
 static void
 SORT( struct veclist *list ,
       struct mcorr **corr ,
-      const int NMOM ,
-      const int NGSRC ,
-      const int NGSNK )
+      const uint32_t NMOM ,
+      const uint32_t NGSRC ,
+      const uint32_t NGSNK )
 {
   // create a map
   size_t *map = malloc( NMOM * sizeof( size_t ) ) ;
@@ -59,7 +59,8 @@ SORT( struct veclist *list ,
     map[ i ] = i ;
   }
 
-  merge_sort( list , map , sizeof( list[0] ) , sizeof( map[0] ), NMOM , lt_nsq ) ;
+  merge_sort( list , map , sizeof( list[0] ) ,
+	      sizeof( map[0] ), NMOM , lt_nsq ) ;
 
   // apply the sort to the correlators
   size_t GSGK ;
@@ -80,6 +81,7 @@ SORT( struct veclist *list ,
     free( m ) ;
   }		   
   free( map ) ;
+  
   return ;
 }
 
@@ -87,16 +89,16 @@ SORT( struct veclist *list ,
 static void
 equate_momcorrs( struct mcorr **res ,
 		 const struct mcorr **corr ,
-		 const int momidx1 ,
-		 const int momidx2 ,
-		 const int NGSRC ,
-		 const int NGSNK )
+		 const uint32_t momidx1 ,
+		 const uint32_t momidx2 ,
+		 const uint32_t NGSRC ,
+		 const uint32_t NGSNK )
 {
-  int GSGK ;
+  size_t GSGK ;
 #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSNK ;
-    const int GSNK = GSGK % NGSNK ;
+    const size_t GSRC = GSGK / NGSNK ;
+    const size_t GSNK = GSGK % NGSNK ;
     memcpy( res[ GSRC ][ GSNK ].mom[ momidx1 ].C , 
 	    corr[ GSRC ][ GSNK ].mom[ momidx2 ].C ,
 	    LT * sizeof( double complex ) ) ;
@@ -107,17 +109,17 @@ equate_momcorrs( struct mcorr **res ,
 static void
 add_momcorrs( struct mcorr **res ,
 	      const struct mcorr **corr ,
-	      const int momidx1 ,
-	      const int momidx2 ,
-	      const int NGSRC ,
-	      const int NGSNK )
+	      const uint32_t momidx1 ,
+	      const uint32_t momidx2 ,
+	      const uint32_t NGSRC ,
+	      const uint32_t NGSNK )
 {
-  int GSGK ;
+  size_t GSGK ;
 #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSNK ;
-    const int GSNK = GSGK % NGSNK ;
-    int t ;
+    const size_t GSRC = GSGK / NGSNK ;
+    const size_t GSNK = GSGK % NGSNK ;
+    size_t t ;
     for( t = 0 ; t < LT ; t++ ) {
       res[ GSRC ][ GSNK ].mom[ momidx1 ].C[ t ] += 
 	corr[ GSRC ][ GSNK ].mom[ momidx2 ].C[ t ] ;
@@ -129,17 +131,17 @@ add_momcorrs( struct mcorr **res ,
 static void
 divide_constant( struct mcorr **res ,
 		 const double constant ,
-		 const int momidx1 ,
-		 const int NGSRC ,
-		 const int NGSNK )
+		 const uint32_t momidx1 ,
+		 const uint32_t NGSRC ,
+		 const uint32_t NGSNK )
 {
   const double invconstant = 1.0 / constant ;
-  int GSGK ;
+  size_t GSGK ;
 #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC * NGSNK ) ; GSGK++ ) {
-    const int GSRC = GSGK / NGSNK ;
-    const int GSNK = GSGK % NGSNK ;
-    int t ;
+    const size_t GSRC = GSGK / NGSNK ;
+    const size_t GSNK = GSGK % NGSNK ;
+    size_t t ;
     for( t = 0 ; t < LT ; t++ ) {
       res[ GSRC ][ GSNK ].mom[ momidx1 ].C[ t ] *= invconstant ;
     }
@@ -150,12 +152,12 @@ divide_constant( struct mcorr **res ,
 // perform n^2 momentum average
 struct mcorr**
 momentum_average( struct veclist **avlist ,
-		  int *Nequiv ,
+		  uint32_t *Nequiv ,
 		  const struct veclist *list ,
 		  const struct mcorr **corr ,
-		  const int NMOM ,
-		  const int NGSRC ,
-		  const int NGSNK )
+		  const uint32_t NMOM ,
+		  const uint32_t NGSRC ,
+		  const uint32_t NGSNK )
 {
   *Nequiv = count_equivalents( list , NMOM ) ;
 
@@ -167,7 +169,7 @@ momentum_average( struct veclist **avlist ,
   *avlist = malloc( *Nequiv * sizeof( struct veclist ) ) ;
   struct mcorr **corravg = allocate_momcorrs( NGSRC , NGSNK , *Nequiv ) ;
 
-  int idx = 0 , m ;
+  size_t idx = 0 , m ;
   for( m = 0 ; m < NMOM ; m++ ) {
 
     // set the average list
@@ -177,8 +179,8 @@ momentum_average( struct veclist **avlist ,
     equate_momcorrs( corravg , corr , idx , m , NGSRC , NGSNK ) ;
 
     #ifdef verbose
-    fprintf( stdout , "Average :: ( %d %d ) [ %d %d %d ] "
-	     "-> [ %d %d %d ] :: ( %1.12e ) \n" , 
+    fprintf( stdout , "Average :: ( %zu , %zu ) [ %g %g %g ] "
+	     "-> [ %g %g %g ] :: ( %1.12e ) \n" , 
 	     m , m ,
 	     list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
 	     list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
@@ -186,15 +188,15 @@ momentum_average( struct veclist **avlist ,
     #endif
 
     // loop through equivalent momenta again
-    int k , nequiv = 1 ;
+    size_t k , nequiv = 1 ;
     for( k = 1 ; k < NMOM ; k++ ) { 
       if( ( m + k ) > ( NMOM  - 1 ) ) break ;
-      if( list[m].nsq != list[k+m].nsq ) {
+      if( fabs( list[m].nsq - list[k+m].nsq ) > PREC_TOL ) {
 	break ;
       } else {
 	#ifdef verbose
-	fprintf( stdout , "Average :: ( %d, %d ) [ %d %d %d ] "
-		 "-> [ %d %d %d ] :: ( %1.12e ) \n" , 
+	fprintf( stdout , "Average :: ( %zu , %zu ) [ %g %g %g ] "
+		 "-> [ %g %g %g ] :: ( %1.12e ) \n" , 
 		 m , k+m ,
 		 list[m].MOM[0] , list[m].MOM[1] , list[m].MOM[2] , 
 		 list[m+k].MOM[0] , list[m+k].MOM[1] , list[m+k].MOM[2] , 
@@ -207,7 +209,7 @@ momentum_average( struct veclist **avlist ,
     divide_constant( corravg , (double)(nequiv) , idx , NGSRC , NGSNK ) ;
 
     #ifdef verbose
-    fprintf( stdout , "AVERAGE :: %d %1.12e \n" , idx , 
+    fprintf( stdout , "AVERAGE :: %zu %1.12e \n" , idx , 
 	     creal( corravg[5][5].mom[idx].C[1] ) ) ;
     #endif
 
@@ -223,9 +225,9 @@ static void
 write_averages( const struct veclist *list ,
 		const struct mcorr **corr ,
 		const char *outname ,
-		const int NMOM , 
-		const int NGSRC ,
-		const int NGSNK )
+		const uint32_t NMOM , 
+		const uint32_t NGSRC ,
+		const uint32_t NGSNK )
 {
   // create a dummy correlator
   int *dNMOM = malloc( sizeof( int ) ) ;
@@ -233,7 +235,7 @@ write_averages( const struct veclist *list ,
   struct mcorr **dcorr = allocate_momcorrs( NGSRC , NGSNK , dNMOM[0] ) ;
 
   // loop averaged momenta
-  int p ;
+  size_t p ;
   for( p = 0 ; p < NMOM ; p++ ) {
 
     // set the dummy correlator such that dcorr[0] = corr[p]
@@ -244,7 +246,7 @@ write_averages( const struct veclist *list ,
 
     // write out sequential "zero-mom" files 
     char str[ 256 ] ;
-    sprintf( str , "%s.%d.bin" , outname , p ) ;
+    sprintf( str , "%s.%zu.bin" , outname , p ) ;
     write_momcorr( str , (const struct mcorr **)dcorr , dlist , 
 		   NGSRC , NGSNK , dNMOM , "" ) ;
   }
@@ -303,7 +305,7 @@ main( const int argc ,
   struct mcorr **corr = NULL , **corravg = NULL ;
 
   // momentum averages
-  int Nequiv = 0 ;
+  uint32_t Nequiv = 0 ;
   struct veclist *avlist = NULL ;
 
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
@@ -377,4 +379,3 @@ main( const int argc ,
 
   return SUCCESS ;
 }
-

@@ -242,7 +242,7 @@ safe_momenta( const int n[ ND ] ,
 // same thing with our new veclist
 // gets the momentum list ..
 static int 
-get_mom_veclist( struct veclist *__restrict kept , 
+get_mom_veclist( struct veclist_int *kept , 
 		 const struct cut_info CUTINFO ,
 		 const int LOOP ,
 		 const int DIMS )
@@ -272,7 +272,7 @@ get_mom_veclist( struct veclist *__restrict kept ,
   fprintf( stdout , "[CUTS] Kept vs reject %f vs %f \n" , 
 	   100 * in/( double )LOOP, 
 	   100 * ( LOOP - in )/( double )LOOP ) ; 
-  
+
   // test the list in the shifted bz .. passes unless too many momenta are used
 #pragma omp parallel for private(i)
   for( i = 0 ; i < in ; i++ ) {
@@ -337,19 +337,19 @@ passes_cuts( const int i ,
 }
 
 // gets the vector list
-static int
-get_veclist( struct veclist *__restrict kept , 
+static size_t
+get_veclist( struct veclist_int *kept , 
 	     const struct cut_info CUTINFO , 
-	     const int LOOP ,
-	     const int DIMS )
+	     const size_t LOOP ,
+	     const size_t DIMS )
 {
   simorb_ratios( DIMS , GLU_TRUE ) ;
-  int i , size = 0 ;
+  size_t i , size = 0 ;
   for( i = 0 ; i < LOOP ; i++ ) {
     if( passes_cuts( i , CUTINFO , DIMS ) == GLU_TRUE ) {
       kept[ size ].idx = i ;
       get_vec_from_origin( kept[ size ].MOM , i , DIMS ) ;
-      int mu ;
+      size_t mu ;
       kept[ size ].nsq = 0 ;
       for( mu = 0 ; mu < DIMS ; mu++ ) {
 	kept[ size ].nsq += ( kept[ size ].MOM[ mu ] * kept[ size ].MOM[ mu ] ) ;
@@ -361,14 +361,13 @@ get_veclist( struct veclist *__restrict kept ,
 }
 
 // Computes the momentum list
-struct veclist*
-compute_veclist( int *__restrict list_size , 
-		 const struct cut_info CUTINFO ,
-		 const int DIMS ,
-		 const GLU_bool CONFIGSPACE )
+struct veclist_int*
+compute_veclist_int( int *list_size , 
+		     const struct cut_info CUTINFO ,
+		     const size_t DIMS ,
+		     const GLU_bool CONFIGSPACE )
 {
   int in[1] = { 1 } ;
-  struct veclist *list = NULL ;
 
   // loop up to DIMS
   int LOOP = 1 , i ;
@@ -376,131 +375,73 @@ compute_veclist( int *__restrict list_size ,
     LOOP *= Latt.dims[ i ] ;
   }
 
-  // if we can, we look for a file
-#ifndef CONDOR_MODE
-  int flag = MOMENTUM_CONFIG ;
-
-  char str[1024] ;
-
-  sprintf( str , "%s/Local/Moments/" , HAVE_PREFIX ) ;
-
-  // write its dimensions
-  int mu ;
-  for( mu = 0 ; mu < DIMS - 1 ; mu++ ) {
-    sprintf( str , "%s%zux" , str , Latt.dims[ mu ] ) ;
-  }
-  sprintf( str , "%s%zu" , str , Latt.dims[ DIMS - 1 ] ) ;
-
-  // whether we use the sin-mom or the psq mom for our configs
-  sprintf( str , "%s_nn%zu_%d_%g" ,
-	   str , CUTINFO.max_mom , CUTINFO.type , 
-	   CUTINFO.cyl_width ) ;
-
-  if( CONFIGSPACE == GLU_TRUE ) {
-    sprintf( str , "%s_CSPACE.config" , str ) ;
-  } else {
-    #ifdef PSQ_MOM
-    sprintf( str , "%s_PSQ.config" , str ) ;
-    #else
-    sprintf( str , "%s_SIN.config" , str ) ;
-    #endif
-  }
-
-  // open the configuration file
-  FILE *config = fopen( str , "rb" ) ;
-
-  // force it to open ->create a file if needed
-  if( config == NULL ) {
-    flag = NO_MOMENTUM_CONFIG ;
-  } else {
-    fclose( config ) ; 
-  }
-
-  // if we can't find the file we create one ...
-  if( flag == NO_MOMENTUM_CONFIG ) {
-
-    fprintf( stdout , "[CUTS] Storing Momentum list @@@ ...\n%s\n" , str ) ;
-
-    FILE *config2 = fopen( str , "wb" ) ;
-
-    struct veclist *kept = malloc( LOOP * sizeof( struct veclist ) ) ;
-    if( CONFIGSPACE == GLU_TRUE ) {
-      in[0] = get_veclist( kept , CUTINFO , LOOP , DIMS ) ;
-    } else {
-      in[0] = get_mom_veclist( kept , CUTINFO , LOOP , DIMS ) ;
-    }
-
-    // write out the length of the array first
-    fwrite( in , sizeof(int) , 1 , config2 ) ;
-     
-    list = malloc( in[0] * sizeof( struct veclist) ) ;
-    #pragma omp parallel for private(i)
-    for( i = 0 ; i < in[0] ; i ++  ) {
-      memcpy( &list[i] , &kept[i] , sizeof( struct veclist ) )  ;
-    }
-
-    // and write it out again
-    fwrite( list , sizeof( struct veclist ) , in[0]  , config2 ) ;
-    fclose( config2 ) ;
-
-    free( kept ) ; 
-  }
-
-  // reopen the file
-  config = fopen( str , "rb" ) ;
-  // malloc list if not already done so
-  int check = fread( in , sizeof(int) , 1 , config ) ;
-  if( check != 1 ) {
-    fprintf( stderr , "[IO] list read error \n" ) ;
-    fclose( config ) ;
-    *list_size = 0 ;
-    return NULL ;
-  }
-
-  if( flag != NO_MOMENTUM_CONFIG ) {
-    list = ( struct veclist* )malloc( in[0] * sizeof( struct veclist ) ) ;
-  }
-
-  if( fread( list , sizeof(struct veclist) , in[0] , config ) == 0 ) {
-    fprintf( stderr , "[CUTS] Empty Momentum list ..."
-	     " Nothing to do ... Leaving\n" ) ;
-    fclose( config ) ;
-    *list_size = 0 ;
-    return NULL ;
-  }
-  fclose( config ) ;
-
-#else
-
-  struct veclist *kept = malloc( LOOP * sizeof( struct veclist ) ) ;
+  struct veclist_int *kept = malloc( LOOP * sizeof( struct veclist_int ) ) ;
   if( CONFIGSPACE == GLU_TRUE ) {
     in[0] = get_veclist( kept , CUTINFO , LOOP , DIMS ) ;
   } else {
     in[0] = get_mom_veclist( kept , CUTINFO , LOOP , DIMS ) ;
   }
+  
   // stop 0-byte malloc
   if( in[0] < 1 ) {
-    free( kept ) ;
     return NULL ;
   }
-
-  list = malloc( in[0] * sizeof(struct veclist) );
-#pragma omp parallel for private(i)
-  for( i = 0 ; i < in[0] ; i ++  ) {
-    memcpy( &list[i] , &kept[i] , sizeof( struct veclist ) )  ;
-  }
-  free( kept ) ;
-
-#endif
-
+  
   *list_size = in[0] ;
 
+  return kept ;
+}
+
+// Computes the momentum list
+struct veclist*
+compute_veclist( int *list_size , 
+		 const struct cut_info CUTINFO ,
+		 const size_t DIMS ,
+		 const GLU_bool CONFIGSPACE )
+{
+  struct veclist_int *kept = compute_veclist_int( list_size , 
+						  CUTINFO ,
+						  DIMS ,
+						  CONFIGSPACE ) ;
+  struct veclist *list = malloc( (*list_size) * sizeof( struct veclist ) ) ;
+  size_t i ;
+  for( i = 0 ; i < (*list_size) ; i ++  ) {
+    list[i].nsq = (double)kept[i].nsq ;
+    size_t mu ;
+    for( mu = 0 ; mu < DIMS ; mu++ ) {
+      list[i].MOM[mu] = (double)kept[i].MOM[mu] ;
+    }
+    list[i].idx = kept[i].idx ;
+  }
+  free( kept ) ;
+  return list ;
+}
+
+// passes a two element (+/- p) veclist
+struct veclist*
+wall_mom_veclist( int *list_size ,
+		  const double sum_mom[ ND-1 ] ,
+		  const int DIMS )
+{
+  struct veclist *list = calloc( 2 , sizeof( struct veclist ) ) ;
+  list[ 0 ].idx = 0 ;
+  list[ 1 ].idx = 1 ;
+  size_t mu ;
+  list[ 0 ].nsq = 0.0 ;
+  // at the moment have this frankly disgusting cast to int
+  for( mu = 0 ; mu < DIMS ; mu++ ) {
+    list[ 0 ].MOM[ mu ] = ( sum_mom[mu] );
+    list[ 1 ].MOM[ mu ] = -list[ 0 ].MOM[ mu ] ;
+    list[ 0 ].nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
+  }
+  list[ 1 ].nsq = list[ 0 ].nsq ;
+  list_size[ 0 ] = 2 ;
   return list ;
 }
 
 // passes a zero'd veclist 
 struct veclist*
-zero_veclist( int *__restrict list_size ,
+zero_veclist( int *list_size ,
 	      const int DIMS ,
 	      const GLU_bool CONFIGSPACE )
 {
@@ -512,27 +453,5 @@ zero_veclist( int *__restrict list_size ,
   }
   list[ 0 ].nsq = 0 ;
   list_size[ 0 ] = 1 ;
-  return list ;
-}
-
-// passes a zero'd veclist 
-struct veclist*
-wall_mom_veclist( int *__restrict list_size ,
-		  const double sum_mom[ ND-1 ] ,
-		  const int DIMS )
-{
-  struct veclist *list = calloc( 2 , sizeof( struct veclist ) ) ;
-  list[ 0 ].idx = 0 ;
-  list[ 1 ].idx = 1 ;
-  int mu , nsq = 0 ;
-  // at the moment have this frankly disgusting cast to int
-  for( mu = 0 ; mu < DIMS ; mu++ ) {
-    list[ 0 ].MOM[ mu ] = +(int)( sum_mom[mu] + 0.5 );
-    list[ 1 ].MOM[ mu ] = -list[ 0 ].MOM[ mu ] ;
-    nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
-  }
-  list[ 0 ].nsq = nsq ;
-  list[ 1 ].nsq = nsq ;
-  list_size[ 0 ] = 2 ;
   return list ;
 }

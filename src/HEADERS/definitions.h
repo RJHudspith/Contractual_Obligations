@@ -20,6 +20,12 @@
 #endif
 
 /**
+   @def CORR_MAGIC
+   @brief CORR magic number for correlator files
+ */
+#define CORR_MAGIC (67678282)
+
+/**
    @def FAILURE
    @brief our flag for when shit hits the fan
  */

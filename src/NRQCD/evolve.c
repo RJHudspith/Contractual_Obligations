@@ -14,6 +14,8 @@
 #include "spin_dependent.h"   // spin-dependent NRQCD terms
 #include "spin_independent.h" // spin-independent NRQCD terms
 
+//#define NRQCD_SYMSPIN
+
 // so in principle this could be checkerboarded and the
 // whole LCU loop could be done in this level in parallel
 static void
@@ -108,7 +110,11 @@ evolve_dH( struct NRQCD_fields *F ,
 
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
+    #ifdef NRQCD_SYMSPIN
+    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1./2. ) ;
+    #else
     halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1. ) ;
+    #endif
   }
 
   return ;
@@ -124,7 +130,9 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   size_t n , i ;
 
   // only evolve the spin-dependent terms a little bit
-  evolve_dH( F , t , NRQCD ) ;
+  if( t == 0 ) {
+    evolve_dH( F , t , NRQCD ) ;
+  }
   
   // evolve just with C0 term
   for( n = 0 ; n < NRQCD.N ; n++ ) {
@@ -144,6 +152,11 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
+
+#ifdef NRQCD_SYMSPIN
+  // finally evolve the spin-dependent terms a little bit
+  evolve_dH( F , t , NRQCD ) ;
+#endif
   
   return SUCCESS ;
 }
@@ -176,6 +189,11 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
   }
+
+#ifdef NRQCD_SYMSPIN
+  // finally evolve the spin-dependent terms a little bit
+  evolve_dH( F , t , NRQCD ) ;
+#endif
   
   return SUCCESS ;
 }

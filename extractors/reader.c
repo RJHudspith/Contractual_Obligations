@@ -43,6 +43,17 @@ FREAD32( uint32_t *data , const int size , FILE *infile ) {
   return SUCCESS ;
 }
 
+// quick little accessor
+static int
+FREAD64( double *data , const int size , FILE *infile ) {
+  if( fread( data , sizeof( double ) , size , infile ) != size ) {
+    fprintf( stderr , "[IO] FREAD64 failure \n" ) ;
+    return FAILURE ;
+  }
+  if( must_swap ) bswap_64( size , data ) ;
+  return SUCCESS ;
+}
+
 // read the momentum-correlator
 static int
 read_momcorr( struct mcorr **corr ,
@@ -98,14 +109,14 @@ read_momcorr( struct mcorr **corr ,
 // finds the desired mom
 size_t
 find_desired_mom( const struct veclist *momentum , 
-		  const int *moms , 
-		  const int NMOM )
+		  const double *moms , 
+		  const size_t NMOM )
 {
   size_t i ;
   for( i = 0 ; i < NMOM ; i++ ) {
     size_t mu , matches = 0 ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      if( momentum[ i ].MOM[ mu ] != moms[ mu ] ) break ;
+      if( fabs( momentum[ i ].MOM[ mu ] - moms[ mu ] ) > 1E-12 ) break ;
       matches++ ;
     }
     if( matches == ND-1 ) return i ;
@@ -124,7 +135,7 @@ write_momlist( const struct veclist *momentum ,
   for( p = 0 ; p < NMOM ; p++ ) {
     fprintf( stdout , "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      fprintf( stdout , " %d " , momentum[ p ].MOM[ mu ]  ) ;
+      fprintf( stdout , " %g " , momentum[ p ].MOM[ mu ]  ) ;
     }
     fprintf( stdout , ") \n" ) ;
   }
@@ -155,10 +166,21 @@ process_file( struct veclist **momentum ,
   }
 
   // check the magic number, tells us the edianness
-  if( magic[0] != 67798233 ) {
+  if( magic[0] != CORR_MAGIC ) {
+    if( magic[0] == 67798233 ) {
+      fprintf( stderr , "[IO] Old correlator file dectected\n"
+	       "[IO] this is now DEPRECATED please use version < 256"
+	       " to read older files\n" ) ;
+      return NULL ;
+    }
     bswap_32( 1 , magic ) ;
-    if( magic[0] != 67798233 ) {
+    if( magic[0] != CORR_MAGIC ) {
       fprintf( stderr , "[IO] Magic number read failure\n" ) ;
+      if( magic[0] == 67798233 ) {
+	fprintf( stderr , "[IO] Old correlator file dectected\n"
+		 "[IO] this is now DEPRECATED please use version < 256"
+		 " to read older files\n" ) ;
+      }
       return NULL ;
     }
     must_swap = GLU_TRUE ;
@@ -172,17 +194,22 @@ process_file( struct veclist **momentum ,
   GLU_bool failure = GLU_FALSE ;
   size_t p ;
   for( p = 0 ; p < NMOM[0] ; p++ ) {
-    uint32_t n[ ND ] ;
-    if( FREAD32( n , ND , infile ) == FAILURE ) failure = GLU_TRUE ;
+    uint32_t n[ 1 ] ;
+    if( FREAD32( n , 1 , infile ) == FAILURE ) failure = GLU_TRUE ;
     if( n[ 0 ] != ND-1 ) {
       fprintf( stderr , "[MOMLIST] %d should be %d \n" , n[ 0 ] , ND-1 ) ;
       failure = GLU_TRUE ;
     }
+    double mom[ ND-1 ] ;
+    if( FREAD64( mom , ND-1 , infile ) == FAILURE ) {
+      fprintf( stderr , "[MOMLIST] double read failure\n" ) ;
+      failure = GLU_TRUE ;
+    }
     size_t mu ;
-    (*momentum)[ p ].nsq = 0 ;
+    (*momentum)[ p ].nsq = 0.0 ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      (*momentum)[ p ].MOM[ mu ] = (int)n[ 1 + mu ] ;
-      (*momentum)[ p ].nsq += n[ 1 + mu ] * n[ 1 + mu ] ;
+      (*momentum)[ p ].MOM[ mu ] = mom[ mu ] ;
+      (*momentum)[ p ].nsq += mom[ mu ] * mom[ mu ] ;
     }
     (*momentum)[ p ].MOM[ mu ] = 0 ; // set the t-direction to 0
   }
@@ -232,6 +259,7 @@ process_file( struct veclist **momentum ,
   if( csum[0] != cksuma || csum[1] != cksumb ) {
     fprintf( stderr , "[CHECKSUM] Mismatched checksums ! %x %x %x %x\n" , 
 	     csum[0] , csum[1] , cksuma , cksumb ) ;
+    return NULL ;
   } else {
     fprintf( stdout , "[CHECKSUM] both checksums passed \n\n" ) ;
   }

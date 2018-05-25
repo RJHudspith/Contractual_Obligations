@@ -98,7 +98,7 @@ init_moms( struct measurements *M ,
       .cyl_width = CUTINFO.cyl_width ,
       .configspace = GLU_TRUE } ;
   
-  M -> rlist = compute_veclist( &(M->NR) , ORBITS , ND-1 , GLU_TRUE ) ;
+  M -> rlist = compute_veclist_int( &(M->NR) , ORBITS , ND-1 , GLU_TRUE ) ;
   
   return SUCCESS ;
 }
@@ -287,7 +287,9 @@ init_measurements( struct measurements *M ,
   M -> S = NULL ; M -> Sf = NULL ;
   M -> SUM = NULL ;
   M -> wall_mom = NULL ;
-
+  M -> is_wall = GLU_FALSE ;
+  M -> is_wall_mom = GLU_FALSE ;
+  
   // allocate S and Sf the forwards prop
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
   M -> Sf = malloc( Nprops * sizeof( struct spinor* ) ) ;
@@ -364,7 +366,7 @@ init_measurements( struct measurements *M ,
       M -> is_wall_mom = GLU_TRUE ;
     }
   }
-    
+
   // allocate and precompute momentum factors
   if( M -> is_wall_mom == GLU_TRUE ) {
     if( corr_malloc( (void**)&M -> wall_mom  , ALIGNMENT , LCU * sizeof( double complex ) ) != 0 ) {

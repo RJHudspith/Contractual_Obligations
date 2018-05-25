@@ -166,7 +166,7 @@ struct measurements {
   struct gamma *GAMMAS ;
   struct veclist *list ;
   struct veclist *wwlist ;
-  struct veclist *rlist ;
+  struct veclist_int *rlist ;
   int NR ;
   int *nmom ;
   int *wwnmom ;
@@ -315,10 +315,20 @@ struct tetra_info {
    @struct veclist
    @brief storage for the momenta
  */
-struct veclist {
-  int idx ;
+struct veclist_int {
+  size_t idx ;
   int MOM[ ND ] ;
   int nsq ;
+} ;
+
+/**
+   @struct veclist
+   @brief storage for the momenta
+ */
+struct veclist {
+  size_t idx ;
+  double MOM[ ND ] ;
+  double nsq ;
 } ;
 
 /**

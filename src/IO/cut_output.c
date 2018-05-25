@@ -8,12 +8,12 @@
 
 // Write the gluonic two point function to the file Ap
 static void
-write_binary( FILE *__restrict Ap , 
-	      const double *__restrict g2 , 
+write_binary( FILE *Ap , 
+	      const double *g2 , 
 	      const int NMOM[ 1 ] ) 
 {
   fwrite( NMOM , sizeof(uint32_t) , 1 , Ap ) ;
-  //fwrite( g2 , sizeof(double) , NMOM[0] , Ap ) ;
+  
   // checksum it
   uint32_t cksuma = 0 , cksumb = 0 ;
   int i ;
@@ -30,31 +30,18 @@ write_binary( FILE *__restrict Ap ,
 
 // Support for writing our momentum list
 void
-write_mom_veclist( FILE *__restrict Ap , 
-		   const int *__restrict num_mom , 
-		   const struct veclist *__restrict list ,
+write_mom_veclist( FILE *Ap , 
+		   const int *num_mom , 
+		   const struct veclist *list ,
 		   const int DIR )
 {
   const int stride = ( DIR + 1 ) * num_mom[ 0 ] ;
-  int *kall = (int*)malloc( stride * sizeof(int) ) ;
-
   fwrite( num_mom , sizeof(int) , 1 , Ap ) ;
-
-  int i ;
-  //write momenta
-#pragma omp parallel for private(i)
+  size_t i ;
   for( i = 0 ; i < num_mom[0] ; i++ ) {
-    int n = i * ( DIR + 1 ) ;
-    kall[ n ] = DIR ; 
-    n++ ; 
-    int a ;
-    for( a = 0  ;  a < DIR  ;  a++ ) {
-      kall[ n ] = list[i].MOM[a] ; 
-      n++ ; 
-    }
+    fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
+    fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;
   }
-  fwrite( kall , sizeof(int) , stride , Ap ) ;
-  free( kall ) ;
   return ;
 }
 

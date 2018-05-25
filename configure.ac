@@ -3,7 +3,7 @@
 ## --prefix=  :: tell it where to install the binary
 ## --with-NC= :: number of colors, if not specified defaults to 3
 ## --with-ND= :: number of dimensions, if not specified defaults to 4
-AC_INIT([CORR], [0.2], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlemail.com])
+AC_INIT([CORR], [0.3], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlemail.com])
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O

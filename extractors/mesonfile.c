@@ -67,17 +67,18 @@ main( const int argc ,
     } 
 
     // initialise to 0
-    int moms[ ND - 1 ] , mu ;
+    double moms[ ND - 1 ] ;
+    int mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      moms[ mu ] = 0 ;
+      moms[ mu ] = 0.0 ;
     }
 
-    fprintf( stdout , "[Momcorr] searching for momenta (" ) ;
+    fprintf( stdout , "[Momcorr] searching for momentum (" ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       char *ptok = strtok( NULL , "," ) ;
       if( ptok == NULL ) break ;
-      moms[ mu ] = (int)atoi( ptok ) ;
-      fprintf( stdout , " %d " , moms[ mu ] ) ;
+      moms[ mu ] = (double)atof( ptok ) ;
+      fprintf( stdout , " %g " , moms[ mu ] ) ;
     }
     fprintf( stdout , ") \n" ) ;
 
@@ -89,8 +90,10 @@ main( const int argc ,
       break ;
     }
 
-    fprintf( stdout , "[Momcorr] match ( %d %d %d ) \n" , momentum[ matchmom ].MOM[0] ,
-	     momentum[ matchmom ].MOM[1] ,  momentum[ matchmom ].MOM[2] ) ;
+    fprintf( stdout , "[Momcorr] match ( %g %g %g ) \n" ,
+	     momentum[ matchmom ].MOM[0] ,
+	     momentum[ matchmom ].MOM[1] ,
+	     momentum[ matchmom ].MOM[2] ) ;
 
     fprintf( stdout , "[Momcorr] Correlator [ Source :: %d | Sink :: %d ] \n\n" , 
 	     idx1 , idx2 ) ;

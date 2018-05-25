@@ -6,13 +6,13 @@
 #define TESTS_READER_H
 
 /**
-   @fn int find_desired_mom( const struct veclist *momentum , const int *moms , const int NMOM )
+   @fn int find_desired_mom( const struct veclist *momentum , const double *moms , const size_t NMOM )
    @brief finds the user-specified momentum in our momentum list returnin the index
  */
 size_t
 find_desired_mom( const struct veclist *momentum , 
-		  const int *moms , 
-		  const int NMOM ) ;
+		  const double *moms , 
+		  const size_t NMOM ) ;
 
 /**
    @fn void write_momlist( const struct veclist *momentum , const int NMOM )

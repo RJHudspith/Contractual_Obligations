@@ -8,21 +8,6 @@
 #include "correlators.h"  // so that I can alphabetise
 #include "cut_output.h"   // for write_mom_veclist
 
-// little convenience funtion
-static void
-print_convenience( const struct mcorr **corr ,
-		   const size_t GSRC ,
-		   const size_t GSNK ) 
-{
-  size_t t ;
-  for( t = 0 ; t < LT ; t++ ) {
-    fprintf( stdout , "%zu %e %e \n" , t , 
-	     creal( corr[GSRC][GSNK].mom[0].C[t] ) , 
-	     cimag( corr[GSRC][GSNK].mom[0].C[t] ) ) ;
-  }
-  return ;
-}
-
 // allocation of dispersion relation correlation function
 struct mcorr **
 allocate_momcorrs( const size_t length1 , 
@@ -70,57 +55,6 @@ free_momcorrs( struct mcorr **mcorr ,
   return ;
 }
 
-// debug printing
-void
-debug_mesons( const char *message , 
-	      const struct mcorr **corr )
-{
-  fprintf( stdout , "%s PION\n" , message ) ;
-  print_convenience( corr , GAMMA_5 , GAMMA_5 ) ;
-
-  fprintf( stdout , "%s 00\n" , message ) ;
-  print_convenience( corr , GAMMA_X , GAMMA_X ) ;
-
-  fprintf( stdout , "%s 11\n" , message ) ;
-  print_convenience( corr , GAMMA_Y , GAMMA_Y ) ;
-
-  fprintf( stdout , "%s 22\n" , message ) ;
-  print_convenience( corr , GAMMA_Z , GAMMA_Z ) ;
-
-  fprintf( stdout , "%s 33\n" , message ) ;
-  print_convenience( corr , GAMMA_T , GAMMA_T ) ;
-
-  fprintf( stdout , "%s 1010\n" , message ) ;
-  print_convenience( corr , 10 , 10 ) ;
-  return ;
-}
-
-// debug printing for baryons
-void
-debug_baryons( const char *message , 
-	       const struct mcorr **corr )
-{
-  fprintf( stdout , "%s OCTETT\n" , message ) ;
-  print_convenience( corr , 5 , 0 ) ;
-
-  fprintf( stdout , "%s DECUPLETT G0\n" , message ) ;
-  print_convenience( corr , 0 , 0 ) ;
-
-  fprintf( stdout , "%s DECUPLETT G1\n" , message ) ;
-  print_convenience( corr , 1 , 0 ) ;
-
-  fprintf( stdout , "%s DECUPLETT G2\n" , message ) ;
-  print_convenience( corr , 2 , 0 ) ;
-
-  fprintf( stdout , "%s DECUPLETT G3\n" , message ) ;
-  print_convenience( corr , 3 , 0 ) ;
-
-  fprintf( stdout , "%s DECUPLETT G4\n" , message ) ;
-  print_convenience( corr , 4 , 0 ) ;
-
-  return ;
-}
-
 // write the full correlator matrix
 void
 write_momcorr( const char *outfile ,
@@ -143,7 +77,7 @@ write_momcorr( const char *outfile ,
 
   FILE *output_file = fopen( outstr , "wb" ) ;
 
-  uint32_t magic[ 1 ] = { 67798233 } ; // THIS SPELLS COR! in ascii
+  uint32_t magic[ 1 ] = { CORR_MAGIC } ; // THIS SPELLS CORR in ascii
 
   fwrite( magic , sizeof( uint32_t ) , 1 , output_file ) ;
 

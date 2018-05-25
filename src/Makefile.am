@@ -23,8 +23,8 @@ GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 FIELDFILES=./FIELD/plaqs_links.c
 
 ## c files in ./IO/
-IOFILES=./IO/chklat_stuff.c ./IO/cut_output.c ./IO/HIREP.c \
-	./IO/io.c ./IO/input_reader.c \
+IOFILES=./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
+	./IO/HIREP.c ./IO/io.c ./IO/input_reader.c \
 	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
 	./IO/input_pentas.c ./IO/input_tetras.c ./IO/input_VPF.c \
 	./IO/input_WME.c ./IO/read_config.c ./IO/read_headers.c \
@@ -41,8 +41,7 @@ LINALGFILES= \
 	./LINALG/spinmatrix_ops.c ./LINALG/spinmatrix_ops_SSE.c
 
 ## c files in ./MEAS/
-MEASFILES=./MEAS/correlators.c ./MEAS/mesons.c ./MEAS/mesons_offdiag.c \
-	./MEAS/wrap_mesons.c
+MEASFILES=./MEAS/mesons.c ./MEAS/mesons_offdiag.c ./MEAS/wrap_mesons.c
 
 ## c files in ./NRQCD
 NRQCDFILES=./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
