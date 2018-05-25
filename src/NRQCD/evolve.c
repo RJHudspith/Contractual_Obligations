@@ -130,9 +130,7 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   size_t n , i ;
 
   // only evolve the spin-dependent terms a little bit
-  if( t == 0 ) {
-    evolve_dH( F , t , NRQCD ) ;
-  }
+  evolve_dH( F , t , NRQCD ) ;
   
   // evolve just with C0 term
   for( n = 0 ; n < NRQCD.N ; n++ ) {
