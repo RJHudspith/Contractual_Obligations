@@ -135,7 +135,7 @@ write_momlist( const struct veclist *momentum ,
   for( p = 0 ; p < NMOM ; p++ ) {
     fprintf( stdout , "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      fprintf( stdout , " %g " , momentum[ p ].MOM[ mu ]  ) ;
+      fprintf( stdout , " %1.15f " , momentum[ p ].MOM[ mu ]  ) ;
     }
     fprintf( stdout , ") \n" ) ;
   }
