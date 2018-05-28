@@ -63,7 +63,7 @@ evolve_H( struct NRQCD_fields *F ,
 	add_mat( (void*)A , (void*)B ) ;
 	// A = A - 2 F -> S[i].D[d]
 	colormatrix_Saxpy( A , F -> S[i].D[d] , -2. ) ;
-	// der2 = A + der2
+	// H = C0 * A + H
 	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
       }
     }
@@ -124,13 +124,16 @@ evolve_dH( struct NRQCD_fields *F ,
 static int
 nrqcd_prop_fwd( struct NRQCD_fields *F ,
 		const size_t t ,
-		const struct NRQCD_params NRQCD )
+		const struct NRQCD_params NRQCD ,
+		const GLU_bool is_first )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
   // only evolve the spin-dependent terms a little bit
-  evolve_dH( F , t , NRQCD ) ;
+  if( is_first != GLU_TRUE ) {
+    evolve_dH( F , t , NRQCD ) ;
+  }
   
   // evolve just with C0 term
   for( n = 0 ; n < NRQCD.N ; n++ ) {
@@ -153,7 +156,9 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
 
 #ifdef NRQCD_SYMSPIN
   // finally evolve the spin-dependent terms a little bit
-  evolve_dH( F , t , NRQCD ) ;
+  if( is_first != GLU_TRUE ) {
+    evolve_dH( F , t , NRQCD ) ;
+  }
 #endif
   
   return SUCCESS ;
@@ -163,12 +168,15 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
 static int
 nrqcd_prop_bwd( struct NRQCD_fields *F ,
 		const size_t t ,
-		const struct NRQCD_params NRQCD )
+		const struct NRQCD_params NRQCD ,
+		const GLU_bool is_first )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
-  evolve_dH( F , t , NRQCD ) ;
+  if( is_first != GLU_TRUE ) {
+    evolve_dH( F , t , NRQCD ) ;
+  }
   
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD ) ;
@@ -190,7 +198,9 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 
 #ifdef NRQCD_SYMSPIN
   // finally evolve the spin-dependent terms a little bit
-  evolve_dH( F , t , NRQCD ) ;
+  if( is_first != GLU_TRUE ) {
+    evolve_dH( F , t , NRQCD ) ;
+  }
 #endif
   
   return SUCCESS ;
@@ -264,10 +274,11 @@ compute_props( struct propagator *prop ,
       compute_clovers( F , lat , tprev , tadref ) ;
       	
       // compute the propagator
+      const GLU_bool is_first = t == 0 ? GLU_TRUE : GLU_FALSE ;
       if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD ) ;
+	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , is_first ) ;
       } else {
-	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD ) ;
+	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , is_first ) ;
       }
     	
       // set G(t+1) from temp1
