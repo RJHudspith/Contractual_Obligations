@@ -49,6 +49,12 @@ term_C1_C6( struct halfspinor *H ,
   struct halfspinor res ;
   grad_sqsq( &res , S , Fmunu , i , t ) ;
   halfspinor_Saxpy( H , res , fac ) ;
+
+  // unitarity correction factor
+  const double unicf = fac * ( 2 * (ND-1) *
+			       ( 1. - 1./(NRQCD.U0 * NRQCD.U0 ) ) ) ;
+  halfspinor_Saxpy( H , S[i] , unicf ) ;
+  
   
   return ;
 }
@@ -81,7 +87,6 @@ term_C2( struct halfspinor *H ,
 
   return ;
 }
-
 // this term is (\grad)^2
 void
 term_C5( struct halfspinor *H ,
@@ -93,7 +98,7 @@ term_C5( struct halfspinor *H ,
 {
   if( fabs( NRQCD.C5 ) < NRQCD_TOL ) return ;
 
-  // important to note the sign on this parameter is +
+  //  important to note the sign on this parameter is +
   const double fac = NRQCD.C5 / ( 24. * NRQCD.M_0 ) ;
 
   struct halfspinor res ;
@@ -104,6 +109,11 @@ term_C5( struct halfspinor *H ,
 
     halfspinor_Saxpy( H , res , fac ) ;
   }
+
+  // another unitarity correction factor
+  const double unicf = fac * ( 2 * (ND-1) *
+			       ( 1. - 1./(NRQCD.U0 * NRQCD.U0) ) ) ;
+  halfspinor_Saxpy( H , S[i] , unicf ) ;
   
   return ;
 }

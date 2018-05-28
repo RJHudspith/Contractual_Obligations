@@ -36,7 +36,8 @@ evolve_H( struct NRQCD_fields *F ,
     // temporary storage matrices
     double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
     double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-
+    double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    
     const size_t Uidx = i + t*LCU ;
     size_t mu , d ;
     
@@ -50,15 +51,18 @@ evolve_H( struct NRQCD_fields *F ,
       const size_t Sbck = lat[ i ].back[mu] ;
       const size_t Ubck = lat[ Uidx ].back[mu] ;
 
+      // precompute the dagger
+      dagger_gauge( (void*)C , (void*)lat[ Ubck ].O[mu] ) ;
+
       for( d = 0 ; d < NS ; d++ ) {
 	// computes A = U(x) S(x+\mu)
 	multab( (void*)A ,
 		(void*)lat[ Uidx ].O[mu] ,
 		(void*)F -> S[ Sfwd ].D[d] ) ;
 	// computes B = U^\dag(x-\mu) S(x-\mu)
-	multabdag( (void*)B ,
-		   (void*)lat[ Ubck ].O[mu] ,
-		   (void*)F -> S[ Sbck ].D[d] ) ;
+	multab( (void*)B ,
+		(void*)C ,
+		(void*)F -> S[ Sbck ].D[d] ) ;
 	// A = A + B 
 	add_mat( (void*)A , (void*)B ) ;
 	// A = A - 2 F -> S[i].D[d]
@@ -67,12 +71,18 @@ evolve_H( struct NRQCD_fields *F ,
 	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
       }
     }
+    F -> S1[i]  = F -> S[i] ;
+    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1./(2.*NRQCD.N) ) ;
   }
 
-#pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {
-    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1./(2.*NRQCD.N) ) ;
+  // shallow pointer swap
+#pragma omp single nowait
+  {
+    struct halfspinor *P = F -> S ;
+    F -> S = F -> S1 ;
+    F -> S1 = P ;
   }
+
   return ;
 }
 
@@ -120,19 +130,69 @@ evolve_dH( struct NRQCD_fields *F ,
   return ;
 }
 
+// applies the hamiltonian s.t. S = ( 1 - dH ) S
+static void
+evolve_dH_fused( struct NRQCD_fields *F ,
+		 const size_t t ,
+		 const struct NRQCD_params NRQCD )
+{
+  size_t i ;
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    zero_halfspinor( &F -> H[i] ) ;
+  
+    // atomically accumulate result into F -> H
+    term_C1_C6( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C2( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C3( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C4( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C5( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C9EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C10EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    F -> S1[i] = F -> S[i] ;
+    #ifdef NRQCD_SYMSPIN
+    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1./2. ) ;
+    #else
+    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1. ) ;
+    #endif
+  }
+  
+  // shallow pointer swap
+#pragma omp single nowait
+  {
+    struct halfspinor *P = F -> S ;
+    F -> S = F -> S1 ;
+    F -> S1 = P ;
+  }
+  
+  return ;
+}
+
 // writes out the result to S which is a LCU halfspinor
 static int
 nrqcd_prop_fwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool is_first )
+		const GLU_bool is_first ,
+		const GLU_bool fuse_dH )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
   // only evolve the spin-dependent terms a little bit
   if( is_first != GLU_TRUE ) {
-    evolve_dH( F , t , NRQCD ) ;
+    if( fuse_dH == GLU_TRUE ) {
+      evolve_dH_fused( F , t , NRQCD ) ;
+    } else {
+      evolve_dH( F , t , NRQCD ) ;
+    }
   }
   
   // evolve just with C0 term
@@ -157,7 +217,11 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
 #ifdef NRQCD_SYMSPIN
   // finally evolve the spin-dependent terms a little bit
   if( is_first != GLU_TRUE ) {
-    evolve_dH( F , t , NRQCD ) ;
+    if( fuse_dH == GLU_TRUE ) {
+      evolve_dH_fused( F , t , NRQCD ) ;
+    } else {
+      evolve_dH( F , t , NRQCD ) ;
+    }
   }
 #endif
   
@@ -169,13 +233,19 @@ static int
 nrqcd_prop_bwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool is_first )
+		const GLU_bool is_first ,
+		const GLU_bool fuse_dH )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
+  // only evolve the spin-dependent terms a little bit
   if( is_first != GLU_TRUE ) {
-    evolve_dH( F , t , NRQCD ) ;
+    if( fuse_dH == GLU_TRUE ) {
+      evolve_dH_fused( F , t , NRQCD ) ;
+    } else {
+      evolve_dH( F , t , NRQCD ) ;
+    }
   }
   
   for( n = 0 ; n < NRQCD.N ; n++ ) {
@@ -199,7 +269,11 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 #ifdef NRQCD_SYMSPIN
   // finally evolve the spin-dependent terms a little bit
   if( is_first != GLU_TRUE ) {
-    evolve_dH( F , t , NRQCD ) ;
+    if( fuse_dH == GLU_TRUE ) {
+      evolve_dH_fused( F , t , NRQCD ) ;
+    } else {
+      evolve_dH( F , t , NRQCD ) ;
+    }
   }
 #endif
   
@@ -211,13 +285,12 @@ static void
 tadpole_improve( const double tadpole )
 {
   size_t i ;
-#pragma omp for private(i)
+#pragma omp for nowait private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    size_t mu , j ;
-    for( mu = 0 ; mu < ND ; mu++ ) {
-      for( j = 0 ; j < NCNC ; j++ ) {
-	lat[i].O[mu][j] *= tadpole ;
-      }
+    double complex *p = (double complex*)lat[i].O ;
+    size_t j ;
+    for( j = 0 ; j < ND*NCNC ; j++ ) {
+      *p *= tadpole ; p++ ;
     }
   }
   return ;
@@ -244,6 +317,15 @@ compute_props( struct propagator *prop ,
 
     size_t t , tnew , tprev = ( prop[n].origin[ND-1] )%LT ;
 
+    // if we can we fuse the loops in dH evolution to avoid a
+    // barrier
+    GLU_bool fuse_dH = GLU_FALSE ;
+    if( fabs( prop[n].NRQCD.C7 )  < NRQCD_TOL &&
+	fabs( prop[n].NRQCD.C8 )  < NRQCD_TOL &&
+	fabs( prop[n].NRQCD.C11 ) < NRQCD_TOL ) {
+      fuse_dH = GLU_TRUE ;
+    }
+
     // set up the source into F -> S
     initialise_source( F -> S ,
 		       prop[n].source ,
@@ -251,7 +333,7 @@ compute_props( struct propagator *prop ,
 		       prop[n].origin ) ;
 
     // do a copy in here
-    #pragma omp for private(i)
+    #pragma omp for nowait private(i)
     for( i = 0 ; i < LCU ; i++ ) {
       const size_t idx = LCU*tprev ;
       colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;
@@ -276,13 +358,13 @@ compute_props( struct propagator *prop ,
       // compute the propagator
       const GLU_bool is_first = t == 0 ? GLU_TRUE : GLU_FALSE ;
       if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , is_first ) ;
+	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , is_first , fuse_dH ) ;
       } else {
-	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , is_first ) ;
+	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , is_first , fuse_dH ) ;
       }
     	
       // set G(t+1) from temp1
-      #pragma omp for private(i)
+      #pragma omp for nowait private(i) 
       for( i = 0 ; i < LCU ; i++ ) {
 	const size_t idx = LCU*tnew ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;

@@ -28,7 +28,9 @@
 static int
 are_equal( const char *pch , const char *tag )
 {
-  return !strcmp( pch , tag ) ;
+  char str[ strlen( tag ) + 3 ] ;
+  sprintf( str , "%s\n" , tag ) ;
+  return !strcmp( pch , tag ) || !strcmp( pch , str ) ;
 }
 
 // get a particular tag
@@ -36,6 +38,14 @@ static char*
 get_tag( char line[ MAX_LINE_LENGTH ] )
 {
   return strtok( line , " " ) ;
+}
+
+static int
+skip_trailing_spaces( void )
+{
+  char *token ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) { }
+  return SUCCESS ;
 }
 
 static int
@@ -63,10 +73,10 @@ get_GLU_bool( GLU_bool *result )
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     if( are_equal( token , "GLU_TRUE" ) ) {
       *result = GLU_TRUE ;
-      return SUCCESS ;
+      return skip_trailing_spaces( ) ;
     } else if( are_equal( token , "GLU_FALSE" ) ) {
       *result = GLU_FALSE ;
-      return SUCCESS ;
+      return skip_trailing_spaces( ) ;
     } else {
       fprintf( stderr , "[IO] I don't understand bool %s, please make"
 	       " GLU_FALSE or GLU_TRUE\n" , token ) ;
@@ -87,17 +97,13 @@ get_propbounds( boundaries *bound )
   size_t N = 0 ;
   errno = 0 ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
-    if( are_equal( token , "periodic" ) || are_equal( token , "periodic\n" ) ||
-	are_equal( token , "Periodic" ) || are_equal( token , "Periodic\n" ) ) {
+    if( are_equal( token , "periodic" ) || are_equal( token , "Periodic" ) ) {
       bound[ N ] = PERIODIC ;
-    } else if( are_equal( token , "PplusA" ) ||
-	       are_equal( token , "PplusA\n" ) ) {
+    } else if( are_equal( token , "PplusA" ) ) {
       bound[ N ] = PPLUSA ;
-    } else if( are_equal( token , "PminusA" ) ||
-	       are_equal( token , "PminusA\n" ) ) {
+    } else if( are_equal( token , "PminusA" ) ) {
       bound[ N ] = PMINUSA ;
-    } else if( are_equal( token , "PmulA" ) ||
-	       are_equal( token , "PmulA\n" ) ) {
+    } else if( are_equal( token , "PmulA" ) ) {
       bound[ N ] = PMULA ;
     } else {
       char *tok2 = strtok( token , "-" ) ;
@@ -148,11 +154,11 @@ get_propendian( endianness *endian )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Big\n" ) ) {
+    if( are_equal( token , "Big" ) ) {
       *endian = BIGENDIAN ;
       return SUCCESS ;
     }
-    if( are_equal( token , "Little\n" ) ) {
+    if( are_equal( token , "Little" ) ) {
       *endian = LILENDIAN ;
       return SUCCESS ;
     }
@@ -168,11 +174,11 @@ get_propprec( fp_precision *precision )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Single\n" ) ) {
+    if( are_equal( token , "Single" ) ) {
       *precision = SINGLE ;
       return SUCCESS ;
     }
-    if( are_equal( token , "Double\n" ) ) {
+    if( are_equal( token , "Double" ) ) {
       *precision = DOUBLE ;
       return SUCCESS ;
     }
@@ -208,18 +214,18 @@ get_propsource( sourcetype *source )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // set the endian flag
-    if( are_equal( token , "Point\n" ) || 
-	are_equal( token , "Pt\n" ) || 
-	are_equal( token , "pt\n" ) ) {
+    if( are_equal( token , "Point" ) || 
+	are_equal( token , "Pt" ) || 
+	are_equal( token , "pt" ) ) {
       *source = POINT ;
       return SUCCESS ;
     }
     // wall can be a bunch of things I think
-    if( are_equal( token , "GFWall\n" ) ||
-	are_equal( token , "Z2Wall\n" ) ||
-	are_equal( token , "Wall\n" ) ||
-	are_equal( token , "wall\n" ) || 
-	are_equal( token , "CGwall\n" ) ) {
+    if( are_equal( token , "GFWall" ) ||
+	are_equal( token , "Z2Wall" ) ||
+	are_equal( token , "Wall" ) ||
+	are_equal( token , "wall" ) || 
+	are_equal( token , "CGwall" ) ) {
       *source = WALL ;
       return SUCCESS ;
     }
@@ -234,19 +240,19 @@ get_proptype( proptype *basis )
   char *token ;
   while( ( token = strtok( NULL , " " ) ) != NULL ) {
     // nonrelativistic basis
-    if( are_equal( token , "Nrel_fwd\n" ) ) {
+    if( are_equal( token , "Nrel_fwd" ) ) {
       *basis = NREL_FWD ;
-      return SUCCESS ;
-    } else if( are_equal( token , "Nrel_bwd\n" ) ) {
+      return skip_trailing_spaces( ) ;
+    } else if( are_equal( token , "Nrel_bwd" ) ) {
       *basis = NREL_BWD ;
-      return SUCCESS ;
+      return skip_trailing_spaces( ) ;
       // on the fly computed NRQCD tag
-    } else if( are_equal( token , "Nrel_CORR\n" ) ) {
+    } else if( are_equal( token , "Nrel_CORR" ) ) {
       *basis = NREL_CORR ;
-      return SUCCESS ;
-    } else if( are_equal( token , "Chiral\n" ) ) {
+      return skip_trailing_spaces( ) ;
+    } else if( are_equal( token , "Chiral" ) ) {
       *basis = CHIRAL ;
-      return SUCCESS ;
+      return skip_trailing_spaces( ) ;
     }
     //
   }

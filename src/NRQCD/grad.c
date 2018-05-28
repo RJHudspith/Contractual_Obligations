@@ -132,7 +132,9 @@ FMUNU_grad_imp( struct halfspinor *der ,
   // some temporaries we need
   double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-    
+  double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  
   const size_t Uidx = i + t*LCU ;    
   const size_t Ubck = lat[ Uidx ].back[mu] ;
     
@@ -143,6 +145,10 @@ FMUNU_grad_imp( struct halfspinor *der ,
   const size_t Sbck2 = lat[ Sbck ].back[mu] ;
 
   struct halfspinor res ;
+
+  // it turns out a little faster to do this than call multabdag
+  dagger_gauge( (void*)C , (void*)lat[ Ubck ].O[mu] ) ;
+  dagger_gauge( (void*)D , (void*)Fmunu[i].O[7+2*mu] ) ;
     
   size_t d ;
   for( d = 0 ; d < NS ; d++ ) {
@@ -151,22 +157,18 @@ FMUNU_grad_imp( struct halfspinor *der ,
 	    (void*)lat[ Uidx ].O[mu] ,
 	    (void*)S[ Sfwd ].D[d] ) ;
     // computes A = U^\dagger (x-\mu ) S(x-\mu)
-    multabdag( (void*)A ,
-	       (void*)lat[ Ubck ].O[mu] ,
-	       (void*)S[ Sbck ].D[d] ) ;
-    // computes der = -( der - A )/2
+    multab( (void*)A , (void*)C , (void*)S[ Sbck ].D[d] ) ;
+    // computes res = 2/3. * ( res - A )
     colormatrix_Sa_xmy( res.D[d] , A , 2./3. ) ;
 
     // compute U(x)U(x+\mu)S(x+2\mu)
-    multab( (void*)A ,
-	    (void*)Fmunu[i].O[6+2*mu] ,
-	    (void*)S[ Sfwd2 ].D[d] ) ;
+    multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] , (void*)S[ Sfwd2 ].D[d] ) ;
     // compute U(x-mu)U(x-2mu)S(x-2\mu)
-    multabdag( (void*)B ,
-	       (void*)Fmunu[i].O[7+2*mu],
-	       (void*)S[ Sbck2 ].D[d] ) ;
+    multab( (void*)B , (void*)D , (void*)S[ Sbck2 ].D[d] ) ;
+    // computes A = -1/12. * ( A - B )
     colormatrix_Sa_xmy( A , B , -1./12. ) ;
 
+    // adds A to res
     add_mat( (void*)res.D[d] , (void*)A ) ;
   }
   // res is the improved gradient and we left multiply by the gauge field
