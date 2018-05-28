@@ -3,6 +3,9 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Compiled for B_CHANNELS */
+#undef B_CHANNELS
+
 /* general debug information */
 #undef DEBUG
 
@@ -56,6 +59,9 @@
 
 /* Compiled IO_NBLOCK */
 #undef IO_NBLOCK
+
+/* Compiled for M_CHANNELS */
+#undef M_CHANNELS
 
 /* Compiled for SU(NC) */
 #undef NC

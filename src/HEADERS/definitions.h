@@ -9,7 +9,25 @@
    @def B_CHANNELS
    @brief number of baryon channels we look at
  */
-#define B_CHANNELS (16)
+#ifndef B_CHANNELS
+  #define B_CHANNELS (16)
+#endif
+// if it is defined to something silly we guard against that also
+#if (B_CHANNELS < 0) || (B_CHANNELS>16)
+  #define B_CHANNELS (16)
+#endif
+
+/**
+   @def M_CHANNELS
+   @brief number of meson channels we look at
+ */
+#ifndef M_CHANNELS
+  #define M_CHANNELS (16)
+#endif
+// if it is defined to something silly we guard against that also
+#if (M_CHANNELS < 0) || (M_CHANNELS>16)
+  #define M_CHANNELS (16)
+#endif
 
 /**
    @def CONDOR_MODE

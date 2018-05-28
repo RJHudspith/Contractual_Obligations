@@ -24,8 +24,8 @@ mesons_diagonal( struct propagator prop1 ,
 		 const char *outfile )
 { 
   // counters
-  const size_t stride1 = NSNS ;
-  const size_t stride2 = NSNS ;
+  const size_t stride1 = M_CHANNELS ;
+  const size_t stride2 = M_CHANNELS ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;

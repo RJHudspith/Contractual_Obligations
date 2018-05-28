@@ -83,6 +83,28 @@ AC_ARG_WITH([NS],
 	    AC_MSG_NOTICE([User unspecified NS, default to 4])	
 	    ])
 
+## Compile for a set B_CHANNELS, default is 16
+AC_ARG_WITH([B_CHANNELS],
+	AC_HELP_STRING([--with-B_CHANNELS=],
+		       [Compile in the number of baryon contractions]),
+            [
+	    AC_MSG_NOTICE([User specified B_CHANNELS, compiling for B_CHANNELS=${with_B_CHANNELS}])
+	    AC_DEFINE_UNQUOTED([B_CHANNELS], [${with_B_CHANNELS}] , [Compiled for B_CHANNELS] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified B_CHANNELS, default to 16])	
+	    ])
+
+## Compile for a set M_CHANNELS, default is 16
+AC_ARG_WITH([M_CHANNELS],
+	AC_HELP_STRING([--with-M_CHANNELS=],
+		       [Compile in the number of meson contractions]),
+            [
+	    AC_MSG_NOTICE([User specified M_CHANNELS, compiling for M_CHANNELS=${with_M_CHANNELS}])
+	    AC_DEFINE_UNQUOTED([M_CHANNELS], [${with_M_CHANNELS}] , [Compiled for M_CHANNELS] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified M_CHANNELS, default to 16])	
+	    ])
+
 ## Finally we have routines for this node or many machines
 ## historically targeted at "CONDOR", default is CONDOR_MODE
 AC_ARG_ENABLE([notcondor],

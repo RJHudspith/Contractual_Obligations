@@ -738,6 +738,8 @@ enable_dependency_tracking
 with_NC
 with_ND
 with_NS
+with_B_CHANNELS
+with_M_CHANNELS
 enable_notcondor
 enable_debug
 enable_OMP_FFTW
@@ -1395,6 +1397,8 @@ Optional Packages:
   --with-NC=              Compile in the gauge group number NC
   --with-ND=              Compile in the number of dimensions ND
   --with-NS=              Compile in the number of spins NS
+  --with-B_CHANNELS=      Compile in the number of baryon contractions
+  --with-M_CHANNELS=      Compile in the number of meson contractions
   --with-fftw=<name>      Specify FFTW location for the GF
   --with-TETRA_NBLOCK=    Block matrix tetra contraction size
   --with-IO_NBLOCK=       IO block fread factor
@@ -4883,6 +4887,48 @@ else
 
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified NS, default to 4" >&5
 $as_echo "$as_me: User unspecified NS, default to 4" >&6;}
+
+fi
+
+
+## Compile for a set B_CHANNELS, default is 16
+
+# Check whether --with-B_CHANNELS was given.
+if test "${with_B_CHANNELS+set}" = set; then :
+  withval=$with_B_CHANNELS;
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified B_CHANNELS, compiling for B_CHANNELS=${with_B_CHANNELS}" >&5
+$as_echo "$as_me: User specified B_CHANNELS, compiling for B_CHANNELS=${with_B_CHANNELS}" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define B_CHANNELS ${with_B_CHANNELS}
+_ACEOF
+
+
+else
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified B_CHANNELS, default to 16" >&5
+$as_echo "$as_me: User unspecified B_CHANNELS, default to 16" >&6;}
+
+fi
+
+
+## Compile for a set M_CHANNELS, default is 16
+
+# Check whether --with-M_CHANNELS was given.
+if test "${with_M_CHANNELS+set}" = set; then :
+  withval=$with_M_CHANNELS;
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified M_CHANNELS, compiling for M_CHANNELS=${with_M_CHANNELS}" >&5
+$as_echo "$as_me: User specified M_CHANNELS, compiling for M_CHANNELS=${with_M_CHANNELS}" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define M_CHANNELS ${with_M_CHANNELS}
+_ACEOF
+
+
+else
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified M_CHANNELS, default to 16" >&5
+$as_echo "$as_me: User unspecified M_CHANNELS, default to 16" >&6;}
 
 fi
 
