@@ -52,9 +52,7 @@ herm_multab( __m128d *__restrict pA ,
   multab( pA , pB , pC ) ;
 #endif
 }
-
 #else
-
 static inline void
 herm_multab( double complex *a ,
 	     const double complex *b ,
@@ -63,7 +61,6 @@ herm_multab( double complex *a ,
   multab( a , b , c ) ;
   return ;
 }
-
 #endif
 
 // atomically add halfspinors a += b

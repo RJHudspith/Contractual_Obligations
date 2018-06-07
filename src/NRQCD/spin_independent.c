@@ -142,7 +142,7 @@ term_C10EB( struct halfspinor *H ,
   struct halfspinor res ;
   colormatrix_halfspinor( &res , A , S[i] ) ;
 
-  halfspinor_iSaxpy( H , res , fac ) ;
+  halfspinor_Saxpy( H , res , fac ) ;
   
   return ;
 }

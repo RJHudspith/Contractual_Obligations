@@ -137,6 +137,16 @@ AC_ARG_ENABLE([debug],
 	*) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
 	esac],[])
 
+## NRQCD symmetric or non-symmetric spin-dependent evolution
+AC_ARG_ENABLE([NRQCD_NONSYM],
+	[ --enable-NRQCD_NONSYMM enables faster, non-symmetric in spin dependent terms in the NRQCD action],
+	[case "${enableval}" in
+	yes) AC_DEFINE([NRQCD_NONSYM],,[Non-symmetric NRQCD action])
+	     AC_MSG_NOTICE([Using non-symmetric spin-dependent NRQCD evolution]) ;;	
+	no) AC_MSG_NOTICE([Using symmetric NRQCD spin-correction terms]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-NRQCD_NONSYM]) ;;
+	esac],[])
+
 ## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
 ######################################### FFTW3 ###############################################
 ##                                                                                           ##

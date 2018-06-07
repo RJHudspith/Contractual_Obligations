@@ -214,7 +214,7 @@ static char *
 multab_test( void )
 {
   int i ;
-  multab( res , (const dcomplex*)Id , (const dcomplex*)U ) ;
+  multab( res , (const dcomplex*)Id , (const dcomplex*)U ) ;  
   for( i = 0 ; i < NCNC ; i++ ) {
     const double complex r = dcast( res[ i ] ) ;
     mu_assert( "[MATOPS UNIT] error : multab broken" , 

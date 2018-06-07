@@ -73,6 +73,9 @@
    */
 #undef NOT_CONDOR_MODE
 
+/* Non-symmetric NRQCD action */
+#undef NRQCD_NONSYM
+
 /* Compiled for NS */
 #undef NS
 

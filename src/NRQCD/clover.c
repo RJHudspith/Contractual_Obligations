@@ -200,12 +200,14 @@ compute_clovers( struct NRQCD_fields *F ,
   size_t i ;
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    improve_clover( F -> Fmunu[i].O[0] , lat , i + idx , 0 , 1 , efac ) ;
-    improve_clover( F -> Fmunu[i].O[1] , lat , i + idx , 1 , 2 , efac ) ;
-    improve_clover( F -> Fmunu[i].O[2] , lat , i + idx , 2 , 0 , efac ) ;
-    improve_clover( F -> Fmunu[i].O[3] , lat , i + idx , 0 , 3 , efac ) ;
-    improve_clover( F -> Fmunu[i].O[4] , lat , i + idx , 1 , 3 , efac ) ;
-    improve_clover( F -> Fmunu[i].O[5] , lat , i + idx , 2 , 3 , efac ) ;
+    // B fields are defined as B_{i} = \epsilon_{ijk} F_{jk}
+    improve_clover( F -> Fmunu[i].O[0] , lat , i + idx , 1 , 2 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[1] , lat , i + idx , 2 , 0 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[2] , lat , i + idx , 0 , 1 , efac ) ;
+    // E fields are defined as E_{i} = F_{t i}
+    improve_clover( F -> Fmunu[i].O[3] , lat , i + idx , 3 , 0 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[4] , lat , i + idx , 3 , 1 , efac ) ;
+    improve_clover( F -> Fmunu[i].O[5] , lat , i + idx , 3 , 2 , efac ) ;
     // these last ones are used in the improved derivative
     size_t mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {

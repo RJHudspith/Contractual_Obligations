@@ -379,7 +379,7 @@ init_measurements( struct measurements *M ,
       for( mu = 0 ; mu < ND-1 ; mu++ ) {
 	p_dot_x += Latt.twiddles[mu] * M -> sum_mom[ mu ] * x[ mu ] ;
       }
-      M -> wall_mom[i] = cos( p_dot_x ) + I*sin( p_dot_x ) ;
+      M -> wall_mom[i] = cos( p_dot_x ) + I * sin( p_dot_x ) ;
     }
   }
 

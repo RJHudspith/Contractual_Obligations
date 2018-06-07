@@ -25,7 +25,8 @@
 #include "common.h"
 
 #include "corr_malloc.h"   // align to the correct boundary
-#include "geometry.h"      // init_navig is here 
+#include "geometry.h"      // init_navig is here
+#include "GLU_timer.h"     // print_time()
 #include "HIREP.h"         // read a hirep gauge config
 #include "plaqs_links.h"   // average plaquette, link traces
 #include "readers.h"       // read config files
@@ -224,6 +225,8 @@ read_gauge_file( struct head_data *HEAD_DATA ,
     }
   }
 
+  start_timer() ;
+
   // malloc our gauge field and initialise our lattice geometry
   struct site *lat = NULL ;
   if( corr_malloc( (void**)&lat , 16 , LVOLUME * sizeof ( struct site ) ) != 0 ) {
@@ -256,6 +259,8 @@ read_gauge_file( struct head_data *HEAD_DATA ,
     free( lat ) ;
     return NULL ; 
   }
+
+  print_time() ;
 
   // set the header info
   *HEAD_DATA = tmp ;

@@ -45,7 +45,7 @@ evolve_H( struct NRQCD_fields *F ,
     zero_halfspinor( &F -> H[i] ) ;
 
     // inner mu sum much more cache friendly
-    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    for( mu = 0 ; mu < 3 ; mu++ ) {
       
       const size_t Sfwd = lat[ i ].neighbor[mu] ;
       const size_t Sbck = lat[ i ].back[mu] ;
@@ -71,12 +71,14 @@ evolve_H( struct NRQCD_fields *F ,
 	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
       }
     }
-    F -> S1[i]  = F -> S[i] ;
-    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1./(2.*NRQCD.N) ) ;
+    // set S1 to S
+    F -> S1[i] = F -> S[i] ;
+    // S1 = S1 - H/(2n)
+    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1./(2*NRQCD.N) ) ;
   }
 
   // shallow pointer swap
-#pragma omp single nowait
+#pragma omp single
   {
     struct halfspinor *P = F -> S ;
     F -> S = F -> S1 ;
@@ -120,10 +122,10 @@ evolve_dH( struct NRQCD_fields *F ,
 
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    #ifdef NRQCD_SYMSPIN
-    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1./2. ) ;
-    #else
+    #ifdef NRQCD_NONSYM
     halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -1. ) ;
+    #else
+    halfspinor_Saxpy( &F -> S[i] , F -> H[i] , -0.5 ) ;
     #endif
   }
 
@@ -156,16 +158,17 @@ evolve_dH_fused( struct NRQCD_fields *F ,
 
     term_C10EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
+    // set S1 to S
     F -> S1[i] = F -> S[i] ;
-    #ifdef NRQCD_SYMSPIN
-    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1./2. ) ;
-    #else
+    #ifdef NRQCD_NONSYM
     halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -1. ) ;
+    #else
+    halfspinor_Saxpy( &F -> S1[i] , F -> H[i] , -0.5 ) ;
     #endif
   }
   
   // shallow pointer swap
-#pragma omp single nowait
+#pragma omp single
   {
     struct halfspinor *P = F -> S ;
     F -> S = F -> S1 ;
@@ -180,19 +183,16 @@ static int
 nrqcd_prop_fwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool is_first ,
 		const GLU_bool fuse_dH )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
   // only evolve the spin-dependent terms a little bit
-  if( is_first != GLU_TRUE ) {
-    if( fuse_dH == GLU_TRUE ) {
-      evolve_dH_fused( F , t , NRQCD ) ;
-    } else {
-      evolve_dH( F , t , NRQCD ) ;
-    }
+  if( fuse_dH == GLU_TRUE ) {
+    evolve_dH_fused( F , t , NRQCD ) ;
+  } else {
+    evolve_dH( F , t , NRQCD ) ;
   }
   
   // evolve just with C0 term
@@ -210,18 +210,21 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   }
 
   // evolve again
+  const size_t tfwd = (t+1)%Latt.dims[ND-1] ;
+
+  // update the clovers
+  compute_clovers( F , lat , tfwd , 1./NRQCD.U0 ) ;
+  
   for( n = 0 ; n < NRQCD.N ; n++ ) {
-    evolve_H( F , t , NRQCD ) ;
+    evolve_H( F , tfwd , NRQCD ) ;
   }
 
-#ifdef NRQCD_SYMSPIN
+#ifndef NRQCD_NONSYMM
   // finally evolve the spin-dependent terms a little bit
-  if( is_first != GLU_TRUE ) {
-    if( fuse_dH == GLU_TRUE ) {
-      evolve_dH_fused( F , t , NRQCD ) ;
-    } else {
-      evolve_dH( F , t , NRQCD ) ;
-    }
+  if( fuse_dH == GLU_TRUE ) {
+    evolve_dH_fused( F , tfwd , NRQCD ) ;
+  } else {
+    evolve_dH( F , tfwd , NRQCD ) ;
   }
 #endif
   
@@ -233,23 +236,27 @@ static int
 nrqcd_prop_bwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool is_first ,
 		const GLU_bool fuse_dH )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
+  // when we go backwards the E-field gets flipped.
+  // can change this just by the parameters C_2
+  // and C_3 as they are the only ones that depend on E
+  struct NRQCD_params NRQCD_flipped = NRQCD ;
+  NRQCD_flipped.C2 *= -1 ;
+  NRQCD_flipped.C3 *= -1 ;
+
   // only evolve the spin-dependent terms a little bit
-  if( is_first != GLU_TRUE ) {
-    if( fuse_dH == GLU_TRUE ) {
-      evolve_dH_fused( F , t , NRQCD ) ;
-    } else {
-      evolve_dH( F , t , NRQCD ) ;
-    }
+  if( fuse_dH == GLU_TRUE ) {
+    evolve_dH_fused( F , t , NRQCD_flipped ) ;
+  } else {
+    evolve_dH( F , t , NRQCD_flipped ) ;
   }
   
   for( n = 0 ; n < NRQCD.N ; n++ ) {
-    evolve_H( F , t , NRQCD ) ;
+    evolve_H( F , t , NRQCD_flipped ) ;
   }
     
   // mutliply by temporal link
@@ -261,19 +268,22 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
     F -> S[i] = res ;
   }
 
+  const size_t tbck = (t+LT-1)%LT ;
+  
+  // update the clovers
+  compute_clovers( F , lat , tbck , 1./NRQCD.U0 ) ;
+
   // evolve again
   for( n = 0 ; n < NRQCD.N ; n++ ) {
-    evolve_H( F , t , NRQCD ) ;
+    evolve_H( F , tbck , NRQCD_flipped ) ;
   }
 
-#ifdef NRQCD_SYMSPIN
+#ifndef NRQCD_NONSYMM
   // finally evolve the spin-dependent terms a little bit
-  if( is_first != GLU_TRUE ) {
-    if( fuse_dH == GLU_TRUE ) {
-      evolve_dH_fused( F , t , NRQCD ) ;
-    } else {
-      evolve_dH( F , t , NRQCD ) ;
-    }
+  if( fuse_dH == GLU_TRUE ) {
+    evolve_dH_fused( F , tbck , NRQCD_flipped ) ;
+  } else {
+    evolve_dH( F , tbck , NRQCD_flipped ) ;
   }
 #endif
   
@@ -285,7 +295,7 @@ static void
 tadpole_improve( const double tadpole )
 {
   size_t i ;
-#pragma omp for nowait private(i)
+#pragma omp for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
     double complex *p = (double complex*)lat[i].O ;
     size_t j ;
@@ -341,6 +351,9 @@ compute_props( struct propagator *prop ,
       colormatrix_equiv_d2f( prop[n].H[i+idx].D[2] , F -> S[i].D[2] ) ;
       colormatrix_equiv_d2f( prop[n].H[i+idx].D[3] , F -> S[i].D[3] ) ;
     }
+
+    // compute the initial lattice clovers
+    compute_clovers( F , lat , tprev , tadref ) ;
     
     // evolve for all timeslices can we parallelise this? - nope
     for( t = 0 ; t < LT-1 ; t++ ) {
@@ -351,16 +364,12 @@ compute_props( struct propagator *prop ,
       } else {
 	tnew = ( tprev + LT + 1 )%LT ;
       }
-
-      // compute the lattice clovers
-      compute_clovers( F , lat , tprev , tadref ) ;
       	
       // compute the propagator
-      const GLU_bool is_first = t == 0 ? GLU_TRUE : GLU_FALSE ;
       if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , is_first , fuse_dH ) ;
+	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , fuse_dH ) ;
       } else {
-	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , is_first , fuse_dH ) ;
+	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , fuse_dH ) ;
       }
     	
       // set G(t+1) from temp1

@@ -20,7 +20,6 @@
 #include "halfspinor_ops.h"  // halfspinor_Saxpy and alike
 #include "mmul.h"            // multab
 
-
 // puts result in F -> S3
 // computes \grad x E, which is the determinant of
 //
@@ -82,7 +81,7 @@ sigmaB_G( struct halfspinor *H ,
   // temporaries
   struct halfspinor t1 , t2 ;
     
-  // initialise sigma.B into S1
+  // initialise sigma.B into t1
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
     t1.D[0][j] =  Fmunu.O[2][j] ;
@@ -182,14 +181,15 @@ term_C7( struct NRQCD_fields *F ,
     gradsq_imp( &res , F -> S , F -> Fmunu , i , t ) ;
     sigmaB_G( &F -> H[i] , F -> Fmunu[i] , res , fac ) ;
 
-    zero_halfspinor( &F -> S1[i] ) ;    
-    sigmaB_G( &F -> S1[i] , F -> Fmunu[i] , F -> S[i] , fac ) ;
+    // accumulate Sigma.B G into S2 with no factor!
+    zero_halfspinor( &F -> S1[i] ) ; 
+    sigmaB_G( &F -> S1[i] , F -> Fmunu[i] , F -> S[i] , 1.0 ) ;
   }
  
   // second term \grad^2 Sigma.B (G)
 #pragma omp for private(i)
   for ( i = 0  ; i < LCU ; i++ ) {
-    struct halfspinor res ;
+    struct halfspinor res ;    
     gradsq_imp( &res , F -> S1 , F -> Fmunu , i , t ) ;
     halfspinor_Saxpy( &F -> H[i] , res , fac ) ;
   }
@@ -216,13 +216,13 @@ term_C8( struct NRQCD_fields *F ,
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     struct halfspinor res ;
-    gradsq( &res , F -> S1 , i , t ) ;
+    gradsq_imp( &res , F -> S1 , F -> Fmunu , i , t ) ;
     halfspinor_Saxpy( &F -> H[i] , res , fac ) ;
   }
   // does \sigma.\grad.E \grad^2 G
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
-    gradsq( &F -> S1[i] , F -> S , i ,  t ) ;
+    gradsq_imp( &F -> S1[i] , F -> S , F -> Fmunu , i ,  t ) ;
   }
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
@@ -255,16 +255,15 @@ term_C9EB( struct halfspinor *H ,
   double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
   size_t j ;
   // x direction is F_13 F_23 - F_23 F_13
+  zero_halfspinor( &t1 ) ;
   multab( (void*)A , (void*)Fmunu[i].O[4] , (void*)Fmunu[i].O[5] ) ;
   multab( (void*)B , (void*)Fmunu[i].O[5] , (void*)Fmunu[i].O[4] ) ;
   multab( (void*)C , (void*)Fmunu[i].O[1] , (void*)Fmunu[i].O[2] ) ;
   multab( (void*)D , (void*)Fmunu[i].O[2] , (void*)Fmunu[i].O[1] ) ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    t1.D[1][j] = I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
-    t1.D[2][j] = t1.D[1][j] ;
+    t1.D[1][j] += ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+    t1.D[2][j] += ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
   }
-  halfspinor_multiply( &t2 , t1 , S[i] ) ;
-  halfspinor_Saxpy( H , t2 , fac ) ;
 
   // y direction is F_23 F_03 - F_03 F_23
   multab( (void*)A , (void*)Fmunu[i].O[5] , (void*)Fmunu[i].O[3] ) ;
@@ -272,11 +271,9 @@ term_C9EB( struct halfspinor *H ,
   multab( (void*)C , (void*)Fmunu[i].O[2] , (void*)Fmunu[i].O[0] ) ;
   multab( (void*)D , (void*)Fmunu[i].O[0] , (void*)Fmunu[i].O[2] ) ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    t1.D[1][j] =  ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
-    t1.D[2][j] = -( t1.D[1][j] ) ;
+    t1.D[1][j] += -I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+    t1.D[2][j] += +I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
   }
-  halfspinor_multiply( &t2 , t1 , S[i] ) ;
-  halfspinor_Saxpy( H , t2 , fac ) ;
     
   // z direction is F_03 F_13 - F_13 F_03
   multab( (void*)A , (void*)Fmunu[i].O[3] , (void*)Fmunu[i].O[4] ) ;
@@ -284,12 +281,12 @@ term_C9EB( struct halfspinor *H ,
   multab( (void*)C , (void*)Fmunu[i].O[0] , (void*)Fmunu[i].O[1] ) ;
   multab( (void*)D , (void*)Fmunu[i].O[1] , (void*)Fmunu[i].O[0] ) ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    t1.D[0][j] = I * ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
-    t1.D[3][j] = -t1.D[0][j] ;
+    t1.D[0][j] +=  ( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
+    t1.D[3][j] += -( ( A[j] + C[j] ) - ( B[j] + D[j] ) ) ;
   }
   // halfspinor multiply put into F -> S2
   halfspinor_multiply( &t2 , t1 , S[i] ) ;
-  halfspinor_Saxpy( H , t2 , fac ) ;
+  halfspinor_iSaxpy( H , t2 , fac ) ;
 
   return ;
 }

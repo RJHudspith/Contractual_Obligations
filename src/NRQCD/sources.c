@@ -7,7 +7,8 @@
 #include "geometry.h"
 #include "halfspinor_ops.h" // zero_halfspinor
 
-static double
+// computes exp(I p.x) -> usual Fourier factor
+static double complex
 eipx( const double twists[ ND ] ,
       const size_t i )
 {
