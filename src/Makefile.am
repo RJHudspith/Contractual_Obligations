@@ -23,7 +23,7 @@ GEOMFILES=./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 FIELDFILES=./FIELD/plaqs_links.c
 
 ## c files in ./IO/
-IOFILES=./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
+IOFILES=./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 	./IO/HIREP.c ./IO/io.c ./IO/input_reader.c \
 	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
 	./IO/input_pentas.c ./IO/input_tetras.c ./IO/input_VPF.c \

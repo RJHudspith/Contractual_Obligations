@@ -17,18 +17,18 @@ DFT_correlator( struct measurements *M ,
 
 {
   size_t idx ;
-#pragma omp for nowait private(idx) schedule(dynamic)
+#pragma omp for nowait private(idx)
   for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
     const size_t i = idx/stride2 ;
     const size_t j = idx%stride2 ;
     size_t p ;
-    register double complex pos = 0.0 , neg = 0.0 ;
+    register double complex pos = 0.0 ;
     for( p = 0 ; p < LCU ; p++ ) {
-      pos += M -> in[ j + stride2*i ][ p ] * M -> wall_mom[ p ] ;
-      neg += M -> in[ j + stride2*i ][ p ] * conj( M -> wall_mom[ p ] ) ;
+      pos +=
+	creal( M -> in[ idx ][ p ] ) * M -> wall_mom[ p ]
+	+ I * cimag( M -> in[ idx ][ p ] ) * M -> wall_mom[ p ] ;
     }
     M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = pos ;
-    M -> corr[ i ][ j ].mom[ 1 ].C[ tshifted ] = neg ;
   }
   return SUCCESS ;
 }
@@ -51,15 +51,15 @@ FFT_correlator( struct measurements *M ,
     const size_t j = idx%stride2 ;
     size_t p ;
     #ifdef HAVE_FFTW3_H
-    fftw_execute( fwd[ j + stride2*i ] ) ;
+    fftw_execute( fwd[ idx ] ) ;
     for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
       M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+	M -> out[ idx ][ M -> list[ p ].idx ] ;
     }
     #else
     register double complex sum = 0.0 ;
     for( p = 0 ; p < LCU ; p++ ) {
-      sum += M -> in[ j + stride2*i ][ p ] ;
+      sum += M -> in[ idx ][ p ] ;
     }
     M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
     #endif
@@ -109,7 +109,7 @@ compute_correlator( struct measurements *M ,
       size_t p ;
       for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
 	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	  M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
+	  M -> in[ idx ][ M -> list[ p ].idx ] ;
       }
     }
   } else if( M -> is_wall_mom == GLU_TRUE ) {

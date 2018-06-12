@@ -29,6 +29,58 @@
 
 ///////////////////// HIREP HEADER /////////////////////////////
 static int
+get_header_data_CERN( FILE *__restrict CONFIG ,
+		      struct head_data *__restrict HEAD_DATA ,
+		      const GLU_bool VERB )
+{
+  // sanity check
+  if( NC != 3 || ND != 4 ) {
+    fprintf( stderr , "[IO] CERN file type only supported for 4D SU(3)\n" ) ;
+    return FAILURE ;
+  }
+  HEAD_DATA -> config_type = OUTPUT_CERN ;
+
+  // so HiRep's output is ALWAYS big_endian and double precision
+  HEAD_DATA -> precision = DOUBLE_PREC ;
+  HEAD_DATA -> endianess = L_ENDIAN ;
+
+  // read the first bit - Navigation and such
+  int NAV[ ND ] ;
+  
+  if( !fread( NAV , ( ND ) * sizeof ( int ) , 1 , CONFIG ) ) {
+    fprintf( stderr , "[IO] Cannot understand CERN navigation details .."
+	     "Leaving\n" ) ;
+    return FAILURE ;
+  }
+  if ( WORDS_BIGENDIAN ) { bswap_32( ND , NAV ) ; } 
+  
+  // convert to my dimensions , they have the time dim first, I have it last
+  size_t mu ;
+  for( mu = 0 ; mu < ND - 1 ; mu++ ) {
+    Latt.dims[ mu ] = NAV[ mu + 1 ] ;
+  }
+  Latt.dims[ mu ] = NAV[0] ;
+
+  double plaq[1] ;
+  if( !fread( plaq , sizeof ( double ) , 1 , CONFIG ) ) {
+    fprintf( stderr , "[IO] Cannot understand CERN plaquette details .. "
+	     "Leaving\n" ) ;
+    return FAILURE ;
+  }
+  if ( WORDS_BIGENDIAN ) {
+    bswap_64( 1 , plaq ) ;
+  } 
+
+  HEAD_DATA -> plaquette = 0. ;
+  HEAD_DATA -> checksum = 0. ;
+  HEAD_DATA -> trace = 0. ;
+  HEAD_DATA -> plaquette = plaq[0]/NC ;
+
+  return SUCCESS ;
+}
+
+///////////////////// HIREP HEADER /////////////////////////////
+static int
 get_header_data_HIREP( FILE *__restrict CONFIG ,
 		       struct head_data *__restrict HEAD_DATA ,
 		       const GLU_bool VERB )
@@ -43,7 +95,7 @@ get_header_data_HIREP( FILE *__restrict CONFIG ,
   int NAV[ ND + 1 ] ;
   
   if( !fread( NAV , ( ND + 1 ) * sizeof ( int ) , 1 , CONFIG ) ) {
-    fprintf( stderr , "[IO] Cannot understand navigation details .."
+    fprintf( stderr , "[IO] Cannot understand HIREP navigation details .."
 	     "Leaving\n" ) ;
     return FAILURE ;
   }
@@ -71,7 +123,7 @@ get_header_data_HIREP( FILE *__restrict CONFIG ,
 
   double plaq[1] ;
   if( !fread( plaq , sizeof ( double ) , 1 , CONFIG ) ) {
-    fprintf( stderr , "[IO] Cannot understand plaquette details .. "
+    fprintf( stderr , "[IO] Cannot understand HIREP plaquette details .. "
 	     "Leaving\n" ) ;
     return FAILURE ;
   }
@@ -313,6 +365,8 @@ read_header( FILE *__restrict infile ,
 {
   // switch on the header type
   switch( Latt.head ) {
+  case CERN_HEADER :
+    return get_header_data_CERN( infile , HEAD_DATA , VERB ) ;
   case NERSC_HEADER :
     return get_header_data_NERSC( infile , HEAD_DATA , VERB ) ;
   case HIREP_HEADER :

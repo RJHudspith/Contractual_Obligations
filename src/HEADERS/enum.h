@@ -136,6 +136,7 @@ typedef enum
 typedef enum
   { 
     NO_OUTPUT ,
+    OUTPUT_CERN ,
     OUTPUT_SMALL ,  // logically the fewest number of params saved 
     OUTPUT_GAUGE ,  // NERSC's gauge , the top NC-1 rows and then complete
     OUTPUT_NCxNC ,  // the whole matrix, wasteful
@@ -149,7 +150,8 @@ typedef enum
    @brief enums for the available headers my code can read
  */
 typedef enum 
-  { UNSUPPORTED = FAILURE ,  
+  { UNSUPPORTED = FAILURE ,
+    CERN_HEADER ,
     NERSC_HEADER ,
     HIREP_HEADER ,
     MILC_HEADER ,

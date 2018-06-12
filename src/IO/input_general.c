@@ -94,6 +94,9 @@ header_type( const struct inputs *INPUT )
   if( are_equal( INPUT[header_idx].VALUE , "NERSC" ) ) {
     fprintf( stdout , "[IO] Attempting to read a NERSC file \n" ) ;
     return NERSC_HEADER ;
+  } else if( are_equal( INPUT[header_idx].VALUE , "CERN" ) ) {
+    fprintf( stdout , "[IO] Attempting to read a CERN file \n" ) ;
+    return CERN_HEADER ;
   } else if( are_equal( INPUT[header_idx].VALUE , "HIREP" ) ) {
     fprintf( stdout , "[IO] Attempting to read a HIREP file \n" ) ;
     fprintf( stdout , "[IO] Using sequence number from input file :: %zu \n" ,

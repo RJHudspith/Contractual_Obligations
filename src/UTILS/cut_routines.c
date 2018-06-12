@@ -423,19 +423,16 @@ wall_mom_veclist( int *list_size ,
 		  const double sum_mom[ ND-1 ] ,
 		  const int DIMS )
 {
-  struct veclist *list = calloc( 2 , sizeof( struct veclist ) ) ;
+  struct veclist *list = calloc( 1 , sizeof( struct veclist ) ) ;
   list[ 0 ].idx = 0 ;
-  list[ 1 ].idx = 1 ;
   size_t mu ;
   list[ 0 ].nsq = 0.0 ;
   // at the moment have this frankly disgusting cast to int
   for( mu = 0 ; mu < DIMS ; mu++ ) {
     list[ 0 ].MOM[ mu ] = ( sum_mom[mu] );
-    list[ 1 ].MOM[ mu ] = -list[ 0 ].MOM[ mu ] ;
     list[ 0 ].nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
   }
-  list[ 1 ].nsq = list[ 0 ].nsq ;
-  list_size[ 0 ] = 2 ;
+  list_size[ 0 ] = 1 ;
   return list ;
 }
 

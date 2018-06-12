@@ -223,6 +223,7 @@ gen_get_p( double p[ ND ] ,
   return ;
 }
 
+// usual fourier factor
 double complex
 get_eipx( const double p[ ND ] ,
 	  const size_t i ,
@@ -233,7 +234,6 @@ get_eipx( const double p[ ND ] ,
   int x[ ND ] ;
   get_mom_2piBZ( x , i , DIMS ) ;
   for( mu = 0 ; mu < DIMS ; mu++ ) {
-    x[mu] = x[mu] < (int)Latt.dims[mu]/2 ? x[mu] : x[mu] - (int)Latt.dims[mu] ;
     p_dot_x += Latt.twiddles[mu] * x[mu] * p[mu] ;
   }
   return cos( p_dot_x ) + I * sin( p_dot_x ) ;

@@ -19,11 +19,10 @@
 /**
    @file read_config.c 
    @brief gets the information about our configs from the header
-
-   @warning only HiRep and NERSC and MILC? supported atm.
  */
 #include "common.h"
 
+#include "CERN.h"          // read_CLS_field()
 #include "corr_malloc.h"   // align to the correct boundary
 #include "geometry.h"      // init_navig is here
 #include "GLU_timer.h"     // print_time()
@@ -122,7 +121,7 @@ check_sums( const double plaq ,
 	       chksum , HEAD_DATA.checksum ) ; 
       error ++ ; 
       // TOL is defined as 10^-6
-    }  if( fabs( plaq - HEAD_DATA.plaquette ) > PLAQ_AND_TRACE_TOL ) {
+    } if( fabs( plaq - HEAD_DATA.plaquette ) > PLAQ_AND_TRACE_TOL ) {
       fprintf( stderr , "\n[IO] Unequal Plaquettes Calc %f || Read %f \n\n" , 
 	       plaq , HEAD_DATA.plaquette ) ; 
       error ++ ; 
@@ -141,7 +140,14 @@ check_sums( const double plaq ,
 	       " this is a problem .. Leaving \n") ; 
       return FAILURE ;
     }
-  } 
+  } else if( Latt.head == CERN_HEADER ) {
+    fprintf( stderr , "[IO] Header Plaq :: %1.15f \n" , HEAD_DATA.plaquette ) ; 
+    if( fabs( plaq - HEAD_DATA.plaquette ) > PLAQ_AND_TRACE_TOL ) {
+      fprintf( stderr , "\n[IO] Unequal Plaquettes Calc %f || Read %f \n\n" , 
+	       plaq , HEAD_DATA.plaquette ) ;
+      return FAILURE ;
+    }
+  }
   fprintf( stdout , "[IO] Calculated Trace :: %1.15f  || Plaq :: %1.15f \n" , 
 	   tr , plaq ) ; 
   return SUCCESS ; // may only be partially successful but I am optimistic
@@ -164,7 +170,11 @@ get_config_SUNC( FILE *__restrict CONFIG ,
 		 struct site *__restrict lat ,
 		 const struct head_data HEAD_DATA )
 {
+  uint32_t chksum = 0.0 ;
   switch( Latt.head ) {
+  case CERN_HEADER :
+    read_CLS_field( lat , CONFIG , &chksum ) ;
+    return chksum ;
   case LIME_HEADER : // is the same but doesn't care about the checksums
   case ILDG_BQCD_HEADER : // basically all the same NERSC NCxNC
   case ILDG_SCIDAC_HEADER : // ILDG and SCIDAC
@@ -229,7 +239,7 @@ read_gauge_file( struct head_data *HEAD_DATA ,
 
   // malloc our gauge field and initialise our lattice geometry
   struct site *lat = NULL ;
-  if( corr_malloc( (void**)&lat , 16 , LVOLUME * sizeof ( struct site ) ) != 0 ) {
+  if( corr_malloc( (void**)&lat , ALIGNMENT , LVOLUME * sizeof ( struct site ) ) != 0 ) {
     fprintf( stderr , "[IO] Gauge field allocation failure ... Leaving \n" ) ;
     fclose( infile ) ;
     free( lat ) ;

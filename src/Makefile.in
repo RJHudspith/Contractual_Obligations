@@ -152,16 +152,16 @@ am__objects_2 = ./DIQUARKS/diquark.$(OBJEXT) \
 am__objects_3 = ./GEOM/gammas.$(OBJEXT) ./GEOM/geometry.$(OBJEXT) \
 	./GEOM/plan_ffts.$(OBJEXT)
 am__objects_4 = ./FIELD/plaqs_links.$(OBJEXT)
-am__objects_5 = ./IO/chklat_stuff.$(OBJEXT) ./IO/correlators.$(OBJEXT) \
-	./IO/cut_output.$(OBJEXT) ./IO/HIREP.$(OBJEXT) \
-	./IO/io.$(OBJEXT) ./IO/input_reader.$(OBJEXT) \
-	./IO/input_baryons.$(OBJEXT) ./IO/input_general.$(OBJEXT) \
-	./IO/input_mesons.$(OBJEXT) ./IO/input_pentas.$(OBJEXT) \
-	./IO/input_tetras.$(OBJEXT) ./IO/input_VPF.$(OBJEXT) \
-	./IO/input_WME.$(OBJEXT) ./IO/read_config.$(OBJEXT) \
-	./IO/read_headers.$(OBJEXT) ./IO/read_propheader.$(OBJEXT) \
-	./IO/readers.$(OBJEXT) ./IO/Scidac.$(OBJEXT) \
-	./IO/XML_info.$(OBJEXT)
+am__objects_5 = ./IO/CERN.$(OBJEXT) ./IO/chklat_stuff.$(OBJEXT) \
+	./IO/correlators.$(OBJEXT) ./IO/cut_output.$(OBJEXT) \
+	./IO/HIREP.$(OBJEXT) ./IO/io.$(OBJEXT) \
+	./IO/input_reader.$(OBJEXT) ./IO/input_baryons.$(OBJEXT) \
+	./IO/input_general.$(OBJEXT) ./IO/input_mesons.$(OBJEXT) \
+	./IO/input_pentas.$(OBJEXT) ./IO/input_tetras.$(OBJEXT) \
+	./IO/input_VPF.$(OBJEXT) ./IO/input_WME.$(OBJEXT) \
+	./IO/read_config.$(OBJEXT) ./IO/read_headers.$(OBJEXT) \
+	./IO/read_propheader.$(OBJEXT) ./IO/readers.$(OBJEXT) \
+	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT)
 am__objects_6 = ./LINALG/contractions.$(OBJEXT) \
 	./LINALG/contractions_SSE.$(OBJEXT) \
 	./LINALG/matrix_ops.$(OBJEXT) \
@@ -393,7 +393,7 @@ DIQUARKFILES = ./DIQUARKS/diquark.c ./DIQUARKS/diquark_degen.c \
 
 GEOMFILES = ./GEOM/gammas.c ./GEOM/geometry.c ./GEOM/plan_ffts.c
 FIELDFILES = ./FIELD/plaqs_links.c
-IOFILES = ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
+IOFILES = ./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 	./IO/HIREP.c ./IO/io.c ./IO/input_reader.c \
 	./IO/input_baryons.c ./IO/input_general.c ./IO/input_mesons.c \
 	./IO/input_pentas.c ./IO/input_tetras.c ./IO/input_VPF.c \
@@ -600,6 +600,7 @@ IO/$(am__dirstamp):
 IO/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ./IO/$(DEPDIR)
 	@: > IO/$(DEPDIR)/$(am__dirstamp)
+./IO/CERN.$(OBJEXT): IO/$(am__dirstamp) IO/$(DEPDIR)/$(am__dirstamp)
 ./IO/chklat_stuff.$(OBJEXT): IO/$(am__dirstamp) \
 	IO/$(DEPDIR)/$(am__dirstamp)
 ./IO/correlators.$(OBJEXT): IO/$(am__dirstamp) \
@@ -900,6 +901,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/gammas.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./GEOM/$(DEPDIR)/plan_ffts.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/CERN.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/HIREP.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/Scidac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./IO/$(DEPDIR)/XML_info.Po@am__quote@
