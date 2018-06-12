@@ -743,6 +743,7 @@ with_M_CHANNELS
 enable_notcondor
 enable_debug
 enable_NRQCD_NONSYM
+enable_LEGACY_NRQCD_COMPARE
 enable_OMP_FFTW
 with_fftw
 with_TETRA_NBLOCK
@@ -1391,6 +1392,7 @@ Optional Features:
  --enable-notcondor Allows for the saving of FFT plans and some simple hashing and whatever
  --enable-debug prints to stdout some general debugging information
  --enable-NRQCD_NONSYMM enables faster, non-symmetric in spin dependent terms in the NRQCD action
+ --enable-LEGACY_NRQCD_COMPARE when we compare to the legacy fortran code we need to turn this on due to a difference in the terms c2, c3, c7,and c8 in which we subtract the non-unitary terms but the old code does not
  --enable-OMP_FFTW Utilise FFTW's OpenMP parallel FFTs
 
 Optional Packages:
@@ -4993,6 +4995,22 @@ $as_echo "$as_me: Using non-symmetric spin-dependent NRQCD evolution" >&6;} ;;
 	no) { $as_echo "$as_me:${as_lineno-$LINENO}: Using symmetric NRQCD spin-correction terms" >&5
 $as_echo "$as_me: Using symmetric NRQCD spin-correction terms" >&6;} ;;
 	*) as_fn_error $? "bad value ${enableval} for --enable-NRQCD_NONSYM" "$LINENO" 5 ;;
+	esac
+fi
+
+
+## NRQCD symmetric or non-symmetric spin-dependent evolution
+# Check whether --enable-LEGACY_NRQCD_COMPARE was given.
+if test "${enable_LEGACY_NRQCD_COMPARE+set}" = set; then :
+  enableval=$enable_LEGACY_NRQCD_COMPARE; case "${enableval}" in
+	yes)
+$as_echo "#define LEGACY_NRQCD_COMPARE /**/" >>confdefs.h
+
+	     { $as_echo "$as_me:${as_lineno-$LINENO}: Using the same routines as the legacy NRQCD code" >&5
+$as_echo "$as_me: Using the same routines as the legacy NRQCD code" >&6;} ;;
+	no) { $as_echo "$as_me:${as_lineno-$LINENO}: Subtracting the non-unitary terms from improved derivative. This is slightly different from the legacy code." >&5
+$as_echo "$as_me: Subtracting the non-unitary terms from improved derivative. This is slightly different from the legacy code." >&6;} ;;
+	*) as_fn_error $? "bad value ${enableval} for --enable-LEGACY_NRQCD_COMPARE" "$LINENO" 5 ;;
 	esac
 fi
 

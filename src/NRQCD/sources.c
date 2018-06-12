@@ -7,23 +7,6 @@
 #include "geometry.h"
 #include "halfspinor_ops.h" // zero_halfspinor
 
-// computes exp(I p.x) -> usual Fourier factor
-static double complex
-eipx( const double twists[ ND ] ,
-      const size_t i )
-{
-  int x[ ND ] ;
-  get_mom_2piBZ( x , i , ND-1 ) ;
-  
-  register double p_dot_x = 0.0 ;
-  size_t mu ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    p_dot_x += x[mu] * twists[mu] * Latt.twiddles[mu] ;
-  }
-  
-  return cos( p_dot_x ) + I * sin( p_dot_x ) ;
-}
-
 // set propagator to IdentityxConstant
 static void
 set_prop_to_constant( struct halfspinor *S1 ,
@@ -76,7 +59,7 @@ initialise_source( struct halfspinor *S ,
       }
       break ;
     case WALL :
-      set_prop_to_constant( &S[ i ] , eipx( twists , i ) ) ;
+      set_prop_to_constant( &S[ i ] , get_eipx( twists , i , ND-1 ) ) ;
       break ;
     }
   }

@@ -13,6 +13,7 @@ void
 grad_imp_LCU( struct halfspinor *der ,
 	      const struct halfspinor *S ,
 	      const struct field *Fmunu ,
+	      const double U_0 ,
 	      const size_t t ,
 	      const size_t mu )
 {
@@ -44,8 +45,12 @@ grad_imp_LCU( struct halfspinor *der ,
 		 (void*)lat[ Ubck ].O[mu] ,
 		 (void*)S[ Sbck ].D[d] ) ;
       // computes der = -( der - A )/2
+      #ifdef LEGACY_NRQCD_COMPARE
+      colormatrix_Sa_xmy( der[i].D[d] , A , (7+1/(U_0*U_0))/12. ) ;
+      #else
       colormatrix_Sa_xmy( der[i].D[d] , A , 2./3. ) ;
-
+      #endif
+      
       // compute U(x)U(x+\mu)S(x+2\mu)
       multab( (void*)A ,
 	      (void*)Fmunu[i].O[6+2*mu] ,
@@ -67,6 +72,7 @@ void
 grad_imp_FMUNU( struct halfspinor *der ,
 		const struct halfspinor *S ,
 		const struct field *Fmunu ,
+		const double U_0 ,
 		const size_t i ,
 		const size_t t ,
 		const size_t mu ,
@@ -105,9 +111,13 @@ grad_imp_FMUNU( struct halfspinor *der ,
     multab( (void*)der -> D[d] , (void*)C , (void*)S[ Sfwd ].D[d] ) ;
     // computes A = U^\dagger (x-\mu ) S(x-\mu)
     multab( (void*)A , (void*)D , (void*)S[ Sbck ].D[d] ) ;
-    // computes der = -( der - A )/2
-    colormatrix_Sa_xmy( der -> D[d] , A , 2./3. ) ;
-
+    // computes der = ( der - A )/2
+    #ifdef LEGACY_NRQCD_COMPARE
+    colormatrix_Sa_xmy( der -> D[d] , A , ( 7 + 1/(U_0*U_0) )/12. ) ;
+    #else
+    colormatrix_Sa_xmy( der -> D[d] , A , 2/3. ) ;
+    #endif
+    
     // compute U(x)U(x+\mu)S(x+2\mu)
     multab( (void*)A , (void*)E , (void*)S[ Sfwd2 ].D[d] ) ;
     // compute U(x-mu)U(x-2mu)S(x-2\mu)
@@ -124,6 +134,7 @@ void
 FMUNU_grad_imp( struct halfspinor *der ,
 		const struct halfspinor *S ,
 		const struct field *Fmunu ,
+		const double U_0 ,
 		const size_t i ,
 		const size_t t ,
 		const size_t mu ,
@@ -149,7 +160,7 @@ FMUNU_grad_imp( struct halfspinor *der ,
   // it turns out a little faster to do this than call multabdag
   dagger_gauge( (void*)C , (void*)lat[ Ubck ].O[mu] ) ;
   dagger_gauge( (void*)D , (void*)Fmunu[i].O[7+2*mu] ) ;
-    
+
   size_t d ;
   for( d = 0 ; d < NS ; d++ ) {
     // computes der = U(x) S(x+\mu)
@@ -159,8 +170,12 @@ FMUNU_grad_imp( struct halfspinor *der ,
     // computes A = U^\dagger (x-\mu ) S(x-\mu)
     multab( (void*)A , (void*)C , (void*)S[ Sbck ].D[d] ) ;
     // computes res = 2/3. * ( res - A )
-    colormatrix_Sa_xmy( res.D[d] , A , 2./3. ) ;
-
+    #ifdef LEGACY_NRQCD_COMPARE
+    colormatrix_Sa_xmy( res.D[d] , A , ( 7 + 1/(U_0*U_0) )/12. ) ;
+    #else
+    colormatrix_Sa_xmy( res.D[d] , A , 2/3. ) ;
+    #endif
+ 
     // compute U(x)U(x+\mu)S(x+2\mu)
     multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] , (void*)S[ Sfwd2 ].D[d] ) ;
     // compute U(x-mu)U(x-2mu)S(x-2\mu)

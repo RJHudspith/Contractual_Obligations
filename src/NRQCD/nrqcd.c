@@ -55,6 +55,7 @@ is_fly_NRQCD( struct propagator *prop ,
   for( n = 0 ; n < nprops ; n++ ) {
     if( prop[n].basis == NREL_CORR ) {
       FLY_NREL = GLU_TRUE ;
+      #
       // allocate the heavy propagator
       if( corr_malloc( (void**)&prop[n].H ,
 		       ALIGNMENT ,

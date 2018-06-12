@@ -49,12 +49,6 @@ term_C1_C6( struct halfspinor *H ,
   struct halfspinor res ;
   grad_sqsq( &res , S , Fmunu , i , t ) ;
   halfspinor_Saxpy( H , res , fac ) ;
-
-  // unitarity correction factor
-  const double unicf = fac * ( 2 * (ND-1) *
-			       ( 1. - 1./(NRQCD.U0 * NRQCD.U0 ) ) ) ;
-  halfspinor_Saxpy( H , S[i] , unicf ) ;
-  
   
   return ;
 }
@@ -77,12 +71,12 @@ term_C2( struct halfspinor *H ,
   struct halfspinor res ;
   size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    // does \grad FMUNU G
-    grad_imp_FMUNU( &res , S , Fmunu , i , t , mu , ND-1+mu ) ;
-    halfspinor_iSaxpy( H , res , fac ) ;
-    // does FMUNU \grad G
-    FMUNU_grad_imp( &res , S , Fmunu , i , t , mu , ND-1+mu ) ;
-    halfspinor_iSaxpy( H , res , -fac ) ;
+    // does i \grad FMUNU G
+    grad_imp_FMUNU( &res , S , Fmunu , NRQCD.U0 , i , t , mu , ND-1+mu ) ;
+    halfspinor_iSaxpy( H , res , +fac ) ;
+    // does -i FMUNU \grad G
+    FMUNU_grad_imp( &res , S , Fmunu , NRQCD.U0 , i , t , mu , ND-1+mu ) ;
+    halfspinor_iSaxpy( H , res , -fac ) ; 
   }
 
   return ;
@@ -110,11 +104,6 @@ term_C5( struct halfspinor *H ,
     halfspinor_Saxpy( H , res , fac ) ;
   }
 
-  // another unitarity correction factor
-  const double unicf = fac * ( 2 * (ND-1) *
-			       ( 1. - 1./(NRQCD.U0 * NRQCD.U0) ) ) ;
-  halfspinor_Saxpy( H , S[i] , unicf ) ;
-  
   return ;
 }
 

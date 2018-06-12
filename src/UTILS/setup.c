@@ -103,91 +103,6 @@ init_moms( struct measurements *M ,
   return SUCCESS ;
 }
 
-// does a DFT with +/- M -> sum_mom
-int
-DFT_correlator( struct measurements *M ,
-		const size_t stride1 ,
-		const size_t stride2 ,
-		const size_t tshifted )
-
-{
-  size_t idx ;
-#pragma omp for nowait private(idx) schedule(dynamic)
-  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
-    const size_t i = idx/stride2 ;
-    const size_t j = idx%stride2 ;
-    size_t p ;
-    register double complex pos = 0.0 , neg = 0.0 ;
-    for( p = 0 ; p < LCU ; p++ ) {
-      pos += M -> in[ j + stride2*i ][ p ] * M -> wall_mom[ p ] ;
-      neg += M -> in[ j + stride2*i ][ p ] * conj( M -> wall_mom[ p ] ) ;
-    }
-    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = pos ;
-    M -> corr[ i ][ j ].mom[ 1 ].C[ tshifted ] = neg ;
-  }
-  return SUCCESS ;
-}
-
-// FFT using FFTW OR we just do the zero momentum sum
-int
-FFT_correlator( struct measurements *M ,
-		const size_t stride1 ,
-		const size_t stride2 ,
-		const size_t tshifted )
-{
-#ifdef HAVE_FFTW3_H
-  fftw_plan *fwd = (fftw_plan*)M -> forward ;
-#endif
-  // momentum projection
-  size_t idx ;
-#pragma omp for nowait private(idx) schedule(dynamic)
-  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
-    const size_t i = idx/stride2 ;
-    const size_t j = idx%stride2 ;
-    size_t p ;
-    #ifdef HAVE_FFTW3_H
-    fftw_execute( fwd[ j + stride2*i ] ) ;
-    for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-      M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
-    }
-    #else
-    register double complex sum = 0.0 ;
-    for( p = 0 ; p < LCU ; p++ ) {
-      sum += M -> in[ j + stride2*i ][ p ] ;
-    }
-    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
-    #endif
-  }
-  return SUCCESS ;
-}
-
-// compute the momentum-projected correlation function
-int
-compute_correlator( struct measurements *M , 
-		    const size_t stride1 , 
-		    const size_t stride2 ,
-		    const size_t tshifted )
-{
-  if( M -> configspace == GLU_TRUE ) {
-    size_t idx ;
-    #pragma omp for nowait private(idx) schedule(dynamic)
-    for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
-      const size_t i = idx/stride2 ;
-      const size_t j = idx%stride2 ;
-      size_t p ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
-	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
-	  M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
-      }
-    }
-  } else if( M -> is_wall_mom == GLU_TRUE ) {
-    DFT_correlator( M , stride1 , stride2 , tshifted ) ;
-  } else {
-    FFT_correlator( M , stride1 , stride2 , tshifted ) ;
-  }
-  return SUCCESS ;
-}
 
 // do a time-slice wide copy of our propagators
 void
@@ -373,13 +288,7 @@ init_measurements( struct measurements *M ,
       error_code = FAILURE ; goto end ;
     }
     for( i = 0 ; i < LCU ; i++ ) {
-      int x[ ND ] ;
-      get_mom_2piBZ( x , i , ND-1 ) ;
-      register double p_dot_x = 0.0 ;
-      for( mu = 0 ; mu < ND-1 ; mu++ ) {
-	p_dot_x += Latt.twiddles[mu] * M -> sum_mom[ mu ] * x[ mu ] ;
-      }
-      M -> wall_mom[i] = cos( p_dot_x ) + I * sin( p_dot_x ) ;
+      M -> wall_mom[i] = get_eipx( M -> sum_mom , i , ND-1 ) ;
     }
   }
 

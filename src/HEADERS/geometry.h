@@ -144,6 +144,15 @@ gen_get_p( double p[ ND ] ,
 	   const size_t DIMS ) ;
 
 /**
+   @fn double complex get_eipx( const double p[ ND ] , const size_t i , const size_t DIMS )
+   @brief usual fourier factor
+ */
+double complex
+get_eipx( const double p[ ND ] ,
+	  const size_t i ,
+	  const size_t DIMS ) ;
+
+/**
    @fn void get_vec_from_origin( int n[ ND ] , const int i , const size_t DIMS )
    @brief gives the vector from the lattice origin (0,0,0,0)
    @param n :: Fourier mode vector

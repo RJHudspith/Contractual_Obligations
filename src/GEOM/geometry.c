@@ -223,6 +223,22 @@ gen_get_p( double p[ ND ] ,
   return ;
 }
 
+double complex
+get_eipx( const double p[ ND ] ,
+	  const size_t i ,
+	  const size_t DIMS )
+{
+  register double p_dot_x = 0.0 ;
+  size_t mu ;
+  int x[ ND ] ;
+  get_mom_2piBZ( x , i , DIMS ) ;
+  for( mu = 0 ; mu < DIMS ; mu++ ) {
+    x[mu] = x[mu] < (int)Latt.dims[mu]/2 ? x[mu] : x[mu] - (int)Latt.dims[mu] ;
+    p_dot_x += Latt.twiddles[mu] * x[mu] * p[mu] ;
+  }
+  return cos( p_dot_x ) + I * sin( p_dot_x ) ;
+}
+
 //// CONFIG-SPACE routines ////
 
 // gives the lattice vector from the origin in x

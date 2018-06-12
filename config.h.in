@@ -60,6 +60,9 @@
 /* Compiled IO_NBLOCK */
 #undef IO_NBLOCK
 
+/* Switch for comparing to the legacy fortran code */
+#undef LEGACY_NRQCD_COMPARE
+
 /* Compiled for M_CHANNELS */
 #undef M_CHANNELS
 

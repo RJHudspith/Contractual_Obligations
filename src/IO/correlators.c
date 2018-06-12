@@ -8,6 +8,65 @@
 #include "correlators.h"  // so that I can alphabetise
 #include "cut_output.h"   // for write_mom_veclist
 
+// does a DFT with +/- M -> sum_mom
+static int
+DFT_correlator( struct measurements *M ,
+		const size_t stride1 ,
+		const size_t stride2 ,
+		const size_t tshifted )
+
+{
+  size_t idx ;
+#pragma omp for nowait private(idx) schedule(dynamic)
+  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+    const size_t i = idx/stride2 ;
+    const size_t j = idx%stride2 ;
+    size_t p ;
+    register double complex pos = 0.0 , neg = 0.0 ;
+    for( p = 0 ; p < LCU ; p++ ) {
+      pos += M -> in[ j + stride2*i ][ p ] * M -> wall_mom[ p ] ;
+      neg += M -> in[ j + stride2*i ][ p ] * conj( M -> wall_mom[ p ] ) ;
+    }
+    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = pos ;
+    M -> corr[ i ][ j ].mom[ 1 ].C[ tshifted ] = neg ;
+  }
+  return SUCCESS ;
+}
+
+// FFT using FFTW OR we just do the zero momentum sum
+static int
+FFT_correlator( struct measurements *M ,
+		const size_t stride1 ,
+		const size_t stride2 ,
+		const size_t tshifted )
+{
+#ifdef HAVE_FFTW3_H
+  fftw_plan *fwd = (fftw_plan*)M -> forward ;
+#endif
+  // momentum projection
+  size_t idx ;
+#pragma omp for nowait private(idx) schedule(dynamic)
+  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+    const size_t i = idx/stride2 ;
+    const size_t j = idx%stride2 ;
+    size_t p ;
+    #ifdef HAVE_FFTW3_H
+    fftw_execute( fwd[ j + stride2*i ] ) ;
+    for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+      M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	M -> out[ j + stride2*i ][ M -> list[ p ].idx ] ;
+    }
+    #else
+    register double complex sum = 0.0 ;
+    for( p = 0 ; p < LCU ; p++ ) {
+      sum += M -> in[ j + stride2*i ][ p ] ;
+    }
+    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = sum ;
+    #endif
+  }
+  return SUCCESS ;
+}
+
 // allocation of dispersion relation correlation function
 struct mcorr **
 allocate_momcorrs( const size_t length1 , 
@@ -32,6 +91,33 @@ allocate_momcorrs( const size_t length1 ,
     }
   }
   return mcorr ;
+}
+
+// compute the momentum-projected correlation function
+int
+compute_correlator( struct measurements *M , 
+		    const size_t stride1 , 
+		    const size_t stride2 ,
+		    const size_t tshifted )
+{
+  if( M -> configspace == GLU_TRUE ) {
+    size_t idx ;
+    #pragma omp for nowait private(idx) schedule(dynamic)
+    for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
+      const size_t i = idx/stride2 ;
+      const size_t j = idx%stride2 ;
+      size_t p ;
+      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
+	  M -> in[ j + stride2*i ][ M -> list[ p ].idx ] ;
+      }
+    }
+  } else if( M -> is_wall_mom == GLU_TRUE ) {
+    DFT_correlator( M , stride1 , stride2 , tshifted ) ;
+  } else {
+    FFT_correlator( M , stride1 , stride2 , tshifted ) ;
+  }
+  return SUCCESS ;
 }
 
 // momcorr freer

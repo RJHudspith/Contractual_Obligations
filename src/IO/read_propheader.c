@@ -328,6 +328,18 @@ summarize_NRQCD_params( struct NRQCD_params NRQCD )
   } else {
     fprintf( stdout , "[IO] NRQCD forward propagator\n" ) ;
   }
+#ifdef NRQCD_NONSYM
+  fprintf( stdout , "[IO] NRQCD single application of spin-dependent part\n" ) ;
+#else
+  fprintf( stdout , "[IO] NRQCD symmetric spin-dependent application\n" ) ;
+#endif
+#ifdef LEGACY_NRQCD_COMPARE
+  fprintf( stdout , "[IO] NRQCD *NOT* subtracting tadpole terms from"
+	   " improved derivatives\n" ) ;
+#else
+  fprintf( stdout , "[IO] NRQCD subtracting tadpole terms from"
+	   " improved derivatives\n" ) ;
+#endif
   fprintf( stdout , "[IO] NRQCD coefficient C0 %f\n" , NRQCD.C0 ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C1 %f\n" , NRQCD.C1 ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C2 %f\n" , NRQCD.C2 ) ;

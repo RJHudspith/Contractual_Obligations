@@ -132,7 +132,7 @@ gradsq_imp( struct halfspinor *der ,
       add_mat( (void*)B , (void*)A ) ;
       constant_mul_gauge( A , 4./3. , B ) ;
       add_mat( (void*)der -> D[d] , (void*)A ) ;
-      // DER = DER - 6 F -> S[i].D[d]
+      // DER = DER - -5/2. F -> S[i].D[d]
       colormatrix_Saxpy( der -> D[d] , S[i].D[d] , -5./2. ) ;
       
       // the extra terms two steps away!

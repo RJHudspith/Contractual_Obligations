@@ -35,9 +35,8 @@ write_mom_veclist( FILE *Ap ,
 		   const struct veclist *list ,
 		   const int DIR )
 {
-  const int stride = ( DIR + 1 ) * num_mom[ 0 ] ;
-  fwrite( num_mom , sizeof(int) , 1 , Ap ) ;
   size_t i ;
+  fwrite( num_mom , sizeof(int) , 1 , Ap ) ;
   for( i = 0 ; i < num_mom[0] ; i++ ) {
     fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
     fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;

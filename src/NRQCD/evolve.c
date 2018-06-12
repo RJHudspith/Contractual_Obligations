@@ -45,7 +45,7 @@ evolve_H( struct NRQCD_fields *F ,
     zero_halfspinor( &F -> H[i] ) ;
 
     // inner mu sum much more cache friendly
-    for( mu = 0 ; mu < 3 ; mu++ ) {
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
       
       const size_t Sfwd = lat[ i ].neighbor[mu] ;
       const size_t Sbck = lat[ i ].back[mu] ;
@@ -184,7 +184,10 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
 		const GLU_bool fuse_dH )
-{  
+{
+  // forward time
+  const size_t tfwd = (t+LT+1)%Latt.dims[ND-1] ;
+  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
 
@@ -209,17 +212,14 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
     F -> S[i] = res ;
   }
 
-  // evolve again
-  const size_t tfwd = (t+1)%Latt.dims[ND-1] ;
-
   // update the clovers
-  compute_clovers( F , lat , tfwd , 1./NRQCD.U0 ) ;
+  compute_clovers( F , lat , tfwd , NRQCD.U0 ) ;
   
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , tfwd , NRQCD ) ;
   }
 
-#ifndef NRQCD_NONSYMM
+#ifndef NRQCD_NONSYM
   // finally evolve the spin-dependent terms a little bit
   if( fuse_dH == GLU_TRUE ) {
     evolve_dH_fused( F , tfwd , NRQCD ) ;
@@ -271,14 +271,14 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   const size_t tbck = (t+LT-1)%LT ;
   
   // update the clovers
-  compute_clovers( F , lat , tbck , 1./NRQCD.U0 ) ;
+  compute_clovers( F , lat , tbck , NRQCD.U0 ) ;
 
   // evolve again
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , tbck , NRQCD_flipped ) ;
   }
 
-#ifndef NRQCD_NONSYMM
+#ifndef NRQCD_NONSYM
   // finally evolve the spin-dependent terms a little bit
   if( fuse_dH == GLU_TRUE ) {
     evolve_dH_fused( F , tbck , NRQCD_flipped ) ;

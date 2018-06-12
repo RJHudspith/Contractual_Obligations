@@ -147,6 +147,16 @@ AC_ARG_ENABLE([NRQCD_NONSYM],
 	*) AC_MSG_ERROR([bad value ${enableval} for --enable-NRQCD_NONSYM]) ;;
 	esac],[])
 
+## NRQCD symmetric or non-symmetric spin-dependent evolution
+AC_ARG_ENABLE([LEGACY_NRQCD_COMPARE],
+	[ --enable-LEGACY_NRQCD_COMPARE when we compare to the legacy fortran code we need to turn this on due to a difference in the terms c2, c3, c7,and c8 in which we subtract the non-unitary terms but the old code does not],
+	[case "${enableval}" in
+	yes) AC_DEFINE([LEGACY_NRQCD_COMPARE],,[Switch for comparing to the legacy fortran code])
+	     AC_MSG_NOTICE([Using the same routines as the legacy NRQCD code]) ;;	
+	no) AC_MSG_NOTICE([Subtracting the non-unitary terms from improved derivative. This is slightly different from the legacy code.]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-LEGACY_NRQCD_COMPARE]) ;;
+	esac],[])
+
 ## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
 ######################################### FFTW3 ###############################################
 ##                                                                                           ##

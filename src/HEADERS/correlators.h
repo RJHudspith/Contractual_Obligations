@@ -1,6 +1,6 @@
 /**
    @file correlators.h
-   @brief correlator IO and storage types prototype functions
+   @brief correlator computation, IO, and storage types prototype functions
  */
 #ifndef CORRELATORS_H
 #define CORRELATORS_H
@@ -15,6 +15,16 @@ allocate_momcorrs( const size_t length1 ,
 		   const size_t nmom ) ;
 
 /**
+   @fn int compute_correlator( struct measurements *M , const size_t stride1 , const size_t stride2 , const size_t tshifted )
+   @brief compute the momentum-projected correlation function in @M.corr
+ */
+int
+compute_correlator( struct measurements *M , 
+		    const size_t stride1 , 
+		    const size_t stride2 ,
+		    const size_t tshifted ) ;
+
+/**
    @fn void free_momcorrs( struct mcorr **mcorr , const size_t length1 , const size_t length2 , const size_t nmom )
    @brief free the allocated mcorr struct
  */
@@ -23,22 +33,6 @@ free_momcorrs( struct mcorr **mcorr ,
 	       const size_t length1 ,
 	       const size_t length2 ,
 	       const size_t nmom ) ;
-
-/**
-   @fn void debug_mesons( const char *message , const struct mcorr **corr )
-   @brief print to stdout some correlator information
- */
-void
-debug_mesons( const char *message , 
-	      const struct mcorr **corr ) ;
-
-/**
-   @fn void debug_baryons( const char *message , const struct mcorr **corr )
-   @brief print to stdout some (baryon) correlator information
- */
-void
-debug_baryons( const char *message , 
-	       const struct mcorr **corr ) ;
 
 /**
    @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const size_t NSRC , const size_t NSNK , const int *nmom , const char *type )
