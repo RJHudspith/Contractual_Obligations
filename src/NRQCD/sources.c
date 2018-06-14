@@ -12,7 +12,7 @@ static void
 set_prop_to_constant( struct halfspinor *S1 ,
 		      const double complex C )
 {
-#if NS==4 && NC==3
+#if (NS==4) && (NC==3)
   S1 -> D[0][0] = C ;
   S1 -> D[0][4] = C ;
   S1 -> D[0][8] = C ;

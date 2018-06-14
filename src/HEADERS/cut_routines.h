@@ -88,4 +88,9 @@ wall_mom_veclist( int *list_size ,
 		  const double sum_mom[ ND-1 ] ,
 		  const int DIMS ) ;
 
+struct veclist*
+DFT_mom_veclist( int *list_size ,
+		 const struct cut_info CUTINFO ,
+		 const int DIMS ) ;
+
 #endif

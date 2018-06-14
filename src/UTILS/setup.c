@@ -77,7 +77,11 @@ init_moms( struct measurements *M ,
   }
   
   // if we are doing the Wall momentum DFT we allocate list differently
-  if( M -> is_wall_mom ) {
+  if( M -> is_dft ) {
+    M -> list = (struct veclist*)DFT_mom_veclist( M -> nmom ,
+						  CUTINFO ,
+						  ND-1 ) ;
+  } else if( M -> is_wall_mom ) {
     M -> list = (struct veclist*)wall_mom_veclist( M -> nmom ,
 						   M -> sum_mom ,
 						   ND-1 ) ;
@@ -138,6 +142,15 @@ free_measurements( struct measurements *M ,
   // free our ffts
   free_ffts( M->in , M->out , M->forward , M->backward , flat_dirac ) ;
 
+  // free the wall momentum list
+  if( M -> dft_mom != NULL ) {
+    size_t p ;
+    for( p = 0 ; p < M -> nmom[0] ; p++ ) {
+      free( M -> dft_mom[p] ) ;
+    }
+    free( M -> dft_mom ) ;
+  }
+
   // free momenta lists
   if( M-> nmom != NULL ) {
     free( M->nmom ) ; 
@@ -170,11 +183,6 @@ free_measurements( struct measurements *M ,
     free( M -> SUM ) ;
   }
 
-  // free the wall momentum list
-  if( M -> wall_mom != NULL ) {
-    free( M -> wall_mom ) ;
-  }
-
   return ;
 }
 
@@ -201,9 +209,10 @@ init_measurements( struct measurements *M ,
   M -> forward = NULL ; M -> backward = NULL ;
   M -> S = NULL ; M -> Sf = NULL ;
   M -> SUM = NULL ;
-  M -> wall_mom = NULL ;
+  M -> dft_mom = NULL ;
   M -> is_wall = GLU_FALSE ;
   M -> is_wall_mom = GLU_FALSE ;
+  M -> is_dft = GLU_FALSE ;
   
   // allocate S and Sf the forwards prop
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
@@ -227,22 +236,21 @@ init_measurements( struct measurements *M ,
       break ;
     }
   }
+
+  // if we are doing the DFT rather than calling FFTW
+  if( CUTINFO.Nalphas > 0 ) {
+    M -> is_dft = GLU_TRUE ;
+  }
   
 #ifdef HAVE_FFTW3_H
 
   // fftw aligns these
   M -> in  = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
-  M -> out = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
-
-  // create the fftw plans
-  M -> forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
-  M -> backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
 
   // allocate FFTW storage
-  #pragma omp parallel for private(i)
+#pragma omp parallel for private(i)
   for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
     M -> in[ i ]  = fftw_malloc( LCU * sizeof( double complex ) ) ; 
-    M -> out[ i ] = fftw_malloc( LCU * sizeof( double complex ) ) ; 
     // zero the "in" vector just in case
     size_t j ;
     for( j = 0 ; j < LCU ; j++ ) {
@@ -250,9 +258,24 @@ init_measurements( struct measurements *M ,
     }
   }
 
-  // create spatial volume fftw plans
-  create_plans_DFT( M -> forward , M -> backward , 
-		    M -> in , M -> out , flat_dirac , ND-1 ) ;
+  if( M -> is_dft != GLU_TRUE && M -> is_wall_mom != GLU_TRUE ) {
+    M -> out = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
+
+    // create the fftw plans
+    M -> forward  = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ; 
+    M -> backward = ( fftw_plan* )malloc( flat_dirac * sizeof( fftw_plan ) ) ;
+
+    // allocate FFTW storage
+    #pragma omp parallel for private(i)
+    for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
+      M -> out[ i ] = fftw_malloc( LCU * sizeof( double complex ) ) ; 
+    }
+    
+    // create spatial volume fftw plans
+    create_plans_DFT( M -> forward , M -> backward ,
+		      M -> in , M -> out , flat_dirac , ND-1 ) ;
+  }
+  
 #else
 
   // allocate fftw stuff
@@ -262,13 +285,13 @@ init_measurements( struct measurements *M ,
   }
 
 #endif
-
+  
   // allocate the wall sums
   if( M -> is_wall == GLU_TRUE ) {
     M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
   }
 
-  // sum the momenta
+  // sum the momenta?
   size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
     M -> sum_mom[ mu ] = 0.0 ;
@@ -282,16 +305,6 @@ init_measurements( struct measurements *M ,
     }
   }
 
-  // allocate and precompute momentum factors
-  if( M -> is_wall_mom == GLU_TRUE ) {
-    if( corr_malloc( (void**)&M -> wall_mom  , ALIGNMENT , LCU * sizeof( double complex ) ) != 0 ) {
-      error_code = FAILURE ; goto end ;
-    }
-    for( i = 0 ; i < LCU ; i++ ) {
-      M -> wall_mom[i] = get_eipx( M -> sum_mom , i , ND-1 ) ;
-    }
-  }
-
   // initialise momentum lists
   if( init_moms( M , CUTINFO ) == FAILURE ) {
     error_code = FAILURE ; goto end ;
@@ -301,6 +314,26 @@ init_measurements( struct measurements *M ,
   M -> corr = allocate_momcorrs( stride1 , stride2 , M -> nmom[0] ) ;
   if( M -> is_wall == GLU_TRUE ) {
     M -> wwcorr = allocate_momcorrs( stride1 , stride2 , M -> wwnmom[0] ) ;
+  }
+
+  // allocate and precompute momentum factors
+  if( M -> is_wall_mom == GLU_TRUE || M -> is_dft == GLU_TRUE ) {
+    size_t p ;
+    if( corr_malloc( (void**)&M -> dft_mom  , ALIGNMENT ,
+		     M -> nmom[0] * sizeof( double complex* ) ) != 0 ) {
+      error_code = FAILURE ; goto end ;
+    }
+    for( p = 0 ; p < M -> nmom[0] ; p++ ) {
+      if( corr_malloc( (void**)&M -> dft_mom[p]  , ALIGNMENT ,
+		       LCU * sizeof( double complex ) ) != 0 ) {
+	error_code = FAILURE ;
+      }
+      size_t site ;
+      for( site = 0 ; site < LCU ; site++ ) {
+	M -> dft_mom[p][site] = get_eipx( M -> list[p].MOM , site , ND-1 ) ;
+      }
+    }
+    if( error_code == FAILURE ) goto end ;
   }
 
   // precompute the gamma basis

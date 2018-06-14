@@ -8,6 +8,10 @@
 #include "correlators.h"  // so that I can alphabetise
 #include "cut_output.h"   // for write_mom_veclist
 
+#ifdef HAVE_IMMINTRIN_H
+  #include "SSE2_OPS.h"
+#endif
+
 // does a DFT with +/- M -> sum_mom
 static int
 DFT_correlator( struct measurements *M ,
@@ -17,18 +21,34 @@ DFT_correlator( struct measurements *M ,
 
 {
   size_t idx ;
-#pragma omp for nowait private(idx)
-  for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
-    const size_t i = idx/stride2 ;
-    const size_t j = idx%stride2 ;
-    size_t p ;
-    register double complex pos = 0.0 ;
-    for( p = 0 ; p < LCU ; p++ ) {
-      pos +=
-	creal( M -> in[ idx ][ p ] ) * M -> wall_mom[ p ]
-	+ I * cimag( M -> in[ idx ][ p ] ) * M -> wall_mom[ p ] ;
+#pragma omp for nowait private(idx) schedule(dynamic)
+  for( idx = 0 ; idx < stride1*stride2*M->nmom[0] ; idx++ ) {
+    
+    const size_t gidx = idx%(stride1*stride2) ;
+    const size_t p = idx/(stride1*stride2) ;
+    const size_t i = gidx/stride2 ;
+    const size_t j = gidx%stride2 ;
+    size_t site ;
+    
+    #ifdef HAVE_IMMINTRIN_H
+    const __m128d *in = (const __m128d*)M -> in[ gidx ] ;
+    const __m128d *eipx = (const __m128d*)M -> dft_mom[ p ] ;
+    register __m128d s = _mm_setzero_pd() ;
+    for( site = 0 ; site < LCU ; site++ ) {
+      s = _mm_add_pd( s , SSE2_MUL( *in , *eipx ) ) ;
+      in++ ; eipx++ ;
     }
-    M -> corr[ i ][ j ].mom[ 0 ].C[ tshifted ] = pos ;
+    // cast into void
+    double complex sum = 0.0 ;
+    _mm_store_pd( (void*)&sum , s ) ;
+    #else
+    register double complex sum = 0.0 ;
+    for( site = 0 ; site < LCU ; site++ ) {
+      sum +=
+	M -> in[ gidx ][ site ] * M -> dft_mom[ p ][ site ] ;
+    }
+    #endif
+    M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] = sum ;
   }
   return SUCCESS ;
 }
@@ -45,7 +65,7 @@ FFT_correlator( struct measurements *M ,
 #endif
   // momentum projection
   size_t idx ;
-#pragma omp for nowait private(idx) schedule(dynamic)
+#pragma omp for private(idx) schedule(dynamic)
   for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
     const size_t i = idx/stride2 ;
     const size_t j = idx%stride2 ;
@@ -112,7 +132,8 @@ compute_correlator( struct measurements *M ,
 	  M -> in[ idx ][ M -> list[ p ].idx ] ;
       }
     }
-  } else if( M -> is_wall_mom == GLU_TRUE ) {
+  } else if( M -> is_wall_mom == GLU_TRUE ||
+	     M -> is_dft == GLU_TRUE ) {
     DFT_correlator( M , stride1 , stride2 , tshifted ) ;
   } else {
     FFT_correlator( M , stride1 , stride2 , tshifted ) ;

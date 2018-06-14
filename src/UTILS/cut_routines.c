@@ -59,6 +59,26 @@ enum{ DO_NOT_ADD , ADD_TO_LIST } list_creation ;
  */
 enum{ MOMENTUM_CONFIG , NO_MOMENTUM_CONFIG } momenta_saved ;
 
+// typical distinct permutation vectors for the DFT
+static const int perms_zerz[ 4 ][ 3 ] = { { +1 , +1 , +1 } ,
+					  { +1 , +1 , -1 } ,
+					  { +1 , -1 , +1 } ,
+					  { +1 , -1 , -1 } } ;
+// permutations where there is a single zero in prototype
+static const int perms_onez[ 6 ][ 3 ] = { { +1 ,  0 , +1 } ,
+					  { +1 , +1 ,  0 } ,
+					  {  0 , +1 , +1 } ,
+					  { +1 ,  0 , -1 } ,
+					  { +1 , -1 ,  0 } ,
+					  {  0 , +1 , -1 } } ;
+// permutations where there are two zeros in prototype
+static const int perms_twoz[ 3 ][ 3 ] = { { +1 ,  0 ,  0 } ,
+					  {  0 , +1 ,  0 } ,
+					  {  0 ,  0 , +1 } } ;
+// permutations where it is all zero is clearly just zero
+static const int perms_thrz[ 1 ][ 3 ] = { {  0 ,  0 ,  0 } } ;
+
+
 // calculate similar orbits i.e measure anisotropy
 void
 simorb_ratios( const int DIMS ,
@@ -417,19 +437,72 @@ compute_veclist( int *list_size ,
   return list ;
 }
 
-// passes a two element (+/- p) veclist
+// 
+struct veclist*
+DFT_mom_veclist( int *list_size ,
+		 const struct cut_info CUTINFO ,
+		 const int DIMS )
+{
+  // count the number of zeros in proto_mom
+  size_t Nzeros = 0 ;
+  size_t p , mu ;
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+    if( fabs( CUTINFO.proto_mom[mu] ) < NRQCD_TOL ) {
+      Nzeros++ ;
+    }
+  }
+
+  size_t Nperm = 1 ;
+  switch( Nzeros ) {
+    case 0 : Nperm = 4 ; break ;
+    case 1 : Nperm = 6 ; break ;
+    case 2 : Nperm = 3 ; break ;
+    case 3 : Nperm = 1 ; break ;
+  default : Nperm = 1 ; break ;
+  }
+  
+  const size_t Ntot = Nperm * CUTINFO.Nalphas ;
+  // this is the list of independent momenta: note that it is
+  // half what you would expect due to explicit p,-p symmetry
+
+  struct veclist *list = calloc( Ntot , sizeof( struct veclist ) ) ;
+  size_t theta ;
+  for( theta = 0 ; theta < CUTINFO.Nalphas ; theta++ ) {
+    for( p = 0 ; p < Nperm ; p++ ) {
+      const size_t idx = p + Nperm*theta ;
+      list[idx].idx = idx ;
+      list[idx].nsq = 0.0 ;
+      int loc_perms[ ND-1 ] ;
+      switch( Nzeros ) {
+      case 0 : memcpy( loc_perms , perms_zerz[p] , (ND-1)*sizeof(int) ) ; break ;
+      case 1 : memcpy( loc_perms , perms_onez[p] , (ND-1)*sizeof(int) ) ; break ;
+      case 2 : memcpy( loc_perms , perms_twoz[p] , (ND-1)*sizeof(int) ) ; break ;
+      case 3 : memcpy( loc_perms , perms_thrz[p] , (ND-1)*sizeof(int) ) ; break ;
+      default :
+	memcpy( loc_perms , perms_thrz[p] , (ND-1)*sizeof(int) ) ; break ;
+      }
+      for( mu = 0 ; mu < DIMS ; mu++ ) {
+	list[idx].MOM[ mu ] = ( loc_perms[mu] * CUTINFO.thetas[theta] ) ;
+	list[idx].nsq += list[idx].MOM[mu] * list[idx].MOM[mu] ;
+      }
+    }
+  }
+  list_size[ 0 ] = Ntot ;
+  return list ;
+}
+
+// single wall-momentum
 struct veclist*
 wall_mom_veclist( int *list_size ,
 		  const double sum_mom[ ND-1 ] ,
 		  const int DIMS )
 {
   struct veclist *list = calloc( 1 , sizeof( struct veclist ) ) ;
-  list[ 0 ].idx = 0 ;
   size_t mu ;
+  list[ 0 ].idx = 0 ;
   list[ 0 ].nsq = 0.0 ;
-  // at the moment have this frankly disgusting cast to int
   for( mu = 0 ; mu < DIMS ; mu++ ) {
-    list[ 0 ].MOM[ mu ] = ( sum_mom[mu] );
+    list[ 0 ].MOM[ mu ] = ( sum_mom[mu] ) ;
     list[ 0 ].nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
   }
   list_size[ 0 ] = 1 ;

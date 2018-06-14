@@ -70,6 +70,9 @@ struct cut_info{
   double cyl_width ; // cylinder with
   GLU_bool configspace ; // are we doing configuration space analysis
   size_t max_r2 ; // maximum r^2 we will sum to
+  double proto_mom[ ND-1 ] ;
+  double thetas[ 16 ] ;
+  size_t Nalphas ;
 } ;
 
 /**
@@ -183,7 +186,8 @@ struct measurements {
   GLU_bool configspace ;
   double sum_mom[ ND-1 ] ;
   GLU_bool is_wall_mom ;
-  double complex *wall_mom ;
+  double complex **dft_mom ;
+  GLU_bool is_dft ;
 } ;
 
 /**

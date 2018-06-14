@@ -27,6 +27,36 @@ confno( const struct inputs *INPUT )
   return num ;
 }
 
+// get the DFT information
+static int
+get_DFT( double *proto_mom ,
+	 double *thetas ,
+	 size_t *nalphas ,
+	 const struct inputs *INPUT )
+{
+  errno = 0 ;
+  char *token , *endptr , str[ 32 ] ;
+  const int dft_idx = tag_search( "DFT" ) ;
+  if( dft_idx == FAILURE ) { 
+    return tag_failure( str ) ; 
+  }
+  token = strtok( (char*)INPUT[dft_idx].VALUE , "," ) ;
+  size_t mu = 0 ;
+  proto_mom[ mu ] = strtod( token , &endptr ) ;
+  mu++ ;
+  while( ( token = strtok( NULL , "," ) ) != NULL ) {
+    if( mu < ND-1 ) {
+      proto_mom[ mu ] = strtod( token , &endptr ) ;
+    } else {
+      thetas[ mu - (ND-1) ] = strtod( token , &endptr ) ;
+    }
+    mu++ ;
+  }
+  *nalphas = mu - (ND-1);
+  printf( "[IO] Nalphas %zu \n" , *nalphas ) ;
+  return SUCCESS ;
+}
+
 // get the lattice dimensions from the input_file
 int
 get_dims( size_t *dims , 
@@ -176,6 +206,16 @@ read_cuts_struct( struct cut_info *CUTINFO ,
     fprintf( stderr , "[IO] non-sensical cylinder width %f \n" , 
 	     CUTINFO -> cyl_width ) ;
     return FAILURE ;
+  }
+  // DFT information
+  if( get_DFT( CUTINFO -> proto_mom , CUTINFO -> thetas ,
+	       &CUTINFO -> Nalphas , INPUT ) == FAILURE ) {
+    fprintf( stdout , "[IO] Not performing DFT\n" ) ;
+    CUTINFO -> Nalphas = 0 ;
+    size_t mu ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      CUTINFO -> proto_mom[mu] = 0.0 ;
+    }
   }
   // config space
   const int cspace_idx = tag_search( "CONFIGSPACE" ) ;
