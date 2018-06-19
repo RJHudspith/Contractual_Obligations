@@ -5,6 +5,7 @@
 #include "common.h"
 
 #include "clover.h"           // O(a^2) improved clover
+#include "geometry.h"
 #include "GLU_timer.h"        // tells us how long it takes
 #include "halfspinor_ops.h"   // halfspinor_Saxpy
 #include "matrix_ops.h"       // colormatrix_*
@@ -292,15 +293,25 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 
 // tadpole improvement of the gauge field
 static void
-tadpole_improve( const double tadpole )
+tadpole_improve( const double *twists ,
+		 const double tadpole )
 {
   size_t i ;
 #pragma omp for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    double complex *p = (double complex*)lat[i].O ;
-    size_t j ;
-    for( j = 0 ; j < ND*NCNC ; j++ ) {
-      *p *= tadpole ; p++ ;
+    int x[ ND ] ;
+    get_mom_2piBZ( x , i , ND-1 ) ;
+    size_t j , mu ;
+    for( mu = 0 ; mu < ND ; mu++ ) {
+
+      // phase is exp( I * PI * theta_\mu / Latt.dims[mu] )
+      const double complex phase =
+	cos( x[mu]*twists[mu]*TWOPI/(Latt.dims[mu]) ) -
+	I*sin( x[mu]*twists[mu]*TWOPI/(Latt.dims[mu]) ) ;
+
+      for( j = 0 ; j < NCNC ; j++ ) {
+        lat[i].O[mu][j] *= tadpole * phase ;
+      }
     }
   }
   return ;
@@ -315,13 +326,14 @@ compute_props( struct propagator *prop ,
 	       const size_t nprops ,
 	       const double tadref )
 {
-  // do the tadpole improvement on the gauge field
-  tadpole_improve( 1./tadref ) ;
-
   size_t i , n ;
+
   // loop N props this far out as we might want to have different source
   // positions
   for( n = 0 ; n < nprops ; n++ ) {
+
+    // do the tadpole improvement on the gauge field
+    tadpole_improve( prop[n].twist , 1./tadref ) ;
 
     if( prop[n].basis != NREL_CORR ) continue ;
 
@@ -337,10 +349,7 @@ compute_props( struct propagator *prop ,
     }
 
     // set up the source into F -> S
-    initialise_source( F -> S ,
-		       prop[n].source ,
-		       prop[n].twists ,
-		       prop[n].origin ) ;
+    initialise_source( F -> S , prop[n] ) ;
 
     // do a copy in here
     #pragma omp for nowait private(i)
@@ -389,11 +398,16 @@ compute_props( struct propagator *prop ,
       {
 	progress_bar( t , LT-1 ) ;
       }
+
     }
+
+    // tadpole unimprove & untwist the gauge field
+    const double untwist[ ND ] = { -prop[n].twist[0] ,
+				   -prop[n].twist[1] ,
+				   -prop[n].twist[2] ,
+				   -prop[n].twist[3] } ;
+    tadpole_improve( untwist , tadref ) ;
   }
-    
-  // tadpole unimprove the gauge field
-  tadpole_improve( tadref ) ;
- 
+
   return ;
 }

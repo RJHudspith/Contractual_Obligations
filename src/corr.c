@@ -68,14 +68,18 @@ main( const int argc,
     Latt.dims[ mu ] = inputs.dims[ mu ] ;
   }
   init_geom( ) ;
-
+  
   // tell us how many threads we are using if we have openmp
+  Latt.Nthreads = 1 ;
   #if (defined HAVE_OMP_H) && (defined _OPENMP)
   #pragma omp parallel
   {
     #pragma omp master
-    fprintf( stdout , "\n[THREADS] CORR using %d thread(s)\n" ,
-    	     omp_get_num_threads() ) ;
+    {
+      Latt.Nthreads = omp_get_num_threads() ;
+      fprintf( stdout , "\n[THREADS] CORR using %d thread(s)\n" ,
+	       Latt.Nthreads ) ;
+    }
   }
   #endif
   

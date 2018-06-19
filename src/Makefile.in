@@ -199,7 +199,8 @@ am__objects_11 = ./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/crc32c.$(OBJEXT) \
 	./UTILS/cut_routines.$(OBJEXT) ./UTILS/GLU_bswap.$(OBJEXT) \
 	./UTILS/GLU_timer.$(OBJEXT) ./UTILS/gramschmidt.$(OBJEXT) \
-	./UTILS/progress_bar.$(OBJEXT) ./UTILS/setup.$(OBJEXT)
+	./UTILS/progress_bar.$(OBJEXT) ./UTILS/setup.$(OBJEXT) \
+	./UTILS/par_MWC_4096.$(OBJEXT) ./UTILS/par_rng.$(OBJEXT)
 am__objects_12 = ./VPF/cl_diagonal.$(OBJEXT) \
 	./VPF/cl_offdiagonal.$(OBJEXT) ./VPF/currents.$(OBJEXT) \
 	./VPF/ll_diagonal.$(OBJEXT) ./VPF/ll_offdiagonal.$(OBJEXT) \
@@ -430,7 +431,8 @@ UTILSFILES = ./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \
 	./UTILS/corr_sort.c ./UTILS/crc32.c ./UTILS/crc32c.c \
 	./UTILS/cut_routines.c ./UTILS/GLU_bswap.c \
 	./UTILS/GLU_timer.c ./UTILS/gramschmidt.c \
-	./UTILS/progress_bar.c ./UTILS/setup.c
+	./UTILS/progress_bar.c ./UTILS/setup.c \
+	./UTILS/par_MWC_4096.c ./UTILS/par_rng.c
 
 VPFFILES = ./VPF/cl_diagonal.c ./VPF/cl_offdiagonal.c ./VPF/currents.c \
 	./VPF/ll_diagonal.c ./VPF/ll_offdiagonal.c \
@@ -778,6 +780,10 @@ UTILS/$(DEPDIR)/$(am__dirstamp):
 	UTILS/$(DEPDIR)/$(am__dirstamp)
 ./UTILS/setup.$(OBJEXT): UTILS/$(am__dirstamp) \
 	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/par_MWC_4096.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
+./UTILS/par_rng.$(OBJEXT): UTILS/$(am__dirstamp) \
+	UTILS/$(DEPDIR)/$(am__dirstamp)
 VPF/$(am__dirstamp):
 	@$(MKDIR_P) ./VPF
 	@: > VPF/$(am__dirstamp)
@@ -972,6 +978,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/crc32c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/cut_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/gramschmidt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/par_MWC_4096.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/par_rng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/progress_bar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./UTILS/$(DEPDIR)/setup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./VPF/$(DEPDIR)/PImunu_projections.Po@am__quote@

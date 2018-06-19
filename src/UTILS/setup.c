@@ -231,7 +231,7 @@ init_measurements( struct measurements *M ,
   // are these wall source props
   M -> is_wall = GLU_FALSE ;
   for( i = 0 ; i < Nprops ; i++ ) {
-    if( prop[ i ].source == WALL ) {
+    if( prop[ i ].source != POINT ) {
       M -> is_wall = GLU_TRUE ;
       break ;
     }
@@ -291,12 +291,12 @@ init_measurements( struct measurements *M ,
     M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
   }
 
-  // sum the momenta?
+  // sum the momenta? This is not really correct
   size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
     M -> sum_mom[ mu ] = 0.0 ;
     for( i = 0 ; i < Nprops ; i++ ) {
-      M -> sum_mom[ mu ] += prop[i].twists[ mu ] ;
+      M -> sum_mom[ mu ] += prop[i].mom_source[ mu ] ;
     }
     // do we do a DFT or not?
     if( fabs( M -> sum_mom[ mu ] ) > NRQCD_TOL &&

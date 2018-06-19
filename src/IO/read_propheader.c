@@ -222,11 +222,16 @@ get_propsource( sourcetype *source )
     }
     // wall can be a bunch of things I think
     if( are_equal( token , "GFWall" ) ||
-	are_equal( token , "Z2Wall" ) ||
 	are_equal( token , "Wall" ) ||
 	are_equal( token , "wall" ) || 
 	are_equal( token , "CGwall" ) ) {
       *source = WALL ;
+      return SUCCESS ;
+    }
+    if( are_equal( token , "Z2Wall" ) ||
+	are_equal( token , "Z2_Wall" ) ||
+	are_equal( token , "Z2_WALL" ) ) {
+      *source = Z2_WALL ;
       return SUCCESS ;
     }
   }
@@ -272,6 +277,27 @@ get_proptwists( double *twists )
     if( token == endptr || errno == ERANGE ) {
       fprintf( stderr , "[IO] propheader twists[%zu] misread %f \n" , 
 	       N , twists[ N ] ) ;
+      return FAILURE ;
+    }
+    // we have successfully read in all the twist info we need
+    if( ++N == ND ) return SUCCESS ;
+  }
+  return FAILURE ;
+}
+
+// get propagator twists
+static int
+get_propmom_source( double *mom_source ) 
+{
+  char *endptr , *token ;
+  size_t N = 0 ;
+  errno = 0 ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    mom_source[ N ] = strtod( token , &endptr ) ;
+    fprintf( stdout , "[IO] mom_source %f \n" , mom_source[ N ] ) ;
+    if( token == endptr || errno == ERANGE ) {
+      fprintf( stderr , "[IO] propheader mom_source[%zu] misread %f \n" , 
+	       N , mom_source[ N ] ) ;
       return FAILURE ;
     }
     // we have successfully read in all the twist info we need
@@ -368,7 +394,8 @@ read_propheader( struct propagator *prop )
   int n = 0 , dimsflag = 0 , originflag = 0 ;
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
   int basisflag = 0 , boundsflag = 0 , twistsflag = 0 ;
-
+  int momsourceflag = 0 ;
+  
   // set this to NULL
   prop -> H = NULL ;
   
@@ -380,7 +407,13 @@ read_propheader( struct propagator *prop )
   prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9EB = 0.0 ; 
   prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
   prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
-  prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ; 
+  prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ;
+
+  // initialise these to zero
+  size_t mu ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    prop -> twist[ mu ] = prop -> mom_source[ mu ] = 0.0 ;
+  }
   
   // loop up to some large number of possible tags
   while( n < MAX_HEADER_LINES ) {
@@ -443,10 +476,18 @@ read_propheader( struct propagator *prop )
     }
     // propagator boundaries
     if( are_equal( tag , "Twists:" ) ) {
-      if( get_proptwists( prop -> twists ) == FAILURE ) {
+      if( get_proptwists( prop -> twist ) == FAILURE ) {
 	return tagfailure( "Twists:" , line ) ;
       }
       twistsflag++ ;
+    }
+    // propagator mom source
+    if( are_equal( tag , "Mom_Source:" ) ) {
+      if( get_propmom_source( prop -> mom_source ) == FAILURE ) {
+	//return tagfailure( "Mom_Source:" , line ) ;
+	fprintf( stderr , "[IO] tag Mom_source: not found in prop header. Soon this will become a sinalling error - J !\n" ) ;
+      }
+      momsourceflag++ ;
     }
     
     // look for some NRQCD parameters

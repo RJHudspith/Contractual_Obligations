@@ -6,13 +6,11 @@
 #define SOURCES_H
 
 /**
-   @fn void initialise_source( struct halfspinor *S , const sourcetype source , const double twists[ND] , const size_t origin[ND] )
+   @fn void initialise_source( struct halfspinor *S , const struct propagator prop )
    @brief initialise a source into S
  */
 void
 initialise_source( struct halfspinor *S ,
-		   const sourcetype source ,
-		   const double twists[ND] ,
-		   const size_t origin[ND] ) ;
+		   const struct propagator prop ) ;
 
 #endif

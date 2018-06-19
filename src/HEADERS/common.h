@@ -31,6 +31,14 @@
   #include <fftw3.h>
 #endif
 
+// wrap these openmp functions
+#if (defined _OPENMP ) && (defined HAVE_OMP_H )
+  #include <omp.h>
+  #define get_CORR_thread() omp_get_thread_num()
+#else
+  #define get_CORR_thread() (0)
+#endif
+
 // 
 #ifndef WORDS_BIGENDIAN
   #define WORDS_BIGENDIAN 0

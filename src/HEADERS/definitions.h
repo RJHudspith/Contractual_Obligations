@@ -30,6 +30,18 @@
 #endif
 
 /**
+   @def MWC_4096_RNG
+   @brief the type of parallel RNG we use
+ */
+#define MWC_4096_RNG
+
+/**
+   @def RNG_TABLE
+   @brief length of the rng table available
+ */
+#define RNG_TABLE 4096
+
+/**
    @def CONDOR_MODE
    @brief if we are distributing this over multiple architectures
  */

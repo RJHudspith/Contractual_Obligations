@@ -159,6 +159,8 @@ struct latt_info{
   size_t flow ; // config number , gets passed around a bit
   header_mode head ;// Which header type are we using
   double twiddles[ ND ] ; // fourier transform twiddles
+  uint32_t Nthreads ; // number of threads
+  uint32_t Seed ;
 } ;
 
 // structure of measurements
@@ -219,7 +221,7 @@ struct NRQCD_params {
   double C0 , C1 , C2 , C3 , C4 , C5 , C6 , C7 , C8 , C9EB , C10EB , C11 ;
   double M_0 ; // bare heavy quark mass
   size_t N ;   // number of hamiltonian applications
-  GLU_bool backward ;
+  GLU_bool backward ; // direction of propagator
 } ;
 
 /**
@@ -240,7 +242,8 @@ struct propagator {
   sourcetype source ;
   size_t origin[ ND ] ;
   boundaries bound[ ND ] ;
-  double twists[ ND ] ;
+  double twist[ ND ] ;
+  double mom_source[ ND ] ;
   struct halfspinor_f *H ;
   struct NRQCD_params NRQCD ;
   fp_precision precision ;

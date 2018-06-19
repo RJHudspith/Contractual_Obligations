@@ -22,7 +22,7 @@ int
 mesons_diagonal( struct propagator prop1 ,
 		 const struct cut_info CUTINFO ,
 		 const char *outfile )
-{ 
+{
   // counters
   const size_t stride1 = M_CHANNELS ;
   const size_t stride2 = M_CHANNELS ;
