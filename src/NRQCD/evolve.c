@@ -304,10 +304,10 @@ tadpole_improve( const double *twists ,
     size_t j , mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
 
-      // phase is exp( I * PI * theta_\mu / Latt.dims[mu] )
+      // phase is exp( I * theta_\mu / Latt.dims[mu] )
       const double complex phase =
-	cos( x[mu]*twists[mu]*TWOPI/(Latt.dims[mu]) ) -
-	I*sin( x[mu]*twists[mu]*TWOPI/(Latt.dims[mu]) ) ;
+	cos( x[mu]*twists[mu]/(Latt.dims[mu]) ) -
+	I*sin( x[mu]*twists[mu]/(Latt.dims[mu]) ) ;
 
       for( j = 0 ; j < NCNC ; j++ ) {
         lat[i].O[mu][j] *= tadpole * phase ;

@@ -1,0 +1,31 @@
+<start_header>
+Lattice:  4 4 4 8
+Plaq:  1.000000000000000
+OutProp:  1.900000 0.125000 1.000000
+SrcPos:   0 0 0 0
+Twists:   0 0 0 0
+Mom_Source: 0 0 0 0
+Boundaries:   periodic periodic periodic periodic
+Basis: Nrel_CORR
+Source: Wall
+Smearing: None
+Gaugesmearing: None
+Endian: Little
+Precision: Single
+NRQCD_C0 1.0
+NRQCD_C1 1.0
+NRQCD_C2 1.0
+NRQCD_C3 1.0
+NRQCD_C4 1.0
+NRQCD_C5 1.0
+NRQCD_C6 1.0
+NRQCD_C7 0.0
+NRQCD_C8 0.0
+NRQCD_C9EB 0.0
+NRQCD_C10EB 0.0
+NRQCD_C11 0.0
+NRQCD_U0 0.87
+NRQCD_backward GLU_FALSE 
+NRQCD_M_0 1.95
+NRQCD_N 4 
+<end_header>

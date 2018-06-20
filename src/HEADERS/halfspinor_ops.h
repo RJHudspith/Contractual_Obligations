@@ -70,7 +70,7 @@ halfspinor_Saxpy( struct halfspinor *H ,
 void
 halfspinor_sigma_Saxpy( struct halfspinor *H ,
 			const struct halfspinor S ,
-			const size_t sigma_map[ NS ] ,
+			const uint8_t sigma_map[ NS ] ,
 			const uint8_t imap[ NS ] ) ;
 
 /**

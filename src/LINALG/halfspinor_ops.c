@@ -136,10 +136,17 @@ halfspinor_iSaxpy( struct halfspinor *H ,
   return ;
 }
 
+// does H^i = H^i + \sigma^ij S^j
+// where sigma_map is an index map for the sigma product
+// and imap is the map in Z_4 of the elements.
+// For example :
+// sigma_map[ NS ] = { 2 , 3 , 0 , 1 }
+// as sigma_x is { 0 , 1 , 1 , 0 }
+// and imap would be { 0 , 0 , 0 , 0 } as this maps to 1
 void
 halfspinor_sigma_Saxpy( struct halfspinor *H ,
 			const struct halfspinor S ,
-			const size_t sigma_map[ NS ] ,
+			const uint8_t sigma_map[ NS ] ,
 			const uint8_t imap[ NS ] )
 {
   size_t d ;

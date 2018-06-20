@@ -111,15 +111,15 @@ sigma_gradxE( struct halfspinor *H ,
   zero_halfspinor( H ) ;
   
   // First is the x - direction
-  size_t sigma_x[ NS ] = { 2 , 3 , 0 , 1 } ;
+  const uint8_t sigma_x[ NS ] = { 2 , 3 , 0 , 1 } ;
   const uint8_t imapx[NS] = { 0 , 0 , 0 , 0 } ;
   sigma_dot_grad_x_E( H , Fmunu , S , U_0 , i , t , 1 , 2 , sigma_x , imapx ) ;
   // Second is the y - direction
-  const size_t sigma_y[NS] = { 2 , 3 , 0 , 1 } ;
+  const uint8_t sigma_y[NS] = { 2 , 3 , 0 , 1 } ;
   const uint8_t imapy[NS] = { 3 , 3 , 1 , 1 } ;
   sigma_dot_grad_x_E( H , Fmunu , S , U_0 , i , t , 2 , 0 , sigma_y , imapy ) ;
   // third is the z-direction
-  const size_t sigma_z[NS] = { 0 , 1 , 2 , 3} ;
+  const uint8_t sigma_z[NS] = { 0 , 1 , 2 , 3} ;
   const uint8_t imapz[NS] = { 0 , 0 , 2 , 2 } ;
   sigma_dot_grad_x_E( H , Fmunu , S , U_0 , i , t , 0 , 1 , sigma_z , imapz ) ;
   

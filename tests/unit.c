@@ -9,7 +9,8 @@
 #include "bar_ops_tests.h"
 #include "contract_tests.h"  
 #include "gamma_tests.h"
-#include "geometry.h"        // init_geom()
+#include "geometry.h"          // init_geom()
+#include "halfspinor_tests.h"
 #include "matops_tests.h"
 #include "SSE_tests.h"
 #include "spinmatrix_tests.h"
@@ -36,6 +37,10 @@ main( const int argc , const char *argv[] )
 
   int total = 0 ;
 
+  // SSE2 ops are important
+  if( SSE_OPS_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
+  
   // have a look at utility codes
   if( utils_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
@@ -69,12 +74,12 @@ main( const int argc , const char *argv[] )
   if( bar_ops_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 #endif
+  
+  if( halfspinor_test_driver( ) == FAILURE ) goto failure ;
+  total += tests_run ;
 
   // have a look at baryon operations
   if( tetra_contractions_test_driver( ) == FAILURE ) goto failure ;
-  total += tests_run ;
-
-  if( SSE_OPS_test_driver( ) == FAILURE ) goto failure ;
   total += tests_run ;
 
   fprintf( stdout , "[UNIT] %d tests run and passed\n" , total ) ;

@@ -572,8 +572,8 @@ spinor_test_driver( void )
   // LCU spinor storage
   S = ( struct spinor* )malloc( LCU * sizeof( struct spinor ) ) ;
 
-  corr_malloc( (void**)&C , 16 , NSNS * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&D , 16 , NCNC * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&C , ALIGNMENT , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&D , ALIGNMENT , NCNC * sizeof( double complex ) ) ;
 
   // initial gamma setup and test
   char *spinres = spinops_test( ) ;
@@ -594,3 +594,4 @@ spinor_test_driver( void )
   }
 }
 
+#undef FTOL

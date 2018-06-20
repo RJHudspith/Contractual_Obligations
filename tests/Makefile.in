@@ -103,7 +103,7 @@ am_UNIT_OBJECTS = UNIT-unit.$(OBJEXT) UNIT-contract_tests.$(OBJEXT) \
 	UNIT-matops_tests.$(OBJEXT) UNIT-spinmatrix_tests.$(OBJEXT) \
 	UNIT-spinor_tests.$(OBJEXT) \
 	UNIT-bar_projections_tests.$(OBJEXT) \
-	UNIT-bar_ops_tests.$(OBJEXT) \
+	UNIT-bar_ops_tests.$(OBJEXT) UNIT-halfspinor_tests.$(OBJEXT) \
 	UNIT-tetra_contractions_tests.$(OBJEXT) \
 	UNIT-gamma_tests.$(OBJEXT) UNIT-utils_tests.$(OBJEXT) \
 	UNIT-SSE_tests.$(OBJEXT)
@@ -273,6 +273,7 @@ BUILDDIR = @top_builddir@
 UNIT_SOURCES = unit.c contract_tests.c matops_tests.c \
 	spinmatrix_tests.c spinor_tests.c \
 	bar_projections_tests.c bar_ops_tests.c \
+	halfspinor_tests.c \
 	tetra_contractions_tests.c \
 	gamma_tests.c utils_tests.c \
 	SSE_tests.c
@@ -370,6 +371,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-bar_projections_tests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-contract_tests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-gamma_tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-halfspinor_tests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-matops_tests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-spinmatrix_tests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UNIT-spinor_tests.Po@am__quote@
@@ -490,6 +492,20 @@ UNIT-bar_ops_tests.obj: bar_ops_tests.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bar_ops_tests.c' object='UNIT-bar_ops_tests.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -c -o UNIT-bar_ops_tests.obj `if test -f 'bar_ops_tests.c'; then $(CYGPATH_W) 'bar_ops_tests.c'; else $(CYGPATH_W) '$(srcdir)/bar_ops_tests.c'; fi`
+
+UNIT-halfspinor_tests.o: halfspinor_tests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -MT UNIT-halfspinor_tests.o -MD -MP -MF $(DEPDIR)/UNIT-halfspinor_tests.Tpo -c -o UNIT-halfspinor_tests.o `test -f 'halfspinor_tests.c' || echo '$(srcdir)/'`halfspinor_tests.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/UNIT-halfspinor_tests.Tpo $(DEPDIR)/UNIT-halfspinor_tests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='halfspinor_tests.c' object='UNIT-halfspinor_tests.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -c -o UNIT-halfspinor_tests.o `test -f 'halfspinor_tests.c' || echo '$(srcdir)/'`halfspinor_tests.c
+
+UNIT-halfspinor_tests.obj: halfspinor_tests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -MT UNIT-halfspinor_tests.obj -MD -MP -MF $(DEPDIR)/UNIT-halfspinor_tests.Tpo -c -o UNIT-halfspinor_tests.obj `if test -f 'halfspinor_tests.c'; then $(CYGPATH_W) 'halfspinor_tests.c'; else $(CYGPATH_W) '$(srcdir)/halfspinor_tests.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/UNIT-halfspinor_tests.Tpo $(DEPDIR)/UNIT-halfspinor_tests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='halfspinor_tests.c' object='UNIT-halfspinor_tests.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -c -o UNIT-halfspinor_tests.obj `if test -f 'halfspinor_tests.c'; then $(CYGPATH_W) 'halfspinor_tests.c'; else $(CYGPATH_W) '$(srcdir)/halfspinor_tests.c'; fi`
 
 UNIT-tetra_contractions_tests.o: tetra_contractions_tests.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(UNIT_CFLAGS) $(CFLAGS) -MT UNIT-tetra_contractions_tests.o -MD -MP -MF $(DEPDIR)/UNIT-tetra_contractions_tests.Tpo -c -o UNIT-tetra_contractions_tests.o `test -f 'tetra_contractions_tests.c' || echo '$(srcdir)/'`tetra_contractions_tests.c
