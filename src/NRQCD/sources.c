@@ -38,7 +38,7 @@ initialise_source( struct halfspinor *S ,
 {
   size_t i ;
   int or[ NS ] , flag = SUCCESS ;
-  for( i = 0 ; i < ND ; i++ ) {
+  for( i = 0 ; i < ND-1 ; i++ ) {
     or[i] = (int)prop.origin[i] ;
   }
 

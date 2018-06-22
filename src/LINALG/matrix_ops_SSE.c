@@ -127,35 +127,19 @@ colormatrix_iSaxpy( double complex a[ NCNC ] ,
   const __m128d *pB = (const __m128d*)b ;
   const __m128d s = _mm_set_pd( S , S ) ;
 #if NC == 3
-  #ifdef __FMA__
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ;
-  #else
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ;
-  #endif
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; 
 #else
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    #ifdef __FMA__
-    *pA = _mm_fmadd_pd( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
-    #else
-    *pA = _mm_add_pd( _mm_mul_pd( s , SSE2_iMUL( *pB ) ) , *pA ) ; pA++ ; pB++ ;
-    #endif
+    *pA = SSE2_FMA( s , SSE2_iMUL( *pB ) , *pA ) ; pA++ ; pB++ ;
   }
 #endif
 }
@@ -170,35 +154,19 @@ colormatrix_Saxpy( double complex a[ NCNC ] ,
   const __m128d *pB = (const __m128d*)b ;
   const __m128d s = _mm_set_pd( S , S ) ;
 #if NC == 3
-  #ifdef __FMA__
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_fmadd_pd( s , *pB , *pA ) ;
-  #else
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ;
-  #endif
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
+  *pA = SSE2_FMA( s , *pB , *pA ) ;
 #else
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    #ifdef __FMA__
-    *pA = _mm_fmadd_pd( s , *pB , *pA ) ; pA++ ; pB++ ;
-    #else
-    *pA = _mm_add_pd( _mm_mul_pd( s , *pB ) , *pA ) ; pA++ ; pB++ ;
-    #endif
+    *pA = SSE2_FMA( s , *pB , *pA ) ; pA++ ; pB++ ;
   }
 #endif
 }

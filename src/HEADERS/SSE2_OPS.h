@@ -87,6 +87,13 @@
 							 _mm_shuffle_pd( b , b , 1 ) ) ) )
 #endif
 
+// SSE2 fma
+#ifdef __FMA__
+  #define SSE2_FMA(a,b,c) ( _mm_fmadd_pd( a , b , c ) )
+#else
+  #define SSE2_FMA(a,b,c) ( _mm_add_pd( _mm_mul_pd( a , b ) , c ) )
+#endif
+
 // multiply by I
 #define SSE2_iMUL(a) ( _mm_shuffle_pd( SSE_FLIP(a) , a , 1 ) )
 

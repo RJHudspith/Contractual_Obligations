@@ -20,6 +20,8 @@
    @file geometry.c
    @brief lattice geometry functions for both configuration and momentum space
  */
+#define _GNU_SOURCE // sincos
+
 #include "common.h"
 
 // computes the lexicographical site index from the position vector in x
@@ -109,6 +111,28 @@ get_mom_2piBZ( int x[ ND ] ,
   for( mu = 0 ; mu < ND ; mu++ ) {
     if( mu != DIMS ) {
       x[ mu ] = ( ( i - i % subvol ) / subvol ) % Latt.dims[ mu ] ;
+      subvol *= Latt.dims[ mu ] ;
+    } else {// set it to 0?
+      x[ mu ] = 0 ;
+    }
+  }
+  return ;
+}
+
+// given a lexicographical site, returns the ND-coordinates
+// shifted to the -L/2 -> L/2-1 definition
+void 
+get_mom_2piBZ_pm( int x[ ND ] , 
+		  const size_t i , 
+		  const size_t DIMS )
+{
+  int mu , subvol = 1 ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    if( mu != DIMS ) {
+      x[ mu ] = ( ( i - i % subvol ) / subvol ) % Latt.dims[ mu ] ;
+      // do the shift
+      x[ mu ] = x[ mu ] < (int)Latt.dims[mu]/2 ?	\
+	x[mu] : x[mu] - (int)Latt.dims[mu] ;
       subvol *= Latt.dims[ mu ] ;
     } else {// set it to 0?
       x[ mu ] = 0 ;
@@ -223,7 +247,7 @@ gen_get_p( double p[ ND ] ,
   return ;
 }
 
-// usual fourier factor
+// usual fourier factor with x shifted to -L/2 <= x < L/2
 double complex
 get_eipx( const double p[ ND ] ,
 	  const size_t i ,
@@ -232,12 +256,13 @@ get_eipx( const double p[ ND ] ,
   register double p_dot_x = 0.0 ;
   size_t mu ;
   int x[ ND ] ;
-  get_mom_2piBZ( x , i , DIMS ) ;
+  get_mom_2piBZ_pm( x , i , DIMS ) ;
   for( mu = 0 ; mu < DIMS ; mu++ ) {
-    x[mu] = (x[mu] < (int)Latt.dims[mu]/2) ? x[mu] : x[mu] - (int)Latt.dims[mu] ;
     p_dot_x += Latt.twiddles[mu] * x[mu] * p[mu] ;
   }
-  return cos( p_dot_x ) + I * sin( p_dot_x ) ;
+  double s , c ;
+  sincos( p_dot_x , &s , &c ) ;
+  return c + I * s ;
 }
 
 //// CONFIG-SPACE routines ////

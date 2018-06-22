@@ -67,6 +67,19 @@ get_mom_2piBZ( int x[ ND ] ,
 	       const size_t DIMS ) ;
 
 /**
+   @fn void get_mom_2piBZ( int x[ ND ] , const size_t i , const size_t DIMS )
+   @brief Gives the ND-momentum "x" in the \f$ -L_\mu/2 \rightarrow L_\mu/2-1 \f$ BZ definition when given a lattice index. 
+   @param x :: Momenta
+   @param i :: Lattice index
+   @param DIMS :: Maximum number of directions of momenta
+   Useful for translating FFTW's results.
+ **/
+void 
+get_mom_2piBZ_pm( int x[ ND ] , 
+		  const size_t i , 
+		  const size_t DIMS ) ;
+
+/**
    @fn void get_mom_pipi( int x[ ND ] , const size_t i , const size_t DIMS )
    @brief Gives the ND-momentum "x" in the \f$ -\frac{L_\mu}{2} \rightarrow ( \frac{L_\mu}{2} - 1 )  \f$ BZ definition. 
    @param x :: Momenta

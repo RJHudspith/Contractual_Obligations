@@ -164,6 +164,7 @@ am__objects_5 = ./IO/CERN.$(OBJEXT) ./IO/chklat_stuff.$(OBJEXT) \
 	./IO/Scidac.$(OBJEXT) ./IO/XML_info.$(OBJEXT)
 am__objects_6 = ./LINALG/contractions.$(OBJEXT) \
 	./LINALG/contractions_SSE.$(OBJEXT) \
+	./LINALG/halfspinor_ops.$(OBJEXT) \
 	./LINALG/matrix_ops.$(OBJEXT) \
 	./LINALG/matrix_ops_SSE.$(OBJEXT) ./LINALG/mmul.$(OBJEXT) \
 	./LINALG/mmul_SSE.$(OBJEXT) ./LINALG/Ospinor.$(OBJEXT) \
@@ -177,7 +178,7 @@ am__objects_8 = ./NRQCD/nrqcd.$(OBJEXT) ./NRQCD/sources.$(OBJEXT) \
 	./NRQCD/spin_independent.$(OBJEXT) ./NRQCD/clover.$(OBJEXT) \
 	./NRQCD/grad.$(OBJEXT) ./NRQCD/grad_2.$(OBJEXT) \
 	./NRQCD/grad_4.$(OBJEXT) ./NRQCD/spin_dependent.$(OBJEXT) \
-	./NRQCD/halfspinor_ops.$(OBJEXT) ./NRQCD/evolve.$(OBJEXT)
+	./NRQCD/evolve.$(OBJEXT)
 am__objects_9 = ./PENTA/contract_O1O1.$(OBJEXT) \
 	./PENTA/contract_O1O2.$(OBJEXT) \
 	./PENTA/contract_O1O3.$(OBJEXT) \
@@ -404,6 +405,7 @@ IOFILES = ./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 
 LINALGFILES = \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
+	./LINALG/halfspinor_ops.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/mmul.c ./LINALG/mmul_SSE.c \
 	./LINALG/Ospinor.c \
@@ -413,7 +415,7 @@ LINALGFILES = \
 MEASFILES = ./MEAS/mesons.c ./MEAS/mesons_offdiag.c ./MEAS/wrap_mesons.c
 NRQCDFILES = ./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
 	./NRQCD/clover.c ./NRQCD/grad.c ./NRQCD/grad_2.c ./NRQCD/grad_4.c \
-	./NRQCD/spin_dependent.c ./NRQCD/halfspinor_ops.c ./NRQCD/evolve.c
+	./NRQCD/spin_dependent.c ./NRQCD/evolve.c
 
 PENTAFILES = ./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O1O3.c ./PENTA/contract_O2O1.c \
@@ -648,6 +650,8 @@ LINALG/$(DEPDIR)/$(am__dirstamp):
 	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/contractions_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
+./LINALG/halfspinor_ops.$(OBJEXT): LINALG/$(am__dirstamp) \
+	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/matrix_ops.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/matrix_ops_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
@@ -699,8 +703,6 @@ NRQCD/$(DEPDIR)/$(am__dirstamp):
 ./NRQCD/grad_4.$(OBJEXT): NRQCD/$(am__dirstamp) \
 	NRQCD/$(DEPDIR)/$(am__dirstamp)
 ./NRQCD/spin_dependent.$(OBJEXT): NRQCD/$(am__dirstamp) \
-	NRQCD/$(DEPDIR)/$(am__dirstamp)
-./NRQCD/halfspinor_ops.$(OBJEXT): NRQCD/$(am__dirstamp) \
 	NRQCD/$(DEPDIR)/$(am__dirstamp)
 ./NRQCD/evolve.$(OBJEXT): NRQCD/$(am__dirstamp) \
 	NRQCD/$(DEPDIR)/$(am__dirstamp)
@@ -930,6 +932,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/Ospinor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions_SSE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/halfspinor_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/matrix_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/matrix_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/mmul.Po@am__quote@
@@ -946,7 +949,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/grad.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/grad_2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/grad_4.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/halfspinor_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/nrqcd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/sources.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./NRQCD/$(DEPDIR)/spin_dependent.Po@am__quote@

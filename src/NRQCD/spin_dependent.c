@@ -51,7 +51,7 @@ sigma_dot_grad_x_E( struct halfspinor *H ,
 		    const size_t t ,
 		    const size_t mu1 ,
 		    const size_t mu2 ,
-		    const size_t sigma_map[ NS ] ,
+		    const uint8_t sigma_map[ NS ] ,
 		    const uint8_t imap[ NS ] )
 {
   // minus index map, much like the gamma matrix technology

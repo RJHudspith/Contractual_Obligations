@@ -2,6 +2,8 @@
    @file evolve.c
    @brief evolve the NRQCD action
  */
+#define _GNU_SOURCE // sincos
+
 #include "common.h"
 
 #include "clover.h"           // O(a^2) improved clover
@@ -15,7 +17,10 @@
 #include "spin_dependent.h"   // spin-dependent NRQCD terms
 #include "spin_independent.h" // spin-independent NRQCD terms
 
-//#define NRQCD_SYMSPIN
+// for the tadpole improvement
+#ifdef HAVE_IMMINTRIN_H
+  #include "SSE2_OPS.h"
+#endif
 
 // so in principle this could be checkerboarded and the
 // whole LCU loop could be done in this level in parallel
@@ -293,27 +298,92 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
 
 // tadpole improvement of the gauge field
 static void
-tadpole_improve( const double *twists ,
+tadpole_improve( struct site *lat ,
 		 const double tadpole )
 {
   size_t i ;
 #pragma omp for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    int x[ ND ] ;
-    get_mom_2piBZ( x , i , ND-1 ) ;
+    #ifdef HAVE_IMMINTRIN_H
+    __m128d *pU = (__m128d*)lat[i].O ;
+    const register __m128d tad = _mm_setr_pd( tadpole , tadpole ) ;
+    size_t j ;
+    for( j = 0 ; j < ND*NCNC ; j++ ) {
+      *pU = _mm_mul_pd( *pU , tad ) ;
+      pU++ ;
+    }
+    #else
     size_t j , mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
-
-      // phase is exp( I * theta_\mu / Latt.dims[mu] )
-      const double complex phase =
-	cos( x[mu]*twists[mu]/(Latt.dims[mu]) ) -
-	I*sin( x[mu]*twists[mu]/(Latt.dims[mu]) ) ;
-
       for( j = 0 ; j < NCNC ; j++ ) {
-        lat[i].O[mu][j] *= tadpole * phase ;
+        lat[i].O[mu][j] *= tadpole ;
       }
     }
+    #endif
   }
+  return ;
+}
+
+// accumulate twists
+static void
+apply_twist( struct site *lat ,
+	     double sum_twist[ ND ] ,
+	     const double this_twist[ ND ] )
+{
+  double delta[ ND ] ;
+
+  // compute the additional twist needed to apply to gauge field 
+  size_t mu , i ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    delta[ mu ] = this_twist[ mu ] - sum_twist[ mu ] ;
+    // sum = sum + ( this - sum ) == this
+    sum_twist[ mu ] = this_twist[ mu ] ;
+  }
+
+  // twist only in the spatial directions
+  for( mu = 0 ; mu < ND-1 ; mu++ ) {
+
+    // skip if it is zero as it just multiplies by 1
+    if( fabs( delta[ mu ] ) < NRQCD_TOL ) continue ;
+
+    // phase is exp( -I * theta_\mu * M_PI / Latt.dims[mu] )
+    const double dlat = M_PI*delta[mu]/Latt.dims[mu] ;
+    double s , c ;
+    sincos( dlat , &s , &c ) ;
+    
+    // this might be a rare place where we can nowait the loop
+    #pragma omp for private(i)
+    for( i = 0 ; i < LVOLUME ; i++ ) {
+
+      #ifdef HAVE_IMMINTRIN_H
+      __m128d *pU = (__m128d*)lat[i].O[mu] ;
+      const register __m128d ph = _mm_setr_pd( c , -s ) ;
+        #if NC == 3
+        *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+        *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+        *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+	*pU = SSE2_MUL( *pU , ph ) ; 
+        #else
+        size_t j ;
+        for( j = 0 ; j < NCNC ; j++ ) {
+          *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
+        }
+        #endif
+      #else
+      const double complex phase = c - I*s ;
+      size_t j ;
+      for( j = 0 ; j < NCNC ; j++ ) {
+        lat[i].O[mu][j] *= phase ;
+      }
+      #endif
+    }
+  }
+  
   return ;
 }
 
@@ -322,18 +392,24 @@ tadpole_improve( const double *twists ,
 void
 compute_props( struct propagator *prop ,
 	       struct NRQCD_fields *F ,
-	       const struct site *lat ,
+	       struct site *lat ,
 	       const size_t nprops ,
 	       const double tadref )
 {
   size_t i , n ;
 
+  // do the tadpole improvement on the gauge field
+  tadpole_improve( lat , 1./tadref ) ;
+
+  // initialise the accumulated sum of twists we have applied
+  double sum_twist[ ND ] ;
+  for( i = 0 ; i < ND ; i++ ) {
+    sum_twist[ i ] = 0.0 ;
+  }
+  
   // loop N props this far out as we might want to have different source
   // positions
   for( n = 0 ; n < nprops ; n++ ) {
-
-    // do the tadpole improvement on the gauge field
-    tadpole_improve( prop[n].twist , 1./tadref ) ;
 
     if( prop[n].basis != NREL_CORR ) continue ;
 
@@ -347,6 +423,9 @@ compute_props( struct propagator *prop ,
 	fabs( prop[n].NRQCD.C11 ) < NRQCD_TOL ) {
       fuse_dH = GLU_TRUE ;
     }
+
+    // apply a twist to the gauge field
+    apply_twist( lat , sum_twist , prop[n].twist ) ;
 
     // set up the source into F -> S
     initialise_source( F -> S , prop[n] ) ;
@@ -398,16 +477,18 @@ compute_props( struct propagator *prop ,
       {
 	progress_bar( t , LT-1 ) ;
       }
-
     }
-
-    // tadpole unimprove & untwist the gauge field
-    const double untwist[ ND ] = { -prop[n].twist[0] ,
-				   -prop[n].twist[1] ,
-				   -prop[n].twist[2] ,
-				   -prop[n].twist[3] } ;
-    tadpole_improve( untwist , tadref ) ;
   }
 
+  // untwist the gauge field
+  double zero_twist[ ND ] ;
+  for( i = 0 ; i < ND ; i++ ) {
+    zero_twist[ i ] = 0.0 ;
+  }
+  apply_twist( lat , sum_twist , zero_twist ) ;
+
+  // un-tadpole improve
+  tadpole_improve( lat , tadref ) ;
+  
   return ;
 }

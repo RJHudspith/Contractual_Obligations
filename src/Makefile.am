@@ -34,6 +34,7 @@ IOFILES=./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 ## c files in ./LINALG/
 LINALGFILES= \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
+	./LINALG/halfspinor_ops.c \
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/mmul.c ./LINALG/mmul_SSE.c \
 	./LINALG/Ospinor.c \
@@ -46,7 +47,7 @@ MEASFILES=./MEAS/mesons.c ./MEAS/mesons_offdiag.c ./MEAS/wrap_mesons.c
 ## c files in ./NRQCD
 NRQCDFILES=./NRQCD/nrqcd.c ./NRQCD/sources.c ./NRQCD/spin_independent.c \
 	./NRQCD/clover.c ./NRQCD/grad.c ./NRQCD/grad_2.c ./NRQCD/grad_4.c \
-	./NRQCD/spin_dependent.c ./NRQCD/halfspinor_ops.c ./NRQCD/evolve.c
+	./NRQCD/spin_dependent.c ./NRQCD/evolve.c
 
 ## c files in ./PENTA/
 PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \

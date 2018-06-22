@@ -190,7 +190,7 @@ halfspinor_sigma_Saxpy_test( void )
     S.D[1][(NC+1)*i] = 1 ;
     S.D[2][(NC+1)*i] = 1 ;
   }
-  const size_t sigma_x[ NS ] = { 2 , 3 , 0 , 1 } ;
+  const uint8_t sigma_x[ NS ] = { 2 , 3 , 0 , 1 } ;
   const uint8_t imap_x[ NS ] = { 0 , 0 , 0 , 0 } ;
   halfspinor_sigma_Saxpy( &B , S , sigma_x , imap_x ) ;
 
@@ -204,7 +204,7 @@ halfspinor_sigma_Saxpy_test( void )
     S.D[1][(NC+1)*i] = -I ;
     S.D[2][(NC+1)*i] = +I ;
   }
-  const size_t sigma_y[ NS ] = { 2 , 3 , 0 , 1 } ;
+  const uint8_t sigma_y[ NS ] = { 2 , 3 , 0 , 1 } ;
   const uint8_t imap_y[ NS ] = { 3 , 3 , 1 , 1 } ;
   halfspinor_sigma_Saxpy( &B , S , sigma_y , imap_y ) ;
   mu_assert( "[UNIT] error : halfspinor ops halfspinor_sigma_Saxpy broken for sigma_y" , 
@@ -217,7 +217,7 @@ halfspinor_sigma_Saxpy_test( void )
     S.D[0][(NC+1)*i] = +1 ;
     S.D[3][(NC+1)*i] = -1 ;
   }
-  const size_t sigma_z[ NS ] = { 0 , 1 , 2 , 3 } ;
+  const uint8_t sigma_z[ NS ] = { 0 , 1 , 2 , 3 } ;
   const uint8_t imap_z[ NS ] = { 0 , 0 , 2 , 2 } ;
   halfspinor_sigma_Saxpy( &B , S , sigma_z , imap_z ) ;
   mu_assert( "[UNIT] error : halfspinor ops halfspinor_sigma_Saxpy broken for sigma_z" , 
