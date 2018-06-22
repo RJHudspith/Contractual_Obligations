@@ -101,8 +101,10 @@ main( const int argc,
   }
 
   // compute the NRQCD props
-  if( compute_nrqcd_props( prop , inputs.nprops ) == FAILURE ) {
-    goto FREES ;
+  if( MODE == GAUGE_AND_PROPS ) {
+    if( compute_nrqcd_props( prop , inputs.nprops ) == FAILURE ) {
+      goto FREES ;
+    }
   }
 
   start_timer( ) ;

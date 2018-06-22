@@ -11,13 +11,13 @@
 #ifdef HAVE_EMMINTRIN_H
 
 // sum a propagator
-static void
+static inline void
 sum_spinor( __m128d *SUM ,
 	    const __m128d *S )
 {
   size_t i ;
-#if NC == 3 
-  for( i = 0 ; i < NSNS ; i++ ) {
+#if ND == 4 
+  for( i = 0 ; i < NCNC ; i++ ) {
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
@@ -27,9 +27,9 @@ sum_spinor( __m128d *SUM ,
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
-  }
-#elif NC == 2
-  for( i = 0 ; i < NSNS ; i++ ) {
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
+    *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
     *SUM = _mm_add_pd( *SUM , *S ) ; SUM++ ; S++ ;
@@ -80,12 +80,7 @@ void
 add_spinors( struct spinor *A ,
 	     const struct spinor B )
 {
-  __m128d *s1 = (__m128d*)A -> D ;
-  const __m128d *s2 = (const __m128d*)B.D ;
-  size_t i ;
-  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
-    *s1 = _mm_add_pd( *s1 , *s2 ) ; s1++ ; s2++ ;
-  }
+  sum_spinor( (__m128d*)A -> D , (const __m128d*)B.D ) ;
   return ;
 }
 
@@ -421,6 +416,23 @@ spinmul_atomic_right( struct spinor *A ,
   }
   return ;
 }
+
+// atomically add spinors
+void
+spinor_Saxpy( struct spinor *A ,
+	      const double S ,
+	      const struct spinor B )
+{
+  __m128d *s1 = (__m128d*)A -> D ;
+  const __m128d *s2 = (const __m128d*)B.D ;
+  register const __m128d s = _mm_setr_pd( S , S ) ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 = SSE2_FMA( *s2 , s , *s1 ) ; s1++ ; s2++ ;
+  }
+  return ;
+}
+
 
 // trace out our dirac indices
 void
