@@ -25,7 +25,7 @@ free_measurements( struct measurements *M ,
 		   const size_t flat_dirac ) ;
 
 /**
-   @fn int init_measurements( struct measurements *M , const struct propagator *prop , const size_t Nprops , const struct cut_info CUTINFO , const size_t stride1 , const size_t stride2 , const size_t flat_dirac )
+   @fn int init_measurements( struct measurements *M , const struct propagator *prop , const size_t Nprops , const struct cut_info CUTINFO , const size_t stride1 , const size_t stride2 , const size_t flat_dirac , const int sign[ Nprops ] )
    @brief initialise our measurement struct
    @return #SUCCESS or #FAILURE
  */
@@ -36,16 +36,16 @@ init_measurements( struct measurements *M ,
 		   const struct cut_info CUTINFO ,
 		   const size_t stride1 ,
 		   const size_t stride2 ,
-		   const size_t flat_dirac ) ;
+		   const size_t flat_dirac ,
+		   const int sign[ Nprops ] ) ;
 
 /**
-   @fn struct spinor sum_spatial_sep( const struct measurements M , const size_t site1 , const size_t prop_idx )
-   @brief spatially sum a propagator up to a maximum r^2
-   @return the spinor sum
+   @fn struct spinor sum_spatial_sep2( struct spinor *SUM_r2 , const struct measurements M , const size_t site1 )
+   @brief spatially sum a propagator up to a maximum r^2 in the SUM_r2 array
  */
-struct spinor
-sum_spatial_sep( const struct measurements M ,
-		 const size_t site1 ,
-		 const size_t prop_idx ) ;
+void
+sum_spatial_sep( struct spinor *SUM_r2 ,
+		 const struct measurements M ,
+		 const size_t site1 ) ;
 
 #endif

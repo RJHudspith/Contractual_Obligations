@@ -167,6 +167,7 @@ void
 write_momcorr( const char *outfile ,
 	       const struct mcorr **corr ,
 	       const struct veclist *list ,
+	       const double twist[ ND ] ,
 	       const size_t NSRC ,
 	       const size_t NSNK ,
 	       const int *nmom , 
@@ -188,7 +189,7 @@ write_momcorr( const char *outfile ,
 
   fwrite( magic , sizeof( uint32_t ) , 1 , output_file ) ;
 
-  write_mom_veclist( output_file , nmom , list , ND-1 ) ;
+  write_mom_veclist( output_file , twist , nmom , list , ND-1 ) ;
 
   uint32_t NMOM[ 1 ] = { nmom[0] } ;
   

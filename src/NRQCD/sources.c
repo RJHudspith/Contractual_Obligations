@@ -32,7 +32,7 @@ set_prop_to_constant( struct halfspinor *S1 ,
 }
 
 // for the moment point is at (0,0,0,t)
-void
+int
 initialise_source( struct halfspinor *S ,
 		   const struct propagator prop ) 
 {
@@ -46,7 +46,7 @@ initialise_source( struct halfspinor *S ,
   case Z2_WALL :
     #pragma omp single
     {
-      Latt.Seed = 123456 ;
+      //Latt.Seed = 123456 ;
       flag = initialise_par_rng( NULL ) ;
     }
     break ;
@@ -81,6 +81,7 @@ initialise_source( struct halfspinor *S ,
     }
   }
 
+  // clean up the RNG
   switch( prop.source ) {
   case Z2_WALL :
     #pragma omp single
@@ -91,5 +92,5 @@ initialise_source( struct halfspinor *S ,
   default : break ;
   }
     
-  return ;
+  return flag ;
 }

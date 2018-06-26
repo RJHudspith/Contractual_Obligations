@@ -245,7 +245,8 @@ main( const int argc ,
 
   // write out the correlator
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)proj_corr , 
-		 momentum , B_CHANNELS , B_CHANNELS , (const int*)NMOM , "" ) ;
+		 momentum , NULL ,
+		 B_CHANNELS , B_CHANNELS , (const int*)NMOM , "" ) ;
 
  memfree :
 

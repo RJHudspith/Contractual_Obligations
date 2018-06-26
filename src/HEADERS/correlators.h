@@ -35,13 +35,14 @@ free_momcorrs( struct mcorr **mcorr ,
 	       const size_t nmom ) ;
 
 /**
-   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const size_t NSRC , const size_t NSNK , const int *nmom , const char *type )
+   @fn void write_momcorr( const char *outfile , const struct mcorr **corr , const struct veclist *list , const double twist[ ND ] , const size_t NSRC , const size_t NSNK , const int *nmom , const char *type )
    @brief write out the #ND-1 momentum-injected correlator
  */
 void
 write_momcorr( const char *outfile ,
 	       const struct mcorr **corr ,
 	       const struct veclist *list ,
+	       const double twist[ ND ] ,
 	       const size_t NSRC ,
 	       const size_t NSNK ,
 	       const int *nmom , 

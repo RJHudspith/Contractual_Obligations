@@ -186,10 +186,12 @@ struct measurements {
   struct mcorr **wwcorr ;
   GLU_bool is_wall ;
   GLU_bool configspace ;
-  double sum_mom[ ND-1 ] ;
+  double sum_mom[ ND ] ;
+  double sum_twist[ ND ] ;
   GLU_bool is_wall_mom ;
   double complex **dft_mom ;
   GLU_bool is_dft ;
+  size_t Nprops ;
 } ;
 
 /**

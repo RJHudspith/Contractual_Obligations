@@ -49,9 +49,10 @@ ll_offdiagonal( struct propagator prop1 ,
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  const int sign[ Nprops ] = { -1 , +1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[VPF] Failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }

@@ -42,9 +42,10 @@ diquark_offdiag( struct propagator prop1 ,
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  const int sign[ Nprops ] = { +1 , +1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[DIQUARK] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -90,6 +91,9 @@ diquark_offdiag( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
+
 	// loop gammas
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
@@ -98,7 +102,7 @@ diquark_offdiag( struct propagator prop1 ,
 	  const size_t GSNK = GSGK % stride2 ;
 	  // perform contraction, result in result
 	  M.in[ GSNK + stride2*GSRC ][ site ] = 
-	    diquark( M.S[0][ site ] , M.S[1][ site ] , 
+	    diquark( SUM_r2[0] , SUM_r2[1] , 
 		     Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
 	}
       }
@@ -133,13 +137,12 @@ diquark_offdiag( struct propagator prop1 ,
   }
 
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr ,
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
-
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   // if we have walls we use them
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
   // failure sink

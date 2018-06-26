@@ -81,20 +81,19 @@ WME( struct propagator s0 ,
   // error code
   int error_code = SUCCESS ;
 
-  // project onto a state : GAMMAS[ 9 ] for projection onto A_t state
-  struct gamma PROJ ;
-
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { s0 , d0 , s1 , d1 } ;
+  // ds are anti in our convention
+  const int sign[ Nprops ] = { +1 , -1 , +1 , -1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[WME] Failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
 
-  // pseudoscalar projection state
-  PROJ = M.GAMMAS[ GAMMA_5 ] ;
+  // project onto a state : GAMMAS[ 9 ] for projection onto A_t state
+  const struct gamma PROJ = M.GAMMAS[ GAMMA_5 ] ;
 
   // Time slice loop 
   for( t = 0 ; t < LT ; t++ ) {
@@ -145,8 +144,8 @@ WME( struct propagator s0 ,
   }
 
   // and write out a file
-  write_momcorr( outfile , (const struct mcorr**)M.corr ,
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
 
   // memory deallocation
  memfree :

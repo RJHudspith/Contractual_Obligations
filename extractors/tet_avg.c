@@ -66,8 +66,7 @@ main( const int argc ,
   // write out the averaged list
   int nmom[1] = { (int)NMOM[0] } ;
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr**)corravg ,
-		 momentum , 1 , NGSRC[0] , nmom , "" ) ;
-  
+		 momentum , NULL , 1 , NGSRC[0] , nmom , "" ) ;
   free_momcorrs( corravg , 1 , NGSRC[0] , NMOM[0] ) ;
   
  memfree :

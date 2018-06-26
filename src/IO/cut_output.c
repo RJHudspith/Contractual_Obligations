@@ -30,26 +30,39 @@ write_binary( FILE *Ap ,
 
 // Support for writing our momentum list
 void
-write_mom_veclist( FILE *Ap , 
+write_mom_veclist( FILE *Ap ,
+		   const double twist[ ND ] ,
 		   const int *num_mom , 
 		   const struct veclist *list ,
 		   const int DIR )
 {
-  size_t i ;
+  size_t i , mu ;
   fwrite( num_mom , sizeof(int) , 1 , Ap ) ;
-  for( i = 0 ; i < num_mom[0] ; i++ ) {
-    fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
-    fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;
+  if( twist == NULL ) {
+    for( i = 0 ; i < num_mom[0] ; i++ ) {
+      fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
+      fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;
+    }
+  } else {
+    for( i = 0 ; i < num_mom[0] ; i++ ) {
+      fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
+      double sum[ ND ] ;
+      for( mu = 0 ; mu < DIR ; mu++ ) {
+	sum[ mu ] = list[i].MOM[ mu ] + twist[ mu ] ;
+      }
+      fwrite( sum , sizeof(double) , DIR , Ap ) ;
+    }
   }
   return ;
 }
 
 //
 void
-write_momspace_data( const char *filename ,  
-		     const int *__restrict NMOM ,
-		     const double *__restrict data ,
-		     const struct veclist *__restrict list ,
+write_momspace_data( const char *filename ,
+		     const double twist[ ND ] ,
+		     const int *NMOM ,
+		     const double *data ,
+		     const struct veclist *list ,
 		     const int DIR )
 {
   fprintf( stdout , "[IO] writing momspace data to %s \n" , filename ) ;
@@ -62,7 +75,7 @@ write_momspace_data( const char *filename ,
 
   // writes the momentum list
   // in terms of Fourier modes px py pz pt
-  write_mom_veclist( outfile , NMOM , list , DIR ) ;
+  write_mom_veclist( outfile , twist , NMOM , list , DIR ) ;
 
   // writes out the binary data
   write_binary( outfile , data , NMOM ) ;

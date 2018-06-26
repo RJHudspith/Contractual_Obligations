@@ -194,7 +194,8 @@ init_measurements( struct measurements *M ,
 		   const struct cut_info CUTINFO ,
 		   const size_t stride1 ,
 		   const size_t stride2 ,
-		   const size_t flat_dirac ) 
+		   const size_t flat_dirac ,
+		   const int sign[ Nprops ] ) 
 {
   // error code
   int error_code = SUCCESS ;
@@ -213,6 +214,9 @@ init_measurements( struct measurements *M ,
   M -> is_wall = GLU_FALSE ;
   M -> is_wall_mom = GLU_FALSE ;
   M -> is_dft = GLU_FALSE ;
+
+  // set the number of propagators
+  M -> Nprops = Nprops ;
   
   // allocate S and Sf the forwards prop
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
@@ -291,12 +295,14 @@ init_measurements( struct measurements *M ,
     M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
   }
 
-  // sum the momenta? This is not really correct
+  // sum the twists
   size_t mu ;
-  for( mu = 0 ; mu < ND-1 ; mu++ ) {
-    M -> sum_mom[ mu ] = 0.0 ;
+  for( mu = 0 ; mu < ND ; mu++ ) {
+    M -> sum_mom[ mu ]   = 0.0 ;
+    M -> sum_twist[ mu ] = 0.0 ;
     for( i = 0 ; i < Nprops ; i++ ) {
-      M -> sum_mom[ mu ] += prop[i].mom_source[ mu ] ;
+      M -> sum_mom[ mu ]   += sign[i] * prop[i].mom_source[ mu ] ;
+      M -> sum_twist[ mu ] += sign[i] * prop[i].twist[ mu ] ; 
     }
     // do we do a DFT or not?
     if( fabs( M -> sum_mom[ mu ] ) > NRQCD_TOL &&
@@ -304,7 +310,7 @@ init_measurements( struct measurements *M ,
       M -> is_wall_mom = GLU_TRUE ;
     }
   }
-
+  
   // initialise momentum lists
   if( init_moms( M , CUTINFO ) == FAILURE ) {
     error_code = FAILURE ; goto end ;
@@ -350,18 +356,30 @@ init_measurements( struct measurements *M ,
 }
 
 // sum over spatial indices a spinor
-struct spinor
-sum_spatial_sep( const struct measurements M ,
-		 const size_t site1 ,
-		 const size_t prop_idx )
+void
+sum_spatial_sep( struct spinor *SUM_r2 ,
+		 const struct measurements M ,
+		 const size_t site1 )
 {
-  size_t r ;
-  struct spinor SUM ;
-  spinor_zero_site( &SUM ) ;
+  size_t n , r ;
+  // set the sum to zero
+  for( n = 0 ; n < M.Nprops ; n++ ) {
+    spinor_zero_site( &SUM_r2[ n ] ) ;
+  }
+
+  // sum over each spatial separation
   for( r = 0 ; r < M.NR ; r++ ) {
     const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
 					  ND-1 ) ;
-    add_spinors( &SUM , M.S[prop_idx][site2] ) ;
+
+    for( n = 0 ; n < M.Nprops ; n++ ) {
+      add_spinors( &SUM_r2[n] , M.S[n][site2] ) ;
+
+      // we could really be creative here and put all sorts of functions in.
+      // This one below weights further away points exponentially, although the
+      // gauge field does that already. 
+      // spinor_Saxpy( &SUM_r2[n] , exp( -M.rlist[r].nsq*0.1 ) , M.S[n][site2] ) ;
+    }
   }
-  return SUM ;
+  return ;
 }

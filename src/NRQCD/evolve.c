@@ -346,8 +346,11 @@ apply_twist( struct site *lat ,
     // skip if it is zero as it just multiplies by 1
     if( fabs( delta[ mu ] ) < NRQCD_TOL ) continue ;
 
-    // phase is exp( -I * theta_\mu * M_PI / Latt.dims[mu] )
-    const double dlat = M_PI*delta[mu]/Latt.dims[mu] ;
+    // phase is exp( -I * theta_\mu * 2 * M_PI / Latt.dims[mu] )
+    // the factor of 2 is to keep it in line with momentum def
+    // this is kosher as the twist is arbitrary so it can just
+    // reabsorb this factor
+    const double dlat = TWOPI*delta[mu]/Latt.dims[mu] ;
     double s , c ;
     sincos( dlat , &s , &c ) ;
     

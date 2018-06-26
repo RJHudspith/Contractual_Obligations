@@ -39,9 +39,10 @@ tetraquark_udcb( struct propagator prop1 , // L1
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
+  const int sign[ Nprops ] = { +2 , -1 , -1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -84,10 +85,6 @@ tetraquark_udcb( struct propagator prop1 , // L1
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	// precompute backward bottom propagator
-	struct spinor bwdH1_r2 , bwdH2 ;
-	full_adj( &bwdH2 , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
-
 	// tetraquark contractions stored in result
 	double complex result[ stride1 ] ;
 	size_t GSRC , op ;
@@ -95,14 +92,18 @@ tetraquark_udcb( struct propagator prop1 , // L1
 	  result[ op ] = 0.0 ;
 	}
 
-	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
-	full_adj( &bwdH1_r2 , SUM1_r2 , M.GAMMAS[ GAMMA_5 ] ) ;
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
 
+	// precompute backward bottom propagator
+	struct spinor bwdH1_r2 , bwdH2_r2 ;
+	full_adj( &bwdH1_r2 , SUM_r2[1] , M.GAMMAS[ GAMMA_5 ] ) ;
+	full_adj( &bwdH2_r2 , SUM_r2[2] , M.GAMMAS[ GAMMA_5 ] ) ;
+	
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , SUM0_r2 , SUM0_r2 , bwdH1_r2 , bwdH2 ,
+	  tetras( result , SUM_r2[0] , SUM_r2[0] , bwdH1_r2 , bwdH2_r2 ,
 		  M.GAMMAS , GSRC , GLU_TRUE , GLU_FALSE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
@@ -152,11 +153,11 @@ tetraquark_udcb( struct propagator prop1 , // L1
   if( error_code == FAILURE ) goto memfree ;
 
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , 
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
   // memfree sink

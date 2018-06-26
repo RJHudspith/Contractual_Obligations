@@ -39,9 +39,10 @@ tetraquark_usbb( struct propagator prop1 ,
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
+  const int sign[ Nprops ] = { +1 , +1 , -2 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -83,10 +84,6 @@ tetraquark_usbb( struct propagator prop1 ,
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	// precompute backward bottom propagator
-	struct spinor bwdH ;
-	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
-
 	// tetraquark contractions stored in result
 	double complex result[ stride1 ] ;
 	size_t op , GSRC ;
@@ -95,16 +92,17 @@ tetraquark_usbb( struct propagator prop1 ,
 	}
 
 	// like the udbb I just spread out the light quarks
-	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
-	const struct spinor SUM2_r2 = sum_spatial_sep( M , site , 2 ) ;
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
+	
+	// precompute barred bottom propagator
 	struct spinor bwdH_r2 ;
-	full_adj( &bwdH_r2 , SUM2_r2 , M.GAMMAS[ GAMMA_5 ] ) ;
+	full_adj( &bwdH_r2 , SUM_r2[2] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
 	// loop gamma source
 	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
 	  // perform contraction, result in result
-	  tetras( result , SUM0_r2 , SUM1_r2 , bwdH_r2 , bwdH ,
+	  tetras( result , SUM_r2[0] , SUM_r2[1] , bwdH_r2 , bwdH_r2 ,
 		  M.GAMMAS , GSRC , GLU_FALSE , GLU_TRUE ) ;
 	  // put contractions into flattend array for FFT
 	  for( op = 0 ; op < stride1 ; op++ ) {
@@ -153,11 +151,11 @@ tetraquark_usbb( struct propagator prop1 ,
   if( error_code == FAILURE ) goto memfree ;
   
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , 
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
   // failure sink

@@ -120,10 +120,15 @@ tmoments( const struct PIdata *AA ,
   }
 
   // write out the t-correlators
+  double twist_zero[ ND ] ;
+  size_t i ;
+  for( i = 0 ; i < ND ; i++ ) {
+    twist_zero[ i ] = 0.0 ;
+  }
   write_momcorr( strAA , (const struct mcorr**)ctAA , 
-		 tlist , ND , ND , tNMOM , "" ) ;
+		 tlist , twist_zero , ND , ND , tNMOM , "" ) ;
   write_momcorr( strVV , (const struct mcorr**)ctVV ,
-		 tlist , ND , ND , tNMOM , "" ) ;
+		 tlist , twist_zero , ND , ND , tNMOM , "" ) ;
 
   // storage for the momentum-space data
   struct PIdata *cpAA = malloc( LT * sizeof( struct PIdata ) ) ;
@@ -155,7 +160,6 @@ tmoments( const struct PIdata *AA ,
   psq = malloc( NMOM[0] * sizeof( double ) ) ;
   p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
-  size_t i ;
   for( i = 0 ; i < NMOM[0] ; i++ ) {
     p[i] = (double*)malloc( NMOM[0] * sizeof( double ) ) ;
   }

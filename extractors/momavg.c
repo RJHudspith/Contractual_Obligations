@@ -247,8 +247,9 @@ write_averages( const struct veclist *list ,
     // write out sequential "zero-mom" files 
     char str[ 256 ] ;
     sprintf( str , "%s.%zu.bin" , outname , p ) ;
+    // need to pass zero twist to momentum writer
     write_momcorr( str , (const struct mcorr **)dcorr , dlist , 
-		   NGSRC , NGSNK , dNMOM , "" ) ;
+		   NULL , NGSRC , NGSNK , dNMOM , "" ) ;
   }
 
   // free the dummies
@@ -346,10 +347,15 @@ main( const int argc ,
     write_averages( avlist , (const struct mcorr**)corravg , argv[3] , 
 		    Nequiv , NGSRC[0] , NGSNK[0] ) ;
   } else {
+    double twist_zero[ ND ] ;
+    size_t mu ;
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      twist_zero[ mu ] = 0.0 ;
+    }
     // write into a file
     int NMOM[1] = { Nequiv } ;
     write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)corravg , 
-		   avlist , NGSRC[0] , NGSNK[0] , (const int*)NMOM , "" ) ;
+		   avlist , twist_zero , NGSRC[0] , NGSNK[0] , (const int*)NMOM , "" ) ;
   }
 
   fprintf( stdout , "\n[MOMAVG] all finished \n" ) ;

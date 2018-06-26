@@ -12,7 +12,6 @@
 #include "progress_bar.h"      // progress_bar()
 #include "setup.h"             // free_ffts() ..
 #include "spinor_ops.h"        // sumprop()
-#include "spinmatrix_ops.h"    // gammaspinmatrix_trace()
 
 // number of propagators
 #define Nprops (1)
@@ -35,9 +34,11 @@ mesons_diagonal( struct propagator prop1 ,
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 } ;
+  // phases cancel for mesons of same propagator
+  const int sign[ Nprops ] = { 0 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[MESONS] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -77,8 +78,9 @@ mesons_diagonal( struct propagator prop1 ,
       for( site = 0 ; site < LCU ; site++ ) {
 
 	// sum over possible spatial extensions on the sink side
-	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
+	
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
 	  const size_t GSRC = GSGK / stride1 ;
@@ -88,8 +90,8 @@ mesons_diagonal( struct propagator prop1 ,
 	  // loop spatial hypercube
 	  // contract with the summed spinor
 	  M.in[ GSGK ][ site ] = 
-	    meson_contract( gt_GSNKdag_gt  , M.S[0][ site ] , 
-			    M.GAMMAS[ GSRC ] , SUM0_r2 ,
+	    meson_contract( gt_GSNKdag_gt    , SUM_r2[0]  , 
+			    M.GAMMAS[ GSRC ] , SUM_r2[0] ,
 			    M.GAMMAS[ GAMMA_5 ] ) ;
 	}	  
 	// correlator computed just out of the summed walls
@@ -127,11 +129,11 @@ mesons_diagonal( struct propagator prop1 ,
   if( error_code == FAILURE ) goto memfree ;
   
   // write out the ND-1 momentum-injected correlator and maybe the wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , 
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
  memfree :

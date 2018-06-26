@@ -13,7 +13,7 @@
 // sum over a spinor
 static void
 sum_spinor( double complex *SUM ,
-	     const double complex *S ) 
+	    const double complex *S ) 
 {
   size_t i ;
   for( i = 0 ; i < ( NSNS * NCNC ) ; i++ ) {
@@ -229,6 +229,21 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		  (const double complex*)S.D[d1][d2].C ,
 		  link ) ;
     }
+  }
+  return ;
+}
+
+// computest A = A + S * B
+void
+spinor_Saxpy( struct spinor *A ,
+	      const double S ,
+	      const struct spinor *B )
+{
+  double complex *s1 = (double complex*)A -> D ;
+  const double complex *s2 = (const double complex*)B.D ;
+  size_t i ;
+  for( i = 0 ; i < NSNS*NCNC ; i++ ) {
+    *s1 += S * (*s2) ; s1++ ; s2++ ;
   }
   return ;
 }

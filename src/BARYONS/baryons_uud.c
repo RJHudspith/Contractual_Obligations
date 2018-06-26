@@ -42,9 +42,10 @@ baryons_2fdiagonal( struct propagator prop1 ,
 
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 } ;
+  const int sign[ Nprops ] = { +2 , +1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[BARYONS] measurement initialisation failed\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -90,8 +91,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
       #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 
-	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	// summations
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
 	
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {
@@ -101,7 +103,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( M.in ,
-				    M.S[0][ site ] , SUM0_r2 , SUM1_r2,
+				    SUM_r2[0] , SUM_r2[0] , SUM_r2[1] ,
 				    Cgmu[ GSRC ] , Cgnu[ GSNK ] , GSGK ,
 				    site ) ;
 	}
@@ -117,7 +119,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
 			       tshifted , UUD_BARYON ,
 			       CUTINFO.configspace ) ;
       
-#pragma omp single
+      #pragma omp single
       {
 	// copy over the propagators
 	copy_props( &M , Nprops ) ;
@@ -132,10 +134,10 @@ baryons_2fdiagonal( struct propagator prop1 ,
   
   // write out the baryons wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
-		 stride1 , stride2 , M.nmom , "uud" ) ;
+		 M.sum_twist , stride1 , stride2 , M.nmom , "uud" ) ;
   if( M.is_wall == GLU_TRUE ) {
     write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		   stride1 , stride2 , M.wwnmom , "uud.ww" ) ;
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "uud.ww" ) ;
   }
 
   // failure sink

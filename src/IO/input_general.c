@@ -35,10 +35,11 @@ get_DFT( double *proto_mom ,
 	 const struct inputs *INPUT )
 {
   errno = 0 ;
-  char *token , *endptr , str[ 32 ] ;
+  char *token , *endptr ;
   const int dft_idx = tag_search( "DFT" ) ;
   if( dft_idx == FAILURE ) { 
-    return tag_failure( str ) ; 
+    fprintf( stdout , "[IO] Not performing in-house DFT\n" ) ;
+    return FAILURE ;
   }
   token = strtok( (char*)INPUT[dft_idx].VALUE , "," ) ;
   size_t mu = 0 ;
@@ -228,10 +229,20 @@ read_cuts_struct( struct cut_info *CUTINFO ,
   }
   // maximum R2
   const int maxr2_idx = tag_search( "MAXR2" ) ;
+  if( maxr2_idx == FAILURE ) { return tag_failure( "MAXR2" ) ; }
   errno = 0 ;
   CUTINFO -> max_r2 = (int)strtol( INPUT[maxr2_idx].VALUE , &endptr , 10 ) ;
   if( endptr == INPUT[maxr2_idx].VALUE || errno == ERANGE ) {
     printf( "[IO] non-sensical maximum r^2 %zu \n" , CUTINFO -> max_r2 ) ;
+    return FAILURE ;
+  }
+  // RNG_SEED
+  const int rng_idx = tag_search( "RNG_SEED" ) ;
+  if( rng_idx == FAILURE ) { return tag_failure( "RNG_SEED" ) ; }
+  errno = 0 ;
+  Latt.Seed = (uint32_t)strtol( INPUT[rng_idx].VALUE , &endptr , 10 ) ;
+  if( endptr == INPUT[rng_idx].VALUE || errno == ERANGE ) {
+    printf( "[IO] rng seed %u \n" , Latt.Seed ) ;
     return FAILURE ;
   }
 

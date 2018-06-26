@@ -52,9 +52,11 @@ pentaquark_udusb( struct propagator prop1 , // L
   
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
+  // penta is udus\bar{b} so 3 light phases, one strange and one anti-b
+  const int sign[ Nprops ] = { +3 , +1 , -1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
-			 stride1 , stride2 , flat_dirac ) == FAILURE ) {
+			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
@@ -106,22 +108,23 @@ pentaquark_udusb( struct propagator prop1 , // L
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)
       for( site = 0 ; site < LCU ; site++ ) {
-	
-	// precompute backward bottom propagator
-	struct spinor bwdH ;
-	full_adj( &bwdH , M.S[2][ site ] , M.GAMMAS[ GAMMA_5 ] ) ;
-	
+		
 	// pentaquark contractions stored in result
 	size_t op ;
 	for( op = 0 ; op < 2 * stride2 ; op++ ) {
 	  result[ op ] = 0.0 ;
 	}
 
-	const struct spinor SUM0_r2 = sum_spatial_sep( M , site , 0 ) ;
-	const struct spinor SUM1_r2 = sum_spatial_sep( M , site , 1 ) ;
+	// perform summation of the light quarks if asked for
+	struct spinor SUM_r2[ Nprops ] ;
+	sum_spatial_sep( SUM_r2 , M , site ) ;
 
+	// precompute barred bottom propagator
+	struct spinor bwdH ;
+	full_adj( &bwdH , SUM_r2[2] , M.GAMMAS[ GAMMA_5 ] ) ;
+	
 	// perform contraction, result in result
-	pentas( result , F , SUM0_r2 , SUM1_r2 , bwdH , M.GAMMAS ,
+	pentas( result , F , SUM_r2[0] , SUM_r2[1] , bwdH , M.GAMMAS ,
 		(const uint8_t**)loc ) ;
 	
 	// put contractions into flattend array for FFT
@@ -181,11 +184,11 @@ pentaquark_udusb( struct propagator prop1 , // L
   if( error_code == FAILURE ) goto memfree ;
 
   // write out the penta wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , 
-		 M.list , stride1 , stride2 , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr ,
-		   M.wwlist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
   }
 
   // memfree sink

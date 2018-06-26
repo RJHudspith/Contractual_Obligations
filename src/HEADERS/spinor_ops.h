@@ -140,6 +140,15 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ) ;
 
 /**
+   @fn void spinor_Saxpy( struct spinor *A , const double S , const struct spinor *B )
+   @brief compute A = A + S*B
+*/
+void
+spinor_Saxpy( struct spinor *A ,
+	      const double S ,
+	      const struct spinor *B ) ;
+
+/**
    @fn void spinor_zero_site( void *S )
    @brief zero a spinor on a site
  */

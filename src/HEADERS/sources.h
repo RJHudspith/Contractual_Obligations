@@ -6,10 +6,11 @@
 #define SOURCES_H
 
 /**
-   @fn void initialise_source( struct halfspinor *S , const struct propagator prop )
+   @fn int initialise_source( struct halfspinor *S , const struct propagator prop )
    @brief initialise a source into S
+   @return #SUCCESS or #FAILURE
  */
-void
+int
 initialise_source( struct halfspinor *S ,
 		   const struct propagator prop ) ;
 

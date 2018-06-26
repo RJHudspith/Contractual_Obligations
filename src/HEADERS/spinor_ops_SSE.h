@@ -133,6 +133,15 @@ spinor_gaugedag( struct spinor *__restrict res ,
 		 const double complex link[ NCNC ] ) ;
 
 /**
+   @fn void spinor_Saxpy( struct spinor *A , const double S , const struct spinor B )
+   @brief computes \f$ A = A + S*B\f$
+ */
+void
+spinor_Saxpy( struct spinor *A ,
+	      const double S ,
+	      const struct spinor B ) ;
+
+/**
    @fn void spinor_zero( void *S )
    @brief zero a spinor over the timeslice
    @warning is threaded
