@@ -129,7 +129,7 @@ term_C10EB( struct halfspinor *H ,
     add_mat( (void*)A , (void*)B ) ;
   }
   struct halfspinor res ;
-  colormatrix_halfspinor( &res , A , S[i] ) ;
+  colormatrix_halfspinor( (void*)res.D , (const void*)A , (const void*)S[i].D ) ;
 
   halfspinor_Saxpy( H , res , fac ) ;
   

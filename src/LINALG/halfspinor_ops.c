@@ -5,63 +5,9 @@
 #include "common.h"
 
 #include "matrix_ops.h"
+#include "mmul.h"
 
-#ifdef HAVE_EMMINTRIN_H
-
-// pA = pB.pC where pB is hermitian and pC is an ordinary 3x3 matrix
-static inline void
-herm_multab( __m128d *__restrict pA ,
-	     const __m128d *__restrict pB ,
-	     const __m128d *__restrict pC )
-{
-#if NC == 3 
-  register const __m128d reA = _mm_movedup_pd( *( pB + 0 ) ) ;
-  register const __m128d reD = _mm_movedup_pd( *( pB + 4 ) ) ;
-  register const __m128d reF = SSE_FLIP( _mm_add_pd( reA , reD ) ) ;
-  // first row
-  *pA = _mm_add_pd( _mm_mul_pd( reA , *( pC + 0 ) ) , 
-		    SSE2_MUL( *( pB + 1 ) , *( pC + 3 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 2 ) , *( pC + 6 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( reA , *( pC + 1 ) ) , 
-		    SSE2_MUL( *( pB + 1 ) , *( pC + 4 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 2 ) , *( pC + 7 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( _mm_mul_pd( reA , *( pC + 2 ) ) , 
-		    SSE2_MUL( *( pB + 1 ) , *( pC + 5 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 2 ) , *( pC + 8 ) ) ) ; pA++ ;
-  // sepCond row
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 1 ) , *( pC + 0 ) ) , 
-		    _mm_mul_pd( reD , *( pC + 3 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 5 ) , *( pC + 6 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 1 ) , *( pC + 1 ) ) , 
-		    _mm_mul_pd( reD , *( pC + 4 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 5 ) , *( pC + 7 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 1 ) , *( pC + 2 ) ) , 
-		    _mm_mul_pd( reD , *( pC + 5 ) ) ) ;
-  *pA = _mm_add_pd( *pA , SSE2_MUL( *( pB + 5 ) , *( pC + 8 ) ) ) ; pA++ ;
-  // third row
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 2 ) , *( pC + 0 ) ) , 
-		    SSE2_MULCONJ( *( pB + 5 ) , *( pC + 3 ) ) ) ;
-  *pA = _mm_add_pd( *pA , _mm_mul_pd( reF , *( pC + 6 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 2 ) , *( pC + 1 ) ) , 
-		    SSE2_MULCONJ( *( pB + 5 ) , *( pC + 4 ) ) ) ;
-  *pA = _mm_add_pd( *pA , _mm_mul_pd( reF , *( pC + 7 ) ) ) ; pA++ ;
-  *pA = _mm_add_pd( SSE2_MULCONJ( *( pB + 2 ) , *( pC + 2 ) ) , 
-		    SSE2_MULCONJ( *( pB + 5 ) , *( pC + 5 ) ) ) ;
-  *pA = _mm_add_pd( *pA , _mm_mul_pd( reF , *( pC + 8 ) ) ) ;
-#else
-  multab( pA , pB , pC ) ;
-#endif
-}
-#else
-static inline void
-herm_multab( double complex *a ,
-	     const double complex *b ,
-	     const double complex *c )
-{
-  multab( a , b , c ) ;
-  return ;
-}
-#endif
+#ifndef HAVE_IMMINTRIN_H
 
 // atomically add halfspinors a += b
 void
@@ -80,22 +26,22 @@ Fmunu_halfspinor( struct halfspinor *a ,
 		  const double complex *b ,
 		  const struct halfspinor c )
 {
-  herm_multab( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
-  herm_multab( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
-  herm_multab( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
-  herm_multab( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
-  return ;
-}
-
-void
-colormatrix_halfspinor( struct halfspinor *a ,
-			const double complex b[ NCNC ] ,
-			const struct halfspinor c )
-{
   multab( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
   multab( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
   multab( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
   multab( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
+  return ;
+}
+
+void
+colormatrix_halfspinor( double complex *a ,
+			const double complex *b ,
+			const double complex *c )
+{
+  multab( (void*)a , (void*)b , (void*)c ) ; a+=NCNC ; c+=NCNC ;
+  multab( (void*)a , (void*)b , (void*)c ) ; a+=NCNC ; c+=NCNC ;
+  multab( (void*)a , (void*)b , (void*)c ) ; a+=NCNC ; c+=NCNC ;
+  multab( (void*)a , (void*)b , (void*)c ) ;
   return ;
 }
 
@@ -204,3 +150,5 @@ zero_halfspinor( struct halfspinor *S )
   zero_colormatrix( S -> D[3] ) ;
   return ;
 }
+
+#endif

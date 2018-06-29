@@ -165,6 +165,7 @@ am__objects_5 = ./IO/CERN.$(OBJEXT) ./IO/chklat_stuff.$(OBJEXT) \
 am__objects_6 = ./LINALG/contractions.$(OBJEXT) \
 	./LINALG/contractions_SSE.$(OBJEXT) \
 	./LINALG/halfspinor_ops.$(OBJEXT) \
+	./LINALG/halfspinor_ops_SSE.$(OBJEXT) \
 	./LINALG/matrix_ops.$(OBJEXT) \
 	./LINALG/matrix_ops_SSE.$(OBJEXT) ./LINALG/mmul.$(OBJEXT) \
 	./LINALG/mmul_SSE.$(OBJEXT) ./LINALG/Ospinor.$(OBJEXT) \
@@ -405,7 +406,7 @@ IOFILES = ./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 
 LINALGFILES = \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
-	./LINALG/halfspinor_ops.c \
+	./LINALG/halfspinor_ops.c ./LINALG/halfspinor_ops_SSE.c\
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/mmul.c ./LINALG/mmul_SSE.c \
 	./LINALG/Ospinor.c \
@@ -651,6 +652,8 @@ LINALG/$(DEPDIR)/$(am__dirstamp):
 ./LINALG/contractions_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/halfspinor_ops.$(OBJEXT): LINALG/$(am__dirstamp) \
+	LINALG/$(DEPDIR)/$(am__dirstamp)
+./LINALG/halfspinor_ops_SSE.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
 ./LINALG/matrix_ops.$(OBJEXT): LINALG/$(am__dirstamp) \
 	LINALG/$(DEPDIR)/$(am__dirstamp)
@@ -933,6 +936,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/contractions_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/halfspinor_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/halfspinor_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/matrix_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/matrix_ops_SSE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./LINALG/$(DEPDIR)/mmul.Po@am__quote@

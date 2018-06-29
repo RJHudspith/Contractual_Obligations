@@ -8,6 +8,82 @@
 #include "matrix_ops.h"      // add_mat
 #include "mmul.h"            // multab
 
+#ifdef HAVE_IMMINTRIN_H
+
+#if NC==3
+#define unroll_improved_fac()\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;   \
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ; \
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;   \
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+  *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;\
+  A++ ; B++ ; C++ ; D++ ;\
+
+#endif
+
+static inline void
+improved_fac( __m128d *A ,
+	      const __m128d *B ,
+	      const __m128d *C ,
+	      const __m128d *D ,
+	      const double U_0 )
+{
+  register const __m128d f2 = _mm_set_pd( 1/12. , 1/12. ) ;
+  #ifdef LEGACY_NRQCD_COMPARE
+  register const __m128d f1 = _mm_set_pd( 7.+1/(U_0*U_0) , 7.+1/(U_0*U_0) ) ;
+  #else
+  register const __m128d f1 = _mm_set_pd( 8. , 8. ) ;
+  #endif
+#if NC==3
+  unroll_improved_fac() ;
+  unroll_improved_fac() ;
+  unroll_improved_fac() ;
+  unroll_improved_fac() ;
+  #else
+  size_t i ;
+  for( i = 0 ; i < ND*NCNC ; i++ ) {
+    *A = _mm_mul_pd( f2 , SSE2_FMA( f1 , _mm_sub_pd( *A , *B ) , _mm_sub_pd( *D , *C ) ) ) ;
+    A++ ; B++ ; C++ ; D++ ;
+  }
+  #endif
+}
+
+#else
+
+static inline void
+improved_fac( double complex *A ,
+	      const double complex *B ,
+	      const double complex *C ,
+	      const double complex *D ,
+	      const double U_0 )
+{
+  register const double f2 = 1/12.  ;
+  #ifdef LEGACY_NRQCD_COMPARE
+  register const double f1 = 7.+1/(U_0*U_0) ;
+  #else
+  register const double f1 = 8. ;
+  #endif
+  size_t i ;
+  for( i = 0 ; i < ND*NCNC ; i++ ) {
+    *A = f2 * ( f1 * ( *A - *B ) + ( *D - *C ) ) ;
+    A++ ; B++ ; C++ ; D++ ;
+  }
+}
+
+#endif
+
 // computes improved derivative of S and puts it in der
 void
 grad_imp_LCU( struct halfspinor *der ,
@@ -78,54 +154,38 @@ grad_imp_FMUNU( struct halfspinor *der ,
 		const size_t mu ,
 		const size_t Fmunu_idx )
 {
-  // some temporaries we need
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex E[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex F[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-
-  const size_t Uidx = i + t*LCU ;    
-  const size_t Ubck = lat[ Uidx ].back[mu] ;
-    
-  const size_t Sfwd = lat[ i ].neighbor[mu] ;
+  struct halfspinor A , B , C ;
+#ifdef HAVE_IMMINTRIN_H
+  __m128d D[ NCNC ] , E[ NCNC ] , F[ NCNC ] , G[ NCNC ] ;
+#else
+  double complex D[ NCNC ] , E[ NCNC ] , F[ NCNC ] , G[ NCNC ] ;
+#endif
+  
+  const size_t Uidx  = i + t*LCU ;    
+  const size_t Ubck  = lat[ Uidx ].back[mu] ;
+  const size_t Sfwd  = lat[ i ].neighbor[mu] ;
   const size_t Sfwd2 = lat[ Sfwd ].neighbor[mu] ;
-    
-  const size_t Sbck = lat[ i ].back[mu] ;
+  const size_t Sbck  = lat[ i ].back[mu] ;
   const size_t Sbck2 = lat[ Sbck ].back[mu] ;
 
   // precompute some common terms here -> products of links and clovers
-  multab( (void*)C , (void*)lat[ Uidx ].O[mu] ,
+  multab( D , (void*)lat[ Uidx ].O[mu] ,
 	  (void*)Fmunu[ Sfwd ].O[ Fmunu_idx ] ) ;
-  multabdag( (void*)D , (void*)lat[ Ubck ].O[mu] ,
+  multabdag( E , (void*)lat[ Ubck ].O[mu] ,
 	     (void*)Fmunu[ Sbck ].O[ Fmunu_idx ] ) ;
-  multab( (void*)E , (void*)Fmunu[i].O[6+2*mu] ,
+  multab( F , (void*)Fmunu[i].O[6+2*mu] ,
 	  (void*)Fmunu[ Sfwd2 ].O[ Fmunu_idx ] ) ;
-  multabdag( (void*)F , (void*)Fmunu[i].O[7+2*mu] ,
+  multabdag( G , (void*)Fmunu[i].O[7+2*mu] ,
 	     (void*)Fmunu[ Sbck2 ].O[ Fmunu_idx ] ) ;
 
-  size_t d ;
-  for( d = 0 ; d < NS ; d++ ) {
-    // computes der = U(x) S(x+\mu)
-    multab( (void*)der -> D[d] , (void*)C , (void*)S[ Sfwd ].D[d] ) ;
-    // computes A = U^\dagger (x-\mu ) S(x-\mu)
-    multab( (void*)A , (void*)D , (void*)S[ Sbck ].D[d] ) ;
-    // computes der = ( der - A )/2
-    #ifdef LEGACY_NRQCD_COMPARE
-    colormatrix_Sa_xmy( der -> D[d] , A , ( 7 + 1/(U_0*U_0) )/12. ) ;
-    #else
-    colormatrix_Sa_xmy( der -> D[d] , A , 2/3. ) ;
-    #endif
-    
-    // compute U(x)U(x+\mu)S(x+2\mu)
-    multab( (void*)A , (void*)E , (void*)S[ Sfwd2 ].D[d] ) ;
-    // compute U(x-mu)U(x-2mu)S(x-2\mu)
-    multab( (void*)B , (void*)F , (void*)S[ Sbck2 ].D[d] ) ;
-    colormatrix_Sa_xmy( A , B , -1./12. ) ;
+  colormatrix_halfspinor( (void*)der -> D , D , (const void*)S[ Sfwd ].D ) ;
+  colormatrix_halfspinor( (void*)A.D   , E , (const void*)S[ Sbck ].D ) ;
+  colormatrix_halfspinor( (void*)B.D   , F , (const void*)S[ Sfwd2 ].D ) ;
+  colormatrix_halfspinor( (void*)C.D   , G , (const void*)S[ Sbck2 ].D ) ;
 
-    add_mat( (void*)der -> D[d] , (void*)A ) ;
-  }
+  improved_fac( (void*)der -> D , (const void*)A.D ,
+		(const void*)B.D , (const void*)C.D , U_0 ) ;
+
   return ;
 }
 
@@ -141,11 +201,12 @@ FMUNU_grad_imp( struct halfspinor *der ,
 		const size_t Fmunu_idx )
 {
   // some temporaries we need
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex D[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  
+  struct halfspinor A , B , E , res ;
+#ifdef HAVE_IMMINTRIN_H
+  __m128d C[ NCNC ] , D[ NCNC ] ; 
+#else
+  double complex C[ NCNC ] , D[ NCNC ] ;
+#endif
   const size_t Uidx = i + t*LCU ;    
   const size_t Ubck = lat[ Uidx ].back[mu] ;
     
@@ -155,39 +216,25 @@ FMUNU_grad_imp( struct halfspinor *der ,
   const size_t Sbck = lat[ i ].back[mu] ;
   const size_t Sbck2 = lat[ Sbck ].back[mu] ;
 
-  struct halfspinor res ;
-
   // it turns out a little faster to do this than call multabdag
-  dagger_gauge( (void*)C , (void*)lat[ Ubck ].O[mu] ) ;
-  dagger_gauge( (void*)D , (void*)Fmunu[i].O[7+2*mu] ) ;
+  dagger_gauge( C , (void*)lat[ Ubck ].O[mu] ) ;
+  dagger_gauge( D , (void*)Fmunu[i].O[7+2*mu] ) ;
 
-  size_t d ;
-  for( d = 0 ; d < NS ; d++ ) {
-    // computes der = U(x) S(x+\mu)
-    multab( (void*)res.D[d] ,
-	    (void*)lat[ Uidx ].O[mu] ,
-	    (void*)S[ Sfwd ].D[d] ) ;
-    // computes A = U^\dagger (x-\mu ) S(x-\mu)
-    multab( (void*)A , (void*)C , (void*)S[ Sbck ].D[d] ) ;
-    // computes res = 2/3. * ( res - A )
-    #ifdef LEGACY_NRQCD_COMPARE
-    colormatrix_Sa_xmy( res.D[d] , A , ( 7 + 1/(U_0*U_0) )/12. ) ;
-    #else
-    colormatrix_Sa_xmy( res.D[d] , A , 2/3. ) ;
-    #endif
- 
-    // compute U(x)U(x+\mu)S(x+2\mu)
-    multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] , (void*)S[ Sfwd2 ].D[d] ) ;
-    // compute U(x-mu)U(x-2mu)S(x-2\mu)
-    multab( (void*)B , (void*)D , (void*)S[ Sbck2 ].D[d] ) ;
-    // computes A = -1/12. * ( A - B )
-    colormatrix_Sa_xmy( A , B , -1./12. ) ;
+  colormatrix_halfspinor( (void*)res.D ,
+			  (const void*)lat[ Uidx ].O[mu] ,
+			  (const void*)S[ Sfwd ].D ) ;
+  colormatrix_halfspinor( (void*)A.D   , C , (const void*)S[ Sbck ].D ) ;
+  colormatrix_halfspinor( (void*)B.D   ,
+			  (const void*)Fmunu[i].O[6+2*mu] ,
+			  (const void*)S[ Sfwd2 ].D ) ;
+  colormatrix_halfspinor( (void*)E.D   , D , (const void*)S[ Sbck2 ].D ) ;
 
-    // adds A to res
-    add_mat( (void*)res.D[d] , (void*)A ) ;
-  }
+  improved_fac( (void*)res.D , (const void*)A.D ,
+		(const void*)B.D , (const void*)E.D , U_0 ) ;
+
   // res is the improved gradient and we left multiply by the gauge field
-  Fmunu_halfspinor( der , Fmunu[i].O[ Fmunu_idx ]  , res ) ;
-  
+  colormatrix_halfspinor( (void*)der -> D   ,
+			  (const void*)Fmunu[i].O[ Fmunu_idx ] ,
+			  (const void*)res.D ) ;
   return ;
 }

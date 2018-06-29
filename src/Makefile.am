@@ -34,7 +34,7 @@ IOFILES=./IO/CERN.c ./IO/chklat_stuff.c ./IO/correlators.c ./IO/cut_output.c \
 ## c files in ./LINALG/
 LINALGFILES= \
 	./LINALG/contractions.c ./LINALG/contractions_SSE.c \
-	./LINALG/halfspinor_ops.c \
+	./LINALG/halfspinor_ops.c ./LINALG/halfspinor_ops_SSE.c\
 	./LINALG/matrix_ops.c ./LINALG/matrix_ops_SSE.c \
 	./LINALG/mmul.c ./LINALG/mmul_SSE.c \
 	./LINALG/Ospinor.c \

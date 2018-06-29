@@ -2,14 +2,8 @@
    @file halfspinor_ops.h
    @brief prototype declarations for operations on halfspinor type
  */
-#ifndef HALFSPINOR_OPS_H
-#define HALFSPINOR_OPS_H
-
-#ifdef HAVE_IMMINTRIN_H
-
-#include "halfspinor_ops_SSE.h"
-
-#else
+#ifndef HALFSPINOR_OPS_SSE_H
+#define HALFSPINOR_OPS_SSE_H
 
 /**
    @fn void add_halfspinor( struct halfspinor *a , const struct halfspinor b )
@@ -20,13 +14,13 @@ add_halfspinor( struct halfspinor *a ,
 		const struct halfspinor b ) ;
 
 /**
-   @fn void colormatrix_halfspinor( double complex *a , const double complex *b , const double complex c )
+   @fn void colormatrix_halfspinor( __m128d *pA , const __m128d *pB , const __m128d *pC )
    @brief multiply a halfspinor on the left by a colormatrix
  */
 void
-colormatrix_halfspinor( double complex *a ,
-			const double complex *b ,
-			const double complex *c ) ;
+colormatrix_halfspinor( __m128d *pA ,
+			const __m128d *pB ,
+			const __m128d *pC ) ;
 
 /**
    @fn void colormatrixdag_halfspinor( struct halfspinor *a , const double complex b[ NCNC ] , struct halfspinor c )
@@ -85,7 +79,5 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
  */
 void
 zero_halfspinor( struct halfspinor *S ) ;
-
-#endif // HAVE_EMMINTRIN_H
 
 #endif

@@ -237,7 +237,7 @@ spinor_gaugedag( struct spinor *__restrict res ,
 void
 spinor_Saxpy( struct spinor *A ,
 	      const double S ,
-	      const struct spinor *B )
+	      const struct spinor B )
 {
   double complex *s1 = (double complex*)A -> D ;
   const double complex *s2 = (const double complex*)B.D ;

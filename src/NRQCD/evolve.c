@@ -20,7 +20,90 @@
 // for the tadpole improvement
 #ifdef HAVE_IMMINTRIN_H
   #include "SSE2_OPS.h"
+
+#if NC==3
+
+// inline C0 function for SU3
+#define inline_su3_C0()							\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ;\
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ;\
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;						\
+  *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+  A++ ; B++ ; S++ ; H++ ;
+
 #endif
+
+// little inline computation of H = H + C0*( A + B - 2*S )
+static inline void
+C0_term( __m128d *H ,
+	 const __m128d *A ,
+	 const __m128d *B ,
+	 const __m128d *S ,
+	 const double C0 )
+{
+  register const __m128d m2 = _mm_setr_pd( -2 , -2 ) ;
+  register const __m128d c0 = _mm_setr_pd( C0 , C0 ) ;
+#if NC==3
+  inline_su3_C0() ;
+  inline_su3_C0() ;
+  inline_su3_C0() ;
+  inline_su3_C0() ;
+#else
+  size_t i ;
+  for( i = 0 ; i < NS*NCNC ; i++ ) {
+    *H = SSE2_FMA( C0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+    A++ ; B++ ; S++ ; H++ ;
+  }
+#endif
+  return ;
+}
+
+#else
+
+// little inline computation of H = H + C0*( A + B - 2*S )
+static inline void
+C0_term( double complex *H ,
+	 const double complex *A ,
+	 const double complex *B ,
+	 const double complex *S ,
+	 const double C0 )
+{
+  size_t i ;
+  for( i = 0 ; i < NS*NCNC ; i++ ) {
+    *H += C0*( -2*(*S) + ( *A + *B ) ) ;
+    A++ ; B++ ; S++ ; H++ ;
+  }
+  return ;
+}
+
+#endif
+
+// inline mu loop macro for unrolling
+#define inline__mu_C0(mu)					\
+  Sfwd = lat[ i ].neighbor[mu] ;				\
+  Sbck = lat[ i ].back[mu] ;					\
+  Ubck = lat[ Uidx ].back[mu] ;					\
+  dagger_gauge( C , (void*)lat[ Ubck ].O[mu] ) ;		\
+  colormatrix_halfspinor( (void*)A.D ,				\
+			  (const void*)lat[ Uidx ].O[mu] ,	\
+			  (const void*)F -> S[ Sfwd ].D ) ;	\
+  colormatrix_halfspinor( (void*)B.D , C ,			\
+			  (const void*)F -> S[ Sbck ].D ) ;	\
+  C0_term( (void*)F ->H[i].D , (void*)A.D , (void*)B.D ,	\
+	   (void*)F ->S[i].D , C0 ) ;				\
 
 // so in principle this could be checkerboarded and the
 // whole LCU loop could be done in this level in parallel
@@ -40,43 +123,31 @@ evolve_H( struct NRQCD_fields *F ,
   for( i = 0 ; i < LCU ; i++ ) {
 
     // temporary storage matrices
-    double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-    double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-    double complex C[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+    struct halfspinor A , B ;
+    #ifdef HAVE_IMMINTRIN_H
+    __m128d C[ NCNC ] ;
+    #else
+    double complex C[ NCNC ] ;
+    #endif
     
     const size_t Uidx = i + t*LCU ;
-    size_t mu , d ;
+    size_t Sfwd , Sbck , Ubck ;
     
     // set hamiltonian storage to zero
     zero_halfspinor( &F -> H[i] ) ;
 
     // inner mu sum much more cache friendly
+    #if ND==4
+    inline__mu_C0(0) ;
+    inline__mu_C0(1) ;
+    inline__mu_C0(2) ;
+    #else
+    size_t mu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      
-      const size_t Sfwd = lat[ i ].neighbor[mu] ;
-      const size_t Sbck = lat[ i ].back[mu] ;
-      const size_t Ubck = lat[ Uidx ].back[mu] ;
-
-      // precompute the dagger
-      dagger_gauge( (void*)C , (void*)lat[ Ubck ].O[mu] ) ;
-
-      for( d = 0 ; d < NS ; d++ ) {
-	// computes A = U(x) S(x+\mu)
-	multab( (void*)A ,
-		(void*)lat[ Uidx ].O[mu] ,
-		(void*)F -> S[ Sfwd ].D[d] ) ;
-	// computes B = U^\dag(x-\mu) S(x-\mu)
-	multab( (void*)B ,
-		(void*)C ,
-		(void*)F -> S[ Sbck ].D[d] ) ;
-	// A = A + B 
-	add_mat( (void*)A , (void*)B ) ;
-	// A = A - 2 F -> S[i].D[d]
-	colormatrix_Saxpy( A , F -> S[i].D[d] , -2. ) ;
-	// H = C0 * A + H
-	colormatrix_Saxpy( F -> H[i].D[d] , A , C0 ) ;
-      }
+      inline__mu_C0(mu) ;
     }
+    #endif
+
     // set S1 to S
     F -> S1[i] = F -> S[i] ;
     // S1 = S1 - H/(2n)
@@ -270,7 +341,9 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   for( i = 0 ; i < LCU ; i++ ) {    
     const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;
     struct halfspinor res ;
-    colormatrix_halfspinor( &res , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
+    colormatrix_halfspinor( (void*)res.D ,
+			    (const void*)lat[idx].O[ ND-1 ] ,
+			    (const void*)F -> S[i].D ) ;
     F -> S[i] = res ;
   }
 

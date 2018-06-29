@@ -65,7 +65,7 @@ colormatrix_halfspinor_test( void )
   }
 
   struct halfspinor B ;
-  colormatrix_halfspinor( &B , C , A ) ;
+  colormatrix_halfspinor( (void*)B.D , (const void*)C , (const void*)A.D ) ;
   
   const double complex *c = (const double complex*)A.D ;
   const double complex *d = (const double complex*)B.D ;
@@ -94,7 +94,7 @@ colormatrixdag_halfspinor_test( void )
   colormatrixdag_halfspinor( &B , a , A ) ;
 
   dagger_gauge( (void*)b , (const void*)a ) ;
-  colormatrix_halfspinor( &D , b , A ) ;
+  colormatrix_halfspinor( (void*)D.D , (const void*)b , (const void*)A.D ) ;
   
   const double complex *c = (const double complex*)B.D ;
   const double complex *d = (const double complex*)D.D ;
@@ -125,7 +125,7 @@ Fmunu_halfspinor_test( void )
   }
   
   Fmunu_halfspinor( &B , F , A ) ;
-  colormatrix_halfspinor( &C , F , A ) ;
+  colormatrix_halfspinor( (void*)C.D , (const void*)F , (const void*)A.D ) ;
 
   const double complex *pB = (const double complex*)B.D ;
   const double complex *pC = (const double complex*)C.D ;

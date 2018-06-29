@@ -1,3 +1,7 @@
+/**
+   @file mmul_SSE.h
+   @brief vectorised colormatrix multiplies
+ */
 #ifndef MMUL_SSE_H
 #define MMUL_SSE_H
 
