@@ -83,7 +83,7 @@ ll_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
       // loop spatial volume
       #pragma omp for private(x)

@@ -50,52 +50,51 @@ spinmatrix_multiply_T_avx( void *a ,
 {
 #if (defined __AVX__) && (defined HAVE_IMMINTRIN_H)
   __m256d *A = (__m256d*)a ;
-  const double *B = (const double*)b ;
-  const double *C = (const double*)c ;
+  const __m128d *B = (const __m128d*)b ;
+  const __m128d *C = (const __m128d*)c ;
 
-  // initially set these up into the y registers hopefully
-  register __m256d t1 = _mm256_setr_pd( B[0] , B[1] , B[0] , B[1] ) ;
-  register __m256d t2 = _mm256_setr_pd( B[2] , B[3] , B[2] , B[3] ) ;
-  register __m256d t3 = _mm256_setr_pd( B[4] , B[5] , B[4] , B[5] ) ;
-  register __m256d t4 = _mm256_setr_pd( B[6] , B[7] , B[6] , B[7] ) ;
+  // first bunch of variables
+  register const __m256d t5 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+0 )   , C[4]  , 1 ) ;
+  register const __m256d t6 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+1 )   , C[5]  , 1 ) ;
+  register const __m256d t7 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+2 )   , C[6]  , 1 ) ;
+  register const __m256d t8 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+3 )   , C[7]  , 1 ) ;
+  register const __m256d t9 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+8 )   , C[12] , 1 ) ;
+  register const __m256d t10 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+9 )  , C[13] , 1 ) ;
+  register const __m256d t11 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+10 ) , C[14] , 1 ) ;
+  register const __m256d t12 = _mm256_insertf128_pd( _mm256_broadcast_pd( C+11 ) , C[15] , 1 ) ;
 
-  // first
-  register const __m256d t5 = _mm256_setr_pd( C[0] , C[1] , C[8] , C[9] ) ;
-  register const __m256d t6 = _mm256_setr_pd( C[2] , C[3] , C[10] , C[11] ) ;
-  register const __m256d t7 = _mm256_setr_pd( C[4] , C[5] , C[12] , C[13] ) ;
-  register const __m256d t8 = _mm256_setr_pd( C[6] , C[7] , C[14] , C[15] ) ;
-  register const __m256d t9 = _mm256_setr_pd( C[16] , C[17] , C[24] , C[25] ) ;
-  register const __m256d t10 = _mm256_setr_pd( C[18] , C[19] , C[26] , C[27] ) ;
-  register const __m256d t11 = _mm256_setr_pd( C[20] , C[21] , C[28] , C[29] ) ;
-  register const __m256d t12 = _mm256_setr_pd( C[22] , C[23] , C[30] , C[31] ) ;
-  
+  // initially set these up into the y registers hopefully and do the multiply
+  register __m256d t1 = _mm256_broadcast_pd( B+0 ) ;
+  register __m256d t2 = _mm256_broadcast_pd( B+1 ) ;
+  register __m256d t3 = _mm256_broadcast_pd( B+2 ) ;
+  register __m256d t4 = _mm256_broadcast_pd( B+3 ) ;
   A[0] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t5 ) , AVX_MUL( t2 , t6 ) ) ,
 			_mm256_add_pd( AVX_MUL( t3 , t7 ) , AVX_MUL( t4 , t8 ) ) ) ;
   A[1] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t9 ) ,  AVX_MUL( t2 , t10 ) ) ,
 			_mm256_add_pd( AVX_MUL( t3 , t11 ) , AVX_MUL( t4 , t12 ) ) ) ;
   // second
-  t1 = _mm256_setr_pd( B[8] , B[9] , B[8] , B[9] ) ;
-  t2 = _mm256_setr_pd( B[10] , B[11] , B[10] , B[11] ) ;
-  t3 = _mm256_setr_pd( B[12] , B[13] , B[12] , B[13] ) ;
-  t4 = _mm256_setr_pd( B[14] , B[15] , B[14] , B[15] ) ;
+  t1 = _mm256_broadcast_pd( B+4 ) ;
+  t2 = _mm256_broadcast_pd( B+5 ) ;
+  t3 = _mm256_broadcast_pd( B+6 ) ;
+  t4 = _mm256_broadcast_pd( B+7 ) ;
   A[2] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t5 ) , AVX_MUL( t2 , t6 ) ) ,
 			_mm256_add_pd( AVX_MUL( t3 , t7 ) , AVX_MUL( t4 , t8 ) ) ) ;
   A[3] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t9 ) , AVX_MUL( t2 , t10 ) ) ,
 			_mm256_add_pd( AVX_MUL( t3 , t11 ) ,  AVX_MUL( t4 , t12 ) ) ) ;
   // third
-  t1 = _mm256_setr_pd( B[16] , B[17] , B[16] , B[17] ) ;
-  t2 = _mm256_setr_pd( B[18] , B[19] , B[18] , B[19] ) ;
-  t3 = _mm256_setr_pd( B[20] , B[21] , B[20] , B[21] ) ;
-  t4 = _mm256_setr_pd( B[22] , B[23] , B[22] , B[23] ) ;
+  t1 = _mm256_broadcast_pd( B+8 ) ;
+  t2 = _mm256_broadcast_pd( B+9 ) ;
+  t3 = _mm256_broadcast_pd( B+10 ) ;
+  t4 = _mm256_broadcast_pd( B+11 ) ;
   A[4] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t5 ) , AVX_MUL( t2 , t6 ) ) ,
-		      _mm256_add_pd( AVX_MUL( t3 , t7 ) , AVX_MUL( t4 , t8 ) ) ) ;
+			_mm256_add_pd( AVX_MUL( t3 , t7 ) , AVX_MUL( t4 , t8 ) ) ) ;
   A[5] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t9 ) , AVX_MUL( t2 , t10 ) ) ,
-		      _mm256_add_pd( AVX_MUL( t3 , t11 ) ,  AVX_MUL( t4 , t12 ) ) ) ;
+			_mm256_add_pd( AVX_MUL( t3 , t11 ) ,  AVX_MUL( t4 , t12 ) ) ) ;
   // fourth
-  t1 = _mm256_setr_pd( B[24] , B[25] , B[24] , B[25] ) ;
-  t2 = _mm256_setr_pd( B[26] , B[27] , B[26] , B[27] ) ;
-  t3 = _mm256_setr_pd( B[28] , B[29] , B[28] , B[29] ) ;
-  t4 = _mm256_setr_pd( B[30] , B[31] , B[30] , B[31] ) ;
+  t1 = _mm256_broadcast_pd( B+12 ) ;
+  t2 = _mm256_broadcast_pd( B+13 ) ;
+  t3 = _mm256_broadcast_pd( B+14 ) ;
+  t4 = _mm256_broadcast_pd( B+15 ) ;
   A[6] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t5 ) , AVX_MUL( t2 , t6 ) ) ,
 			_mm256_add_pd( AVX_MUL( t3 , t7 ) , AVX_MUL( t4 , t8 ) ) ) ;
   A[7] = _mm256_add_pd( _mm256_add_pd( AVX_MUL( t1 , t9 ) , AVX_MUL( t2 , t10 ) ) ,

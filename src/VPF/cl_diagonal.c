@@ -72,7 +72,7 @@ cl_diagonal( struct propagator prop1 ,
 #pragma omp parallel
   {
     read_ahead( prop , M.S+0 , &error_code , 1 , t ) ;
-    read_ahead( prop , M.S+1 , &error_code , 1 , t ) ;
+    read_ahead( prop , M.S+1 , &error_code , 1 , t+1 ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -98,7 +98,7 @@ cl_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < ( LT-2 ) ) {
-	read_ahead( prop , M.Sf , &error_code , 1 , t ) ;
+	read_ahead( prop , M.Sf , &error_code , 1 , t+1 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)
       for( x = 0 ; x < LCU ; x++ ) {

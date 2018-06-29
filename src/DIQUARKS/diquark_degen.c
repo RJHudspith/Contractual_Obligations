@@ -80,7 +80,7 @@ diquark_degen( struct propagator prop1 ,
     {
       // read on the master and one slave
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site) schedule(dynamic)

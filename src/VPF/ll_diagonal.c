@@ -82,7 +82,7 @@ ll_diagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-1 ) {
-	read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
+	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
       #pragma omp for private(x)
       for( x = 0 ; x < LCU ; x++ ) {

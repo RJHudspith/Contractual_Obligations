@@ -85,7 +85,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       // strange memory access pattern threads better than what was here before
       size_t site ;
       if( t < ( LT - 1 ) ) {
-        read_ahead( prop , M.Sf , &error_code , Nprops , t ) ;
+        read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
       // Loop over spatial volume threads better
       #pragma omp for private(site)

@@ -112,7 +112,7 @@ cl_offdiagonal( struct propagator prop1 ,
     #pragma omp parallel
     {
       if( t < LT-2 ) {
-	read_ahead( prop , M.Sf , &error_code , 2 , t ) ;
+	read_ahead( prop , M.Sf , &error_code , 2 , t+1 ) ;
 	rotate_offdiag( M.Sf , prop , 2 ) ;
       }
       #pragma omp for private(x) schedule(dynamic)

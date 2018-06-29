@@ -163,9 +163,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[2] , c3 ) ) ) ) ;
   a += 4 ;
 
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 4 )  , pC[0] , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 10 ) , pC[3] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 16 ) , pC[6] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+2 ) , pC[0] , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+5 ) , pC[3] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+8 ) , pC[6] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[3] , B[0] , 3 ) , c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[4] , B[1] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[5] , B[2] , 3 ) , c3 ) ) ) ) ;
@@ -187,9 +187,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[8] , c3 ) ) ) ) ;
   a += 4 ;
   
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 4 )  , pC[9]  , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 10 ) , pC[12] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 16 ) , pC[15] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+2 ) , pC[9]  , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+5 ) , pC[12] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+8 ) , pC[15] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[0] , B[6] , 3 ) , c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[1] , B[7] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[2] , B[8] , 3 ) , c3 ) ) ) ) ;
@@ -211,9 +211,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[5] , c3 ) ) ) ) ;
   a += 4 ;
 
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 22 ) , pC[9]  , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 28 ) , pC[12] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 34 ) , pC[15] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+11 ) , pC[9]  , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+14 ) , pC[12] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+17 ) , pC[15] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[6] , B[3] , 3 ), c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[7] , B[4] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[8] , B[5] , 3 ) , c3 ) ) ) ) ;
@@ -238,9 +238,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[2] , c3 ) ) ) ) ;
   a += 4 ;
 
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 4 )  , pC[0] , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 10 ) , pC[3] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 16 ) , pC[6] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+2 )  , pC[0] , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+5 ) , pC[3] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+8 ) , pC[6] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[3] , B[0] , 3 ) , c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[4] , B[1] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[5] , B[2] , 3 ) , c3 ) ) ) ) ;
@@ -262,9 +262,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[8] , c3 ) ) ) ) ;
   a += 4 ;
   
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 4 )  , pC[9] , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 10 ) , pC[12] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 16 ) , pC[15] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+2 ) , pC[9] , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+5 ) , pC[12] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+8 ) , pC[15] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[0] , B[6] , 3 ) , c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[1] , B[7] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[2] , B[8] , 3 ) , c3 ) ) ) ) ;
@@ -286,9 +286,9 @@ colormatrix_halfspinor( __m128d *pA ,
 						      AVX_MUL( B[5] , c3 ) ) ) ) ;
   a += 4 ;
 
-  c1 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 22 ) , pC[9] , 1 ) ;
-  c2 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 28 ) , pC[12] , 1 ) ;
-  c3 =  _mm256_insertf128_pd( _mm256_loadu_pd( c + 34 ) , pC[15] , 1 ) ;
+  c1 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+11 ) , pC[9] , 1 ) ;
+  c2 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+14 ) , pC[12] , 1 ) ;
+  c3 =  _mm256_insertf128_pd( _mm256_broadcast_pd( pC+17 ) , pC[15] , 1 ) ;
   _mm256_storeu_pd( a , _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[6] , B[3] , 3 ), c1 ) ,
 				       _mm256_add_pd( AVX_MUL( _mm256_blend_pd( B[7] , B[4] , 3 ) , c2 ) ,
 						      AVX_MUL( _mm256_blend_pd( B[8] , B[5] , 3 ) , c3 ) ) ) ) ;
