@@ -58,7 +58,7 @@ is_fly_NRQCD( struct propagator *prop ,
       // allocate the heavy propagator
       if( corr_malloc( (void**)&prop[n].H ,
 		       ALIGNMENT ,
-		       LVOLUME*sizeof( struct halfspinor_f ) ) != 0 ) {
+		       T_NRQCD*LCU*sizeof( struct halfspinor_f ) ) != 0 ) {
 	fprintf( stderr , "[NRQCD] heavy prop allocation failure\n" ) ;
 	return GLU_FALSE ;
       }
@@ -97,7 +97,7 @@ compute_nrqcd_props( struct propagator *prop ,
   // check tadpole factors are the same
   double tadref = 0.0 ;
   GLU_bool HAVE_C11 = GLU_FALSE ;
-  GLU_bool FLY_NREL = is_fly_NRQCD( prop , &tadref , &HAVE_C11 , nprops ) ;
+  GLU_bool FLY_NREL = is_fly_NRQCD( prop , &tadref , &HAVE_C11 , nprops  ) ;
   size_t i ;
 
   // if we aren't doing any NRQCD props then we successfully do nothing
@@ -153,6 +153,9 @@ compute_nrqcd_props( struct propagator *prop ,
 
   // tell us the time it took
   print_time() ;
+
+  // change the global temporal length to match the NRQCD one we set
+  Latt.dims[ND-1] = (const size_t)T_NRQCD ;
 
  memfree :
 

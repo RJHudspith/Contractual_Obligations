@@ -522,7 +522,7 @@ compute_props( struct propagator *prop ,
     compute_clovers( F , lat , tprev , tadref ) ;
     
     // evolve for all timeslices can we parallelise this? - nope
-    for( t = 0 ; t < LT-1 ; t++ ) {
+    for( t = 0 ; t < T_NRQCD-1 ; t++ ) {
 	
       // are we going backward or forward?
       if( prop[n].NRQCD.backward == GLU_TRUE ) {
@@ -533,15 +533,15 @@ compute_props( struct propagator *prop ,
       	
       // compute the propagator
       if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( F , tprev , prop[n].NRQCD , fuse_dH ) ;
+	nrqcd_prop_bwd( F , tprev%LT , prop[n].NRQCD , fuse_dH ) ;
       } else {
-	nrqcd_prop_fwd( F , tprev , prop[n].NRQCD , fuse_dH ) ;
+	nrqcd_prop_fwd( F , tprev%LT , prop[n].NRQCD , fuse_dH ) ;
       }
     	
       // set G(t+1) from temp1
       #pragma omp for nowait private(i) 
       for( i = 0 ; i < LCU ; i++ ) {
-	const size_t idx = LCU*tnew ;
+	const size_t idx = LCU*((t + 1 + ( prop[n].origin[ND-1] )%LT )%(T_NRQCD) ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[1] , F -> S[i].D[1] ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[2] , F -> S[i].D[2] ) ;
@@ -553,7 +553,7 @@ compute_props( struct propagator *prop ,
 
       #pragma omp single nowait
       {
-	progress_bar( t , LT-1 ) ;
+	progress_bar( t , T_NRQCD-1 ) ;
       }
     }
   }

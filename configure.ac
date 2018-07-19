@@ -262,15 +262,16 @@ AC_ARG_WITH([TETRA_NBLOCK],
 ])
 
 ## Compile a tetra block size
-AC_ARG_WITH([IO_NBLOCK],
-	AC_HELP_STRING([--with-IO_NBLOCK=],
-		       [IO block fread factor]),
+AC_ARG_WITH([T_NRQCD],
+	AC_HELP_STRING([--with-T_NRQCD=],
+		       [NRQCD evolution time]),
             [
-	    AC_MSG_NOTICE([User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})])
-	    AC_DEFINE_UNQUOTED([IO_NBLOCK], [${with_IO_NBLOCK}] , [Compiled IO_NBLOCK] )	
+	    AC_MSG_NOTICE([User specified T_NRQCD, compiling for (${with_T_NRQCD})])
+	    AC_DEFINE_UNQUOTED([T_NRQCD], [${with_T_NRQCD}] , [Compiled T_NRQCD] )	
 	    ],[
-	    AC_MSG_NOTICE([User unspecified IO_NBLOCK, code defaults to 1])	
+	    AC_MSG_NOTICE([User unspecified T_NRQCD, code defaults to LT])	
 ])
+
 
 ## C standard libraries
 AC_CHECK_HEADERS([math.h],[],AC_MSG_ERROR([We need math.h]))

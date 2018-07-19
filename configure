@@ -747,7 +747,7 @@ enable_LEGACY_NRQCD_COMPARE
 enable_OMP_FFTW
 with_fftw
 with_TETRA_NBLOCK
-with_IO_NBLOCK
+with_T_NRQCD
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1405,7 +1405,7 @@ Optional Packages:
   --with-M_CHANNELS=      Compile in the number of meson contractions
   --with-fftw=<name>      Specify FFTW location for the GF
   --with-TETRA_NBLOCK=    Block matrix tetra contraction size
-  --with-IO_NBLOCK=       IO block fread factor
+  --with-T_NRQCD=         NRQCD evolution time
 
 Some influential environment variables:
   CC          C compiler command
@@ -5213,23 +5213,24 @@ fi
 
 ## Compile a tetra block size
 
-# Check whether --with-IO_NBLOCK was given.
-if test "${with_IO_NBLOCK+set}" = set; then :
-  withval=$with_IO_NBLOCK;
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})" >&5
-$as_echo "$as_me: User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})" >&6;}
+# Check whether --with-T_NRQCD was given.
+if test "${with_T_NRQCD+set}" = set; then :
+  withval=$with_T_NRQCD;
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified T_NRQCD, compiling for (${with_T_NRQCD})" >&5
+$as_echo "$as_me: User specified T_NRQCD, compiling for (${with_T_NRQCD})" >&6;}
 
 cat >>confdefs.h <<_ACEOF
-#define IO_NBLOCK ${with_IO_NBLOCK}
+#define T_NRQCD ${with_T_NRQCD}
 _ACEOF
 
 
 else
 
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified IO_NBLOCK, code defaults to 1" >&5
-$as_echo "$as_me: User unspecified IO_NBLOCK, code defaults to 1" >&6;}
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified T_NRQCD, code defaults to LT" >&5
+$as_echo "$as_me: User unspecified T_NRQCD, code defaults to LT" >&6;}
 
 fi
+
 
 
 ## C standard libraries

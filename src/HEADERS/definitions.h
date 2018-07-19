@@ -82,6 +82,14 @@
 #define LT (Latt.dims[ND-1])
 
 /**
+   @def T_NRQCD
+   @brief Length of NRQCD time evolution
+ */
+#ifndef T_NRQCD
+  #define T_NRQCD (Latt.dims[ND-1])
+#endif
+
+/**
    @def LCU
    @brief spatial volume
  */
