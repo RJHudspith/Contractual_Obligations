@@ -72,34 +72,8 @@ sigma_dot_grad_x_E( struct halfspinor *H ,
   return ;
 }
 
-// computes \sigma.B G
-static void
-sigmaB_G( struct halfspinor *H ,
-	  const struct field Fmunu ,
-	  const struct halfspinor S ,
-	  const double fac )
-{
-  // temporaries
-  struct halfspinor t1 , t2 ;
-    
-  // initialise sigma.B into t1
-  size_t j ;
-  for( j = 0 ; j < NCNC ; j++ ) {
-    t1.D[0][j] =  Fmunu.O[2][j] ;
-    t1.D[1][j] =  Fmunu.O[0][j] - I * Fmunu.O[1][j] ;
-    t1.D[2][j] =  Fmunu.O[0][j] + I * Fmunu.O[1][j] ;
-    t1.D[3][j] = -Fmunu.O[2][j] ;
-  }
 
-  // multiply S on the left by this result
-  halfspinor_multiply( &t2 , t1 , S ) ;
-  halfspinor_Saxpy( H , t2 , fac ) ;
-       
-  return ;
-}
-
-// result is in F -> S3
-// does \sigma_i ( \grad x E - E x \grad ) S
+// does \sigma.( \grad x E - E x \grad ) S
 static void
 sigma_gradxE( struct halfspinor *H , 
 	      const struct field *Fmunu ,
@@ -160,14 +134,20 @@ term_C4( struct halfspinor *H ,
   
   const double fac = -NRQCD.C4 / ( 2. * NRQCD.M_0 ) ;
 
-  sigmaB_G( H , Fmunu[i] , S[i] , fac ) ;
+  struct halfspinor res ;
+  sigmaB_halfspinor( &res , Fmunu[i] , S[i] ) ;
+
+  halfspinor_Saxpy( H , res , fac ) ;
 
   return ;
 }
 
 // this term is { grad^2 , \sigma.B } G
 void
-term_C7( struct NRQCD_fields *F ,
+term_C7( struct halfspinor *H ,
+	 const struct halfspinor *S ,
+	 const struct field *Fmunu ,
+	 const size_t i ,
 	 const size_t t ,
 	 const struct NRQCD_params NRQCD )
 {
@@ -175,34 +155,12 @@ term_C7( struct NRQCD_fields *F ,
   
   const double fac = -NRQCD.C7 / ( pow( 2*NRQCD.M_0 , 3 ) ) ;
 
-  size_t i ;
-  // first term is sigma.B.\grad^2 G
-#pragma omp for private(i)
-  for ( i = 0  ; i < LCU ; i++ ) {
-    struct halfspinor res ;
-    gradsq_imp( &res , F -> S , F -> Fmunu , i , t ) ;
-    #ifdef LEGACY_NRQCD_COMPARE
-    // correction factor for our derivative
-    halfspinor_Saxpy( &res , F -> S[i] , ( 1. - 1/(NRQCD.U0*NRQCD.U0) )/2. ) ;
-    #endif
-    sigmaB_G( &F -> H[i] , F -> Fmunu[i] , res , fac ) ;
-
-    // accumulate Sigma.B G into S2 with no factor!
-    zero_halfspinor( &F -> S1[i] ) ; 
-    sigmaB_G( &F -> S1[i] , F -> Fmunu[i] , F -> S[i] , 1.0 ) ;
-  }
- 
-  // second term \grad^2 Sigma.B (G)
-#pragma omp for private(i)
-  for ( i = 0  ; i < LCU ; i++ ) {
-    struct halfspinor res ;    
-    gradsq_imp( &res , F -> S1 , F -> Fmunu , i , t ) ;
-    #ifdef LEGACY_NRQCD_COMPARE
-    // correction factor for our derivative
-    halfspinor_Saxpy( &res , F -> S1[i] , ( 1. - 1/(NRQCD.U0*NRQCD.U0) )/2. ) ;
-    #endif
-    halfspinor_Saxpy( &F -> H[i] , res , fac ) ;
-  }
+  struct halfspinor res ;
+  sigmaB_gradsq_imp( &res , S , Fmunu , i , t ) ;
+  halfspinor_Saxpy( H , res , fac ) ;
+  
+  gradsq_imp_sigmaB( &res , S , Fmunu , i , t ) ;
+  halfspinor_Saxpy( H , res , fac ) ;
   
   return ;
 }
@@ -228,7 +186,7 @@ term_C8( struct NRQCD_fields *F ,
     struct halfspinor res ;
     gradsq_imp( &res , F -> S1 , F -> Fmunu , i , t ) ;
     #ifdef LEGACY_NRQCD_COMPARE
-    // correction factor for our derivative
+    // (in)correction factor for our derivative
     halfspinor_Saxpy( &res , F -> S1[i] , ( 1. - 1/(NRQCD.U0*NRQCD.U0) )/2. ) ;
     #endif
     halfspinor_Saxpy( &F -> H[i] , res , fac ) ;
@@ -238,7 +196,7 @@ term_C8( struct NRQCD_fields *F ,
   for( i = 0 ; i < LCU ; i++ ) {
     gradsq_imp( &F -> S1[i] , F -> S , F -> Fmunu , i ,  t ) ;
     #ifdef LEGACY_NRQCD_COMPARE
-    // correction factor for our derivative
+    // (in)correction factor for our derivative
     halfspinor_Saxpy( &F -> S1[i] , F -> S[i] ,
 		      ( 1. - 1/(NRQCD.U0*NRQCD.U0) )/2. ) ;
     #endif

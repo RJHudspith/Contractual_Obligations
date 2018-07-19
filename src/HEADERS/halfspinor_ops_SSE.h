@@ -74,6 +74,15 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
 			const uint8_t imap[ NS ] ) ;
 
 /**
+   @fn void sigmaB_halfspinor( struct halfspinor *S1 , const struct field Fmunu , const struct halfspinor S )
+   @brief computes \sigma.B S
+ */
+void
+sigmaB_halfspinor( struct halfspinor *S1 ,
+		   const struct field Fmunu ,
+		   const struct halfspinor S ) ;
+
+/**
    @fn void zero_halfspinor( struct halfspinor *S )
    @brief zero a halfspinor
  */

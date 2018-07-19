@@ -37,6 +37,10 @@ colormatrixdag_halfspinor( struct halfspinor *a ,
 			   const double complex b[ NCNC ] ,
 			   struct halfspinor c ) ;
 
+/**
+   @fn void Fmunu_halfspinor( struct halfspinor *a , const double complex *b ,const struct halfspinor c )
+   @brief computest a = F.C where F is a hermitian #NC x #NC matrix
+ */
 void
 Fmunu_halfspinor( struct halfspinor *a ,
 		  const double complex *b ,
@@ -78,6 +82,15 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
 			const struct halfspinor S ,
 			const uint8_t sigma_map[ NS ] ,
 			const uint8_t imap[ NS ] ) ;
+
+/**
+   @fn void sigmaB_halfspinor( struct halfspinor *S1 , const struct field Fmunu , const struct halfspinor S )
+   @brief computes \sigma.B S
+ */
+void
+sigmaB_halfspinor( struct halfspinor *S1 ,
+		   const struct field Fmunu ,
+		   const struct halfspinor S ) ;
 
 /**
    @fn void zero_halfspinor( struct halfspinor *S )

@@ -1,6 +1,6 @@
 /**
    @file clover.h
-   @brief O(a^2) clover-leaf computation
+   @brief O(a^4) clover-leaf computation
  */
 #ifndef CLOVER_H
 #define CLOVER_H

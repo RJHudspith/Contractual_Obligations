@@ -187,13 +187,14 @@ evolve_dH( struct NRQCD_fields *F ,
 
     term_C5( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
+    term_C7( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
     term_C9EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
     term_C10EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
   }
 
   // these three are really tricky to loop-fuse into the above
-  term_C7( F , t , NRQCD ) ;
   term_C8( F , t , NRQCD ) ;
   term_C11( F , t , NRQCD ) ;
 
@@ -230,6 +231,8 @@ evolve_dH_fused( struct NRQCD_fields *F ,
     term_C4( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
     term_C5( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
+
+    term_C7( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
     term_C9EB( &F -> H[i] , F -> S , F -> Fmunu , i , t , NRQCD ) ;
 
@@ -494,8 +497,7 @@ compute_props( struct propagator *prop ,
     // if we can we fuse the loops in dH evolution to avoid a
     // barrier
     GLU_bool fuse_dH = GLU_FALSE ;
-    if( fabs( prop[n].NRQCD.C7 )  < NRQCD_TOL &&
-	fabs( prop[n].NRQCD.C8 )  < NRQCD_TOL &&
+    if( fabs( prop[n].NRQCD.C8 )  < NRQCD_TOL &&
 	fabs( prop[n].NRQCD.C11 ) < NRQCD_TOL ) {
       fuse_dH = GLU_TRUE ;
     }

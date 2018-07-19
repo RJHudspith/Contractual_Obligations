@@ -403,23 +403,98 @@ halfspinor_multiply( struct halfspinor *a ,
 		     const struct halfspinor b ,
 		     const struct halfspinor c )
 {
-  double complex temp[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  __m128d temp[ NCNC ] ;
   // first element
   multab( (void*)a -> D[0] , (void*)b.D[0] , (void*)c.D[0] ) ;
-  multab( (void*)temp , (void*)b.D[1] , (void*)c.D[2] ) ;
-  add_mat( (void*)a -> D[0] , (void*)temp ) ;
+  multab( temp , (void*)b.D[1] , (void*)c.D[2] ) ;
+  add_mat( (void*)a -> D[0] , temp ) ;
   // second
   multab( (void*)a -> D[1] , (void*)b.D[0] , (void*)c.D[1] ) ;
-  multab( (void*)temp , (void*)b.D[1] , (void*)c.D[3] ) ;
-  add_mat( (void*)a -> D[1] , (void*)temp ) ;
+  multab( temp , (void*)b.D[1] , (void*)c.D[3] ) ;
+  add_mat( (void*)a -> D[1] , temp ) ;
   // third
   multab( (void*)a -> D[2] , (void*)b.D[2] , (void*)c.D[0] ) ;
-  multab( (void*)temp , (void*)b.D[3] , (void*)c.D[2] ) ;
-  add_mat( (void*)a -> D[2] , (void*)temp ) ;
+  multab( temp , (void*)b.D[3] , (void*)c.D[2] ) ;
+  add_mat( (void*)a -> D[2] , temp ) ;
   // fourth
   multab( (void*)a -> D[3] , (void*)b.D[2] , (void*)c.D[1] ) ;
-  multab( (void*)temp , (void*)b.D[3] , (void*)c.D[3] ) ;
-  add_mat( (void*)a -> D[3] , (void*)temp ) ;
+  multab( temp , (void*)b.D[3] , (void*)c.D[3] ) ;
+  add_mat( (void*)a -> D[3] , temp ) ;
+  return ;
+}
+
+void
+sigmaB_halfspinor( struct halfspinor *S1 ,
+		   const struct field Fmunu ,
+		   const struct halfspinor S )
+{
+  struct halfspinor t1 ;
+  
+  // initialise sigma.B into t1
+  const __m128d *pF0 = (const __m128d*)Fmunu.O[0] ;
+  const __m128d *pF1 = (const __m128d*)Fmunu.O[1] ;
+  const __m128d *pF2 = (const __m128d*)Fmunu.O[2] ;
+  __m128d *pt0 = (__m128d*)t1.D[0] ;
+#if NC == 3
+  // t1.D[0]
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  *pt0 = *pF2 ; pt0++ ; pF2++ ;
+  // t1.D[1]
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  // t1.D[2]
+  pF0 = (const __m128d*)Fmunu.O[0] ;
+  pF1 = (const __m128d*)Fmunu.O[1] ;
+  pF2 = (const __m128d*)Fmunu.O[2] ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  *pt0 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ; pt0++ ; pF0++ ; pF1++ ;
+  // t1.D[3]
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+  *pt0 = SSE_FLIP( *( pF2 ) ) ; pt0++ ; pF2++ ;
+#else
+  __m128d *pt1 = (__m128d*)t1.D[1] ;
+  __m128d *pt2 = (__m128d*)t1.D[2] ;
+  __m128d *pt3 = (__m128d*)t1.D[3] ;
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    *pt0 = *( pF2 ) ;
+    *pt1 = _mm_sub_pd( *( pF0 ) , SSE2_iMUL( *( pF1) ) ) ;
+    *pt2 = _mm_add_pd( *( pF0 ) , SSE2_iMUL( *( pF1 ) ) ) ;
+    *pt3 = SSE_FLIP( *( pF2 ) ) ;
+    pF0++ ; pF1++ ; pF2++ ;
+    pt0++ ; pt1++ ; pt2++ ; pt3++ ;
+  }
+#endif
+
+  halfspinor_multiply( S1 , t1 , S ) ;
   return ;
 }
 

@@ -4,6 +4,7 @@
  */
 #include "common.h"
 
+#include "halfspinor_ops.h" // alphabetising
 #include "matrix_ops.h"
 #include "mmul.h"
 
@@ -137,6 +138,24 @@ halfspinor_multiply( struct halfspinor *a ,
   multab( (void*)a -> D[3] , (void*)b.D[2] , (void*)c.D[1] ) ;
   multab( (void*)temp , (void*)b.D[3] , (void*)c.D[3] ) ;
   add_mat( (void*)a -> D[3] , (void*)temp ) ;
+  return ;
+}
+
+void
+sigmaB_halfspinor( struct halfspinor *S1 ,
+		   const struct field Fmunu ,
+		   const struct halfspinor S )
+{
+  struct halfspinor t1 ;
+  // initialise sigma.B into t1
+  size_t j ;
+  for( j = 0 ; j < NCNC ; j++ ) {
+    t1.D[0][j] =  Fmunu.O[2][j] ;
+    t1.D[1][j] =  Fmunu.O[0][j] - I * Fmunu.O[1][j] ;
+    t1.D[2][j] =  Fmunu.O[0][j] + I * Fmunu.O[1][j] ;
+    t1.D[3][j] = -Fmunu.O[2][j] ;
+  }
+  halfspinor_multiply( S1 , t1 , S ) ;
   return ;
 }
 
