@@ -207,6 +207,7 @@ term_C8( struct NRQCD_fields *F ,
     sigma_gradxE( &res , F -> Fmunu , F -> S1 , NRQCD.U0 , i , t ) ;
     halfspinor_Saxpy( &F -> H[i] , res , fac ) ; 
   }
+
   return ;
 }
 

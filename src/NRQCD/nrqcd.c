@@ -105,6 +105,15 @@ compute_nrqcd_props( struct propagator *prop ,
     fprintf( stdout , "[NRQCD] Not computing NRQCD props on the fly\n" ) ;
     return SUCCESS ;
   }
+
+  // give us a little warning about this
+  if( (const size_t)T_NRQCD != LT ) {
+    fprintf( stdout ,
+	     "[NRQCD] evolving NRQCD to t=%zu. This differs from LT=%zu\n"
+	     "[NRQCD] be careful if contracting with light props as LT gets changed to T_NRQCD\n" ,
+	     (size_t)T_NRQCD , LT ) ;
+  }
+  
   // otherwise we initialise all this gubbins
   struct NRQCD_fields F ;
 

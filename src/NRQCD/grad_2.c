@@ -8,7 +8,69 @@
 #include "mmul.h"            // multab() etc
 #include "halfspinor_ops.h"  // zero_halfspinor() etc
 
-// same as grad, sum over all mu
+#ifdef HAVE_IMMINTRIN_H
+
+#define inner_unroll_su3()\
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+    *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+    *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+  *H = _mm_add_pd( SSE2_FMA( *S , f1 , _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) , _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) ) , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ; \
+
+static inline void
+sq_inner( __m128d *H ,
+	  const __m128d *A ,
+	  const __m128d *B ,
+	  const __m128d *C ,
+	  const __m128d *D ,
+	  const __m128d *S )
+{
+  const __m128d f1 = _mm_set_pd( -2.5 , -2.5 ) ;
+  const __m128d f2 = _mm_set_pd( 4/3. , 4/3. ) ;
+  const __m128d f3 = _mm_set_pd( -1/12. , -1/12. ) ;
+#if NC==3
+  inner_unroll_su3() ;
+  inner_unroll_su3() ;
+  inner_unroll_su3() ;
+  inner_unroll_su3() ;
+#else
+  size_t i ;
+  for( i = 0 ; i < ND*NCNC ; i++ ) {
+    *H = _mm_add_pd( SSE2_FMA( *S , f1 ,
+			       _mm_add_pd( _mm_mul_pd( f2 , _mm_add_pd( *A , *B ) ) ,
+					   _mm_mul_pd( f3 , _mm_add_pd( *C , *D ) ) ) )      
+		    , *H ) ; H++ ; S++ ; A++ ; B++ ; C++ ; D++ ;
+  }
+#endif
+  return ;
+}
+
+#else
+
+static inline void
+sq_inner( double complex *H ,
+	  const double complex *A ,
+	  const double complex *B ,
+	  const double complex *C ,
+	  const double complex *D ,
+	  const double complex *S )
+{
+  size_t i ;
+  for( i = 0 ; i < ND*NCNC ; i++ ) {
+    *H += -5/2.*(*S) + 4/3.*(*A + *B) - 1/12.*(*C + *D) ;
+    H++ ; S++ ; A++ ; B++ ; C++ ; D++ ;
+  }
+  return ;
+}
+
+#endif
+
+
+// similar to grad, sum over all mu
 void
 gradsq( struct halfspinor *der2 ,
 	const struct halfspinor *S ,
@@ -100,14 +162,18 @@ gradsq_imp( struct halfspinor *der ,
 	    const size_t i ,
 	    const size_t t )
 {
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+  struct halfspinor A , B , C , D ;
+#ifdef HAVE_IMMINTRIN_H
+  __m128d b[ NCNC ] ;
+#else
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+#endif
   
   const size_t Uidx = i + t*LCU ;
 
   zero_halfspinor( der ) ;
 
-  size_t mu , d ;
+  size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
   
     const size_t Sfwd  = lat[ i ].neighbor[mu] ;
@@ -117,34 +183,20 @@ gradsq_imp( struct halfspinor *der ,
     const size_t Sbck2 = lat[ Sbck ].back[mu] ;
     
     const size_t Ubck = lat[ Uidx ].back[mu] ;
-    
-    for( d = 0 ; d < NS ; d++ ) {
-      
-      // computes der = U S(x+\mu)
-      multab( (void*)B ,
-	      (void*)lat[ Uidx ].O[mu] ,
-	      (void*)S[ Sfwd ].D[d] ) ;
-      // computes A = U^\dag(x-\mu) S(x-\mu)
-      multabdag( (void*)A ,
-		 (void*)lat[ Ubck ].O[mu] ,
-		 (void*)S[ Sbck ].D[d] ) ;
-      // DER = -4( B + A )
-      add_mat( (void*)B , (void*)A ) ;
-      constant_mul_gauge( A , 4./3. , B ) ;
-      add_mat( (void*)der -> D[d] , (void*)A ) ;
-      // DER = DER - -5/2. F -> S[i].D[d]
-      colormatrix_Saxpy( der -> D[d] , S[i].D[d] , -5./2. ) ;
-      
-      // the extra terms two steps away!
-      multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] ,
-	      (void*)S[ Sfwd2 ].D[d] ) ;
-      
-      multabdag( (void*)B , (void*)Fmunu[i].O[7+2*mu] ,
-		 (void*)S[ Sbck2 ].D[d] ) ;
-      add_mat( (void*)A , (void*)B ) ;
-      
-      colormatrix_Saxpy( (void*)der -> D[d] , (void*)A , -1./12. ) ;
-    }
+
+    colormatrix_halfspinor( (void*)A.D ,(void*)lat[ Uidx ].O[mu] ,
+			    (void*)S[ Sfwd ].D ) ;
+    dagger_gauge( (void*)b , (void*)lat[ Ubck ].O[mu] ) ;
+    colormatrix_halfspinor( (void*)B.D , (void*)b ,(void*)S[ Sbck ].D ) ;
+
+    colormatrix_halfspinor( (void*)C.D , (void*)Fmunu[i].O[6+2*mu] ,
+			    (void*)S[ Sfwd2 ].D ) ;
+    dagger_gauge( (void*)b , (void*)Fmunu[i].O[7+2*mu] ) ;
+    colormatrix_halfspinor( (void*)D.D , (void*)b , (void*)S[ Sbck2 ].D ) ;
+
+    // do the sum der = -5/2 S[i] + 4/3(A+B) - 1/12(C+D) 
+    sq_inner( (void*)der -> D , (void*)A.D , (void*)B.D ,
+	      (void*)C.D , (void*)D.D , (void*)S[i].D ) ;
   }
   return ;
 }
@@ -157,23 +209,22 @@ gradsq_imp_sigmaB( struct halfspinor *der ,
 		   const size_t i ,
 		   const size_t t )
 {
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+#ifdef HAVE_IMMMINTRIN_H
+  __mm128d b[ NCNC ] ;
+#else
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+#endif
   
   const size_t Uidx = i + t*LCU ;
 
   zero_halfspinor( der ) ;
 
   // eww, lots of stack allocations here
-  struct halfspinor sigmaB_S ;
-  struct halfspinor sigmaB_Sfwd ;
-  struct halfspinor sigmaB_Sbck ;
-  struct halfspinor sigmaB_Sfwd2 ;
-  struct halfspinor sigmaB_Sbck2 ;
+  struct halfspinor sigmaB_S , Stmp , A , B , C , D ;
 
   sigmaB_halfspinor( &sigmaB_S , Fmunu[i] , S[i] );
   
-  size_t mu , d ;
+  size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
   
     const size_t Sfwd  = lat[ i ].neighbor[mu] ;
@@ -184,39 +235,25 @@ gradsq_imp_sigmaB( struct halfspinor *der ,
     
     const size_t Ubck = lat[ Uidx ].back[mu] ;
 
-    // these four are needed for every mu
-    sigmaB_halfspinor( &sigmaB_Sfwd  , Fmunu[Sfwd]  , S[Sfwd] );
-    sigmaB_halfspinor( &sigmaB_Sbck  , Fmunu[Sbck]  , S[Sbck] );
-    sigmaB_halfspinor( &sigmaB_Sfwd2 , Fmunu[Sfwd2] , S[Sfwd2] );
-    sigmaB_halfspinor( &sigmaB_Sbck2 , Fmunu[Sbck2] , S[Sbck2] );
+    sigmaB_halfspinor( &Stmp , Fmunu[Sfwd]  , S[Sfwd] );
+    colormatrix_halfspinor( (void*)A.D , (void*)lat[ Uidx ].O[mu] ,
+			    (void*)Stmp.D ) ;
     
-    for( d = 0 ; d < NS ; d++ ) {
-      
-      // computes der = U S(x+\mu)
-      multab( (void*)B ,
-	      (void*)lat[ Uidx ].O[mu] ,
-	      (void*)sigmaB_Sfwd.D[d] ) ;
-      // computes A = U^\dag(x-\mu) S(x-\mu)
-      multabdag( (void*)A ,
-		 (void*)lat[ Ubck ].O[mu] ,
-		 (void*)sigmaB_Sbck.D[d] ) ;
-      // DER = -4( B + A )
-      add_mat( (void*)B , (void*)A ) ;
-      constant_mul_gauge( A , 4./3. , B ) ;
-      add_mat( (void*)der -> D[d] , (void*)A ) ;
-      // DER = DER - -5/2. F -> S[i].D[d]
-      colormatrix_Saxpy( der -> D[d] , sigmaB_S.D[d] , -5./2. ) ;
-      
-      // the extra terms two steps away!
-      multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] ,
-	      (void*)sigmaB_Sfwd2.D[d] ) ;
-      
-      multabdag( (void*)B , (void*)Fmunu[i].O[7+2*mu] ,
-		 (void*)sigmaB_Sbck2.D[d] ) ;
-      add_mat( (void*)A , (void*)B ) ;
-      
-      colormatrix_Saxpy( (void*)der -> D[d] , (void*)A , -1./12. ) ;
-    }
+    sigmaB_halfspinor( &Stmp  , Fmunu[Sbck]  , S[Sbck] );
+    dagger_gauge( (void*)b , (void*)lat[ Ubck ].O[mu] ) ;
+    colormatrix_halfspinor( (void*)B.D , (void*)b , (void*)Stmp.D ) ;
+
+    sigmaB_halfspinor( &Stmp , Fmunu[Sfwd2] , S[Sfwd2] );
+    colormatrix_halfspinor( (void*)C.D , (void*)Fmunu[i].O[6+2*mu] ,
+			    (void*)Stmp.D ) ;
+    
+    sigmaB_halfspinor( &Stmp , Fmunu[Sbck2] , S[Sbck2] );
+    dagger_gauge( (void*)b , (void*)Fmunu[i].O[7+2*mu] ) ;
+    colormatrix_halfspinor( (void*)D.D , (void*)b , (void*)Stmp.D ) ;
+
+    // do the sum der = -5/2 S[i] + 4/3(A+B) - 1/12(C+D) 
+    sq_inner( (void*)der -> D , (void*)A.D , (void*)B.D ,
+	      (void*)C.D , (void*)D.D , (void*)sigmaB_S.D ) ;
   }
   return ;
 }
@@ -229,15 +266,17 @@ sigmaB_gradsq_imp( struct halfspinor *der ,
 		   const size_t i ,
 		   const size_t t )
 {
-  double complex A[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  double complex B[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
-  
+#ifdef HAVE_IMMINTRIN_H
+  __m128d b[ NCNC ] ;
+#else
+  double complex b[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+#endif
   const size_t Uidx = i + t*LCU ;
 
-  struct halfspinor res ; 
+  struct halfspinor res , A , B , C , D ; 
   zero_halfspinor( &res ) ;
 
-  size_t mu , d ;
+  size_t mu ;
   for( mu = 0 ; mu < ND-1 ; mu++ ) {
   
     const size_t Sfwd  = lat[ i ].neighbor[mu] ;
@@ -247,34 +286,20 @@ sigmaB_gradsq_imp( struct halfspinor *der ,
     const size_t Sbck2 = lat[ Sbck ].back[mu] ;
     
     const size_t Ubck = lat[ Uidx ].back[mu] ;
-    
-    for( d = 0 ; d < NS ; d++ ) {
-      
-      // computes der = U S(x+\mu)
-      multab( (void*)B ,
-	      (void*)lat[ Uidx ].O[mu] ,
-	      (void*)S[ Sfwd ].D[d] ) ;
-      // computes A = U^\dag(x-\mu) S(x-\mu)
-      multabdag( (void*)A ,
-		 (void*)lat[ Ubck ].O[mu] ,
-		 (void*)S[ Sbck ].D[d] ) ;
-      // DER = -4( B + A )
-      add_mat( (void*)B , (void*)A ) ;
-      constant_mul_gauge( A , 4./3. , B ) ;
-      add_mat( (void*)res.D[d] , (void*)A ) ;
-      // DER = DER - -5/2. F -> S[i].D[d]
-      colormatrix_Saxpy( res.D[d] , S[i].D[d] , -5./2. ) ;
-      
-      // the extra terms two steps away!
-      multab( (void*)A , (void*)Fmunu[i].O[6+2*mu] ,
-	      (void*)S[ Sfwd2 ].D[d] ) ;
-      
-      multabdag( (void*)B , (void*)Fmunu[i].O[7+2*mu] ,
-		 (void*)S[ Sbck2 ].D[d] ) ;
-      add_mat( (void*)A , (void*)B ) ;
-      
-      colormatrix_Saxpy( (void*)res.D[d] , (void*)A , -1./12. ) ;
-    }
+
+    colormatrix_halfspinor( (void*)A.D ,(void*)lat[ Uidx ].O[mu] ,
+			    (void*)S[ Sfwd ].D ) ;
+    dagger_gauge( (void*)b , (void*)lat[ Ubck ].O[mu] ) ;
+    colormatrix_halfspinor( (void*)B.D , (void*)b ,(void*)S[ Sbck ].D ) ;
+
+    colormatrix_halfspinor( (void*)C.D , (void*)Fmunu[i].O[6+2*mu] ,
+			    (void*)S[ Sfwd2 ].D ) ;
+    dagger_gauge( (void*)b , (void*)Fmunu[i].O[7+2*mu] ) ;
+    colormatrix_halfspinor( (void*)D.D , (void*)b , (void*)S[ Sbck2 ].D ) ;
+
+    // do the sum der = -5/2 S[i] + 4/3(A+B) - 1/12(C+D) 
+    sq_inner( (void*)res.D , (void*)A.D , (void*)B.D ,
+	      (void*)C.D , (void*)D.D , (void*)S[i].D ) ;
   }
 
   sigmaB_halfspinor( der , Fmunu[i] , res ) ;
