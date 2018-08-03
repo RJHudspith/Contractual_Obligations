@@ -86,8 +86,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = BARYONS$(EXEEXT) MESONS$(EXEEXT) MOMAVG$(EXEEXT) \
-	VPFREAD$(EXEEXT) TETAVG$(EXEEXT) PROPOPS$(EXEEXT)
+bin_PROGRAMS = BARYONS$(EXEEXT) CAVG$(EXEEXT) MESONS$(EXEEXT) \
+	MOMAVG$(EXEEXT) VPFREAD$(EXEEXT) TETAVG$(EXEEXT) \
+	PROPOPS$(EXEEXT)
 subdir = extractors
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -107,6 +108,11 @@ am__DEPENDENCIES_1 =
 BARYONS_DEPENDENCIES = ${TOPDIR}/src/libCORR.a $(am__DEPENDENCIES_1)
 BARYONS_LINK = $(CCLD) $(BARYONS_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_CAVG_OBJECTS = CAVG-cavg.$(OBJEXT) CAVG-reader.$(OBJEXT)
+CAVG_OBJECTS = $(am_CAVG_OBJECTS)
+CAVG_DEPENDENCIES = ${TOPDIR}/src/libCORR.a $(am__DEPENDENCIES_1)
+CAVG_LINK = $(CCLD) $(CAVG_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am_MESONS_OBJECTS = MESONS-mesonfile.$(OBJEXT) MESONS-reader.$(OBJEXT)
 MESONS_OBJECTS = $(am_MESONS_OBJECTS)
 MESONS_DEPENDENCIES = ${TOPDIR}/src/libCORR.a $(am__DEPENDENCIES_1)
@@ -164,10 +170,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(BARYONS_SOURCES) $(MESONS_SOURCES) $(MOMAVG_SOURCES) \
-	$(PROPOPS_SOURCES) $(TETAVG_SOURCES) $(VPFREAD_SOURCES)
-DIST_SOURCES = $(BARYONS_SOURCES) $(MESONS_SOURCES) $(MOMAVG_SOURCES) \
-	$(PROPOPS_SOURCES) $(TETAVG_SOURCES) $(VPFREAD_SOURCES)
+SOURCES = $(BARYONS_SOURCES) $(CAVG_SOURCES) $(MESONS_SOURCES) \
+	$(MOMAVG_SOURCES) $(PROPOPS_SOURCES) $(TETAVG_SOURCES) \
+	$(VPFREAD_SOURCES)
+DIST_SOURCES = $(BARYONS_SOURCES) $(CAVG_SOURCES) $(MESONS_SOURCES) \
+	$(MOMAVG_SOURCES) $(PROPOPS_SOURCES) $(TETAVG_SOURCES) \
+	$(VPFREAD_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -295,6 +303,9 @@ BUILDDIR = @top_builddir@
 BARYONS_SOURCES = baryonfile.c reader.c
 BARYONS_CFLAGS = -I${TOPDIR}/src/HEADERS/ 
 BARYONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
+CAVG_SOURCES = cavg.c reader.c
+CAVG_CFLAGS = -I${TOPDIR}/src/HEADERS/ 
+CAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
 MESONS_SOURCES = mesonfile.c reader.c
 MESONS_CFLAGS = -I${TOPDIR}/src/HEADERS/
 MESONS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
@@ -390,6 +401,10 @@ BARYONS$(EXEEXT): $(BARYONS_OBJECTS) $(BARYONS_DEPENDENCIES) $(EXTRA_BARYONS_DEP
 	@rm -f BARYONS$(EXEEXT)
 	$(AM_V_CCLD)$(BARYONS_LINK) $(BARYONS_OBJECTS) $(BARYONS_LDADD) $(LIBS)
 
+CAVG$(EXEEXT): $(CAVG_OBJECTS) $(CAVG_DEPENDENCIES) $(EXTRA_CAVG_DEPENDENCIES) 
+	@rm -f CAVG$(EXEEXT)
+	$(AM_V_CCLD)$(CAVG_LINK) $(CAVG_OBJECTS) $(CAVG_LDADD) $(LIBS)
+
 MESONS$(EXEEXT): $(MESONS_OBJECTS) $(MESONS_DEPENDENCIES) $(EXTRA_MESONS_DEPENDENCIES) 
 	@rm -f MESONS$(EXEEXT)
 	$(AM_V_CCLD)$(MESONS_LINK) $(MESONS_OBJECTS) $(MESONS_LDADD) $(LIBS)
@@ -418,6 +433,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BARYONS-baryonfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BARYONS-reader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CAVG-cavg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CAVG-reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MESONS-mesonfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MESONS-reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MOMAVG-momavg.Po@am__quote@
@@ -470,6 +487,34 @@ BARYONS-reader.obj: reader.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='BARYONS-reader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(BARYONS_CFLAGS) $(CFLAGS) -c -o BARYONS-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+
+CAVG-cavg.o: cavg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -MT CAVG-cavg.o -MD -MP -MF $(DEPDIR)/CAVG-cavg.Tpo -c -o CAVG-cavg.o `test -f 'cavg.c' || echo '$(srcdir)/'`cavg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CAVG-cavg.Tpo $(DEPDIR)/CAVG-cavg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cavg.c' object='CAVG-cavg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -c -o CAVG-cavg.o `test -f 'cavg.c' || echo '$(srcdir)/'`cavg.c
+
+CAVG-cavg.obj: cavg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -MT CAVG-cavg.obj -MD -MP -MF $(DEPDIR)/CAVG-cavg.Tpo -c -o CAVG-cavg.obj `if test -f 'cavg.c'; then $(CYGPATH_W) 'cavg.c'; else $(CYGPATH_W) '$(srcdir)/cavg.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CAVG-cavg.Tpo $(DEPDIR)/CAVG-cavg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cavg.c' object='CAVG-cavg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -c -o CAVG-cavg.obj `if test -f 'cavg.c'; then $(CYGPATH_W) 'cavg.c'; else $(CYGPATH_W) '$(srcdir)/cavg.c'; fi`
+
+CAVG-reader.o: reader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -MT CAVG-reader.o -MD -MP -MF $(DEPDIR)/CAVG-reader.Tpo -c -o CAVG-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CAVG-reader.Tpo $(DEPDIR)/CAVG-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='CAVG-reader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -c -o CAVG-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+
+CAVG-reader.obj: reader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -MT CAVG-reader.obj -MD -MP -MF $(DEPDIR)/CAVG-reader.Tpo -c -o CAVG-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CAVG-reader.Tpo $(DEPDIR)/CAVG-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='CAVG-reader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(CAVG_CFLAGS) $(CFLAGS) -c -o CAVG-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
 
 MESONS-mesonfile.o: mesonfile.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(MESONS_CFLAGS) $(CFLAGS) -MT MESONS-mesonfile.o -MD -MP -MF $(DEPDIR)/MESONS-mesonfile.Tpo -c -o MESONS-mesonfile.o `test -f 'mesonfile.c' || echo '$(srcdir)/'`mesonfile.c

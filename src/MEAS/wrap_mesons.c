@@ -35,12 +35,6 @@ contract_mesons( struct propagator *prop ,
 	read_propheader( &prop[ p1 ] ) ;
       }
     } else {
-      // I can't think of a time when this would be legitimate
-      if( prop[ p1 ].source != prop[ p2 ].source ) {
-	fprintf( stderr , "[MESONS] attempt to contract two different "
-		 "source type propagators thwarted \n" ) ;
-	return FAILURE ;
-      }
       // check that the two props have the same origin?
       size_t mu ;
       for( mu = 0 ; mu < ND ; mu++ ) {

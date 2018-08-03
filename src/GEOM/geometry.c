@@ -29,7 +29,7 @@
 size_t
 gen_site( const int x[ ND ] )
 {
-  size_t res = x[ ND - 1 ] ;
+  size_t res = (size_t)x[ ND - 1 ] ;
   size_t mu ;
   for( mu = ND - 1 ; mu > 0 ; mu-- ) {
     res = Latt.dims[ mu - 1 ] * res + x[ mu - 1 ] ;

@@ -252,7 +252,7 @@ init_measurements( struct measurements *M ,
   M -> in  = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
 
   // allocate FFTW storage
-#pragma omp parallel for private(i)
+  #pragma omp parallel for private(i)
   for( i = 0 ; i < ( flat_dirac ) ; i++ ) {
     M -> in[ i ]  = fftw_malloc( LCU * sizeof( double complex ) ) ; 
     // zero the "in" vector just in case
@@ -368,7 +368,7 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
   }
 
   // sum over each spatial separation
-  for( r = 0 ; r < M.NR ; r++ ) {
+  for( r = 0 ; r <= M.NR ; r++ ) {
     const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
 					  ND-1 ) ;
 

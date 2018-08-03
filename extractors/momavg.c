@@ -267,7 +267,7 @@ enum { INFILE = 1 , SPLIT = 2 , OUTFILE = 3 } ;
 static int
 are_equal( const char *str_1 , const char *str_2 ) { return !strcmp( str_1 , str_2 ) ; }
 
-// little code for accessing elements of our correlator files
+// little code for momentum averaging
 int 
 main( const int argc ,
       const char *argv[] )
@@ -275,7 +275,7 @@ main( const int argc ,
   // check the number of command line arguments
   if( argc != 4 ) {
     return fprintf( stdout , "[MOMAVG] "
-		    "usage ./MESONS {correlator file} {split} {outfile}\n" 
+		    "usage ./MOMAVG {correlator file} {split} {outfile}\n" 
 		    "{split} :: true/false\n" ) ;
   }
   fprintf( stdout , "[IO] Outputting to %s \n" , argv[ OUTFILE ] ) ;

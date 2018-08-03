@@ -41,6 +41,7 @@ initialise_source( struct halfspinor *S ,
   for( i = 0 ; i < ND-1 ; i++ ) {
     or[i] = (int)prop.origin[i] ;
   }
+  or[ ND-1 ] = 0 ;
 
   switch( prop.source ) {
   case Z2_WALL :

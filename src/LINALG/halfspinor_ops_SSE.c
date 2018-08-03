@@ -398,6 +398,8 @@ halfspinor_sigma_Saxpy( struct halfspinor *H ,
   return ;
 }
 
+// multiplies two halfspinors
+// a^{alpha,beta}_{a,b} = b^{alpha,kappa}_{a,c} c^{kappa,beta}_{c,b}
 void
 halfspinor_multiply( struct halfspinor *a ,
 		     const struct halfspinor b ,

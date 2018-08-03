@@ -2,12 +2,17 @@
 TOPDIR=@top_srcdir@
 BUILDDIR=@top_builddir@
 
-bin_PROGRAMS=BARYONS MESONS MOMAVG VPFREAD TETAVG PROPOPS
+bin_PROGRAMS=BARYONS CAVG MESONS MOMAVG VPFREAD TETAVG PROPOPS
 
-## meson reader
+## baryon reader
 BARYONS_SOURCES=baryonfile.c reader.c
 BARYONS_CFLAGS=-I${TOPDIR}/src/HEADERS/ 
 BARYONS_LDADD=${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
+
+## baryon reader
+CAVG_SOURCES=cavg.c reader.c
+CAVG_CFLAGS=-I${TOPDIR}/src/HEADERS/ 
+CAVG_LDADD=${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
 
 ## meson reader
 MESONS_SOURCES=mesonfile.c reader.c
