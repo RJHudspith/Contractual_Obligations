@@ -5,8 +5,38 @@
 #include "common.h"
 
 #include "geometry.h"       // get_eipx()
+#include "grad_2.h"         // gradsq()
 #include "halfspinor_ops.h" // zero_halfspinor
-#include "par_rng.h"        // 
+#include "par_rng.h"        //
+
+#define WUPP_FAC (0.3)
+
+// performs N iterations of Wuppertal smearing
+static void
+wuppertal_smear( struct halfspinor *S ,
+		 struct halfspinor *S1 ,
+		 const size_t t ,
+		 const size_t Nsmear )
+{
+  const double fac = WUPP_FAC / ( 1 + WUPP_FAC * 2*(ND-1) ) ;
+  size_t n ;
+  for( n = 0 ; n < Nsmear ; n++ ) {
+    size_t i ;
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {
+      struct halfspinor der ;
+      S1[i] = S[i] ;
+      gradsq( &der , S , i , t ) ;
+      halfspinor_Saxpy( &S1[i] , der , fac ) ;
+    }
+    // copy back
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {
+      S[i] = S1[i] ;
+    }
+  }
+  return ;
+}
 
 // set propagator to IdentityxConstant
 static void
@@ -34,6 +64,7 @@ set_prop_to_constant( struct halfspinor *S1 ,
 // for the moment point is at (0,0,0,t)
 int
 initialise_source( struct halfspinor *S ,
+		   struct halfspinor *S1 ,
 		   const struct propagator prop ) 
 {
   size_t i ;
@@ -47,7 +78,6 @@ initialise_source( struct halfspinor *S ,
   case Z2_WALL :
     #pragma omp single
     {
-      //Latt.Seed = 123456 ;
       flag = initialise_par_rng( NULL ) ;
     }
     break ;
@@ -82,6 +112,11 @@ initialise_source( struct halfspinor *S ,
     }
   }
 
+  // call the smearing?
+  if( prop.smear == QUARK ) {
+    wuppertal_smear( S , S1 , prop.origin[ND-1] , prop.Nsmear ) ;
+  }
+  
   // clean up the RNG
   switch( prop.source ) {
   case Z2_WALL :

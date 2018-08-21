@@ -193,6 +193,15 @@ typedef enum {
   NREL_CORR } proptype ;
 
 /**
+   @enum smearing
+   @brief smearing types recognised by us
+ */
+typedef enum
+  { GAUGE ,
+    NOSMEAR ,
+    QUARK } smearing ;
+
+/**
    @enum spinhalf
    @brief spin-1/2 and 3/2 projection choices
  */

@@ -189,6 +189,28 @@ get_propprec( fp_precision *precision )
 
 // get the initial source position
 static int
+get_propsmear( smearing *smear )
+{
+  char *token ;
+  while( ( token = strtok( NULL , " " ) ) != NULL ) {
+    // set the endian flag
+    if( are_equal( token , "Quark" ) ) {
+      fprintf( stdout , "[IO] Smeared quark source\n" ) ;
+      *smear = QUARK ;
+      return SUCCESS ;
+    } else if( are_equal( token , "Gauge" ) ) {
+      *smear = GAUGE ;
+      return SUCCESS ;
+    } else {
+      *smear = NOSMEAR ;
+      return SUCCESS ;
+    }
+  }
+  return FAILURE ;
+}
+
+// get the initial source position
+static int
 get_propsrc( size_t *origin ) 
 {
   char *endptr , *token ;
@@ -344,7 +366,9 @@ nonexistent_record( const char *message )
 
 // 
 static void
-summarize_NRQCD_params( struct NRQCD_params NRQCD )
+summarize_NRQCD_params( struct NRQCD_params NRQCD ,
+			const smearing smear ,
+			const size_t Nsmear )
 {
   fprintf( stdout , "\n[IO] NRQCD bare mass %f\n" , NRQCD.M_0 ) ;
   fprintf( stdout , "[IO] NRQCD tadpole %f\n" , NRQCD.U0 ) ;
@@ -378,6 +402,11 @@ summarize_NRQCD_params( struct NRQCD_params NRQCD )
   fprintf( stdout , "[IO] NRQCD coefficient C9EB %f\n" , NRQCD.C9EB ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C10EB %f\n" , NRQCD.C10EB ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C11 %f\n" , NRQCD.C11 ) ;
+  if( smear == QUARK ) {
+    fprintf( stdout , "[IO] NRQCD prop has smeared quark source\n" ) ;
+    fprintf( stdout , "[IO] NRQCD prop smearing with %zu iterations\n" ,
+	     Nsmear ) ;
+  }
   return ;
 }
 
@@ -394,7 +423,7 @@ read_propheader( struct propagator *prop )
   int n = 0 , dimsflag = 0 , originflag = 0 ;
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
   int basisflag = 0 , boundsflag = 0 , twistsflag = 0 ;
-  int momsourceflag = 0 ;
+  int momsourceflag = 0 , smearingflag = 0 ;
   
   // set this to NULL
   prop -> H = NULL ;
@@ -408,6 +437,7 @@ read_propheader( struct propagator *prop )
   prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
   prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
   prop -> NRQCD.N    = 0    ; prop -> NRQCD.backward = GLU_FALSE ;
+  prop -> Nsmear = 0 ;
 
   // initialise these to zero
   size_t mu ;
@@ -489,6 +519,14 @@ read_propheader( struct propagator *prop )
       }
       momsourceflag++ ;
     }
+    // propagator source Smearing
+    if( are_equal( tag , "Smearing:" ) ) {
+      if( get_propsmear( &prop -> smear ) == FAILURE ) {
+	//return tagfailure( "Smearing:" , line ) ;
+	fprintf( stderr , "[IO] tag Smearing: not found in prop header. Soon this will become a sinalling error - J !\n" ) ;
+      }
+      smearingflag++ ;
+    }
     
     // look for some NRQCD parameters
     if( are_equal( tag , "NRQCD_C0" ) ) get_double( &prop -> NRQCD.C0 ) ;
@@ -507,6 +545,7 @@ read_propheader( struct propagator *prop )
     if( are_equal( tag , "NRQCD_M_0" ) ) get_double( &prop -> NRQCD.M_0 ) ;
     if( are_equal( tag , "NRQCD_N" ) ) get_size_t( &prop -> NRQCD.N ) ;
     if( are_equal( tag , "NRQCD_backward" ) ) get_GLU_bool( &prop -> NRQCD.backward ) ;
+    if( are_equal( tag , "Nsmear:" ) ) get_size_t( &prop -> Nsmear ) ;
     
     // break when we hit the desired end_header
     if( are_equal( line , "<end_header>\n" ) ) {
@@ -527,7 +566,7 @@ read_propheader( struct propagator *prop )
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
   if( prop -> basis == NREL_CORR ) {
-    summarize_NRQCD_params( prop -> NRQCD ) ;
+    summarize_NRQCD_params( prop -> NRQCD , prop -> smear , prop -> Nsmear ) ;
   }
 
   // the NRQCD code counts from 1 instead of zero, shift to c-counting

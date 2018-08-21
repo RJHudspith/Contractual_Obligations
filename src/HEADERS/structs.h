@@ -250,6 +250,8 @@ struct propagator {
   struct NRQCD_params NRQCD ;
   fp_precision precision ;
   endianness endian ;
+  smearing smear ;
+  size_t Nsmear ;
   size_t t ;
 } ;
 

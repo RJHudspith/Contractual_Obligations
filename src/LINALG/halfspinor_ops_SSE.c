@@ -305,12 +305,12 @@ colormatrix_halfspinor( __m128d *pA ,
   inline_su3( pA , pB , pC ) ; pC += NCNC ;
   inline_su3( pA , pB , pC ) ; pC += NCNC ;
   inline_su3( pA , pB , pC ) ; pC += NCNC ;
-  inline_su3( pA , pB , pC ) ; pC += NCNC ;
+  inline_su3( pA , pB , pC ) ; 
   #else
-  multab( (void*)a->D[0] , (void*)b , (void*)c.D[0] ) ;
-  multab( (void*)a->D[1] , (void*)b , (void*)c.D[1] ) ;
-  multab( (void*)a->D[2] , (void*)b , (void*)c.D[2] ) ;
-  multab( (void*)a->D[3] , (void*)b , (void*)c.D[3] ) ;
+  multab( pA , pB , pC ) ; pA += NCNC ; pC += NCNC ;
+  multab( pA , pB , pC ) ; pA += NCNC ; pC += NCNC ;
+  multab( pA , pB , pC ) ; pA += NCNC ; pC += NCNC ;
+  multab( pA , pB , pC ) ; pA += NCNC ; pC += NCNC ;
   #endif
 #endif
   return ;

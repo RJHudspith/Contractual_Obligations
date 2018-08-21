@@ -65,6 +65,8 @@ initialise_par_rng( const char *rng_file )
 	  Seeds[ i ] = Seeds[0] + i ;
 	}
 	fclose( urandom ) ;
+	// set global latt.seed
+	Latt.Seed = Seeds[0] ;
       } else {
 	for( i = 0 ; i < Latt.Nthreads ; i++ ) {
 	  Seeds[ i ] = Latt.Seed + i ;
@@ -95,7 +97,6 @@ initialise_par_rng( const char *rng_file )
     }
     RNG_inited = GLU_TRUE ;
   }
-
   return SUCCESS ;
 }
 

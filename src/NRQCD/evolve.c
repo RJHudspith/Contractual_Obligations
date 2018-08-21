@@ -64,7 +64,7 @@ C0_term( __m128d *H ,
 #else
   size_t i ;
   for( i = 0 ; i < NS*NCNC ; i++ ) {
-    *H = SSE2_FMA( C0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
+    *H = SSE2_FMA( c0 , SSE2_FMA( m2 , *S , _mm_add_pd( *A , *B ) ) , *H ) ; \
     A++ ; B++ ; S++ ; H++ ;
   }
 #endif
@@ -404,16 +404,18 @@ tadpole_improve( struct site *lat ,
 static void
 apply_twist( struct site *lat ,
 	     double sum_twist[ ND ] ,
-	     const double this_twist[ ND ] )
+	     const double this_twist[ ND ] ,
+	     const double mom_source[ ND ] )
 {
   double delta[ ND ] ;
 
   // compute the additional twist needed to apply to gauge field 
   size_t mu , i ;
   for( mu = 0 ; mu < ND ; mu++ ) {
-    delta[ mu ] = this_twist[ mu ] - sum_twist[ mu ] ;
+    const double new_mom = this_twist[mu] ;
+    delta[ mu ] = ( new_mom ) - sum_twist[ mu ] ;
     // sum = sum + ( this - sum ) == this
-    sum_twist[ mu ] = this_twist[ mu ] ;
+    sum_twist[ mu ] = new_mom ; 
   }
 
   // twist only in the spatial directions
@@ -436,7 +438,7 @@ apply_twist( struct site *lat ,
 
       #ifdef HAVE_IMMINTRIN_H
       __m128d *pU = (__m128d*)lat[i].O[mu] ;
-      const register __m128d ph = _mm_setr_pd( c , -s ) ;
+      const register __m128d ph = _mm_setr_pd( c , s ) ;
         #if NC == 3
         *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
 	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;
@@ -454,7 +456,7 @@ apply_twist( struct site *lat ,
         }
         #endif
       #else
-      const double complex phase = c - I*s ;
+      const double complex phase = c + I*s ;
       size_t j ;
       for( j = 0 ; j < NCNC ; j++ ) {
         lat[i].O[mu][j] *= phase ;
@@ -503,10 +505,10 @@ compute_props( struct propagator *prop ,
     }
 
     // apply a twist to the gauge field
-    apply_twist( lat , sum_twist , prop[n].twist ) ;
+    apply_twist( lat , sum_twist , prop[n].twist , prop[n].mom_source ) ;
 
     // set up the source into F -> S
-    initialise_source( F -> S , prop[n] ) ;
+    initialise_source( F -> S , F -> S1 , prop[n] ) ;
 
     // do a copy in here
     #pragma omp for nowait private(i)
@@ -563,7 +565,7 @@ compute_props( struct propagator *prop ,
   for( i = 0 ; i < ND ; i++ ) {
     zero_twist[ i ] = 0.0 ;
   }
-  apply_twist( lat , sum_twist , zero_twist ) ;
+  apply_twist( lat , sum_twist , zero_twist , zero_twist ) ;
 
   // un-tadpole improve
   tadpole_improve( lat , tadref ) ;
