@@ -58,7 +58,7 @@ contract_baryons( struct propagator *prop ,
       rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
       // two props are the same S3 ( S1 Cgmu S1 Cgmu )
     } else if( ( p1 == p2 && p2 != p3 ) ) {
-      if( prop[ p1 ].source != prop[ p3 ].source ) {
+      if( prop[ p1 ].Source.type != prop[ p3 ].Source.type ) {
 	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
@@ -72,9 +72,9 @@ contract_baryons( struct propagator *prop ,
       }
       rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
       rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-      // two props are the same S2 ( S1 Cgmu S1 Cgmu )
+      // two props are the same S1 ( S1 Cgmu S2 )
     } else if( p1 == p3 && p3 != p2 ) {
-      if( prop[ p1 ].source != prop[ p2 ].source ) {
+      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
 	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
@@ -90,7 +90,7 @@ contract_baryons( struct propagator *prop ,
       rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
       // two props are the same S1 ( S2 Cgmu S2 Cgmu )
     } else if( p2 == p3 && p1 != p2 ) {
-      if( prop[ p2 ].source != prop[ p1 ].source ) {
+      if( prop[ p2 ].Source.type != prop[ p1 ].Source.type ) {
 	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }
@@ -106,9 +106,9 @@ contract_baryons( struct propagator *prop ,
       rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
       // otherwise we resort to the 3-component baryon
     } else {
-      if( prop[ p1 ].source != prop[ p2 ].source ||
-	  prop[ p1 ].source != prop[ p3 ].source ||
-	  prop[ p2 ].source != prop[ p3 ].source ) {
+      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ||
+	  prop[ p1 ].Source.type != prop[ p3 ].Source.type ||
+	  prop[ p2 ].Source.type != prop[ p3 ].Source.type ) {
 	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
 	return FAILURE ;
       }

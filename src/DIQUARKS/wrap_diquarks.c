@@ -33,7 +33,7 @@ contract_diquarks( struct propagator *prop ,
       }
       rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
-      if( prop[p1].source != prop[p2].source ) {
+      if( prop[p1].Source.type != prop[p2].Source.type ) {
 	fprintf( stderr , "[DIQUARK] unequal source types"
 		 "for the two diquarks\n" ) ;
 	return FAILURE ;

@@ -72,7 +72,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       rotate_offdiag( M.S , prop , Nprops ) ;
       
       // accumulate wall sum expects both to be walls
-      if( prop1.source == WALL ) {
+      if( M.is_wall == GLU_TRUE ) {
 	#pragma omp single
 	{
 	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
@@ -109,7 +109,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
 	}
       }
       // loop over open indices performing wall contraction
-      if( prop1.source == WALL ) {
+      if( M.is_wall == GLU_TRUE ) {
 	baryon_contract_walls( M.wwcorr , 
 			       M.SUM[0] , M.SUM[0] , M.SUM[1] , 
 			       Cgmu , Cgnu , tshifted , UUD_BARYON ) ;

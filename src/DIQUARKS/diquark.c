@@ -73,7 +73,7 @@ diquark_offdiag( struct propagator prop1 ,
     rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
-    if( prop1.source == WALL ) {
+    if( M.is_wall == GLU_TRUE ) {
       sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
     }
 
@@ -107,7 +107,7 @@ diquark_offdiag( struct propagator prop1 ,
 	}
       }
       // wall-wall contractions
-      if( prop1.source == WALL ) {
+      if( M.is_wall == GLU_TRUE ) {
 	// loop gamma source
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {

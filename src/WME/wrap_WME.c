@@ -25,8 +25,8 @@ contract_WME( struct propagator *prop ,
     const size_t p2 = wme[ measurements ].map[2] ; // swall_L/2
     const size_t p3 = wme[ measurements ].map[3] ; // dwall_L/2
 
-    if( prop[p0].source != WALL || prop[p1].source != WALL ||
-	prop[p2].source != WALL || prop[p3].source != WALL ) {
+    if( prop[p0].Source.type != WALL || prop[p1].Source.type != WALL ||
+	prop[p2].Source.type != WALL || prop[p3].Source.type != WALL ) {
       fprintf( stderr , "[WME] Routine only works for WALL sources \n" ) ;
       return FAILURE ;
     }

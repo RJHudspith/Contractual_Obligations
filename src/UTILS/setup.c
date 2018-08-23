@@ -235,7 +235,7 @@ init_measurements( struct measurements *M ,
   // are these wall source props
   M -> is_wall = GLU_FALSE ;
   for( i = 0 ; i < Nprops ; i++ ) {
-    if( prop[ i ].source != POINT ) {
+    if( prop[ i ].Source.type != POINT ) {
       M -> is_wall = GLU_TRUE ;
       break ;
     }
@@ -263,6 +263,7 @@ init_measurements( struct measurements *M ,
   }
 
   if( M -> is_dft != GLU_TRUE && M -> is_wall_mom != GLU_TRUE ) {
+    
     M -> out = fftw_malloc( flat_dirac * sizeof( double complex* ) ) ;
 
     // create the fftw plans
@@ -360,7 +361,7 @@ void
 sum_spatial_sep( struct spinor *SUM_r2 ,
 		 const struct measurements M ,
 		 const size_t site1 )
-{
+{ 
   size_t n , r ;
   // set the sum to zero
   for( n = 0 ; n < M.Nprops ; n++ ) {
@@ -368,7 +369,8 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
   }
 
   // sum over each spatial separation
-  for( r = 0 ; r <= M.NR ; r++ ) {
+  for( r = 0 ; r < M.NR ; r++ ) {
+
     const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
 					  ND-1 ) ;
 
@@ -381,5 +383,6 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
       // spinor_Saxpy( &SUM_r2[n] , exp( -M.rlist[r].nsq*0.1 ) , M.S[n][site2] ) ;
     }
   }
+
   return ;
 }

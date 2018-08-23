@@ -68,7 +68,7 @@ write_propheader( FILE *outfile ,
   }
   // source type
   fprintf( outfile , "Source: " ) ;
-  switch( prop1.source ) {
+  switch( prop1.Source.type ) {
   case POINT : fprintf( outfile , "Point\n" ) ; break ;
   case WALL : fprintf( outfile , "Wall\n" ) ; break ;
   case Z2_WALL : fprintf( outfile , "Z2_Wall\n" ) ; break ;
@@ -175,7 +175,7 @@ main( const int argc,
     fprintf( stderr , "[IO] unequal bases for the props\n" ) ;
     error_code = FAILURE ; goto end ;
   }
-  if( prop[0].source != prop[1].source ) {
+  if( prop[0].Source.type != prop[1].Source.type ) {
     fprintf( stderr , "[IO] unequal source types for the props\n" ) ;
     error_code = FAILURE ; goto end ;
   }

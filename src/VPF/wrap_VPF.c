@@ -78,7 +78,7 @@ contract_VPF( struct propagator *prop ,
       // rewind file and read header again
       rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
     } else {
-      if( prop[ p1 ].source != prop[ p2 ].source ) {
+      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
 	fprintf( stderr , "[VPF] thwarted attempt contracting"
 		 " different sources \n" ) ;
 	return FAILURE ;

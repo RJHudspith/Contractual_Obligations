@@ -62,10 +62,11 @@ rotate_offdiag( struct spinor **S ,
   size_t mu ;
   GLU_bool have_NREL = GLU_FALSE ;
   for( mu = 0 ; mu < Nprops ; mu++ ) {
-    if( prop[mu].basis == NREL_FWD ||
-	prop[mu].basis == NREL_BWD ||
-	prop[mu].basis == NREL_CORR ) {
-      have_NREL = GLU_TRUE ;
+    switch( prop[mu].basis ) {
+    case NREL_FWD  : have_NREL = GLU_TRUE ; break ;
+    case NREL_BWD  : have_NREL = GLU_TRUE ; break ;
+    case NREL_CORR : have_NREL = GLU_TRUE ; break ;
+    case CHIRAL : break ;
     }
   }
   // leave if it is all chiral
@@ -73,9 +74,15 @@ rotate_offdiag( struct spinor **S ,
 
   // loop back through the list rotating any chiral props
   for( mu = 0 ; mu < Nprops ; mu++ ) {
-    if( prop[mu].basis == CHIRAL ) {
+    switch( prop[mu].basis ) {
+    case NREL_FWD  : break ;
+    case NREL_BWD  : break ;
+    case NREL_CORR : break ;
+    case CHIRAL :
       nrel_rotate_slice( S[ mu ] ) ;
+      break ;
     }
   }
+  
   return ;
 }

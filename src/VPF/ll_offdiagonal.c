@@ -122,7 +122,7 @@ ll_offdiagonal( struct propagator prop1 ,
     tmoments( DATA_AA , DATA_VV , outfile , LOCAL_LOCAL ) ;
     
     // do all the momspace stuff away from the contractions
-    if( prop1.source == POINT ) {
+    if( M.is_wall == GLU_FALSE ) {
       momspace_PImunu( DATA_AA , DATA_VV , CUTINFO , outfile ,
 		       LOCAL_LOCAL ) ;
     }

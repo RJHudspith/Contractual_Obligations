@@ -541,9 +541,10 @@ compute_props( struct propagator *prop ,
       }
     	
       // set G(t+1) from temp1
+      const size_t idx = LCU*((t + 1 + ( prop[n].origin[ND-1] )%LT )%(T_NRQCD) ) ;
+      
       #pragma omp for nowait private(i) 
       for( i = 0 ; i < LCU ; i++ ) {
-	const size_t idx = LCU*((t + 1 + ( prop[n].origin[ND-1] )%LT )%(T_NRQCD) ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[1] , F -> S[i].D[1] ) ;
 	colormatrix_equiv_d2f( prop[n].H[i+idx].D[2] , F -> S[i].D[2] ) ;

@@ -113,7 +113,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
 	}
       }
       // loop over open indices performing wall contraction
-      if( prop1.source == WALL ) {
+      if( M.is_wall == GLU_TRUE ) {
 	baryon_contract_walls( M.corr , 
 			       M.SUM[0] , M.SUM[1] , M.SUM[2] , 
 			       Cgmu , Cgnu , tshifted , UDS_BARYON ) ;

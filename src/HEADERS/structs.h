@@ -235,13 +235,24 @@ struct PIdata {
 } ;
 
 /**
+   @struct source_info
+   @brief information for the propagator sources
+ */
+struct source_info {
+  size_t Nsmear ;
+  double smalpha ;
+  smearing smear ;
+  sourcetype type ;
+  size_t Z2_spacing ;
+} ;
+
+/**
    @struct propagator
    @brief container for the propagator
  */
 struct propagator {
   FILE *file ;
   proptype basis ;
-  sourcetype source ;
   size_t origin[ ND ] ;
   boundaries bound[ ND ] ;
   double twist[ ND ] ;
@@ -250,8 +261,7 @@ struct propagator {
   struct NRQCD_params NRQCD ;
   fp_precision precision ;
   endianness endian ;
-  smearing smear ;
-  size_t Nsmear ;
+  struct source_info Source ;
   size_t t ;
 } ;
 
