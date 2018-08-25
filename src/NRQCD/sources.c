@@ -99,12 +99,13 @@ initialise_source( struct halfspinor *S ,
 #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
 
-    // figure out if we are hit a sparse z2 site
+    // figure out if we hit a sparse z2 site or not
     int n[ ND ] ;
     get_mom_2piBZ( n , i , ND-1 ) ;
     size_t mu , sum = 0 ;
     GLU_bool sparse_Z2 = GLU_TRUE ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      // treats the x,y,z part of the source as a cardinal shift
       const size_t shift =
 	(size_t)(n[mu]-(int)prop.origin[mu]+(int)Latt.dims[mu])%Latt.dims[mu] ;
       sum += shift ;
@@ -144,7 +145,11 @@ initialise_source( struct halfspinor *S ,
     }
   }
   
-  // call the smearing?
+  // call the smearing -> totally works with momentum sources and twisting
+  // in fact, twisting + quark smearing == momentum smearing
+  // although noone seems to have pointed out that you can just smear a
+  // momentum source too and get more or less the same result
+  // Also, doesn't need to be a point source or anything
   if( prop.Source.smear == QUARK ) {
     quark_smear( S , S1 , prop.origin[ND-1] , prop.Source ) ;
   }

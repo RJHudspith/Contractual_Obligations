@@ -612,12 +612,29 @@ read_propheader( struct propagator *prop )
     summarize_NRQCD_params( prop -> NRQCD ) ;
   }
 
-  summarize_prop_source( *prop );
+  summarize_prop_source( *prop ) ;
 
-  // the NRQCD code counts from 1 instead of zero, shift to c-counting
-  // instead of Fortran counting
+  // sanity check z2_spacing
+  if( prop -> Source.type == Z2_WALL ) {
+    if( prop -> Source.Z2_spacing == 0 ) {
+      fprintf( stderr , "[IO] prop header non sensical Z2_spacing of 0\n"
+	       "[IO] setting to 1, i.e. all points are Z2xZ2\n" ) ;
+      prop -> Source.Z2_spacing = 1 ;
+    }
+    GLU_bool bad_spacing = GLU_FALSE ;
+    for( mu = 0 ; mu < ND-1 ; mu++ ) {
+      if( Latt.dims[mu]%prop -> Source.Z2_spacing != 0 ) {
+	fprintf( stderr , "[IO] Z2_spacing %zu not a factor L_%zu -> %zu!\n" ,
+		 prop -> Source.Z2_spacing , mu , Latt.dims[mu] ) ;
+	bad_spacing = GLU_TRUE ;
+      }
+      if( bad_spacing == GLU_TRUE ) return FAILURE ;
+    }
+  }
+
+  // Randy's NRQCD code counts from 1 instead of zero, shift to c-counting
+  // instead of Fortran counting ->  I hate this so much
   if( prop -> basis == NREL_FWD || prop -> basis == NREL_BWD ) {
-    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       prop -> origin[ mu ] -= 1 ;
     }
