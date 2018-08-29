@@ -5,6 +5,7 @@
 #include "common.h"
 
 #include "contractions.h"
+#include "gammas.h"
 #include "matrix_ops.h"
 #include "spinmatrix_ops.h"
 #include "spinor_ops.h"
@@ -18,11 +19,13 @@ double complex
 diquark( const struct spinor S1 , 
 	 const struct spinor S2 ,
 	 const struct gamma C_GSRC , 
-	 const struct gamma C_GSNK ) 
+	 const struct gamma C_GSNK ,
+	 const struct gamma G5 ) 
 {
   struct spinor ST = transpose_spinor( S1 ) ;
 
-  double complex D1[ NSNS ] , D2[ NSNS ] ;
+  double complex D1[ NSNS ] __attribute__((aligned(ALIGNMENT))) ;
+  double complex D2[ NSNS ] __attribute__((aligned(ALIGNMENT))) ;
 
   // trace out the color indices into spinmatrices
   colortrace_spinor( D1 , &ST ) ;
@@ -31,7 +34,14 @@ diquark( const struct spinor S1 ,
   // multiply on the right with the gammas
   spinmatrix_gamma( D1 , C_GSRC ) ;
   spinmatrix_gamma( D2 , C_GSNK ) ;
-  
-  return trace_prod_spinmatrices( D2 , D1 ) - 
-    simple_meson_contract( C_GSNK , ST , C_GSRC , S2 ) ;
+
+  register double complex sum = 0.0 ;
+
+  // note that there is an implicit sign in simple_meson_contract
+  sum +=
+    trace_prod_spinmatrices( D1 , D2 )     
+    +simple_meson_contract( C_GSNK , ST , C_GSRC , S2 )
+    ;
+
+  return -sum ;
 }

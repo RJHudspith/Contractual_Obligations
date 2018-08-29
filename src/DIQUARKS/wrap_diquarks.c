@@ -31,7 +31,9 @@ contract_diquarks( struct propagator *prop ,
 			 ) == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      if( prop[p1].basis != NREL_CORR ) {
+	rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      }
     } else {
       if( prop[p1].Source.type != prop[p2].Source.type ) {
 	fprintf( stderr , "[DIQUARK] unequal source types"
@@ -42,8 +44,12 @@ contract_diquarks( struct propagator *prop ,
 			   diquarks[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
-      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
+      if( prop[p1].basis != NREL_CORR ) {
+	rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      }
+      if( prop[p2].basis != NREL_CORR ) {
+	rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
+      }
     }
     // give us the time
     print_time( ) ;

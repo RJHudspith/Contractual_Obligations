@@ -23,8 +23,8 @@ diquark_degen( struct propagator prop1 ,
 	       const char *outfile )
 {
   // counters
-  const size_t stride1 = NSNS ;
-  const size_t stride2 = NSNS ;
+  const size_t stride1 = M_CHANNELS ;
+  const size_t stride2 = M_CHANNELS ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -33,7 +33,7 @@ diquark_degen( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // loop counters
-  size_t i , t , site ;
+  size_t i ;
 
   // gamma LUT
   struct gamma *Cgmu = malloc( stride1 * sizeof( struct gamma ) ) ;
@@ -58,32 +58,33 @@ diquark_degen( struct propagator prop1 ,
   // read in the files
 #pragma omp parallel
   {
+    // loop counters
+    size_t t = 0 , site ;
+    
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
-  }
-  if( error_code == FAILURE ) {
-    goto memfree ;
-  }
+    
+    #pragma omp barrier
+    
+    // Time slice loop 
+    for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
-  // Time slice loop 
-  for( t = 0 ; t < LT ; t++ ) {
+      // compute wall sum
+      if( M.is_wall == GLU_TRUE ) {
+        #pragma omp single nowait
+	{
+	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
+	}
+      }
 
-    // compute wall sum
-    if( M.is_wall == GLU_TRUE ) {
-      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-    }
+      // assumes all sources are at the same origin, checked in wrap_tetras
+      const size_t tshifted = ( t - prop1.origin[ ND-1 ] + LT ) % LT ; 
 
-    // assumes all sources are at the same origin, checked in wrap_tetras
-    const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
-
-    // strange memory access pattern threads better than what was here before
-    #pragma omp parallel
-    {
       // read on the master and one slave
       if( t < LT-1 ) {
 	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
       // Loop over spatial volume threads better
-      #pragma omp for private(site) schedule(dynamic)
+      #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
 
 	struct spinor SUM_r2[ Nprops ] ;
@@ -92,43 +93,44 @@ diquark_degen( struct propagator prop1 ,
 	// loop gamma source
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
+	  
 	  // separate the gamma combinations
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
 	  // perform contraction, result in result
 	  M.in[ GSNK + stride2*GSRC ][ site ] = 
 	    diquark( SUM_r2[0] , SUM_r2[0] , 
-		     Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
+		     Cgmu[ GSRC ] , Cgnu[ GSNK ] , M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }
       // wall-wall contractions
       if( M.is_wall == GLU_TRUE ) {
 	// loop gamma source
 	size_t GSGK ;
+        #pragma omp for private(GSGK)
 	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
 	  // separate the gamma combinations
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
 	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
+	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ,
+		     M.GAMMAS[ GAMMA_5 ] ) ;
 	}
       }
       // end of walls
+
+      // compute the contracted correlator
+      compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+
+      #pragma omp single
+      {
+	// copy Sf into S
+	copy_props( &M , Nprops ) ;
+	
+	// status of the computation
+	progress_bar( t , LT ) ;
+      }
     }
-
-    // compute the contracted correlator
-    compute_correlator( &M , stride1 , stride2 , tshifted ) ;
-
-    // if we error we leave
-    if( error_code == FAILURE ) {
-      goto memfree ;
-    }
-
-    // copy over the propagators
-    copy_props( &M , Nprops ) ;
-
-    // status of the computation
-    progress_bar( t , LT ) ;
   }
 
   // write out the tetra wall-local and maybe wall-wall

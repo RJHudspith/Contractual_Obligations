@@ -55,6 +55,11 @@ set_prop_to_constant( struct halfspinor *S ,
   S -> D[3][0] = C ;
   S -> D[3][4] = C ;
   S -> D[3][8] = C ;
+#elif (NS==4) && (NC==2)
+  S -> D[0][0] = C ;
+  S -> D[0][3] = C ;
+  S -> D[3][0] = C ;
+  S -> D[3][3] = C ;
 #else
   size_t d , c ;
   for( d = 0 ; d < NS/2 ; d++ ) {

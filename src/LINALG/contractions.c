@@ -218,7 +218,7 @@ simple_meson_contract( const struct gamma GSNK ,
 	    + cimag( bwd.D[col1][col2].C[c1][c2] ) * creal( fwd.D[j][i].C[c2][c1] ) ;
 	}
       }
-      // switch for the phases
+      // switch for the phases -> implicit minus sign!!
       switch( ( GSNK.g[ i ] + GSRC.g[ col2 ] ) & 3 ) {
       case 0 : gsumr += -sumr ; gsumi += -sumi ; break ;
       case 1 : gsumr +=  sumi ; gsumi += -sumr ; break ;
