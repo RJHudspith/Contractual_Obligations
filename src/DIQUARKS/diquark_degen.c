@@ -69,11 +69,9 @@ diquark_degen( struct propagator prop1 ,
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
       // compute wall sum
-      if( M.is_wall == GLU_TRUE ) {
-        #pragma omp single nowait
-	{
-	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-	}
+      #pragma omp single nowait
+      {
+	sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
       }
 
       // assumes all sources are at the same origin, checked in wrap_tetras
@@ -104,18 +102,15 @@ diquark_degen( struct propagator prop1 ,
 	}
       }
       // wall-wall contractions
-      if( M.is_wall == GLU_TRUE ) {
-	// loop gamma source
-	size_t GSGK ;
-        #pragma omp for private(GSGK)
-	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
-	  // separate the gamma combinations
-	  const size_t GSRC = GSGK / stride1 ;
-	  const size_t GSNK = GSGK % stride2 ;
-	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ,
-		     M.GAMMAS[ GAMMA_5 ] ) ;
-	}
+      size_t GSGK ;
+      #pragma omp for private(GSGK)
+      for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
+	// separate the gamma combinations
+	const size_t GSRC = GSGK / stride1 ;
+	const size_t GSNK = GSGK % stride2 ;
+	M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
+	  diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ,
+		   M.GAMMAS[ GAMMA_5 ] ) ;
       }
       // end of walls
 
@@ -136,10 +131,8 @@ diquark_degen( struct propagator prop1 ,
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
 		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
 
   // memfree sink
  memfree :

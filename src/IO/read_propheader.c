@@ -435,7 +435,8 @@ summarize_prop_source( const struct propagator prop )
     fprintf( stdout , "[IO] propagator is a POINT source\n" ) ;
     break ;
   case WALL :
-    fprintf( stdout , "[IO] propagator is a WALL source\n" ) ;
+    fprintf( stdout , "[IO] propagator is a WALL/Box source\n" ) ;
+    fprintf( stdout , "[IO] Wall box size is %zu\n" , prop.Source.boxsize ) ;
     break ;
   case Z2_WALL :
     fprintf( stdout , "[IO] propagator is a Z2_WALL source\n" ) ;
@@ -476,6 +477,9 @@ read_propheader( struct propagator *prop )
   prop -> NRQCD.N     = 0   ; prop -> NRQCD.backward = GLU_FALSE ;
 
   // some defaults for the smearing and Z2 stuff
+
+  // this is an LCU wall source, logically boxsize = 1 is a point source
+  prop -> Source.boxsize = LCU ; 
   prop -> Source.Nsmear = 0 ;
   prop -> Source.smalpha = 0.15 ;
   prop -> Source.Z2_spacing = 1 ;
@@ -586,6 +590,9 @@ read_propheader( struct propagator *prop )
     if( are_equal( tag , "NRQCD_M_0" ) ) get_double( &prop -> NRQCD.M_0 ) ;
     if( are_equal( tag , "NRQCD_N" ) ) get_size_t( &prop -> NRQCD.N ) ;
     if( are_equal( tag , "NRQCD_backward" ) ) get_GLU_bool( &prop -> NRQCD.backward ) ;
+
+    // NRQCD sources
+    if( are_equal( tag , "Boxsize:" ) ) get_size_t( &prop -> Source.boxsize ) ;
     if( are_equal( tag , "Nsmear:" ) ) get_size_t( &prop -> Source.Nsmear ) ;
     if( are_equal( tag , "Smalpha:" ) ) get_double( &prop -> Source.smalpha ) ;
     if( are_equal( tag , "Z2_spacing:" ) ) get_size_t( &prop -> Source.Z2_spacing ) ;

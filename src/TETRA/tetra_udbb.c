@@ -64,11 +64,9 @@ tetraquark_udbb( struct propagator prop1 ,
       rotate_offdiag( M.S , prop , Nprops ) ; 
 
       // compute wall sum
-      if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single nowait
-	{
-	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-	}
+      #pragma omp single nowait
+      {
+	sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
       }
 
       // assumes all sources are at the same origin, checked in wrap_tetras
@@ -111,24 +109,22 @@ tetraquark_udbb( struct propagator prop1 ,
 	}
       }
       // wall-wall contractions
-      if( M.is_wall == GLU_TRUE ) {
-	struct spinor SUMbwdH ;
-	full_adj( &SUMbwdH , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
-	size_t GSRC ;
-        #pragma omp for private(GSRC)
-	for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
-	  double complex result[ stride1 ] ;
-	  size_t op ;
-	  for( op = 0 ; op < stride1 ; op++ ) {
-	    result[ op ] = 0.0 ;
-	  }
-	  // perform contraction, result in result
-	  tetras( result , M.SUM[0] , M.SUM[0] , SUMbwdH , SUMbwdH ,
-		  M.GAMMAS , GSRC , GLU_TRUE , GLU_TRUE ) ;
-	  // put contractions into final correlator object
-	  for( op = 0 ; op < stride1 ; op++ ) {
-	    M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
-	  }
+      struct spinor SUMbwdH ;
+      full_adj( &SUMbwdH , M.SUM[1] , M.GAMMAS[ GAMMA_5 ] ) ;
+      size_t GSRC ;
+      #pragma omp for private(GSRC)
+      for( GSRC = 0 ; GSRC < stride2 ; GSRC++ ) {
+	double complex result[ stride1 ] ;
+	size_t op ;
+	for( op = 0 ; op < stride1 ; op++ ) {
+	  result[ op ] = 0.0 ;
+	}
+	// perform contraction, result in result
+	tetras( result , M.SUM[0] , M.SUM[0] , SUMbwdH , SUMbwdH ,
+		M.GAMMAS , GSRC , GLU_TRUE , GLU_TRUE ) ;
+	// put contractions into final correlator object
+	for( op = 0 ; op < stride1 ; op++ ) {
+	  M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	}
       }
 
@@ -152,10 +148,8 @@ tetraquark_udbb( struct propagator prop1 ,
   // write out the tetra wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
 		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
 
   // memfree sink
  memfree :

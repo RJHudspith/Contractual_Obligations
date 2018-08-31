@@ -239,6 +239,7 @@ struct PIdata {
    @brief information for the propagator sources
  */
 struct source_info {
+  size_t boxsize ;
   size_t Nsmear ;
   double smalpha ;
   smearing smear ;

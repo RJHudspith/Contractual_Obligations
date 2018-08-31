@@ -63,11 +63,9 @@ mesons_offdiagonal( struct propagator prop1 ,
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall-wall sum
-      if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single nowait
-	{
-	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-	}
+      #pragma omp single nowait
+      {
+	sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
       }
     
       // support for multiple time sources
@@ -106,12 +104,10 @@ mesons_offdiagonal( struct propagator prop1 ,
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
 						       M.GAMMAS[ GAMMA_T ] ) ;
 	// and contract the walls
-	if( M.is_wall == GLU_TRUE ) {
-	  M.wwcorr[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] =	\
-	    meson_contract( gt_GSNKdag_gt    , M.SUM[1] ,
-			    M.GAMMAS[ GSRC ] , M.SUM[0] ,
-			    M.GAMMAS[ GAMMA_5 ] ) ;
-	}
+	M.wwcorr[ GSRC ][ GSNK ].mom[ 0 ].C[ tshifted ] =	\
+	  meson_contract( gt_GSNKdag_gt    , M.SUM[1] ,
+			  M.GAMMAS[ GSRC ] , M.SUM[0] ,
+			  M.GAMMAS[ GAMMA_5 ] ) ;
       }
 
       // compute the contracted correlator
@@ -135,10 +131,8 @@ mesons_offdiagonal( struct propagator prop1 ,
   // write out the ND-1 momentum-injected correlator
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
 		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
+		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
 
   // memory freeing part
  memfree :

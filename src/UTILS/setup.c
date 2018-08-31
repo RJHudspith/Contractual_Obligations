@@ -71,10 +71,8 @@ init_moms( struct measurements *M ,
   M -> nmom = malloc( sizeof( int ) ) ;
   M -> wwnmom = malloc( sizeof( int ) ) ;
 
-  if( M -> is_wall == GLU_TRUE ) {
-    M -> wwlist = (struct veclist*)zero_veclist( M -> wwnmom , ND-1 , 
-						 CUTINFO.configspace ) ;
-  }
+  M -> wwlist = (struct veclist*)zero_veclist( M -> wwnmom , ND-1 , 
+					       CUTINFO.configspace ) ;
   
   // if we are doing the Wall momentum DFT we allocate list differently
   if( M -> is_dft ) {
@@ -98,7 +96,7 @@ init_moms( struct measurements *M ,
   // initialise spatial summation list
   const struct cut_info ORBITS = \
     { .type = CUTINFO.type ,
-      .max_mom = ( M -> is_wall == GLU_TRUE ? CUTINFO.max_r2 : 0 ) ,
+      .max_mom = CUTINFO.max_r2 ,
       .cyl_width = CUTINFO.cyl_width ,
       .configspace = GLU_TRUE } ;
   
@@ -134,9 +132,9 @@ free_measurements( struct measurements *M ,
   // free correlators and momentum list
   if( M -> nmom != NULL ) {
     free_momcorrs( M -> corr , stride1 , stride2 , M -> nmom[0] ) ;
-    if( M -> is_wall == GLU_TRUE ) {
-      free_momcorrs( M -> wwcorr , stride1 , stride2 , M -> wwnmom[0] ) ;
-    }
+  }
+  if( M -> wwnmom != NULL ) {
+    free_momcorrs( M -> wwcorr , stride1 , stride2 , M -> wwnmom[0] ) ;
   }
 
   // free our ffts
@@ -210,8 +208,7 @@ init_measurements( struct measurements *M ,
   M -> forward = NULL ; M -> backward = NULL ;
   M -> S = NULL ; M -> Sf = NULL ;
   M -> SUM = NULL ;
-  M -> dft_mom = NULL ;
-  M -> is_wall = GLU_FALSE ;
+  M -> dft_mom = NULL ;  
   M -> is_wall_mom = GLU_FALSE ;
   M -> is_dft = GLU_FALSE ;
 
@@ -292,9 +289,7 @@ init_measurements( struct measurements *M ,
 #endif
   
   // allocate the wall sums
-  if( M -> is_wall == GLU_TRUE ) {
-    M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
-  }
+  M -> SUM = malloc( Nprops * sizeof( struct spinor ) ) ;
 
   // sum the twists
   size_t mu ;
@@ -319,9 +314,7 @@ init_measurements( struct measurements *M ,
   
   // allocate correlators
   M -> corr = allocate_momcorrs( stride1 , stride2 , M -> nmom[0] ) ;
-  if( M -> is_wall == GLU_TRUE ) {
-    M -> wwcorr = allocate_momcorrs( stride1 , stride2 , M -> wwnmom[0] ) ;
-  }
+  M -> wwcorr = allocate_momcorrs( stride1 , stride2 , M -> wwnmom[0] ) ;
 
   // allocate and precompute momentum factors
   if( M -> is_wall_mom == GLU_TRUE || M -> is_dft == GLU_TRUE ) {

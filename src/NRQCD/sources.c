@@ -136,8 +136,10 @@ initialise_source( struct halfspinor *S ,
       }
       break ;
     case WALL :
-      set_prop_to_constant( &S[ i ] ,
-			    get_eipx( prop.mom_source , i , ND-1 ) ) ;
+      if( compute_rsq( i , ND-1 ) < prop.Source.boxsize ) {
+	set_prop_to_constant( &S[ i ] ,
+			      get_eipx( prop.mom_source , i , ND-1 ) ) ;
+      }
       break ;
     case Z2_WALL :
       if( sparse_Z2 == GLU_TRUE ) {

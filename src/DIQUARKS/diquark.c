@@ -73,9 +73,7 @@ diquark_offdiag( struct propagator prop1 ,
     rotate_offdiag( M.S , prop , Nprops ) ;
 
     // compute wall sum
-    if( M.is_wall == GLU_TRUE ) {
-      sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-    }
+    sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
 
     // assumes all sources are at the same origin, checked in wrap_tetras
     const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
@@ -107,17 +105,14 @@ diquark_offdiag( struct propagator prop1 ,
 	}
       }
       // wall-wall contractions
-      if( M.is_wall == GLU_TRUE ) {
-	// loop gamma source
-	size_t GSGK ;
-	for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
-	  // separate the gamma combinations
-	  const size_t GSRC = GSGK / stride1 ;
-	  const size_t GSNK = GSGK % stride2 ;
-	  M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	    diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ]
-		     , M.GAMMAS[ GAMMA_5 ] ) ;
-	}
+      size_t GSGK ;
+      for( GSGK = 0 ; GSGK < stride1 * stride2 ; GSGK++ ) {
+	// separate the gamma combinations
+	const size_t GSRC = GSGK / stride1 ;
+	const size_t GSNK = GSGK % stride2 ;
+	M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
+	  diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ]
+		   , M.GAMMAS[ GAMMA_5 ] ) ;
       }
       // end of walls
     }
@@ -141,10 +136,8 @@ diquark_offdiag( struct propagator prop1 ,
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
 		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
   // if we have walls we use them
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
 
   // failure sink
  memfree :

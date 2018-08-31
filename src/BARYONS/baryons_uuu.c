@@ -70,11 +70,9 @@ baryons_diagonal( struct propagator prop1 ,
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
       // compute wall-wall sum
-      if( M.is_wall == GLU_TRUE ) {
-	#pragma omp single
-	{
-	  sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
-	}
+      #pragma omp single
+      {
+	sumwalls( M.SUM , (const struct spinor**)M.S , Nprops ) ;
       }
 
       // shifted times
@@ -108,11 +106,9 @@ baryons_diagonal( struct propagator prop1 ,
 	}
       }
       // loop over open indices performing wall contraction
-      if( M.is_wall == GLU_TRUE ) {
-	baryon_contract_walls( M.wwcorr , 
-			       M.SUM[0] , M.SUM[0] , M.SUM[0] , 
-			       Cgmu , Cgnu , tshifted , UUU_BARYON ) ;
-      }
+      baryon_contract_walls( M.wwcorr , 
+			     M.SUM[0] , M.SUM[0] , M.SUM[0] , 
+			     Cgmu , Cgnu , tshifted , UUU_BARYON ) ;
 
       // momentum projection 
       baryon_momentum_project( &M , stride1 , stride2 ,
@@ -135,10 +131,8 @@ baryons_diagonal( struct propagator prop1 ,
   // write out the baryons wall-local and maybe wall-wall
   write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
 		 M.sum_twist , stride1 , stride2 , M.nmom , "uuu" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "uuu.ww" ) ;
-  }
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
+		 M.sum_twist , stride1 , stride2 , M.wwnmom , "uuu.ww" ) ;
 
   // memory frees
  memfree :
