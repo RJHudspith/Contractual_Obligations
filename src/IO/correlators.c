@@ -227,3 +227,18 @@ write_momcorr( const char *outfile ,
 
   return ;
 }
+
+// little wrapper function
+void
+write_momcorr_WW( const struct measurements M ,
+		  const char *outfile ,
+		  const size_t NSRC ,
+		  const size_t NSNK )
+{
+  // write out the ND-1 momentum-injected correlator and maybe the wall
+  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
+		 M.sum_twist , NSRC , NSNK , M.nmom , "" ) ;
+  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
+		 M.sum_twist , NSRC , NSNK , M.wwnmom , "ww" ) ;
+  return ;
+}

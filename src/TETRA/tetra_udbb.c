@@ -88,7 +88,7 @@ tetraquark_udbb( struct propagator prop1 ,
 	for( op = 0 ; op < stride1 ; op++ ) {
 	  result[ op ] = 0.0 ;
 	}
-	// for now I keep the anti-Bs at x and vary u and d - J
+	// have to sum all propagators for the blob sinks - J
 	struct spinor SUM_r2[ Nprops ] ;
 	sum_spatial_sep( SUM_r2 , M , site ) ;
 
@@ -145,11 +145,8 @@ tetraquark_udbb( struct propagator prop1 ,
   // skip writing files if we fucked up
   if( error_code == FAILURE ) goto memfree ;
   
-  // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
-		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+  // write out the tetra wall-local and wall-wall
+  write_momcorr_WW( M , outfile , stride1 , stride2 ) ;
 
   // memfree sink
  memfree :

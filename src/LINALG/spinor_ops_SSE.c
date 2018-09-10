@@ -503,7 +503,7 @@ sumwalls( struct spinor *SUM ,
   return ;
 }
 
-// dirac transpose a spinor, returns S^T on stack
+// dirac index transpose a spinor, returns S^T on stack
 struct spinor
 transpose_spinor( const struct spinor S )
 {
@@ -512,8 +512,9 @@ transpose_spinor( const struct spinor S )
   for( d1d2 = 0 ; d1d2 < NSNS ; d1d2++ ) {
     const size_t d1 = d1d2 / NS ;
     const size_t d2 = d1d2 % NS ;
-    colormatrix_equiv( (double complex*)ST.D[d2][d1].C ,
-		       (const double complex*)S.D[d1][d2].C ) ;
+    colormatrix_equiv( (void*)ST.D[d2][d1].C ,
+		       (const void*)S.D[d1][d2].C ) ;
+
   }
   return ST ;
 }

@@ -89,7 +89,7 @@ tetraquark_usbb( struct propagator prop1 ,
 	  result[ op ] = 0.0 ;
 	}
 
-	// like the udbb I just spread out the light quarks
+	// like the udbb we must spread out all the quarks
 	struct spinor SUM_r2[ Nprops ] ;
 	sum_spatial_sep( SUM_r2 , M , site ) ;
 	
@@ -146,12 +146,7 @@ tetraquark_usbb( struct propagator prop1 ,
   if( error_code == FAILURE ) goto memfree ;
   
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
-		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  if( M.is_wall == GLU_TRUE ) {
-    write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		   M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-  }
+  write_momcorr_WW( M , outfile , stride1 , stride2 ) ;
 
   // failure sink
  memfree :

@@ -131,17 +131,17 @@ baryon_contract_site( double complex **term ,
     }
     // Contract with the final propagator and trace out the source Dirac indices
     // A polarization must still be picked for the two open Dirac indices offline
-#if NS == 4
+    #if NS == 4
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 0 , 0 , OD1 ) ;
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 1 , 1 , OD1 ) ;
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 2 , 2 , OD1 ) ;
     term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , 3 , 3 , OD1 ) ; 
-#else
+    #else
     size_t dirac ;
     for( dirac = 0 ; dirac < NS ; dirac++ ){
       term[1][ odc ] += baryon_contract( DiQ, S3 , OD2 , dirac , dirac , OD1 ) ;
     }
-#endif
+    #endif
   }
   return ;
 }
@@ -253,7 +253,7 @@ baryon_contract_walls( struct mcorr **corr ,
   
   // accumulate the sums with open dirac indices
   size_t GSGK ;
-  #pragma omp for nowait private(GSGK) schedule(dynamic)
+  #pragma omp for private(GSGK) schedule(dynamic)
   for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
     // source and sink indices
     const size_t GSRC = GSGK / B_CHANNELS ;
@@ -299,7 +299,7 @@ baryon_momentum_project( struct measurements *M ,
   if( configspace == GLU_TRUE ) {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp for nowait private(GSodc) schedule(dynamic)
+    #pragma omp for private(GSodc) schedule(dynamic)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;
@@ -316,12 +316,12 @@ baryon_momentum_project( struct measurements *M ,
   } else {
     // loop over flatteded open dirac indices
     size_t GSodc ;
-    #pragma omp for nowait private(GSodc) schedule(dynamic)
+    #pragma omp for private(GSodc) schedule(dynamic)
     for( GSodc = 0 ; GSodc < ( stride1 * stride2 ) ; GSodc++ ) {
       const size_t GSGK = GSodc / stride2 ;
       const size_t odc = GSodc % stride2 ;
       const size_t idx = 2 * GSodc ;
-    #ifdef HAVE_FFTW3_H
+      #ifdef HAVE_FFTW3_H
       fftw_execute( M -> forward[ 0 + idx ] ) ;
       fftw_execute( M -> forward[ 1 + idx ] ) ;
       const double complex *sum1 = M -> out[ 0 + idx ] ;
@@ -332,7 +332,7 @@ baryon_momentum_project( struct measurements *M ,
 	M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
 	  f( sum1[ lid ] , sum2[ lid ] ) ;
       }
-    #else
+      #else
       register double complex sum1 = 0.0 , sum2 = 0.0 ;
       size_t site ;
       for( site = 0 ; site < LCU ; site++ ) {
@@ -340,7 +340,7 @@ baryon_momentum_project( struct measurements *M ,
 	sum2 += M -> in[ 1 + idx ][ site ] ;
       }
       M -> corr[ GSGK ][ odc ].mom[ 0 ].C[ t ] = f( sum1 , sum2 ) ;
-    #endif
+      #endif
     }
   }
   return ;

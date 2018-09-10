@@ -33,8 +33,9 @@ baryons_diagonal( struct propagator prop1 ,
   // error flag
   int error_code = SUCCESS ;
 
-  // loop counters
-  size_t i ;
+  // output file
+  char bar_outfile[ strlen( outfile ) + 4 ] ;
+  sprintf( bar_outfile , "%s.uds" , outfile ) ;
 
   // gamma LUT
   struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
@@ -52,6 +53,7 @@ baryons_diagonal( struct propagator prop1 ,
   }
 
   // precompute the gammas we use
+  size_t i ;
   for( i = 0 ; i < B_CHANNELS ; i++ ) {
     Cgmu[ i ] = CGmu( M.GAMMAS[ i ] , M.GAMMAS ) ;
     Cgnu[ i ] = gt_Gdag_gt( Cgmu[i] , M.GAMMAS[ GAMMA_T ] ) ;
@@ -115,7 +117,7 @@ baryons_diagonal( struct propagator prop1 ,
 			       tshifted , UUU_BARYON ,
 			       CUTINFO.configspace ) ;
       
-#pragma omp single
+      #pragma omp single
       {
 	// copy over the propagators
 	copy_props( &M , Nprops ) ;
@@ -128,11 +130,8 @@ baryons_diagonal( struct propagator prop1 ,
 
   if( error_code == FAILURE ) goto memfree ;
   
-  // write out the baryons wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
-		 M.sum_twist , stride1 , stride2 , M.nmom , "uuu" ) ;
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "uuu.ww" ) ;
+  // write out the baryons wall-local and wall-wall
+  write_momcorr_WW( M , bar_outfile , stride1 , stride2 ) ;
 
   // memory frees
  memfree :

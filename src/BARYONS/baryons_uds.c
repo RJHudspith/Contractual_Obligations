@@ -33,6 +33,10 @@ baryons_3fdiagonal( struct propagator prop1 ,
   // two "terms" of the baryon contraction in "in" and "out"
   const size_t flat_dirac = 2 * stride1 * stride2 ;
 
+  // output file
+  char bar_outfile[ strlen( outfile ) + 4 ] ;
+  sprintf( bar_outfile , "%s.uds" , outfile ) ;
+  
   // error code
   int error_code = SUCCESS ;
 
@@ -133,11 +137,8 @@ baryons_3fdiagonal( struct propagator prop1 ,
 
   if( error_code == FAILURE ) goto memfree ;
   
-  // write out the baryons wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
-		 M.sum_twist , stride1 , stride2 , M.nmom , "uds" ) ;
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "uds.ww" ) ;
+  // write out the baryons wall-local and wall-wall  
+  write_momcorr_WW( M , bar_outfile , stride1 , stride2 ) ;
 
  memfree :
 

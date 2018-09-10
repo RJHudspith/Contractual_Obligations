@@ -48,4 +48,14 @@ write_momcorr( const char *outfile ,
 	       const int *nmom , 
 	       const char *type ) ;
 
+/**
+   @fn void write_momcorr_WW( const struct measurements M , const char *outfile , const size_t NSRC , const size_t NSNK )
+   @brief write our correlators to @outfile
+ **/
+void
+write_momcorr_WW( const struct measurements M ,
+		  const char *outfile ,
+		  const size_t NSRC ,
+		  const size_t NSNK ) ;
+
 #endif

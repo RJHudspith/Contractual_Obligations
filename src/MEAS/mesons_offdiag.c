@@ -129,10 +129,7 @@ mesons_offdiagonal( struct propagator prop1 ,
   if( error_code == FAILURE ) goto memfree ;
   
   // write out the ND-1 momentum-injected correlator
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list , 
-		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist , 
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+  write_momcorr_WW( M , outfile , stride1 , stride2 ) ;
 
   // memory freeing part
  memfree :

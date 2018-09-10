@@ -149,10 +149,7 @@ tetraquark_udcb( struct propagator prop1 , // L1
   if( error_code == FAILURE ) goto memfree ;
 
   // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
-		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
+  write_momcorr_WW( M , outfile , stride1 , stride2 ) ;
 
   // memfree sink
  memfree :

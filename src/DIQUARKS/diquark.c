@@ -132,13 +132,9 @@ diquark_offdiag( struct propagator prop1 ,
     progress_bar( t , LT ) ;
   }
 
-  // write out the tetra wall-local and maybe wall-wall
-  write_momcorr( outfile , (const struct mcorr**)M.corr , M.list ,
-		 M.sum_twist , stride1 , stride2 , M.nmom , "" ) ;
-  // if we have walls we use them
-  write_momcorr( outfile , (const struct mcorr**)M.wwcorr , M.wwlist ,
-		 M.sum_twist , stride1 , stride2 , M.wwnmom , "ww" ) ;
-
+  // write out the diquarks
+  write_momcorr_WW( M , outfile , stride1 , stride2 ) ;
+  
   // failure sink
  memfree :
 
