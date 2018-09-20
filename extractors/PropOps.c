@@ -72,6 +72,8 @@ write_propheader( FILE *outfile ,
   case POINT : fprintf( outfile , "Point\n" ) ; break ;
   case WALL : fprintf( outfile , "Wall\n" ) ; break ;
   case Z2_WALL : fprintf( outfile , "Z2_Wall\n" ) ; break ;
+  case Z3_WALL : fprintf( outfile , "Z3_Wall\n" ) ; break ;
+  case U1_WALL : fprintf( outfile , "U1_Wall\n" ) ; break ;
   }
   // Endian-ness
   if( WORDS_BIGENDIAN ) {

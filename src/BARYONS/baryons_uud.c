@@ -35,9 +35,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // output file
-  char bar_outfile[ sizeof( *outfile ) + 4 ] ;
+  char bar_outfile[ strlen( outfile ) + 4 ] ;
   sprintf( bar_outfile , "%s.uud" , outfile ) ;
-  
+
   // gamma LUT
   struct gamma *Cgmu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;
   struct gamma *Cgnu = malloc( B_CHANNELS * sizeof( struct gamma ) ) ;

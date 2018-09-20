@@ -101,6 +101,22 @@ int
 Z2( const uint32_t thread ) ;
 
 /**
+   @fn int Z3( const uint32_t thread )
+   @brief create an element of Z3
+   @return -1 or 1
+ */
+double complex
+Z3( const uint32_t thread ) ;
+
+/**
+   @fn int U1( const uint32_t thread )
+   @brief create an element of U1
+   @return -1 or 1
+ */
+double complex
+U1( const uint32_t thread ) ;
+
+/**
    @fn double complex Z2xZ2( const uint32_t thread )
    @brief create an element of Z4
    @return { +/- 1 , +/- I }/ sqrt{2} 

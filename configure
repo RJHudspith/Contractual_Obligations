@@ -747,6 +747,8 @@ enable_LEGACY_NRQCD_COMPARE
 enable_OMP_FFTW
 with_fftw
 with_TETRA_NBLOCK
+with_PENTA_NBLOCK
+with_IO_NBLOCK
 with_T_NRQCD
 '
       ac_precious_vars='build_alias
@@ -1405,6 +1407,8 @@ Optional Packages:
   --with-M_CHANNELS=      Compile in the number of meson contractions
   --with-fftw=<name>      Specify FFTW location for the GF
   --with-TETRA_NBLOCK=    Block matrix tetra contraction size
+  --with-PENTA_NBLOCK=    Block matrix pentaquark contraction size
+  --with-IO_NBLOCK=       IO blocking factor, reads IO_NBLOCK sites at once
   --with-T_NRQCD=         NRQCD evolution time
 
 Some influential environment variables:
@@ -5207,6 +5211,48 @@ else
 
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified TETRA_NBLOCK, code defaults to 1" >&5
 $as_echo "$as_me: User unspecified TETRA_NBLOCK, code defaults to 1" >&6;}
+
+fi
+
+
+## Compile a penta block size
+
+# Check whether --with-PENTA_NBLOCK was given.
+if test "${with_PENTA_NBLOCK+set}" = set; then :
+  withval=$with_PENTA_NBLOCK;
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified PENTA_NBLOCK, compiling for (${with_PENTA_NBLOCK})" >&5
+$as_echo "$as_me: User specified PENTA_NBLOCK, compiling for (${with_PENTA_NBLOCK})" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define PENTA_NBLOCK ${with_PENTA_NBLOCK}
+_ACEOF
+
+
+else
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified PENTA_NBLOCK, code defaults to 1" >&5
+$as_echo "$as_me: User unspecified PENTA_NBLOCK, code defaults to 1" >&6;}
+
+fi
+
+
+## Compile a penta block size
+
+# Check whether --with-IO_NBLOCK was given.
+if test "${with_IO_NBLOCK+set}" = set; then :
+  withval=$with_IO_NBLOCK;
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})" >&5
+$as_echo "$as_me: User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define IO_NBLOCK ${with_IO_NBLOCK}
+_ACEOF
+
+
+else
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified IO_NBLOCK, code defaults to 1" >&5
+$as_echo "$as_me: User unspecified IO_NBLOCK, code defaults to 1" >&6;}
 
 fi
 

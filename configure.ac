@@ -261,6 +261,28 @@ AC_ARG_WITH([TETRA_NBLOCK],
 	    AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, code defaults to 1])	
 ])
 
+## Compile a penta block size
+AC_ARG_WITH([PENTA_NBLOCK],
+	AC_HELP_STRING([--with-PENTA_NBLOCK=],
+		       [Block matrix pentaquark contraction size]),
+            [
+	    AC_MSG_NOTICE([User specified PENTA_NBLOCK, compiling for (${with_PENTA_NBLOCK})])
+	    AC_DEFINE_UNQUOTED([PENTA_NBLOCK], [${with_PENTA_NBLOCK}] , [Compiled PENTA_NBLOCK] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified PENTA_NBLOCK, code defaults to 1])	
+])
+
+## Compile a penta block size
+AC_ARG_WITH([IO_NBLOCK],
+	AC_HELP_STRING([--with-IO_NBLOCK=],
+		       [IO blocking factor, reads IO_NBLOCK sites at once]),
+            [
+	    AC_MSG_NOTICE([User specified IO_NBLOCK, compiling for (${with_IO_NBLOCK})])
+	    AC_DEFINE_UNQUOTED([IO_NBLOCK], [${with_IO_NBLOCK}] , [Compiled IO_NBLOCK] )	
+	    ],[
+	    AC_MSG_NOTICE([User unspecified IO_NBLOCK, code defaults to 1])	
+])
+
 ## Compile a tetra block size
 AC_ARG_WITH([T_NRQCD],
 	AC_HELP_STRING([--with-T_NRQCD=],

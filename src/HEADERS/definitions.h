@@ -189,8 +189,10 @@
    @def PENTA_NBLOCK
    @brief number of different gamma combinations for the penta operator
  */
-#define PENTA_NBLOCK (2)
-
+#ifndef PENTA_NBLOCK
+  #define PENTA_NBLOCK (2)
+#endif
+  
 /**
    @def TETRA_NBLOCK
    @brief number of different tetraquark blocks we will use

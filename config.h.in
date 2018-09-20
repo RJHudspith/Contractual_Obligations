@@ -57,6 +57,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Compiled IO_NBLOCK */
+#undef IO_NBLOCK
+
 /* Switch for comparing to the legacy fortran code */
 #undef LEGACY_NRQCD_COMPARE
 
@@ -102,6 +105,9 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Compiled PENTA_NBLOCK */
+#undef PENTA_NBLOCK
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

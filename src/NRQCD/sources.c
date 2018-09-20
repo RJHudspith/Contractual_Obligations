@@ -84,10 +84,28 @@ initialise_source( struct halfspinor *S ,
   }
   or[ ND-1 ] = 0 ;
 
+  // function pointer for stochastic sources
+  double complex (*noise)( const uint32_t thread ) ;
+  noise = Z2xZ2 ;
+
   switch( prop.Source.type ) {
   case POINT : break ;
   case WALL : break ;
   case Z2_WALL :
+    #pragma omp single
+    {
+      flag = initialise_par_rng( NULL ) ;
+    }
+    break ;
+  case Z3_WALL :
+    noise = Z3 ;
+    #pragma omp single
+    {
+      flag = initialise_par_rng( NULL ) ;
+    }
+    break ;
+  case U1_WALL :
+    noise = U1 ;
     #pragma omp single
     {
       flag = initialise_par_rng( NULL ) ;
@@ -108,19 +126,19 @@ initialise_source( struct halfspinor *S ,
     int n[ ND ] ;
     get_mom_2piBZ( n , i , ND-1 ) ;
     size_t mu , sum = 0 ;
-    GLU_bool sparse_Z2 = GLU_TRUE ;
+    GLU_bool sparse = GLU_TRUE ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       // treats the x,y,z part of the source as a cardinal shift
       const size_t shift =
 	(size_t)(n[mu]-(int)prop.origin[mu]+(int)Latt.dims[mu])%Latt.dims[mu] ;
       sum += shift ;
-      if( shift%(Z2_sub) != 0 ) { sparse_Z2 = GLU_FALSE ; }
+      if( shift%(Z2_sub) != 0 ) { sparse = GLU_FALSE ; }
     }
-    if( sum%prop.Source.Z2_spacing != 0 ) { sparse_Z2 = GLU_FALSE ; }
+    if( sum%prop.Source.Z2_spacing != 0 ) { sparse = GLU_FALSE ; }
 
     #ifdef VERBOSE
-    if( sparse_Z2 == GLU_TRUE ) {
-      printf( "%d %d %d is in sparse Z2 \n" , n[0] , n[1] , n[2] ) ;
+    if( sparse == GLU_TRUE ) {
+      printf( "%d %d %d is in sparse \n" , n[0] , n[1] , n[2] ) ;
     } else {
       printf( "%d %d %d is not \n" , n[0] , n[1] , n[2] ) ;
     }
@@ -142,11 +160,12 @@ initialise_source( struct halfspinor *S ,
       }
       break ;
     case Z2_WALL :
-      if( sparse_Z2 == GLU_TRUE ) {
+    case Z3_WALL :
+    case U1_WALL :
+      if( sparse == GLU_TRUE ) {
 	set_prop_to_constant( &S[ i ] , 
 			      get_eipx( prop.mom_source , i , ND-1 )
-			      * Z2xZ2( get_CORR_thread() )
-			      ) ;
+			      * noise( get_CORR_thread() ) ) ;
       }
       break ;
     }
@@ -166,6 +185,8 @@ initialise_source( struct halfspinor *S ,
   case POINT : break ;
   case WALL : break ;
   case Z2_WALL :
+  case Z3_WALL :
+  case U1_WALL :
     #pragma omp single
     {
       free_par_rng( ) ;

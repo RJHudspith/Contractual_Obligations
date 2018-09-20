@@ -37,16 +37,27 @@ void (*contract[9])( struct spinmatrix *P ,
   contract_O3O1 , contract_O3O2 , contract_O3O3 } ;
 
 // project to a particular parity
-void
+static void
 project_parity( double complex *pos ,
 		double complex *neg ,
 		const struct spinmatrix P ,
-		const struct gamma GT )
+		const struct gamma GT ,
+		const size_t op )
 {
   const double complex t1 = spinmatrix_trace( P.D ) ;
   const double complex t2 = gammaspinmatrix_trace( GT , P.D ) ;
-  *neg = 0.5 * ( t1 + t2 ) ; // L4 baryon project
-  *pos = 0.5 * ( t1 - t2 ) ; // L5 baryon project
+  switch( op%PENTA_NOPS ) {
+    // diquark-y ones are positive parity ops
+  case 0 : case 1 : case 2 : case 3 : case 6 :
+    *neg = 0.5 * ( t1 + t2 ) ;
+    *pos = 0.5 * ( t1 - t2 ) ;
+    break ;
+    // baryon-meson are negative parity ops and so we flip parity
+  case 4 : case 5 : case 7 : case 8 :
+    *neg = 0.5 * ( t1 - t2 ) ;
+    *pos = 0.5 * ( t1 + t2 ) ;
+    break ;
+  }
   return ;
 }
 
@@ -56,7 +67,7 @@ project_parity( double complex *pos ,
 // op1 has positive parity and op2 and op3 have negative so there is
 // some swapping around necessary with the results
 // operator matrix is interesting: call DG1 the diquark with G1 gamma matrix
-// and M1G* the first baryon-meson and M2G* the secon for PENTA_NBLOCK = 2
+// and M1G* the first baryon-meson and M2G* the second for PENTA_NBLOCK = 2
 //
 // |(DG1 DG1^*)  (DG1 DG2^*)  | (DG1  M1G1^*) (DG1  M1G2^*) | (DG1  M2G1^*) (DG1  M2G2^*)|
 // |(DG2 DG1^*)  (DG2 DG2^*)  | (DG2  M1G1^*) (DG2  M1G2^*) | (DG2  M2G1^*) (DG2  M2G2^*)|
@@ -100,14 +111,14 @@ pentas( double complex *result ,
 		 GBLOCK[ b2 ] ,
 		 GAMMAS ,
 		 loc ) ;
-    
+
     // get the map correct
-    const size_t irow = i/3 ;
-    const size_t idx = i*2 + irow*PENTA_NBLOCK*3 + b2 + b1*PENTA_NBLOCK*3 ;
-    
+    const size_t icol = i%3 , irow = i/3 ;
+    const size_t idx = icol*PENTA_NBLOCK + irow*3*PENTA_NBLOCK*PENTA_NBLOCK + b2 + b1*PENTA_NBLOCK*3 ;
+
     project_parity( result + idx ,
 		    result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
-		    P , GAMMAS[ GAMMA_T ] ) ;
+		    P , GAMMAS[ GAMMA_T ] , i ) ;
   }
 
   return SUCCESS ;

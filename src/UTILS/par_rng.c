@@ -231,6 +231,29 @@ Z2( const uint32_t thread )
   return par_rng_dbl( thread ) < 0.5 ? -1 : +1 ;
 }
 
+// element of Z_3
+double complex
+Z3( const uint32_t thread )
+{
+  double res = par_rng_dbl( thread ) ;
+  if( res > 1/3. ) {
+    if( res < 2/3. ) {
+      return -0.5 + I*0.8660254037844387 ;
+    } else {
+      return -0.5 - I*0.8660254037844387 ;
+    }
+  }
+  return 1 ;
+}
+
+// element of U1
+double complex
+U1( const uint32_t thread )
+{
+  const double phase = TWOPI * par_rng_dbl( thread ) ;
+  return cos( phase ) + I*sin( phase ) ;
+}
+
 // used for Z2 wall sources
 double complex
 Z2xZ2( const uint32_t thread )

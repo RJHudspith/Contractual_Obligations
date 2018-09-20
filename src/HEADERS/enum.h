@@ -219,7 +219,9 @@ typedef enum { NONE ,
 typedef enum
   { POINT ,
     WALL ,
-    Z2_WALL } sourcetype ;
+    Z2_WALL ,
+    Z3_WALL ,
+    U1_WALL } sourcetype ;
 
 /**
    @enum vector_axial

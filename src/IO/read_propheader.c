@@ -256,6 +256,18 @@ get_propsource( sourcetype *source )
       *source = Z2_WALL ;
       return SUCCESS ;
     }
+    if( are_equal( token , "Z3Wall" ) ||
+	are_equal( token , "Z3_Wall" ) ||
+	are_equal( token , "Z3_WALL" ) ) {
+      *source = Z3_WALL ;
+      return SUCCESS ;
+    }
+    if( are_equal( token , "U1Wall" ) ||
+	are_equal( token , "U1_Wall" ) ||
+	are_equal( token , "U1_WALL" ) ) {
+      *source = U1_WALL ;
+      return SUCCESS ;
+    }
   }
   return FAILURE ;
 }
@@ -440,6 +452,16 @@ summarize_prop_source( const struct propagator prop )
     break ;
   case Z2_WALL :
     fprintf( stdout , "[IO] propagator is a Z2_WALL source\n" ) ;
+    fprintf( stdout , "[IO] propagator has spacing %zu\n" ,
+	     prop.Source.Z2_spacing ) ;
+    break ;
+  case Z3_WALL :
+    fprintf( stdout , "[IO] propagator is a Z3_WALL source\n" ) ;
+    fprintf( stdout , "[IO] propagator has spacing %zu\n" ,
+	     prop.Source.Z2_spacing ) ;
+    break ;
+  case U1_WALL :
+    fprintf( stdout , "[IO] propagator is a U1_WALL source\n" ) ;
     fprintf( stdout , "[IO] propagator has spacing %zu\n" ,
 	     prop.Source.Z2_spacing ) ;
     break ;
