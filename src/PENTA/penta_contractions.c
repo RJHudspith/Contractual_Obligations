@@ -52,7 +52,8 @@ project_parity( double complex *pos ,
     *neg = 0.5 * ( t1 + t2 ) ;
     *pos = 0.5 * ( t1 - t2 ) ;
     break ;
-    // baryon-meson are negative parity ops and so we flip parity
+    // baryon-meson are negative parity ops and so we flip parity as the
+    // backward-propagating state is the one we match to the diquarky ones
   case 4 : case 5 : case 7 : case 8 :
     *neg = 0.5 * ( t1 - t2 ) ;
     *pos = 0.5 * ( t1 + t2 ) ;

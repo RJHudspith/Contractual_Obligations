@@ -55,7 +55,9 @@ tetraquark_usbb( struct propagator prop1 ,
     
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
-    #pragma omp barrier
+    {
+       #pragma omp barrier
+    }
     
     // Time slice loop 
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {

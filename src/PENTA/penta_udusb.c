@@ -80,8 +80,10 @@ pentaquark_udusb( struct propagator prop1 , // L
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
-    #pragma omp barrier
-      
+    {
+       #pragma omp barrier
+    }
+    
     // Time slice loop 
     for( t = 0 ; t < LT ; t++ ) {
       
