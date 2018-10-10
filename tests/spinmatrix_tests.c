@@ -75,6 +75,37 @@ gamma_spinmatrix_test( void )
   return NULL ;
 }
 
+// gamma spinmatrix test, multiply by identity?
+static char*
+gamma_spinmatrix_lr_test( void )
+{
+  struct spinmatrix tmp ;
+  size_t GS , GK ;
+  for( GS = 0 ; GS < NSNS ; GS++ ) {
+    for( GK = 0 ; GK < NSNS ; GK++ ) {
+
+      // set 
+      memcpy( C , D , NSNS * sizeof( double complex ) ) ;
+
+      spinmatrix_gamma( C , GAMMA[ GK ] ) ;
+      gamma_spinmatrix( C , GAMMA[ GS ] ) ;
+
+      memcpy( tmp.D , D , NSNS * sizeof( double complex ) ) ;
+      gamma_spinmatrix_lr( &tmp , GAMMA[ GS ] , GAMMA[ GK ] ) ;
+      
+      size_t i ;
+      for( i = 0 ; i < NSNS ; i++ ) {
+	const size_t a = i / NS ;
+	const size_t b = i % NS ;
+	mu_assert( "[UNIT] error : spinmatrix ops gamma_spinmatrix_lr broken " , 
+		   !( cabs( C[ i ] - tmp.D[a][b] ) > FTOL ) ) ;
+      }
+    }
+  }
+  
+  return NULL ;
+}
+
 // gammaspin_trace test
 static char*
 gammaspinmatrix_trace_test( void )
@@ -293,6 +324,9 @@ spinmatrices_test( void )
   mu_run_test( spinmatrix_trace_test ) ;
   mu_run_test( transpose_spinmatrix_test ) ;
   mu_run_test( zero_spinmatrix_test ) ;
+
+  // relies on gamma_spinmatrix and spinmatrix_gamma tests
+  mu_run_test( gamma_spinmatrix_lr_test ) ;
 
   // relies on spinmatrix multiply and spinmatrix trace
   mu_run_test( trace_prod_spinmatrices_test ) ;

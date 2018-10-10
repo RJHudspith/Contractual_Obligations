@@ -6,11 +6,14 @@
 #include "common.h"
 
 #include "GLU_timer.h"        // print_time()
+#include "su2_dibaryon.h"     // su2_dibaryon()
 #include "tetra_udbb.h"       // light flavour degenerate
 #include "tetra_usbb.h"       // light flavour agnostic heavy degen
 #include "tetra_udcb.h"       // light flavour degenerate heavy not
 #include "tetra_uscb.h"       // all non-degenerate
 #include "read_propheader.h"  // for read_propheader()
+
+#if NC == 3
 
 // for origin checking
 static int
@@ -134,6 +137,8 @@ contract_uscb( struct propagator *prop ,
   return SUCCESS ;
 }
 
+#endif
+
 // tetraquark calculator, prop3 should be the heavy one
 int
 contract_tetras( struct propagator *prop ,
@@ -141,7 +146,7 @@ contract_tetras( struct propagator *prop ,
 		 const struct cut_info CUTINFO ,
 		 const size_t ntetras )
 {
-  printf( "\n[TETRA] performing %zu contraction(s) \n" , ntetras ) ;
+  fprintf( stdout , "\n[TETRA] performing %zu contraction(s) \n" , ntetras ) ;
   size_t measurements ;
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < ntetras ; measurements++ ) {
@@ -150,6 +155,25 @@ contract_tetras( struct propagator *prop ,
     const size_t p2 = tetras[ measurements ].map[1] ;
     const size_t p3 = tetras[ measurements ].map[2] ;
     const size_t p4 = tetras[ measurements ].map[3] ;
+
+    #if NC == 2
+
+    fprintf( stdout , "[TETRA] su2 dibaryon contractions\n" ) ;
+
+    if( p1 == p2 && p2 == p3 && p3 == p4 ) {
+
+      // su2 dibaryon code
+      if( su2_dibaryon( prop[ p1 ] , CUTINFO , tetras[ measurements ].outfile )
+	  == FAILURE ) {
+	return FAILURE ;
+      }
+      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+    } else {
+      fprintf( stderr , "[TETRA] non-similar case not supported\n" ) ;
+      return FAILURE ;
+    }
+
+    #elif NC == 3
 
     // support for degenerate light content
     if( p1 == p2 ) {
@@ -193,6 +217,13 @@ contract_tetras( struct propagator *prop ,
       }
       //
     }
+
+    #else
+    frpintf( stderr , "[TETRA] tetra contractions not supported for NC = %d\n" ,
+	     NC ) ;
+    return FAILURE ;
+    #endif
+    
     // tell us how long it all took
     print_time( ) ;
   }

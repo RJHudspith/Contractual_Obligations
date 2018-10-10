@@ -514,7 +514,6 @@ transpose_spinor( const struct spinor S )
     const size_t d2 = d1d2 % NS ;
     colormatrix_equiv( (void*)ST.D[d2][d1].C ,
 		       (const void*)S.D[d1][d2].C ) ;
-
   }
   return ST ;
 }

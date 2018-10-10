@@ -32,10 +32,19 @@ compute_pslash( void *pslash ,
 /**
    @fn void gamma_spinmatrix( void *spinmatrix , const struct gamma G ) 
    @brief atomically left multiply by a gamma, spinmatrix = G * spinmatrix
- */
+w */
 void
 gamma_spinmatrix( void *spinmatrix ,
 		  const struct gamma G ) ;
+
+/**
+   @fn void gamma_spinmatrix_lr( void *spinmatrix , const struct gamma GLEFT , const struct gamma GRIGHT ) 
+   @brief atomically left and right multiply by a gamma, spinmatrix = GLEFT * spinmatrix * GRIGHT
+ **/
+void
+gamma_spinmatrix_lr( struct spinmatrix *S ,
+		     const struct gamma GLEFT ,
+		     const struct gamma GRIGHT ) ;
 
 /**
    @fn void get_spinmatrix( void *spinmatrix , const struct spinor S , const size_t c1 , const size_t c2 )

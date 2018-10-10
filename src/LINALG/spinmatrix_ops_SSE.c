@@ -143,6 +143,32 @@ gamma_spinmatrix( void *spinmatrix ,
   return ;
 }
 
+// computes GLEFT spinmatrix GRIGHT
+// TODO :: vectorise
+void
+gamma_spinmatrix_lr( struct spinmatrix *S ,
+		     const struct gamma GLEFT ,
+		     const struct gamma GRIGHT )
+{
+  struct spinmatrix tmp = *S ;
+  size_t i , j ;
+  for( i = 0 ; i < NS ; i++ ) {
+    const size_t col1 = GLEFT.ig[ i ] ;
+    for( j = 0 ; j < NS ; j++ ) {
+      const size_t col2 = GRIGHT.ig[ j ] ;
+      // switch for the phases
+      switch( ( GLEFT.g[ i ] + GRIGHT.g[ col2 ] ) & 3 ) {
+      case 0 : tmp.D[i][j] = S -> D[col1][col2] ; break ;
+      case 1 : tmp.D[i][j] = I * S-> D[col1][col2] ; break ;
+      case 2 : tmp.D[i][j] = -S -> D[col1][col2] ; break ;
+      case 3 : tmp.D[i][j] = -I * S -> D[col1][col2] ; break ;
+      }
+    }
+  }
+  *S = tmp ;
+  return ;
+}
+
 // computes spintrace :: Tr[ G spinmatrix ]
 double complex
 gammaspinmatrix_trace( const struct gamma G ,

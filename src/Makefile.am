@@ -59,9 +59,9 @@ PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/penta_udusb.c ./PENTA/wrap_pentas.c
 
 ## c files in ./TETRA/
-TETRAFILES=./TETRA/tetra_usbb.c ./TETRA/wrap_tetras.c \
-	./TETRA/tetra_contractions.c ./TETRA/tetra_udbb.c \
-	./TETRA/tetra_udcb.c ./TETRA/tetra_uscb.c
+TETRAFILES=./TETRA/su2_dibaryon.c ./TETRA/dibaryon_contractions.c \
+	./TETRA/tetra_contractions.c ./TETRA/tetra_udbb.c ./TETRA/tetra_usbb.c \
+	./TETRA/tetra_udcb.c ./TETRA/tetra_uscb.c ./TETRA/wrap_tetras.c
 
 ## c files in ./UTILS/
 UTILSFILES=./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \

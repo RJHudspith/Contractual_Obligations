@@ -33,6 +33,15 @@ gamma_spinmatrix( void *spinmatrix ,
 		  const struct gamma G ) ;
 
 /**
+   @fn void gamma_spinmatrix_lr( void *spinmatrix , const struct gamma GLEFT , const struct gamma GRIGHT ) 
+   @brief atomically left and right multiply by a gamma, spinmatrix = GLEFT * spinmatrix * GRIGHT
+ **/
+void
+gamma_spinmatrix_lr( struct spinmatrix *S ,
+		     const struct gamma GLEFT ,
+		     const struct gamma GRIGHT ) ;
+
+/**
    @fn double complex gammaspinmatrix_trace( const struct gamma G , const void *spinmatrix )
    @brief performs the spin trace of \gamma * spinmatrix
  */
