@@ -16,7 +16,8 @@
 // number of props
 #define Nprops (1)
 
-// tetraquark candidate L1 L1 \bar{H} \bar{H} so two propagators
+// su2 dibaryon is ( \psi_a C\gamma_i \psi_b )( \psi_a C\gamma_i \psi_b )
+// with a sum over gamma index "i"
 int
 su2_dibaryon( struct propagator prop1 ,
 	      struct cut_info CUTINFO ,
@@ -41,7 +42,7 @@ su2_dibaryon( struct propagator prop1 ,
     fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
-
+  
   // init the parallel region
   #pragma omp parallel
   {
@@ -87,26 +88,33 @@ su2_dibaryon( struct propagator prop1 ,
 	// loop gamma source
 	size_t GSGK ;
 	M.in[0][ site ] = 0.0 ;
-	for( GSGK = 0 ; GSGK < NS-1 ; GSGK++ ) {
+	for( GSGK = 0 ; GSGK < (NS-1)*(NS-1) ; GSGK++ ) {
+	  const size_t GSRC = GSGK/(NS-1) ;
+	  const size_t GSNK = GSGK%(NS-1) ;
 	  // su2_dibaryon contraction
-	  M.in[0][ site ] += dibaryon_contract( SUM_r2[0] , M.GAMMAS , GSGK ) ;
+	  M.in[0][ site ] += dibaryon_contract( SUM_r2[0] , M.GAMMAS ,
+						GSRC , GSNK ) ;
 	}
-	M.in[0][ site ] /= (NS-1) ;
       }
-      
-      M.wwcorr[0][0].mom[0].C[ tshifted ] =			\
-	dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 ) ;
-      M.wwcorr[0][0].mom[0].C[ tshifted ] +=			\
-	dibaryon_contract( M.SUM[0] , M.GAMMAS , 1 ) ;
-      M.wwcorr[0][0].mom[0].C[ tshifted ] +=			\
-	dibaryon_contract( M.SUM[0] , M.GAMMAS , 2 ) ;
-      M.wwcorr[0][0].mom[0].C[ tshifted ] /= (NS-1) ;
+
+      // have to do wall-wall contraction on a single thread
+      #pragma omp single
+      {
+	M.wwcorr[0][0].mom[0].C[ tshifted ] = 0.0 ;
+	size_t GSGK ;
+	for( GSGK = 0 ; GSGK < (NS-1)*(NS-1) ; GSGK++ ) {
+	  const size_t GSRC = GSGK/(NS-1) ;
+	  const size_t GSNK = GSGK%(NS-1) ;	
+	  M.wwcorr[0][0].mom[0].C[ tshifted ] +=			\
+	    dibaryon_contract( M.SUM[0] , M.GAMMAS , GSRC , GSNK ) ;
+	}
+      }
       
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
       
       #pragma omp single
-      {
+      {	
 	// copy over the propagators
 	copy_props( &M , Nprops ) ;
 	
