@@ -85,29 +85,28 @@ su2_dibaryon( struct propagator prop1 ,
 	struct spinor SUM_r2[ Nprops ] ;
 	sum_spatial_sep( SUM_r2 , M , site ) ;
 	
-	// loop gamma source
-	size_t GSGK ;
-	M.in[0][ site ] = 0.0 ;
-	for( GSGK = 0 ; GSGK < (NS-1)*(NS-1) ; GSGK++ ) {
-	  const size_t GSRC = GSGK/(NS-1) ;
-	  const size_t GSNK = GSGK%(NS-1) ;
-	  // su2_dibaryon contraction
-	  M.in[0][ site ] += dibaryon_contract( SUM_r2[0] , M.GAMMAS ,
-						GSRC , GSNK ) ;
-	}
+	// the trick here is that 0,1 == 1,0 so there is just a factor of 2
+	register double complex sum = 0.0 ; 
+        sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 0 ) ;
+	sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 1 ) ;
+        sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 2 ) ;
+	sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 1 , 1 ) ;
+	sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 1 , 2 ) ;
+	sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 2 , 2 ) ;
+	M.in[0][ site ] = sum ;
       }
 
       // have to do wall-wall contraction on a single thread
       #pragma omp single
       {
-	M.wwcorr[0][0].mom[0].C[ tshifted ] = 0.0 ;
-	size_t GSGK ;
-	for( GSGK = 0 ; GSGK < (NS-1)*(NS-1) ; GSGK++ ) {
-	  const size_t GSRC = GSGK/(NS-1) ;
-	  const size_t GSNK = GSGK%(NS-1) ;	
-	  M.wwcorr[0][0].mom[0].C[ tshifted ] +=			\
-	    dibaryon_contract( M.SUM[0] , M.GAMMAS , GSRC , GSNK ) ;
-	}
+	register double complex sum = 0.0 ; 
+        sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 0 ) ;
+	sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 1 ) ;
+        sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 2 ) ;
+	sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 1 , 1 ) ;
+	sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 1 , 2 ) ;
+	sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 2 , 2 ) ;
+	M.wwcorr[0][0].mom[0].C[ tshifted ] = sum ;
       }
       
       // compute the contracted correlator
