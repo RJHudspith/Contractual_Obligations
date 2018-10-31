@@ -7,11 +7,14 @@
 
 #include "GLU_timer.h"        // print_time()
 #include "su2_dibaryon.h"     // su2_dibaryon()
+#include "su2_rhoeta.h"       // su2_rhoeta()
 #include "tetra_udbb.h"       // light flavour degenerate
 #include "tetra_usbb.h"       // light flavour agnostic heavy degen
 #include "tetra_udcb.h"       // light flavour degenerate heavy not
 #include "tetra_uscb.h"       // all non-degenerate
 #include "read_propheader.h"  // for read_propheader()
+
+#define SU2_RHOETA
 
 #if NC == 3
 
@@ -162,11 +165,18 @@ contract_tetras( struct propagator *prop ,
 
     if( p1 == p2 && p2 == p3 && p3 == p4 ) {
 
+      #ifdef SU2_RHOETA
+      if( su2_rhoeta( prop[ p1 ] , CUTINFO , tetras[ measurements ].outfile )
+	  == FAILURE ) {
+	return FAILURE ;
+      }
+      #else
       // su2 dibaryon code
       if( su2_dibaryon( prop[ p1 ] , CUTINFO , tetras[ measurements ].outfile )
 	  == FAILURE ) {
 	return FAILURE ;
       }
+      #endif
       rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
     } else {
       fprintf( stderr , "[TETRA] non-similar case not supported\n" ) ;

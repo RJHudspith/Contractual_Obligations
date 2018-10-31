@@ -4,26 +4,28 @@
 */
 #include "common.h"
 
-#include "correlators.h"           // allocate_corrs() && free_corrs()
-#include "dibaryon_contractions.h" // dibaryon_contract()
-#include "io.h"                    // for read_prop()
-#include "progress_bar.h"          // progress_bar()
-#include "setup.h"                 // compute_correlator() ..
-#include "spinor_ops.h"            // sumprop()
+#include "contractions.h"    // full_adj()
+#include "correlators.h"     // allocate_corrs() && free_corrs()
+#include "io.h"              // for read_prop()
+#include "progress_bar.h"    // progress_bar()
+#include "setup.h"           // compute_correlator()
+#include "spinor_ops.h"      // sumprop()
+#include "rhoeta_contract.h" // rhoeta_contract()
 
 // number of props
 #define Nprops (1)
 
-// su2 dibaryon is ( \psi_a C\gamma_i \psi_b )( \psi_a C\gamma_i \psi_b )
-// with a sum over gamma index "i"
+// su2 rhoeta is only the connected diagrams for the
+// rho-eta looking fella di-meson:
+// ( \bar\psi_a \gamma_5 \psi_a )( \bar\psi_b \gamma_i \psi_b )
 int
-su2_dibaryon( struct propagator prop1 ,
-	      struct cut_info CUTINFO ,
-	      const char *outfile )
+su2_rhoeta( struct propagator prop1 ,
+	    struct cut_info CUTINFO ,
+	    const char *outfile )
 {
   // counters
-  const size_t stride1 = 1 ;
-  const size_t stride2 = 1 ;
+  const size_t stride1 = 3 ;
+  const size_t stride2 = 3 ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -79,30 +81,33 @@ su2_dibaryon( struct propagator prop1 ,
 	// have to sum all propagators for the blob sinks - J
 	struct spinor SUM_r2[ Nprops ] ;
 	sum_spatial_sep( SUM_r2 , M , site ) ;
+
+	struct spinor Sadj ;
+	full_adj( &Sadj , SUM_r2[0] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
-	// the trick here is that 0,1 == 1,0 so there is just a factor of 2
-	register double complex sum = 0.0 ; 
-        sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 0 ) ;
-	sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 1 ) ;
-        sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 0 , 2 ) ;
-	sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 1 , 1 ) ;
-	sum += 2*dibaryon_contract( SUM_r2[0] , M.GAMMAS , 1 , 2 ) ;
-	sum +=   dibaryon_contract( SUM_r2[0] , M.GAMMAS , 2 , 2 ) ;
-	M.in[0][ site ] = sum ;
+	size_t GSGK ;
+	for( GSGK = 0 ; GSGK < stride1*stride2 ; GSGK++ ) {
+	  const size_t GSRC = GSGK / stride2 ;
+	  const size_t GSNK = GSGK % stride2 ;
+	  
+	  M.in[ GSGK ][ site ] =			\
+	    rhoeta_contract( SUM_r2[0] , Sadj , GSRC , GSNK , M.GAMMAS ) ;
+	}
       }
 
-      // have to do wall-wall contraction on a single thread
-      #pragma omp single
-      {
-	register double complex sum = 0.0 ; 
-        sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 0 ) ;
-	sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 1 ) ;
-        sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 0 , 2 ) ;
-	sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 1 , 1 ) ;
-	sum += 2*dibaryon_contract( M.SUM[0] , M.GAMMAS , 1 , 2 ) ;
-	sum +=   dibaryon_contract( M.SUM[0] , M.GAMMAS , 2 , 2 ) ;
-	M.wwcorr[0][0].mom[0].C[ tshifted ] = sum ;
+      size_t GSGK ;
+      #pragma omp for private(GSGK)
+      for( GSGK = 0 ; GSGK < stride1*stride2 ; GSGK++ ) {
+	const size_t GSRC = GSGK / stride2 ;
+	const size_t GSNK = GSGK % stride2 ;
+
+	struct spinor Sadj ;
+	full_adj( &Sadj , M.SUM[0] , M.GAMMAS[ GAMMA_5 ] ) ;
+	
+	M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] =	\
+	  rhoeta_contract( M.SUM[0] , Sadj , GSRC , GSNK , M.GAMMAS ) ;
       }
+
       
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
