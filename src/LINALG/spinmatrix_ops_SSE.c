@@ -616,6 +616,46 @@ trace_prod_spinmatrices( const void *a ,
   return csum ;
 }
 
+// trace of the product of two spinmatrices
+double complex
+trace_prod_spinmatrices_dag( const void *a , 
+			     const void *b )
+{
+  const __m128d *A = (const __m128d*)a ;
+  const __m128d *B = (const __m128d*)b ;
+  double complex csum ;
+#if NS == 4
+  register __m128d s1 , s2 , s3 , s4 ;
+  s1 = _mm_add_pd( _mm_add_pd( SSE2_MUL_CONJ( *(A + 0x0) , *(B + 0x0) ) , 
+			       SSE2_MUL_CONJ( *(A + 0x1) , *(B + 0x1) ) ) ,
+		   _mm_add_pd( SSE2_MUL_CONJ( *(A + 0x2) , *(B + 0x2) ) , 
+			       SSE2_MUL_CONJ( *(A + 0x3) , *(B + 0x3) ) ) ) ;
+  s2 = _mm_add_pd( _mm_add_pd( SSE2_MUL_CONJ( *(A + 0x4) , *(B + 0x4) ) , 
+			       SSE2_MUL_CONJ( *(A + 0x5) , *(B + 0x5) ) ) ,
+		   _mm_add_pd( SSE2_MUL_CONJ( *(A + 0x6) , *(B + 0x6) ) , 
+			       SSE2_MUL_CONJ( *(A + 0x7) , *(B + 0x7) ) ) ) ;
+  s3 = _mm_add_pd( _mm_add_pd( SSE2_MUL_CONJ( *(A + 0x8) , *(B + 0x8) ) , 
+			       SSE2_MUL_CONJ( *(A + 0x9) , *(B + 0x9) ) ) ,
+		   _mm_add_pd( SSE2_MUL_CONJ( *(A + 0xa) , *(B + 0xa) ) , 
+			       SSE2_MUL_CONJ( *(A + 0xb) , *(B + 0xb) ) ) ) ;
+  s4 = _mm_add_pd( _mm_add_pd( SSE2_MUL_CONJ( *(A + 0xc) , *(B + 0xc) ) , 
+			       SSE2_MUL_CONJ( *(A + 0xd) , *(B + 0xd) ) ) ,
+		   _mm_add_pd( SSE2_MUL_CONJ( *(A + 0xe) , *(B + 0xe) ) , 
+			       SSE2_MUL_CONJ( *(A + 0xf) , *(B + 0xf) ) ) ) ;
+  // put them all in s1
+  s1 = _mm_add_pd( _mm_add_pd( s1 , s2 ) , _mm_add_pd( s3 , s4 ) ) ;
+  _mm_store_pd( (void*)&csum , s1 ) ;
+#else
+  size_t i , j ;
+  register double complex sum = _mm_setzero_pd( ) ;
+  for( i = 0 ; i < NSNS ; i++ ) {
+    sum = _mm_add_pd( sum , SSE2_MUL_CONJ( A[ i ] , B[ i ] ) ) ;
+  }
+  _mm_store_pd( (void*)&csum , sum) ;
+#endif
+  return csum ;
+}
+
 // transpose a spinmatrix
 void
 transpose_spinmatrix( void *a )

@@ -6,11 +6,12 @@
 #define DIBARYON_CONTRACTIONS_H
 
 /**
-   @fn double complex dibaryon_contract( struct spinor S , const struct gamma *GAMMAS , const size_t GSRC , const size_t GSNK )
+   @fn double complex dibaryon_contract( const struct spinor S1 , const struct spinor S2 , const struct gamma *GAMMAS , const size_t GSRC , const size_t GSNK )
    @brief contract the SU(2) dibaryon
  */
 double complex
-dibaryon_contract( struct spinor S ,
+dibaryon_contract( const struct spinor S1 ,
+		   const struct spinor S2 ,
 		   const struct gamma *GAMMAS ,
 		   const size_t GSRC ,
 		   const size_t GSNK ) ;

@@ -21,7 +21,7 @@ DFT_correlator( struct measurements *M ,
 
 {
   size_t idx ;
-#pragma omp for nowait private(idx) schedule(dynamic)
+#pragma omp for private(idx) schedule(dynamic)
   for( idx = 0 ; idx < stride1*stride2*M->nmom[0] ; idx++ ) {
     
     const size_t gidx = idx%(stride1*stride2) ;
@@ -120,9 +120,9 @@ compute_correlator( struct measurements *M ,
 		    const size_t stride2 ,
 		    const size_t tshifted )
 {
-  if( M -> configspace == GLU_TRUE ) {
+  if( M -> configspace == GLU_TRUE ) {    
     size_t idx ;
-    #pragma omp for nowait private(idx) schedule(dynamic)
+    #pragma omp for private(idx) schedule(dynamic)
     for( idx = 0 ; idx < stride1*stride2 ; idx++ ) {
       const size_t i = idx/stride2 ;
       const size_t j = idx%stride2 ;

@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include "GLU_timer.h"        // print_time()
+#include "HAL_su2.h"
 #include "su2_dibaryon.h"     // su2_dibaryon()
 #include "su2_rhoeta.h"       // su2_rhoeta()
 #include "tetra_udbb.h"       // light flavour degenerate
@@ -14,7 +15,8 @@
 #include "tetra_uscb.h"       // all non-degenerate
 #include "read_propheader.h"  // for read_propheader()
 
-#define SU2_RHOETA
+//#define SU2_RHOETA
+//#define HAL_RHORHO
 
 #if NC == 3
 
@@ -170,6 +172,11 @@ contract_tetras( struct propagator *prop ,
 	  == FAILURE ) {
 	return FAILURE ;
       }
+      #elif (defined HAL_RHORHO)
+      if( HAL_su2( prop[ p1 ] , CUTINFO , tetras[ measurements ].outfile )
+	  == FAILURE ) {
+	return FAILURE ;
+      }      
       #else
       // su2 dibaryon code
       if( su2_dibaryon( prop[ p1 ] , CUTINFO , tetras[ measurements ].outfile )

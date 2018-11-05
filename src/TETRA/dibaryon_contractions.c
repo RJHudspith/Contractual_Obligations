@@ -47,15 +47,18 @@ get_idx( const size_t a , const size_t b , const size_t ap , const size_t bp )
 }
 
 double complex
-dibaryon_contract( struct spinor S ,
+dibaryon_contract( struct spinor S1 ,
+		   struct spinor S2 ,
 		   const struct gamma *GAMMAS ,
 		   const size_t GSRC ,
 		   const size_t GSNK )
 {
   // precomputations -> swap color and dirac indices to expose spinmatrices
-  struct Ospinor OST = spinor_to_Ospinor( transpose_spinor( S ) ) ;
-  struct Ospinor OS  = spinor_to_Ospinor( S ) ;
-
+  struct Ospinor OS1T = spinor_to_Ospinor( transpose_spinor( S1 ) ) ;
+  struct Ospinor OS1  = spinor_to_Ospinor( S1 ) ;
+  struct Ospinor OS2T = spinor_to_Ospinor( transpose_spinor( S2 ) ) ;
+  struct Ospinor OS2  = spinor_to_Ospinor( S2 ) ;
+  
   // gamma precomputations
   const struct gamma G1   = CGmu( GAMMAS[ GSRC ] , GAMMAS ) ;
   const struct gamma tG1t = gt_Gdag_gt( G1 , GAMMAS[ GAMMA_T ] ) ;
@@ -75,25 +78,25 @@ dibaryon_contract( struct spinor S ,
   for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
     get_abcd( &a , &b , &ap , &bp , abcd ) ;
     // g1g1 case
-    tmp = OS.C[a][b] ;
+    tmp = OS2.C[a][b] ;
     gamma_spinmatrix_lr( &tmp , G1 , tG1t ) ;
     spinmatrix_multiply( (void*)blk11[abcd].D ,
-			 (void*)OST.C[ap][bp].D , (void*)tmp.D ) ;
+			 (void*)OS2T.C[ap][bp].D , (void*)tmp.D ) ;
     // g1g2 case
-    tmp = OS.C[a][b] ;
+    tmp = OS2.C[a][b] ;
     gamma_spinmatrix_lr( &tmp , G1 , tG2t ) ;
     spinmatrix_multiply( (void*)blk12[abcd].D ,
-			 (void*)OST.C[ap][bp].D , (void*)tmp.D ) ;
+			 (void*)OS2T.C[ap][bp].D , (void*)tmp.D ) ;
     // g2g1 case
-    tmp = OS.C[a][b] ;
+    tmp = OS1.C[a][b] ;
     gamma_spinmatrix_lr( &tmp , G2 , tG1t ) ;
     spinmatrix_multiply( (void*)blk21[abcd].D ,
-			 (void*)OST.C[ap][bp].D , (void*)tmp.D ) ;
+			 (void*)OS1T.C[ap][bp].D , (void*)tmp.D ) ;
     // g2g2 case
-    tmp = OS.C[a][b] ;
+    tmp = OS1.C[a][b] ;
     gamma_spinmatrix_lr( &tmp , G2 , tG2t ) ;
     spinmatrix_multiply( (void*)blk22[abcd].D ,
-			 (void*)OST.C[ap][bp].D , (void*)tmp.D ) ;
+			 (void*)OS1T.C[ap][bp].D , (void*)tmp.D ) ;
   }
 
   // do all of the 4! contractions summing over the 16 color combinations

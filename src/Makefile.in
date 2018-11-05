@@ -197,7 +197,8 @@ am__objects_10 = ./TETRA/su2_dibaryon.$(OBJEXT) \
 	./TETRA/tetra_udbb.$(OBJEXT) ./TETRA/tetra_usbb.$(OBJEXT) \
 	./TETRA/tetra_udcb.$(OBJEXT) ./TETRA/tetra_uscb.$(OBJEXT) \
 	./TETRA/wrap_tetras.$(OBJEXT) \
-	./TETRA/rhoeta_contract.$(OBJEXT) ./TETRA/su2_rhoeta.$(OBJEXT)
+	./TETRA/rhoeta_contract.$(OBJEXT) ./TETRA/su2_rhoeta.$(OBJEXT) \
+	./TETRA/HAL_su2.$(OBJEXT) ./TETRA/HAL_rhorho.$(OBJEXT)
 am__objects_11 = ./UTILS/basis_conversions.$(OBJEXT) \
 	./UTILS/corr_malloc.$(OBJEXT) ./UTILS/corr_sort.$(OBJEXT) \
 	./UTILS/crc32.$(OBJEXT) ./UTILS/crc32c.$(OBJEXT) \
@@ -431,7 +432,8 @@ PENTAFILES = ./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 TETRAFILES = ./TETRA/su2_dibaryon.c ./TETRA/dibaryon_contractions.c \
 	./TETRA/tetra_contractions.c ./TETRA/tetra_udbb.c ./TETRA/tetra_usbb.c \
 	./TETRA/tetra_udcb.c ./TETRA/tetra_uscb.c ./TETRA/wrap_tetras.c \
-	./TETRA/rhoeta_contract.c ./TETRA/su2_rhoeta.c
+	./TETRA/rhoeta_contract.c ./TETRA/su2_rhoeta.c ./TETRA/HAL_su2.c \
+	./TETRA/HAL_rhorho.c
 
 UTILSFILES = ./UTILS/basis_conversions.c ./UTILS/corr_malloc.c \
 	./UTILS/corr_sort.c ./UTILS/crc32.c ./UTILS/crc32c.c \
@@ -768,6 +770,10 @@ TETRA/$(DEPDIR)/$(am__dirstamp):
 	TETRA/$(DEPDIR)/$(am__dirstamp)
 ./TETRA/su2_rhoeta.$(OBJEXT): TETRA/$(am__dirstamp) \
 	TETRA/$(DEPDIR)/$(am__dirstamp)
+./TETRA/HAL_su2.$(OBJEXT): TETRA/$(am__dirstamp) \
+	TETRA/$(DEPDIR)/$(am__dirstamp)
+./TETRA/HAL_rhorho.$(OBJEXT): TETRA/$(am__dirstamp) \
+	TETRA/$(DEPDIR)/$(am__dirstamp)
 UTILS/$(am__dirstamp):
 	@$(MKDIR_P) ./UTILS
 	@: > UTILS/$(am__dirstamp)
@@ -980,6 +986,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/penta_contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/penta_udusb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/wrap_pentas.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./TETRA/$(DEPDIR)/HAL_rhorho.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./TETRA/$(DEPDIR)/HAL_su2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./TETRA/$(DEPDIR)/dibaryon_contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./TETRA/$(DEPDIR)/rhoeta_contract.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./TETRA/$(DEPDIR)/su2_dibaryon.Po@am__quote@

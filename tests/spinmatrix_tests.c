@@ -266,8 +266,27 @@ static char*
 trace_prod_spinmatrices_test( void )
 {
   const double complex tr1 = trace_prod_spinmatrices( D , D ) ;
-  spinmatrix_multiply( C , D , D ) ;
+  spinmatrix_multiply( C , D , D ) ;  
   const double complex tr2 = spinmatrix_trace( C ) ;
+  mu_assert( "[UNIT] error : spinmatric ops trace_prod_spinmatrices"
+	     " broken" , !( cabs( tr1 - tr2 ) > FTOL ) ) ;
+  return NULL ;
+}
+
+// trace of the product of two matrices
+static char*
+trace_prod_spinmatrices_dag_test( void )
+{
+  const double complex tr1 = trace_prod_spinmatrices_dag( D , D ) ;
+  // dagger the matrix D
+  struct spinmatrix tmp ;
+  size_t d1 , d2 ;
+  for( d1 = 0 ; d1 < NS ; d1++ ) {
+    for( d2 = 0 ; d2 < NS ; d2++ ) {
+      tmp.D[d1][d2] = conj( D[ d1+NS*d2 ] ) ;
+    }
+  }
+  const double complex tr2 = trace_prod_spinmatrices( D , tmp.D ) ;  
   mu_assert( "[UNIT] error : spinmatric ops trace_prod_spinmatrices"
 	     " broken" , !( cabs( tr1 - tr2 ) > FTOL ) ) ;
   return NULL ;
@@ -330,6 +349,7 @@ spinmatrices_test( void )
 
   // relies on spinmatrix multiply and spinmatrix trace
   mu_run_test( trace_prod_spinmatrices_test ) ;
+  mu_run_test( trace_prod_spinmatrices_dag_test ) ;
   mu_run_test( gammaspinmatrix_trace_test ) ;
   mu_run_test( compute_pslash_test ) ;
 

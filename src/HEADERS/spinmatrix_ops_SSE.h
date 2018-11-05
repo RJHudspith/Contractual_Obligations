@@ -118,6 +118,15 @@ trace_prod_spinmatrices( const void *a ,
 			 const void *b ) ;
 
 /**
+   @fn double complex trace_prod_spinmatrices_dag( const void *a , const void *b )
+   @brief trace of the product of two spinmatrices
+   @return Tr[a.b^\dag]
+ */
+double complex
+trace_prod_spinmatrices_dag( const void *a , 
+			     const void *b ) ;
+
+/**
    @fn transpose_spinmatrix( void *a )
    @brief transpose a spinmatrix
 */

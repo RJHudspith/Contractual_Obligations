@@ -282,6 +282,31 @@ trace_prod_spinmatrices( const void *a ,
 #endif
 }
 
+// trace of the product of two spinmatrices
+double complex
+trace_prod_spinmatrices_dag( const void *a , 
+			     const void *b )
+{
+  const double complex *A = (const double complex*)a ;
+  const double complex *B = (const double complex*)b ;
+#if NS == 4
+  return 
+    A[0]  * B[0] + A[1]  * conj(B[1] + A[2]  * B[8]  + A[3]  * B[12] +	\
+    A[4]  * B[1] + A[5]  * B[5] + A[6]  * B[9]  + A[7]  * B[13] + \
+    A[8]  * B[2] + A[9]  * B[6] + A[10] * B[10] + A[11] * B[14] + \
+    A[12] * B[3] + A[13] * B[7] + A[14] * B[11] + A[15] * B[15] ;
+#else
+  size_t i , j ;
+  register double complex sum = 0.0 ;
+  for( i = 0 ; i < NS ; i++ ) {
+    for( j = 0 ; j < NS ; j++ ) {
+      sum += A[ j + i * NS ] * B[ i + j * NS ] ;
+    }
+  }
+  return sum ;
+#endif
+}
+
 // transpose a matrix
 void
 transpose_spinmatrix( void *a )

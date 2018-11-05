@@ -4,23 +4,27 @@
 */
 #include "common.h"
 
-#include "correlators.h"           // allocate_corrs() && free_corrs()
-#include "dibaryon_contractions.h" // dibaryon_contract()
-#include "geometry.h"              // compute_spacing()
-#include "io.h"                    // for read_prop()
-#include "progress_bar.h"          // progress_bar()
-#include "setup.h"                 // compute_correlator() ..
-#include "spinor_ops.h"            // sumprop()
+#include "corr_malloc.h"
+#include "contractions.h"    // full_adj()
+#include "correlators.h"     // allocate_corrs() && free_corrs()
+#include "HAL_rhorho.h"
+#include "io.h"              // for read_prop()
+#include "plan_ffts.h"
+#include "progress_bar.h"    // progress_bar()
+#include "setup.h"           // compute_correlator()
+#include "spinor_ops.h"      // sumprop()
+#include "rhoeta_contract.h" // rhoeta_contract()
 
 // number of props
 #define Nprops (1)
 
-// su2 dibaryon is ( \psi_a C\gamma_i \psi_b )( \psi_a C\gamma_i \psi_b )
-// with a sum over gamma index "i"
+// su2 rhoeta is only the connected diagrams for the
+// rho-eta looking fella di-meson:
+// ( \bar\psi_a \gamma_5 \psi_a )( \bar\psi_b \gamma_i \psi_b )
 int
-su2_dibaryon( struct propagator prop1 ,
-	      struct cut_info CUTINFO ,
-	      const char *outfile )
+HAL_su2( struct propagator prop1 ,
+	 struct cut_info CUTINFO ,
+	 const char *outfile )
 {
   // counters
   const size_t stride1 = 1 ;
@@ -41,6 +45,33 @@ su2_dibaryon( struct propagator prop1 ,
     fprintf( stderr , "[TETRA] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
   }
+
+  // FFT all that jazz
+  //M.in = fftw_malloc( LCU * sizeof( double complex ) ) ;
+  M.out[0] = fftw_malloc( LCU * sizeof( double complex ) ) ;
+
+  fftw_plan forward , backward ;
+  small_create_plans_DFT( &forward , &backward , M.in[0] , M.out[0] , ND-1 ) ;
+
+  //printf( "Block alloc?\n" ) ;
+  
+  // precompute the diquark blocks, called blk. Very big mallocs in here
+  struct spinmatrix **blk11 ;
+  struct spinmatrix **blk12 ;
+  struct spinmatrix **blk21 ;
+  struct spinmatrix **blk22 ;
+  size_t i ;
+  blk11 = malloc( LCU*sizeof(struct spinmatrix*) ) ;
+  blk12 = malloc( LCU*sizeof(struct spinmatrix*) ) ;
+  blk21 = malloc( LCU*sizeof(struct spinmatrix*) ) ;
+  blk22 = malloc( LCU*sizeof(struct spinmatrix*) ) ;
+  for( i = 0 ; i < LCU ; i++ ) {
+    blk11[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
+    blk12[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
+    blk21[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
+    blk22[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
+  }
+  //printf( "Block alloc?\n" ) ;
   
   // init the parallel region
   #pragma omp parallel
@@ -74,37 +105,11 @@ su2_dibaryon( struct propagator prop1 ,
 	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
 
-      // Loop over spatial volume threads better
-      #pragma omp for private(site) schedule(dynamic)
-      for( site = 0 ; site < LCU ; site++ ) {
-	  
-	// have to sum all propagators for the blob sinks - J
-	struct spinor SUM_r2[ Nprops ] ;
-	sum_spatial_sep( SUM_r2 , M , site ) ;
-	  
-	// the trick here is that 0,1 == 1,0 so there is just a factor of 2
-	register double complex sum = 0.0 ; 
-	sum +=   dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 0 , 0 ) ;
-	sum += 2*dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 0 , 1 ) ;
-	sum += 2*dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 0 , 2 ) ;
-	sum +=   dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 1 , 1 ) ;
-	sum += 2*dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 1 , 2 ) ;
-	sum +=   dibaryon_contract( SUM_r2[0] , SUM_r2[0] , M.GAMMAS , 2 , 2 ) ;
-	M.in[0][ site ] = sum ;
-      }
+      HALrhorho_contract( M.in[0] , M.out[0] , forward , backward ,
+			  blk11 , blk12 , blk21 , blk22 ,
+			  M.S[0] , M.GAMMAS , 0 , 0 ,
+			  M.nmom , M.list ) ;
       
-      // have to do wall-wall contraction on a single thread
-      #pragma omp single
-      {
-	register double complex sum = 0.0 ; 
-        sum +=   dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 0 , 0 ) ;
-	sum += 2*dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 0 , 1 ) ;
-        sum += 2*dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 0 , 2 ) ;
-	sum +=   dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 1 , 1 ) ;
-	sum += 2*dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 1 , 2 ) ;
-	sum +=   dibaryon_contract( M.SUM[0] , M.SUM[0] , M.GAMMAS , 2 , 2 ) ;
-	M.wwcorr[0][0].mom[0].C[ tshifted ] = sum ;
-      }
       
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
@@ -128,6 +133,22 @@ su2_dibaryon( struct propagator prop1 ,
 
   // memfree sink
  memfree :
+
+  // fftw free some stuff
+  fftw_destroy_plan( forward ) ;
+  fftw_destroy_plan( backward ) ;
+
+  // free the blocks
+  for( i = 0 ; i < LCU ; i++ ) {
+    free( blk11[i] ) ;
+    free( blk12[i] ) ;
+    free( blk21[i] ) ;
+    free( blk22[i] ) ;
+  }
+  free( blk11 ) ;
+  free( blk12 ) ;
+  free( blk21 ) ;
+  free( blk22 ) ;
 
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
