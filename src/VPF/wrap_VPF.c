@@ -76,7 +76,9 @@ contract_VPF( struct propagator *prop ,
 	return FAILURE ;
       }
       // rewind file and read header again
-      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      }
     } else {
       if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
 	fprintf( stderr , "[VPF] thwarted attempt contracting"
@@ -89,8 +91,12 @@ contract_VPF( struct propagator *prop ,
 	return FAILURE ;
       }
       // rewind file and read header again
-      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
-      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+      }
+      if( prop[ p2 ].basis != NREL_CORR ) {
+	rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
+      }
     }
     // end of measurement loop
     print_time() ;

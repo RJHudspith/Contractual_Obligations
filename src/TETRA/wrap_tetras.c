@@ -16,7 +16,7 @@
 #include "read_propheader.h"  // for read_propheader()
 
 //#define SU2_RHOETA
-//#define HAL_RHORHO
+#define HAL_RHORHO
 
 #if NC == 3
 
@@ -62,8 +62,12 @@ contract_udbb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  if( prop[ p1 ].basis != NREL_CORR ) {
+    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  }
+  if( prop[ p2 ].basis != NREL_CORR ) {
+    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  }
   return SUCCESS ;
 }
 
@@ -85,9 +89,15 @@ contract_usbb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  if( prop[ p1 ].basis != NREL_CORR ) {
+    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  }
+  if( prop[ p2 ].basis != NREL_CORR ) {
+    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  }
+  if( prop[ p3 ].basis != NREL_CORR ) {
+    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  }
   return SUCCESS ;
 }
 
@@ -109,9 +119,15 @@ contract_udcb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  if( prop[ p1 ].basis != NREL_CORR ) {
+    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  }
+  if( prop[ p2 ].basis != NREL_CORR ) {
+    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  }
+  if( prop[ p3 ].basis != NREL_CORR ) {
+    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  }
   return SUCCESS ;
 }
 
@@ -135,10 +151,18 @@ contract_uscb( struct propagator *prop ,
       == FAILURE ) {
     return FAILURE ;
   }
-  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-  rewind( prop[ p4 ].file ) ; read_propheader( &prop[ p4 ] ) ;
+  if( prop[ p1 ].basis != NREL_CORR ) {
+    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  }
+  if( prop[ p2 ].basis != NREL_CORR ) {
+    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  }
+  if( prop[ p3 ].basis != NREL_CORR ) {
+    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  }
+  if( prop[ p4 ].basis != NREL_CORR ) {
+    rewind( prop[ p4 ].file ) ; read_propheader( &prop[ p4 ] ) ;
+  }
   return SUCCESS ;
 }
 
@@ -184,7 +208,9 @@ contract_tetras( struct propagator *prop ,
 	return FAILURE ;
       }
       #endif
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
     } else {
       fprintf( stderr , "[TETRA] non-similar case not supported\n" ) ;
       return FAILURE ;

@@ -223,14 +223,20 @@ read_nrprop( struct propagator prop ,
   return SUCCESS ;
 }
 
-int
-compute_nrprop( struct propagator prop , 
-		struct spinor *S ,
-		const size_t t )
+static int
+set_nrprop( struct propagator prop , 
+	    struct spinor *S ,
+	    const size_t t )
 {
   // copy from the prop
   size_t i ;
   spinor_zero( S ) ;
+
+  if( prop.H == NULL ) {
+    fprintf( stderr , "[IO] NULL NRQCD prop found\n" ) ;
+    return FAILURE ;
+  }
+  
   for( i = 0 ; i < LCU ; i++ ) {
     if( prop.NRQCD.backward == GLU_TRUE ) {
       colormatrix_equiv_f2d( (void*)S[i].D[0][0].C , (void*)prop.H[i+LCU*t].D[0] ) ;
@@ -284,7 +290,7 @@ read_prop( struct propagator prop ,
   case CHIRAL :
     return read_chiralprop( prop , S ) ;
   case NREL_CORR :
-    return compute_nrprop( prop , S , t ) ;
+    return set_nrprop( prop , S , t ) ;
   case NREL_FWD :
   case NREL_BWD :
     return read_nrprop( prop , S , prop.basis ) ;

@@ -45,9 +45,15 @@ contract_udusb( struct propagator *prop ,
 			CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  if( prop[ p1 ].basis != NREL_CORR ) {
+    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+  }
+  if( prop[ p2 ].basis != NREL_CORR ) {
+    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+  }
+  if( prop[ p3 ].basis != NREL_CORR ) {
+    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+  }
   return SUCCESS ;
 }
 

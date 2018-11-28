@@ -38,11 +38,19 @@ contract_WME( struct propagator *prop ,
     }
     print_time() ;
 
-    // reread headers 
-    rewind( prop[p0].file ) ; read_propheader( &prop[p0] ) ;
-    rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
-    rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
-    rewind( prop[p3].file ) ; read_propheader( &prop[p3] ) ;
+    // reread headers
+    if( prop[ p0 ].basis != NREL_CORR ) {
+      rewind( prop[p0].file ) ; read_propheader( &prop[p0] ) ;
+    }
+    if( prop[ p1 ].basis != NREL_CORR ) {
+      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
+    }
+    if( prop[ p2 ].basis != NREL_CORR ) {
+      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
+    }
+    if( prop[ p3 ].basis != NREL_CORR ) {
+      rewind( prop[p3].file ) ; read_propheader( &prop[p3] ) ;
+    }
   }
   return SUCCESS ;
 }

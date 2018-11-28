@@ -70,8 +70,12 @@ contract_baryons( struct propagator *prop ,
 	  == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
+      if( prop[ p3 ].basis != NREL_CORR ) {
+	rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+      }
       // two props are the same S1 ( S1 Cgmu S2 )
     } else if( p1 == p3 && p3 != p2 ) {
       if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
@@ -86,8 +90,12 @@ contract_baryons( struct propagator *prop ,
 	  == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
+      if( prop[ p2 ].basis != NREL_CORR ) {
+	rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      }
       // two props are the same S1 ( S2 Cgmu S2 Cgmu )
     } else if( p2 == p3 && p1 != p2 ) {
       if( prop[ p2 ].Source.type != prop[ p1 ].Source.type ) {
@@ -102,8 +110,12 @@ contract_baryons( struct propagator *prop ,
 	  == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      if( prop[ p2 ].basis != NREL_CORR ) {
+	rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      }
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
       // otherwise we resort to the 3-component baryon
     } else {
       if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ||
@@ -120,9 +132,15 @@ contract_baryons( struct propagator *prop ,
 	  == FAILURE ) {
 	return FAILURE ;
       }
-      rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-      rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+      if( prop[ p1 ].basis != NREL_CORR ) {
+	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
+      }
+      if( prop[ p2 ].basis != NREL_CORR ) {
+	rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
+      }
+      if( prop[ p3 ].basis != NREL_CORR ) {
+	rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
+      }
     }
     // tell us how long it took
     print_time( ) ;
