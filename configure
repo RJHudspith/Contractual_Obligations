@@ -750,6 +750,7 @@ with_TETRA_NBLOCK
 with_PENTA_NBLOCK
 with_IO_NBLOCK
 with_T_NRQCD
+with_MKL
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1410,6 +1411,7 @@ Optional Packages:
   --with-PENTA_NBLOCK=    Block matrix pentaquark contraction size
   --with-IO_NBLOCK=       IO blocking factor, reads IO_NBLOCK sites at once
   --with-T_NRQCD=         NRQCD evolution time
+  --with-MKL              Link to intel MKL library
 
 Some influential environment variables:
   CC          C compiler command
@@ -5547,6 +5549,16 @@ esac
 
 ## Set up config.h, one of the most important headers of them all
 ac_config_headers="$ac_config_headers config.h"
+
+
+## include MKL library, will fail if we don't have it
+
+# Check whether --with-MKL was given.
+if test "${with_MKL+set}" = set; then :
+  withval=$with_MKL; LDFLAGS="$LDFLAGS -mkl"
+else
+  LDFLAGS="$LDFLAGS -lm"
+fi
 
 
 ## where are my files?
