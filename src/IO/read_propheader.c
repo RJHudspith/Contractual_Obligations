@@ -687,3 +687,21 @@ read_propheaders( struct propagator *prop ,
   }
   return SUCCESS ;
 }
+
+// rewind the file and reread the header
+// unless it is an on-the-fly prop
+int
+reread_propheaders( struct propagator *prop )
+{
+  if( prop -> basis != NREL_CORR ) {
+    if( prop -> file != NULL ) {
+      rewind( prop -> file ) ;
+    } else {
+      return FAILURE ;
+    }
+    if( read_propheader( prop ) == FAILURE ) {
+      return FAILURE ;
+    }
+  }
+  return SUCCESS ;
+}

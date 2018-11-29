@@ -24,4 +24,13 @@ int
 read_propheaders( struct propagator *prop ,
 		  const size_t nprops ) ;
 
+/**
+   @fn int reread_propheaders( struct propagator *prop )
+   @brief rewind and reread the propagator header file
+   @param a single propagator file pointer
+   @return #SUCCESS or #FAILURE
+ */
+int
+reread_propheaders( struct propagator *prop ) ;
+
 #endif

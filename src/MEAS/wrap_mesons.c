@@ -30,10 +30,7 @@ contract_mesons( struct propagator *prop ,
 			   mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
-      if( prop[ p1 ].basis != NREL_CORR ) {
-	rewind( prop[ p1 ].file ) ;
-	read_propheader( &prop[ p1 ] ) ;
-      }
+      if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
     } else {
       // check that the two props have the same origin?
       size_t mu ;
@@ -50,12 +47,8 @@ contract_mesons( struct propagator *prop ,
 			      mesons[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;
       }
-      if( prop[p1].basis != NREL_CORR ) {
-	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      }
-      if( prop[p2].basis != NREL_CORR ) {
-	rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-      }
+      if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+      if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
     }
     // loop on measurements
     print_time( ) ;

@@ -62,12 +62,8 @@ contract_udbb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  if( prop[ p1 ].basis != NREL_CORR ) {
-    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  }
-  if( prop[ p2 ].basis != NREL_CORR ) {
-    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  }
+  if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
   return SUCCESS ;
 }
 
@@ -89,15 +85,9 @@ contract_usbb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  if( prop[ p1 ].basis != NREL_CORR ) {
-    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  }
-  if( prop[ p2 ].basis != NREL_CORR ) {
-    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  }
-  if( prop[ p3 ].basis != NREL_CORR ) {
-    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-  }
+  if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
   return SUCCESS ;
 }
 
@@ -119,15 +109,9 @@ contract_udcb( struct propagator *prop ,
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
   }
-  if( prop[ p1 ].basis != NREL_CORR ) {
-    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  }
-  if( prop[ p2 ].basis != NREL_CORR ) {
-    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  }
-  if( prop[ p3 ].basis != NREL_CORR ) {
-    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-  }
+  if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
   return SUCCESS ;
 }
 
@@ -151,18 +135,10 @@ contract_uscb( struct propagator *prop ,
       == FAILURE ) {
     return FAILURE ;
   }
-  if( prop[ p1 ].basis != NREL_CORR ) {
-    rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-  }
-  if( prop[ p2 ].basis != NREL_CORR ) {
-    rewind( prop[ p2 ].file ) ; read_propheader( &prop[ p2 ] ) ;
-  }
-  if( prop[ p3 ].basis != NREL_CORR ) {
-    rewind( prop[ p3 ].file ) ; read_propheader( &prop[ p3 ] ) ;
-  }
-  if( prop[ p4 ].basis != NREL_CORR ) {
-    rewind( prop[ p4 ].file ) ; read_propheader( &prop[ p4 ] ) ;
-  }
+  if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
+  if( reread_propheaders( &prop[ p4 ] ) == FAILURE ) { return FAILURE ; }
   return SUCCESS ;
 }
 
@@ -208,9 +184,7 @@ contract_tetras( struct propagator *prop ,
 	return FAILURE ;
       }
       #endif
-      if( prop[ p1 ].basis != NREL_CORR ) {
-	rewind( prop[ p1 ].file ) ; read_propheader( &prop[ p1 ] ) ;
-      }
+      if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
     } else {
       fprintf( stderr , "[TETRA] non-similar case not supported\n" ) ;
       return FAILURE ;

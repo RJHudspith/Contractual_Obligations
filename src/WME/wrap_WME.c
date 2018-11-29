@@ -20,37 +20,29 @@ contract_WME( struct propagator *prop ,
   // loops measurements and use mesons information to perform contractions
   for( measurements = 0 ; measurements < nWME ; measurements++ ) {
 
-    const size_t p0 = wme[ measurements ].map[0] ; // swall_0
-    const size_t p1 = wme[ measurements ].map[1] ; // dwall_0
-    const size_t p2 = wme[ measurements ].map[2] ; // swall_L/2
-    const size_t p3 = wme[ measurements ].map[3] ; // dwall_L/2
+    const size_t p1 = wme[ measurements ].map[0] ; // swall_0
+    const size_t p2 = wme[ measurements ].map[1] ; // dwall_0
+    const size_t p3 = wme[ measurements ].map[2] ; // swall_L/2
+    const size_t p4 = wme[ measurements ].map[3] ; // dwall_L/2
 
-    if( prop[p0].Source.type != WALL || prop[p1].Source.type != WALL ||
-	prop[p2].Source.type != WALL || prop[p3].Source.type != WALL ) {
+    if( prop[p1].Source.type != WALL || prop[p2].Source.type != WALL ||
+	prop[p3].Source.type != WALL || prop[p4].Source.type != WALL ) {
       fprintf( stderr , "[WME] Routine only works for WALL sources \n" ) ;
       return FAILURE ;
     }
 
     // loop the WME measurements
-    if( WME( prop[p0] , prop[p1] , prop[p2] , prop[p3] ,
+    if( WME( prop[p1] , prop[p2] , prop[p3] , prop[p4] ,
 	     wme[ measurements ].outfile ) == FAILURE ) {
       return FAILURE ;
     }
     print_time() ;
 
     // reread headers
-    if( prop[ p0 ].basis != NREL_CORR ) {
-      rewind( prop[p0].file ) ; read_propheader( &prop[p0] ) ;
-    }
-    if( prop[ p1 ].basis != NREL_CORR ) {
-      rewind( prop[p1].file ) ; read_propheader( &prop[p1] ) ;
-    }
-    if( prop[ p2 ].basis != NREL_CORR ) {
-      rewind( prop[p2].file ) ; read_propheader( &prop[p2] ) ;
-    }
-    if( prop[ p3 ].basis != NREL_CORR ) {
-      rewind( prop[p3].file ) ; read_propheader( &prop[p3] ) ;
-    }
+    if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
+    if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
+    if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
+    if( reread_propheaders( &prop[ p4 ] ) == FAILURE ) { return FAILURE ; }
   }
   return SUCCESS ;
 }
