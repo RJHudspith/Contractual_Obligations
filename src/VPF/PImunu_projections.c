@@ -14,8 +14,8 @@ void
 momspace_data( struct PIdata *data ,
 	       const double **p ,
 	       const double *psq ,
-	       const struct veclist *__restrict list ,
-	       const int *__restrict NMOM ,
+	       const struct veclist *list ,
+	       const int *NMOM ,
 	       const char *outfile ,
 	       const current_type current ,
 	       const vector_axial VA ) 
@@ -31,7 +31,7 @@ momspace_data( struct PIdata *data ,
 
   // tell us how much we violate the WI
   compute_WI( data , (const double**)p , list , NMOM[0] ) ;
-
+  
   // and perform the projection
   char str[ 256 ] ;
   switch( VA ) {
@@ -69,16 +69,16 @@ projection( const struct PIdata *data ,
 	    const double **p ,
 	    const double *psq ,
 	    const struct veclist *list ,
-	    const int *__restrict NMOM ,
+	    const int *NMOM ,
 	    const char *outfile )
 {
   double *trans = malloc( NMOM[0] * sizeof( double ) ) ;
   double *longitudinal = malloc( NMOM[0] * sizeof( double ) ) ;
-
+  
   const double NORM = 1.0 / (double)( ND - 1 ) ;
   size_t i ;
   //#pragma omp parallel for private(i)
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < NMOM[0] ; i++ ) {    
     const size_t list_idx = (size_t)list[i].idx ;
     const double spsq = ( psq[i] == 0.0 ) ? 1.0 : 1.0 / psq[i] ;
     register double sumtrans = 0.0 , sumlong = 0.0 ;
@@ -98,10 +98,10 @@ projection( const struct PIdata *data ,
   // write out a file
   char str[ 256 ] ;
   sprintf( str , "%s.trans.bin" , outfile ) ;
-  write_momspace_data( str , NMOM , trans , list , ND ) ;
+  write_momspace_data( str , NULL , NMOM , trans , list , ND ) ;
 
   sprintf( str , "%s.long.bin" , outfile ) ;
-  write_momspace_data( str , NMOM , longitudinal , list , ND ) ;
+  write_momspace_data( str , NULL , NMOM , longitudinal , list , ND ) ;
 
 #pragma omp parallel for private(i)
   for( i = 0 ; i < NMOM[0] ; i++ ) {
@@ -109,7 +109,7 @@ projection( const struct PIdata *data ,
   }
 
   sprintf( str , "%s.transPlong.bin" , outfile ) ;
-  write_momspace_data( str , NMOM , trans , list , ND ) ;
+  write_momspace_data( str , NULL , NMOM , trans , list , ND ) ;
 
   // free the projected data
   free( trans ) ;

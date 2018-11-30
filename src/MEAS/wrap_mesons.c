@@ -24,6 +24,12 @@ contract_mesons( struct propagator *prop ,
     const size_t p1 = mesons[ measurements ].map[0] ;
     const size_t p2 = mesons[ measurements ].map[1] ;
 
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , mesons[ measurements ].map ,
+			    2 , "[MESONS]" ) == FAILURE ) {
+      return FAILURE ;
+    }
+
     // flavour diagonal meson
     if( p1 == p2 ) {
       if( mesons_diagonal( prop[ p1 ] , CUTINFO , 
@@ -32,16 +38,6 @@ contract_mesons( struct propagator *prop ,
       }
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
     } else {
-      // check that the two props have the same origin?
-      size_t mu ;
-      for( mu = 0 ; mu < ND ; mu++ ) {
-	if( prop[ p1 ].origin[ mu ] != prop[ p2 ].origin[ mu ] ) {
-	  fprintf( stderr , "[MESONS] contraction of mesons with unequal "
-		   "origins %zu vs %zu ( index %zu ) " , 
-		   prop[ p1 ].origin[ mu ] , prop[ p2 ].origin[ mu ] , mu ) ;
-	  return FAILURE ;
-	}
-      }
       // otherwise we plough on
       if( mesons_offdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
 			      mesons[ measurements ].outfile ) == FAILURE ) {

@@ -33,4 +33,15 @@ read_propheaders( struct propagator *prop ,
 int
 reread_propheaders( struct propagator *prop ) ;
 
+/**
+   @fn int sanity_check_props( const struct propagator *prop , const size_t *map , const size_t Nmap , const char *label )
+   @brief perform some sanity checks
+   @return #SUCCESS or #FAILURE
+ */
+int
+sanity_check_props( const struct propagator *prop ,
+		    const size_t *map ,
+		    const size_t Nmap ,
+		    const char *label ) ;
+
 #endif

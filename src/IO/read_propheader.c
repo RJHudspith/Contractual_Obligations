@@ -167,6 +167,13 @@ get_propendian( endianness *endian )
   return FAILURE ;
 }
 
+// get the plaquette from the propagator file
+static int
+get_propplaq( double *plaq )
+{
+  return get_double( plaq ) ;
+}
+
 // get the propagator precision
 static int
 get_propprec( fp_precision *precision )
@@ -472,7 +479,8 @@ summarize_prop_source( const struct propagator prop )
 
 //
 int
-read_propheader( struct propagator *prop )
+read_propheader( struct propagator *prop ,
+		 const GLU_bool reread )
 {
   // dimensions in the file
   size_t dims[ ND ] ;
@@ -483,7 +491,7 @@ read_propheader( struct propagator *prop )
   int n = 0 , dimsflag = 0 , originflag = 0 ;
   int endflag = 0 , srcflag = 0 , precflag = 0 ;
   int basisflag = 0 , boundsflag = 0 , twistsflag = 0 ;
-  int momsourceflag = 0 , smearingflag = 0 ;
+  int momsourceflag = 0 , smearingflag = 0 , plaqflag = 0 ;
   
   // set this to NULL
   prop -> H = NULL ;
@@ -529,6 +537,13 @@ read_propheader( struct propagator *prop )
       }
       dimsflag ++ ; 
     }
+    // tag search for plaq
+    if( are_equal( tag , "Plaq:" ) ) {
+      if( get_propplaq( &(prop -> plaq) ) == FAILURE ) {
+	return tagfailure( "Plaq:" , line ) ;
+      }
+      plaqflag ++ ; 
+    }    
     // tag search for source origin
     if( are_equal( tag , "SrcPos:" ) ) {
       if( get_propsrc( prop -> origin ) == FAILURE ) {
@@ -627,7 +642,8 @@ read_propheader( struct propagator *prop )
   }
 
   // check the flags have been hit
-  if( dimsflag == 0 ) return nonexistent_record( "Lattice:" ) ; 
+  if( dimsflag == 0 ) return nonexistent_record( "Lattice:" ) ;
+  if( plaqflag == 0 ) return nonexistent_record( "Plaq:" ) ; 
   if( originflag == 0 ) return nonexistent_record( "SrcPos:" ) ; 
   if( endflag == 0 ) return nonexistent_record( "Endian:" ) ; 
   if( precflag == 0 ) return nonexistent_record( "Precision:" ) ;
@@ -641,8 +657,11 @@ read_propheader( struct propagator *prop )
     summarize_NRQCD_params( prop -> NRQCD ) ;
   }
 
-  summarize_prop_source( *prop ) ;
-
+  // give propagator source information only initially
+  if( reread == GLU_FALSE ) {
+    summarize_prop_source( *prop ) ;
+  }
+  
   // sanity check z2_spacing
   if( prop -> Source.type == Z2_WALL ) {
     if( prop -> Source.Z2_spacing == 0 ) {
@@ -681,7 +700,7 @@ read_propheaders( struct propagator *prop ,
   size_t i ;
   for( i = 0 ; i < nprops ; i++ ) {
     // read and check 'em
-    if( read_propheader( &prop[ i ] ) == FAILURE ) {
+    if( read_propheader( &prop[ i ] , GLU_FALSE ) == FAILURE ) {
       return FAILURE ;
     }
   }
@@ -699,7 +718,44 @@ reread_propheaders( struct propagator *prop )
     } else {
       return FAILURE ;
     }
-    if( read_propheader( prop ) == FAILURE ) {
+    if( read_propheader( prop , GLU_TRUE ) == FAILURE ) {
+      return FAILURE ;
+    }
+  }
+  return SUCCESS ;
+}
+
+// perform some sanity checks of the propagators
+int
+sanity_check_props( const struct propagator *prop ,
+		    const size_t *map ,
+		    const size_t Nmap ,
+		    const char *label )
+{
+  // test that all the origins are equal to prop[0]s
+  size_t i , mu ;
+  for( i = 0 ; i < Nmap ; i++ ) {
+    // check origins
+    for( mu = 0 ; mu < ND ; mu++ ) {
+      if( prop[ 0 ].origin[ mu ] != prop[ i ].origin[ mu ] ) {
+	fprintf( stderr , "%s contraction of props with unequal "
+		 "origins %zu vs %zu ( index %zu , dir %zu ) " , 
+		 label , prop[ 0 ].origin[ mu ] ,
+		 prop[ i ].origin[ mu ] , i , mu ) ;
+	return FAILURE ;
+      }
+    }
+    // check plaquette
+    if( fabs( prop[ 0 ].plaq - prop[ i ].plaq ) > 1E-12 ) {
+      fprintf( stderr , "%s contraction of props with unequal "
+	       "plaquettes %1.15f vs %1.15f ( index %zu ) " , 
+	       label , prop[ 0 ].plaq , prop[ i ].plaq , i ) ;
+      return FAILURE ;
+    }
+    // check sources are all the same
+    if( prop[ 0 ].Source.type != prop[ i ].Source.type ) {
+      fprintf( stderr , "%s Caught unequal sources contraction "
+	       "(index %zu) \n" , label , i ) ;
       return FAILURE ;
     }
   }

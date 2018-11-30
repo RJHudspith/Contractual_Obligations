@@ -16,11 +16,12 @@ write_mom_veclist( FILE *Ap ,
 		   const struct veclist *ist ,
 		   const int DIR ) ;
 /**
-   @fn void write_momspace_data( const char *filename , const int *NMOM , const double *data , const struct veclist *list , const int DIR )
+   @fn void write_momspace_data( const char *filename , const double twist[ ND ] , const int *NMOM , const double *data , const struct veclist *list , const int DIR )
    @brief write out momentum-space data
  */
 void
-write_momspace_data( const char *filename ,  
+write_momspace_data( const char *filename ,
+		     const double twist[ ND ] ,
 		     const int *NMOM ,
 		     const double *data ,
 		     const struct veclist *list ,

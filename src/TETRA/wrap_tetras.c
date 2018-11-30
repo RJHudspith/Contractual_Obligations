@@ -20,31 +20,6 @@
 
 #if NC == 3
 
-// for origin checking
-static int
-check_origins( struct propagator p1 ,
-	       struct propagator p2 ,
-	       struct propagator p3 , 
-	       struct propagator p4 )
-{
-  size_t mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    if( p1.origin[mu] != p2.origin[mu] ||
-	p1.origin[mu] != p3.origin[mu] ||
-	p1.origin[mu] != p4.origin[mu] ||
-	p2.origin[mu] != p3.origin[mu] || 
-	p2.origin[mu] != p4.origin[mu] ||
-	p3.origin[mu] != p4.origin[mu] ) {
-      fprintf( stderr , "[TETRA] mismatched origins "
-	       "%zu %zu %zu %zu (index %zu)\n" ,
-	      p1.origin[mu] , p2.origin[mu] , p3.origin[mu] ,
-	      p4.origin[mu] , mu ) ;
-      return FAILURE ;
-    }
-  }
-  return SUCCESS ;
-}
-
 // first case :: udbb type there are only two props
 static int
 contract_udbb( struct propagator *prop ,
@@ -54,10 +29,6 @@ contract_udbb( struct propagator *prop ,
 	       const size_t p2 )
 {
   fprintf( stdout , "[TETRA] contracting a udbb type tetra\n" ) ;
-  if( check_origins( prop[ p1 ] , prop[ p1 ] , 
-		     prop[ p2 ] , prop[ p2 ] ) == FAILURE ) {
-    return FAILURE ;
-  }
   if( tetraquark_udbb( prop[ p1 ] , prop[ p2 ] , 
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
@@ -77,10 +48,6 @@ contract_usbb( struct propagator *prop ,
 	       const size_t p3 )
 {
   fprintf( stdout , "[TETRA] contracting a usbb type tetra\n" ) ;
-  if( check_origins( prop[ p1 ] , prop[ p2 ] , 
-		     prop[ p3 ] , prop[ p3 ] ) == FAILURE ) {
-    return FAILURE ;
-  }
   if( tetraquark_usbb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , 
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
@@ -101,10 +68,6 @@ contract_udcb( struct propagator *prop ,
 	       const size_t p3 )
 {
   fprintf( stdout , "[TETRA] contracting a udcb type tetra\n" ) ;
-  if( check_origins( prop[ p1 ] , prop[ p1 ] , 
-		     prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {
-    return FAILURE ;
-  }
   if( tetraquark_udcb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , 
 		       CUTINFO , outfile ) == FAILURE ) {
     return FAILURE ;
@@ -126,10 +89,6 @@ contract_uscb( struct propagator *prop ,
 	       const size_t p4 )
 {
   fprintf( stdout , "[TETRA] contracting a uscb type tetra\n" ) ;
-  if( check_origins( prop[ p1 ] , prop[ p2 ] , 
-		     prop[ p3 ] , prop[ p4 ] ) == FAILURE ) {
-    return FAILURE ;
-  }
   if( tetraquark_uscb( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] , prop[ p4 ] , 
 		       CUTINFO , outfile )
       == FAILURE ) {
@@ -160,6 +119,12 @@ contract_tetras( struct propagator *prop ,
     const size_t p2 = tetras[ measurements ].map[1] ;
     const size_t p3 = tetras[ measurements ].map[2] ;
     const size_t p4 = tetras[ measurements ].map[3] ;
+
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , tetras[ measurements ].map ,
+			    4 , "[TETRAS]" ) == FAILURE ) {
+      return FAILURE ;
+    }
 
     #if NC == 2
 

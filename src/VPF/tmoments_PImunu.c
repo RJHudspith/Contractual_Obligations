@@ -30,10 +30,10 @@ DFT( struct PIdata *cpAA ,
     // set up the veclist
     size_t mu , nu ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
-      list[ pt ].MOM[ mu ] = 0 ;
+      list[ pt ].MOM[ mu ] = 0.0 ;
     }
     // equivalent Fourier modes in the -Pi -> Pi BZ
-    list[ pt ].MOM[ ND-1 ] = pt > ( lt_2 - 1 ) ? -LT + pt : pt ;
+    list[ pt ].MOM[ ND-1 ] = pt > ( lt_2 - 1 ) ? -(double)LT + (double)pt : (double)pt ;
     list[ pt ].idx = pt ;
 
     // precompute all the twiddles along the t-direction
@@ -93,7 +93,7 @@ tmoments( const struct PIdata *AA ,
 	  const struct PIdata *VV ,
 	  const char *outfile ,
 	  const current_type current ) 
-{
+{  
   // set up the veclist
   int *tNMOM = malloc( sizeof( int ) ) ;
   const struct veclist *tlist = zero_veclist( tNMOM , ND-1 , GLU_FALSE ) ;
@@ -139,7 +139,7 @@ tmoments( const struct PIdata *AA ,
   const struct veclist *list = DFT( cpAA , cpVV , 
 				    (const struct mcorr**)ctAA , 
 				    (const struct mcorr**)ctVV ) ;
-
+  
   const int NMOM[ 1 ] = { (int)LT } ;
 
   // free the temporal correlators now
@@ -182,7 +182,7 @@ tmoments( const struct PIdata *AA ,
 
   momspace_data( cpVV , (const double **)p , psq , list , 
 		 NMOM , str , current , VECTOR ) ;
-
+    
  memfree :
 
   // free the momentum list

@@ -46,6 +46,8 @@ momspace_PImunu( struct PIdata *AA ,
 		 const char *outfile ,
 		 const current_type current )
 {
+  return ;
+  
   // if we have FFTW we can unleash it
 #ifdef HAVE_FFTW3_H
   // temporary space
@@ -82,10 +84,10 @@ momspace_PImunu( struct PIdata *AA ,
   }
 
   // zero mode subtraction
-  #if 0
+#if 0
   subtract_zeromom( AA , psq , NMOM ) ;
   subtract_zeromom( VV , psq , NMOM ) ;
-  #endif
+#endif
 
   // precompute momenta
   compute_p_psq( p , psq , list , (size_t)NMOM[0] ) ;

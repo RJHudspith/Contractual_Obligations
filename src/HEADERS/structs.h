@@ -258,6 +258,7 @@ struct propagator {
   boundaries bound[ ND ] ;
   double twist[ ND ] ;
   double mom_source[ ND ] ;
+  double plaq ;
   struct halfspinor_f *H ;
   struct NRQCD_params NRQCD ;
   fp_precision precision ;

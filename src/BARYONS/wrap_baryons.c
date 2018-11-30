@@ -11,26 +11,6 @@
 #include "GLU_timer.h"        // print_time()
 #include "read_propheader.h"  // for read_propheader()
 
-// make sure we have the same source origins
-static int
-check_origins( struct propagator p1 ,
-	       struct propagator p2 ,
-	       struct propagator p3 )
-{
-  size_t mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
-    if( ( p1.origin[ mu ] != p2.origin[ mu ] ) || 
-	( p1.origin[ mu ] != p3.origin[ mu ] ) ||
-	( p2.origin[ mu ] != p3.origin[ mu ] ) ) {
-      fprintf( stderr , "[BARYONS] contraction of baryons with unequal origins"
-	       "%zu vs %zu vs. %zu ( index %zu )\n" , 
-	       p1.origin[ mu ] , p2.origin[ mu ] , p3.origin[ mu ] , mu ) ;
-      return FAILURE ;
-    }
-  }
-  return SUCCESS ;
-}
-
 // placeholder for when we do the baryons
 int
 contract_baryons( struct propagator *prop ,
@@ -47,6 +27,12 @@ contract_baryons( struct propagator *prop ,
     const size_t p2 = baryons[ measurements ].map[1] ;
     const size_t p3 = baryons[ measurements ].map[2] ;
 
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , baryons[ measurements ].map ,
+			    3 , "[BARYONS]" ) == FAILURE ) {
+      return FAILURE ;
+    }
+
     // big logic block for contracting the right pieces
     if( p1 == p2 && p2 == p3 ) {
       // only have flavour diagonal option at the moment
@@ -58,13 +44,6 @@ contract_baryons( struct propagator *prop ,
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
       // two props are the same S3 ( S1 Cgmu S1 Cgmu )
     } else if( ( p1 == p2 && p2 != p3 ) ) {
-      if( prop[ p1 ].Source.type != prop[ p3 ].Source.type ) {
-	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
-	return FAILURE ;
-      }
-      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p3 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
       if( baryons_2fdiagonal( prop[ p1 ] , prop[ p3 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -74,13 +53,6 @@ contract_baryons( struct propagator *prop ,
       if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
       // two props are the same S1 ( S1 Cgmu S2 )
     } else if( p1 == p3 && p3 != p2 ) {
-      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
-	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
-	return FAILURE ;
-      }
-      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
       if( baryons_2fdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -90,13 +62,6 @@ contract_baryons( struct propagator *prop ,
       if( reread_propheaders( &prop[ p2 ] ) == FAILURE ) { return FAILURE ; }
       // two props are the same S1 ( S2 Cgmu S2 Cgmu )
     } else if( p2 == p3 && p1 != p2 ) {
-      if( prop[ p2 ].Source.type != prop[ p1 ].Source.type ) {
-	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
-	return FAILURE ;
-      }
-      if( check_origins( prop[ p1 ] , prop[ p1 ] , prop[ p2 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
       if( baryons_2fdiagonal( prop[ p2 ] , prop[ p1 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 
 	  == FAILURE ) {
@@ -106,15 +71,6 @@ contract_baryons( struct propagator *prop ,
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
       // otherwise we resort to the 3-component baryon
     } else {
-      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ||
-	  prop[ p1 ].Source.type != prop[ p3 ].Source.type ||
-	  prop[ p2 ].Source.type != prop[ p3 ].Source.type ) {
-	fprintf( stderr , "[BARYONS] Caught unequal sources contraction\n" ) ;
-	return FAILURE ;
-      }
-      if( check_origins( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ) == FAILURE ) {
-	return FAILURE ;
-      }
       if( baryons_3fdiagonal( prop[ p1 ] , prop[ p2 ] , prop[ p3 ] ,
 			      CUTINFO , baryons[ measurements ].outfile ) 
 	  == FAILURE ) {

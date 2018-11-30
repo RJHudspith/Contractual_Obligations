@@ -31,6 +31,12 @@ contract_WME( struct propagator *prop ,
       return FAILURE ;
     }
 
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , wme[ measurements ].map ,
+			    4 , "[WME]" ) == FAILURE ) {
+      return FAILURE ;
+    }
+
     // loop the WME measurements
     if( WME( prop[p1] , prop[p2] , prop[p3] , prop[p4] ,
 	     wme[ measurements ].outfile ) == FAILURE ) {

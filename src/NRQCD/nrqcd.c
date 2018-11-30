@@ -6,6 +6,7 @@
 
 #include "GLU_timer.h"
 #include "evolve.h"
+#include "plaqs_links.h"      // average_plaquette()
 
 // free the allocated NRQCD fields
 static int
@@ -149,6 +150,12 @@ compute_nrqcd_props( struct propagator *prop ,
       corr_malloc( (void**)&F.Fmunu[i].O[j] , ALIGNMENT ,
 		   NCNC*sizeof( double complex ) ) ;
     }
+  }
+
+  const double plaq = av_plaquette( lat ) ;
+  for( i = 0 ; i < nprops ; i++ ) {
+    // set the plaquette to the computed value, disregarding the prop value
+    prop[i].plaq = plaq ;
   }
 
   // initialise the timer

@@ -25,6 +25,12 @@ contract_diquarks( struct propagator *prop ,
     // to make it more legible
     const size_t p1 = diquarks[ measurements ].map[0] ;
     const size_t p2 = diquarks[ measurements ].map[1] ;
+
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , diquarks[ measurements ].map ,
+			    2 , "[DIQUARKS]" ) == FAILURE ) {
+      return FAILURE ;
+    }
     if( p1 == p2 ) {
       if( diquark_degen( prop[ p1 ] , CUTINFO , 
 			 diquarks[ measurements ].outfile
@@ -33,11 +39,6 @@ contract_diquarks( struct propagator *prop ,
       }
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
     } else {
-      if( prop[p1].Source.type != prop[p2].Source.type ) {
-	fprintf( stderr , "[DIQUARK] unequal source types"
-		 "for the two diquarks\n" ) ;
-	return FAILURE ;
-      }
       if( diquark_offdiag( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
 			   diquarks[ measurements ].outfile ) == FAILURE ) {
 	return FAILURE ;

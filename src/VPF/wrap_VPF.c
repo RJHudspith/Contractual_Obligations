@@ -68,6 +68,12 @@ contract_VPF( struct propagator *prop ,
     const size_t p1 = VPF[ measurements ].map[0] ;
     const size_t p2 = VPF[ measurements ].map[1] ;
 
+    // check origins are the same and plaquettes are the same
+    if( sanity_check_props( prop , VPF[ measurements ].map ,
+			    2 , "[VPF]" ) == FAILURE ) {
+      return FAILURE ;
+    }
+
     if( p1 == p2 ) {
       select_callback_single( VPF[ measurements ].current ) ;
       // and we use the function pointer we have set
@@ -78,11 +84,6 @@ contract_VPF( struct propagator *prop ,
       // rewind file and read header agai
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
     } else {
-      if( prop[ p1 ].Source.type != prop[ p2 ].Source.type ) {
-	fprintf( stderr , "[VPF] thwarted attempt contracting"
-		 " different sources \n" ) ;
-	return FAILURE ;
-      }
       select_callback_double( VPF[ measurements ].current ) ;
       if( double_callback( prop[ p1 ] , prop[ p2 ] , lat , CUTINFO ,
 			   VPF[ measurements ].outfile ) == FAILURE ) {

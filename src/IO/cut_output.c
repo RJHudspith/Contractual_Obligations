@@ -44,7 +44,7 @@ write_mom_veclist( FILE *Ap ,
       fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;
     }
   } else {
-    for( i = 0 ; i < num_mom[0] ; i++ ) {
+    for( i = 0 ; i < (size_t)num_mom[0] ; i++ ) {
       fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
       double sum[ ND ] ;
       for( mu = 0 ; mu < DIR ; mu++ ) {
@@ -72,14 +72,14 @@ write_momspace_data( const char *filename ,
   // write a magic number
   uint32_t magic[ 1 ] = { VPF_MAGIC } ;
   fwrite( magic , sizeof( uint32_t ) , 1 , outfile ) ;
-
+  
   // writes the momentum list
   // in terms of Fourier modes px py pz pt
   write_mom_veclist( outfile , twist , NMOM , list , DIR ) ;
 
   // writes out the binary data
   write_binary( outfile , data , NMOM ) ;
-
+  
   fclose( outfile ) ;
 
   return ;
