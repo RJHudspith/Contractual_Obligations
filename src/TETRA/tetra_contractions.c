@@ -203,6 +203,7 @@ contract_O3( const struct block *C1 ,
     sum1 += 
       trace_prod_spinmatrices( C1[ element( d , a , a , c ) ].M ,
 			       C2[ element( c , b , b , d ) ].M ) ;
+    // should be another term here
   }
   // if the heavies are the same particle we have a cross term
   return sum1 ;
@@ -282,10 +283,11 @@ tetras( double complex *result ,
   const struct gamma gt = GAMMAS[ GAMMA_T ] ;
 
   // maps for the various second-index structure
-  const size_t numap_Vi[ 3 ]  = { GAMMA_X , GAMMA_Y , GAMMA_Z } ;
-  const size_t numap_Tit[ 3 ] = { TXT , TYT , TZT } ;
-  const size_t numap_Tij[ 3 ] = { TYZ , TZX , TXY } ;
-  const size_t numap_Ai[ 3 ]  = { AX , AY , AZ } ;
+  // the first three are the 1^+, and the last index is 0^+
+  const size_t numap_Vi[ 4 ]  = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_5 } ;
+  const size_t numap_Tit[ 4 ] = { TXT , TYT , TZT , AT } ;
+  const size_t numap_Tij[ 4 ] = { TYZ , TZX , TXY , GAMMA_T } ;
+  const size_t numap_Ai[ 4 ]  = { AX , AY , AZ , IDENTITY } ;
 
   // change everything to a block - structure
   // first index is the ud - part and the second is the bb-part
@@ -311,8 +313,8 @@ tetras( double complex *result ,
   struct block *C1 = NULL , *C2 = NULL ;
 
   // make everything a NaN if we fail to allocate memory
-  if( corr_malloc( (void**)&C1 , 16 , Nco*sizeof( struct block ) ) != 0 || 
-      corr_malloc( (void**)&C2 , 16 , Nco*sizeof( struct block ) ) != 0 ) {
+  if( corr_malloc( (void**)&C1 , ALIGNMENT , Nco*sizeof( struct block ) ) != 0 || 
+      corr_malloc( (void**)&C2 , ALIGNMENT , Nco*sizeof( struct block ) ) != 0 ) {
     free( C1 ) ; free( C2 ) ;
     fprintf( stderr , "[MALLOC] failed to allocate C1/C2 temporaries" ) ;
     return sqrt(-1) ;

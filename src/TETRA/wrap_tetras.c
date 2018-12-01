@@ -119,7 +119,7 @@ contract_tetras( struct propagator *prop ,
     const size_t p2 = tetras[ measurements ].map[1] ;
     const size_t p3 = tetras[ measurements ].map[2] ;
     const size_t p4 = tetras[ measurements ].map[3] ;
-
+    
     // check origins are the same and plaquettes are the same
     if( sanity_check_props( prop , tetras[ measurements ].map ,
 			    4 , "[TETRAS]" ) == FAILURE ) {

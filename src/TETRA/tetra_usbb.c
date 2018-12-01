@@ -29,7 +29,7 @@ tetraquark_usbb( struct propagator prop1 ,
 {
   // counters
   const size_t stride1 = TETRA_NOPS ;
-  const size_t stride2 = ND-1 ;
+  const size_t stride2 = ND ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;

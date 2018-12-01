@@ -737,25 +737,25 @@ sanity_check_props( const struct propagator *prop ,
   for( i = 0 ; i < Nmap ; i++ ) {
     // check origins
     for( mu = 0 ; mu < ND ; mu++ ) {
-      if( prop[ 0 ].origin[ mu ] != prop[ i ].origin[ mu ] ) {
+      if( prop[ map[ 0 ] ].origin[ mu ] != prop[ map[ i ] ].origin[ mu ] ) {
 	fprintf( stderr , "%s contraction of props with unequal "
 		 "origins %zu vs %zu ( index %zu , dir %zu ) " , 
-		 label , prop[ 0 ].origin[ mu ] ,
-		 prop[ i ].origin[ mu ] , i , mu ) ;
+		 label , prop[ map[ 0 ] ].origin[ mu ] ,
+		 prop[ map[ i ] ].origin[ mu ] , i , mu ) ;
 	return FAILURE ;
       }
     }
     // check plaquette
-    if( fabs( prop[ 0 ].plaq - prop[ i ].plaq ) > 1E-12 ) {
+    if( fabs( prop[ map[ 0 ] ].plaq - prop[ map[ i ] ].plaq ) > 1E-12 ) {
       fprintf( stderr , "%s contraction of props with unequal "
 	       "plaquettes %1.15f vs %1.15f ( index %zu ) " , 
-	       label , prop[ 0 ].plaq , prop[ i ].plaq , i ) ;
+	       label , prop[ map[ 0 ] ].plaq , prop[ map[ i ] ].plaq , i ) ;
       return FAILURE ;
     }
     // check sources are all the same
-    if( prop[ 0 ].Source.type != prop[ i ].Source.type ) {
+    if( prop[ map[ 0 ] ].Source.type != prop[ map[ i ] ].Source.type ) {
       fprintf( stderr , "%s Caught unequal sources contraction "
-	       "(index %zu) \n" , label , i ) ;
+	       "(index %zu) \n" , label , map[ i ] ) ;
       return FAILURE ;
     }
   }
