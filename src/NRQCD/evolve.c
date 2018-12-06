@@ -468,6 +468,74 @@ apply_twist( struct site *lat ,
   return ;
 }
 
+static void
+do_prop( struct halfspinor_f *H ,
+	 struct NRQCD_fields *F ,
+	 const struct site *lat ,
+	 const struct NRQCD_params NRQCD ,
+	 const GLU_bool fuse_dH ,
+	 const GLU_bool backward ,
+	 const size_t Torigin ,
+	 const double tadref )
+{   
+  size_t t , tnew , tprev = ( Torigin )%LT , i ;
+    
+  // do a copy in here
+  #pragma omp for nowait private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    const size_t idx = LCU*tprev ;
+    colormatrix_equiv_d2f( H[i+idx].D[0] , F -> S[i].D[0] ) ;
+    colormatrix_equiv_d2f( H[i+idx].D[1] , F -> S[i].D[1] ) ;
+    colormatrix_equiv_d2f( H[i+idx].D[2] , F -> S[i].D[2] ) ;
+    colormatrix_equiv_d2f( H[i+idx].D[3] , F -> S[i].D[3] ) ;
+  }
+
+  // compute the initial lattice clovers
+  compute_clovers( F , lat , tprev , tadref ) ;
+    
+  // evolve for all timeslices can we parallelise this? - nope
+  for( t = 0 ; t < T_NRQCD-1 ; t++ ) {
+
+    size_t idx ;
+    // are we going backward or forward?
+    // as the propagators only care about this timeslice we
+    // pass tprev as our timeslice index
+    if( backward == GLU_TRUE ) {
+      tnew = ( tprev + LT - 1 )%LT ;
+      // computes the backward propagator
+      nrqcd_prop_bwd( F , tprev%LT , NRQCD , fuse_dH ) ;
+      // returns the global index shifted by the origin this is basically
+      // the timeslice of tnew, but shifted for non-LT T_NRQCD
+      idx = LCU*(( T_NRQCD - t - 1 + ( Torigin )%LT )%(T_NRQCD) ) ;
+    } else {
+      tnew = ( tprev + LT + 1 )%LT ;
+      // computes the forward propagator
+      nrqcd_prop_fwd( F , tprev%LT , NRQCD , fuse_dH ) ;
+      // this one is basically also tnew but placed appropriately for
+      // non-LT T_NRQCD global define
+      idx = LCU*(( t + 1 + ( Torigin )%LT )%(T_NRQCD) ) ;
+    }
+      	    
+    #pragma omp for nowait private(i) 
+    for( i = 0 ; i < LCU ; i++ ) {
+      colormatrix_equiv_d2f( H[i+idx].D[0] , F -> S[i].D[0] ) ;
+      colormatrix_equiv_d2f( H[i+idx].D[1] , F -> S[i].D[1] ) ;
+      colormatrix_equiv_d2f( H[i+idx].D[2] , F -> S[i].D[2] ) ;
+      colormatrix_equiv_d2f( H[i+idx].D[3] , F -> S[i].D[3] ) ;
+    }
+
+    // set the time index
+    tprev = tnew ;
+
+    #pragma omp single nowait
+    {
+      progress_bar( t , T_NRQCD-1 ) ;
+    }
+  }
+  return ;
+}
+
+
 // this is the brains of the operation, evolves Hamiltonian from the
 // source position
 void
@@ -494,8 +562,6 @@ compute_props( struct propagator *prop ,
 
     if( prop[n].basis != NREL_CORR ) continue ;
 
-    size_t t , tnew , tprev = ( prop[n].origin[ND-1] )%LT ;
-
     // if we can we fuse the loops in dH evolution to avoid a
     // barrier
     GLU_bool fuse_dH = GLU_FALSE ;
@@ -503,61 +569,24 @@ compute_props( struct propagator *prop ,
 	fabs( prop[n].NRQCD.C11 ) < NRQCD_TOL ) {
       fuse_dH = GLU_TRUE ;
     }
-
+    
     // apply a twist to the gauge field
     apply_twist( lat , sum_twist , prop[n].twist , prop[n].mom_source ) ;
 
     // set up the source into F -> S
-    initialise_source( F -> S , F -> S1 , prop[n] ) ;
-
-    // do a copy in here
-    #pragma omp for nowait private(i)
-    for( i = 0 ; i < LCU ; i++ ) {
-      const size_t idx = LCU*tprev ;
-      colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;
-      colormatrix_equiv_d2f( prop[n].H[i+idx].D[1] , F -> S[i].D[1] ) ;
-      colormatrix_equiv_d2f( prop[n].H[i+idx].D[2] , F -> S[i].D[2] ) ;
-      colormatrix_equiv_d2f( prop[n].H[i+idx].D[3] , F -> S[i].D[3] ) ;
-    }
-
-    // compute the initial lattice clovers
-    compute_clovers( F , lat , tprev , tadref ) ;
-    
-    // evolve for all timeslices can we parallelise this? - nope
-    for( t = 0 ; t < T_NRQCD-1 ; t++ ) {
-	
-      // are we going backward or forward?
-      if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	tnew = ( tprev + LT - 1 )%LT ;
-      } else {
-	tnew = ( tprev + LT + 1 )%LT ;
-      }
-      	
-      // compute the propagator
-      if( prop[n].NRQCD.backward == GLU_TRUE ) {
-	nrqcd_prop_bwd( F , tprev%LT , prop[n].NRQCD , fuse_dH ) ;
-      } else {
-	nrqcd_prop_fwd( F , tprev%LT , prop[n].NRQCD , fuse_dH ) ;
-      }
-    	
-      // set G(t+1) from temp1
-      const size_t idx = LCU*((t + 1 + ( prop[n].origin[ND-1] )%LT )%(T_NRQCD) ) ;
+    if( prop[n].NRQCD.FWD == GLU_TRUE ) {
+      initialise_source( F -> S , F -> S1 , prop[n] ) ;
       
-      #pragma omp for nowait private(i) 
-      for( i = 0 ; i < LCU ; i++ ) {
-	colormatrix_equiv_d2f( prop[n].H[i+idx].D[0] , F -> S[i].D[0] ) ;
-	colormatrix_equiv_d2f( prop[n].H[i+idx].D[1] , F -> S[i].D[1] ) ;
-	colormatrix_equiv_d2f( prop[n].H[i+idx].D[2] , F -> S[i].D[2] ) ;
-	colormatrix_equiv_d2f( prop[n].H[i+idx].D[3] , F -> S[i].D[3] ) ;
-      }
-
-      // set the time index
-      tprev = tnew ;
-
-      #pragma omp single nowait
-      {
-	progress_bar( t , T_NRQCD-1 ) ;
-      }
+      do_prop( prop[n].Hfwd , F , lat , prop[n].NRQCD , fuse_dH ,
+	       GLU_FALSE , prop[n].origin[ND-1] , tadref ) ;
+    }
+    
+    // set up the source into F -> S    
+    if( prop[n].NRQCD.BWD == GLU_TRUE ) {
+      initialise_source( F -> S , F -> S1 , prop[n] ) ;
+      
+      do_prop( prop[n].Hbwd , F , lat , prop[n].NRQCD , fuse_dH ,
+	       GLU_TRUE , prop[n].origin[ND-1] , tadref ) ;
     }
   }
 

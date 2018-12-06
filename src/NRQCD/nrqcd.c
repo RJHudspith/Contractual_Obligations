@@ -57,11 +57,22 @@ is_fly_NRQCD( struct propagator *prop ,
     if( prop[n].basis == NREL_CORR ) {
       FLY_NREL = GLU_TRUE ;
       // allocate the heavy propagator
-      if( corr_malloc( (void**)&prop[n].H ,
-		       ALIGNMENT ,
-		       T_NRQCD*LCU*sizeof( struct halfspinor_f ) ) != 0 ) {
-	fprintf( stderr , "[NRQCD] heavy prop allocation failure\n" ) ;
-	return GLU_FALSE ;
+      if( prop[n].NRQCD.FWD == GLU_TRUE ) {
+	if( corr_malloc( (void**)&prop[n].Hfwd ,
+			 ALIGNMENT ,
+			 T_NRQCD*LCU*sizeof( struct halfspinor_f ) ) != 0 ) {
+	  fprintf( stderr , "[NRQCD] heavy bwd prop allocation failure\n" ) ;
+	  return GLU_FALSE ;
+	}
+      }
+      if( prop[n].NRQCD.BWD == GLU_TRUE ) {
+	// allocate the heavy propagator
+	if( corr_malloc( (void**)&prop[n].Hbwd ,
+			 ALIGNMENT ,
+			 T_NRQCD*LCU*sizeof( struct halfspinor_f ) ) != 0 ) {
+	  fprintf( stderr , "[NRQCD] heavy fwd prop allocation failure\n" ) ;
+	  return GLU_FALSE ;
+	}
       }
       // this one needs another temporary
       if( fabs( prop[n].NRQCD.C11 ) > NRQCD_TOL ) {
@@ -186,8 +197,11 @@ free_nrqcd_props( struct propagator *prop ,
 {
   size_t n ;
   for( n = 0 ; n < nprops ; n++ ) {
-    if( prop[n].H != NULL ) {
-      free( prop[n].H ) ;
+    if( prop[n].Hfwd != NULL ) {
+      free( prop[n].Hfwd ) ;
+    }
+    if( prop[n].Hbwd != NULL ) {
+      free( prop[n].Hbwd ) ;
     }
   }
   return SUCCESS ;

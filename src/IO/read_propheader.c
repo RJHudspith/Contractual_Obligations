@@ -381,17 +381,25 @@ nonexistent_record( const char *message )
   return FAILURE ;
 }
 
-static void
+static int
 summarize_NRQCD_params( struct NRQCD_params NRQCD )
 {
   fprintf( stdout , "\n[IO] NRQCD bare mass %f\n" , NRQCD.M_0 ) ;
   fprintf( stdout , "[IO] NRQCD tadpole %f\n" , NRQCD.U0 ) ;
   fprintf( stdout , "[IO] NRQCD %zu applications of hamiltonian\n" , NRQCD.N ) ;
-  if( NRQCD.backward == GLU_TRUE ) {
+  
+  if( NRQCD.FWD == GLU_FALSE && NRQCD.BWD == GLU_FALSE ) {
+    fprintf( stderr , "[NRQCD] please set FWD and/or BWD == GLU_TRUE\n" ) ;
+    return FAILURE ;
+  }
+  
+  if( NRQCD.BWD == GLU_TRUE ) {
     fprintf( stdout , "[IO] NRQCD backward propagator\n" ) ;
-  } else {
+  }
+  if( NRQCD.FWD == GLU_TRUE ) {
     fprintf( stdout , "[IO] NRQCD forward propagator\n" ) ;
   }
+  
 #ifdef NRQCD_NONSYM
   fprintf( stdout , "[IO] NRQCD single application of spin-dependent part\n" ) ;
 #else
@@ -416,7 +424,8 @@ summarize_NRQCD_params( struct NRQCD_params NRQCD )
   fprintf( stdout , "[IO] NRQCD coefficient C9EB %f\n" , NRQCD.C9EB ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C10EB %f\n" , NRQCD.C10EB ) ;
   fprintf( stdout , "[IO] NRQCD coefficient C11 %f\n" , NRQCD.C11 ) ;
-  return ;
+  
+  return SUCCESS ;
 }
 
 static void
@@ -494,7 +503,8 @@ read_propheader( struct propagator *prop ,
   int momsourceflag = 0 , smearingflag = 0 , plaqflag = 0 ;
   
   // set this to NULL
-  prop -> H = NULL ;
+  prop -> Hfwd = NULL ;
+  prop -> Hbwd = NULL ;
   
   // initialise NRQCD parameters regardless of if we use them
   prop -> NRQCD.C0    = 0.0 ; prop -> NRQCD.C1   = 0.0 ;
@@ -504,7 +514,9 @@ read_propheader( struct propagator *prop ,
   prop -> NRQCD.C8    = 0.0 ; prop -> NRQCD.C9EB = 0.0 ; 
   prop -> NRQCD.C10EB = 0.0 ; prop -> NRQCD.C11  = 0.0 ;
   prop -> NRQCD.M_0   = 1.0 ; prop -> NRQCD.U0   = 1.0 ;
-  prop -> NRQCD.N     = 0   ; prop -> NRQCD.backward = GLU_FALSE ;
+  prop -> NRQCD.N     = 0   ;
+  prop -> NRQCD.FWD = GLU_FALSE ;
+  prop -> NRQCD.BWD = GLU_FALSE ;
 
   // some defaults for the smearing and Z2 stuff
 
@@ -626,7 +638,8 @@ read_propheader( struct propagator *prop ,
     if( are_equal( tag , "NRQCD_U0" ) ) get_double( &prop -> NRQCD.U0 ) ;
     if( are_equal( tag , "NRQCD_M_0" ) ) get_double( &prop -> NRQCD.M_0 ) ;
     if( are_equal( tag , "NRQCD_N" ) ) get_size_t( &prop -> NRQCD.N ) ;
-    if( are_equal( tag , "NRQCD_backward" ) ) get_GLU_bool( &prop -> NRQCD.backward ) ;
+    if( are_equal( tag , "NRQCD_BWD" ) ) get_GLU_bool( &prop -> NRQCD.BWD ) ;
+    if( are_equal( tag , "NRQCD_FWD" ) ) get_GLU_bool( &prop -> NRQCD.FWD ) ;
 
     // NRQCD sources
     if( are_equal( tag , "Boxsize:" ) ) get_size_t( &prop -> Source.boxsize ) ;
@@ -654,7 +667,9 @@ read_propheader( struct propagator *prop ,
   if( n == MAX_HEADER_LINES ) return nonexistent_record( "<end header>" ) ;
 
   if( prop -> basis == NREL_CORR ) {
-    summarize_NRQCD_params( prop -> NRQCD ) ;
+    if( summarize_NRQCD_params( prop -> NRQCD ) == FAILURE ) {
+      return FAILURE ;
+    }
   }
 
   // give propagator source information only initially

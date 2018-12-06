@@ -223,7 +223,8 @@ struct NRQCD_params {
   double C0 , C1 , C2 , C3 , C4 , C5 , C6 , C7 , C8 , C9EB , C10EB , C11 ;
   double M_0 ; // bare heavy quark mass
   size_t N ;   // number of hamiltonian applications
-  GLU_bool backward ; // direction of propagator
+  GLU_bool FWD ; // do we compute fwc direction of propagator?
+  GLU_bool BWD ; // do we compute bwd direction of propagator?
 } ;
 
 /**
@@ -259,7 +260,8 @@ struct propagator {
   double twist[ ND ] ;
   double mom_source[ ND ] ;
   double plaq ;
-  struct halfspinor_f *H ;
+  struct halfspinor_f *Hfwd ;
+  struct halfspinor_f *Hbwd ;
   struct NRQCD_params NRQCD ;
   fp_precision precision ;
   endianness endian ;
