@@ -263,7 +263,8 @@ static int
 nrqcd_prop_fwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool fuse_dH )
+		const GLU_bool fuse_dH ,
+		const boundaries boundary )
 {
   // forward time
   const size_t tfwd = (t+LT+1)%Latt.dims[ND-1] ;
@@ -284,14 +285,31 @@ nrqcd_prop_fwd( struct NRQCD_fields *F ,
   }
 
   // mutliply by temporal link and put in temporary S1
-  #pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {    
-    const size_t idx = i + t*LCU ;
-    struct halfspinor res ;
-    colormatrixdag_halfspinor( &res , lat[idx].O[ ND-1 ] , F -> S[i] ) ;
-    F -> S[i] = res ;
+  if( tfwd < t && boundary == ANTIPERIODIC ) {
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {    
+      const size_t idx = i + t*LCU ;
+      double complex U[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+      colormatrix_equiv( U , lat[idx].O[ ND-1 ] ) ;      
+      // passes through a boundary and flips sign
+      size_t j ;
+      for( j = 0 ; j < NCNC ; j++ ) {
+	U[j] = -U[j] ;
+      }
+      struct halfspinor res ;
+      colormatrixdag_halfspinor( (void*)res.D ,U , F -> S[i] ) ;
+      F -> S[i] = res ;
+    }
+  } else {
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {    
+      const size_t idx = i + t*LCU ;
+      struct halfspinor res ;
+      colormatrixdag_halfspinor( (void*)res.D , lat[idx].O[ND-1] ,
+				 F -> S[i] ) ;
+      F -> S[i] = res ;
+    }
   }
-
   // update the clovers
   compute_clovers( F , lat , tfwd , NRQCD.U0 ) ;
   
@@ -316,7 +334,8 @@ static int
 nrqcd_prop_bwd( struct NRQCD_fields *F ,
 		const size_t t ,
 		const struct NRQCD_params NRQCD ,
-		const GLU_bool fuse_dH )
+		const GLU_bool fuse_dH ,
+		const boundaries boundary )
 {  
   // loop power of NRQCD.N we apply the hamiltonian
   size_t n , i ;
@@ -338,19 +357,38 @@ nrqcd_prop_bwd( struct NRQCD_fields *F ,
   for( n = 0 ; n < NRQCD.N ; n++ ) {
     evolve_H( F , t , NRQCD_flipped ) ;
   }
-    
-  // mutliply by temporal link
-  #pragma omp for private(i)
-  for( i = 0 ; i < LCU ; i++ ) {    
-    const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;
-    struct halfspinor res ;
-    colormatrix_halfspinor( (void*)res.D ,
-			    (const void*)lat[idx].O[ ND-1 ] ,
-			    (const void*)F -> S[i].D ) ;
-    F -> S[i] = res ;
-  }
 
   const size_t tbck = (t+LT-1)%LT ;
+
+  // mutliply by temporal link with appropriate boundary sign
+  if( tbck > t && boundary == ANTIPERIODIC ) {    
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {
+      const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;    
+      double complex U[ NCNC ] __attribute__((aligned(ALIGNMENT))) ;
+      colormatrix_equiv( U , lat[idx].O[ ND-1 ] ) ;
+      // passing through a boundary flips sign of t-links
+      size_t j ;
+      for( j = 0 ; j < NCNC ; j++ ) {
+	U[j] = -U[j] ;
+      }
+      struct halfspinor res ;
+      colormatrix_halfspinor( (void*)res.D ,
+			      (const void*)U ,
+			      (const void*)F -> S[i].D ) ;
+      F -> S[i] = res ;
+    }
+  } else {
+    #pragma omp for private(i)
+    for( i = 0 ; i < LCU ; i++ ) {
+      const size_t idx = lat[i+t*LCU].back[ ND-1 ] ;    
+      struct halfspinor res ;
+      colormatrix_halfspinor( (void*)res.D ,
+			      (const void*)lat[idx].O[ND-1] ,
+			      (const void*)F -> S[i].D ) ;
+      F -> S[i] = res ;
+    }
+  }
   
   // update the clovers
   compute_clovers( F , lat , tbck , NRQCD.U0 ) ;
@@ -476,7 +514,8 @@ do_prop( struct halfspinor_f *H ,
 	 const GLU_bool fuse_dH ,
 	 const GLU_bool backward ,
 	 const size_t Torigin ,
-	 const double tadref )
+	 const double tadref ,
+	 const boundaries boundary )
 {   
   size_t t , tnew , tprev = ( Torigin )%LT , i ;
     
@@ -492,25 +531,26 @@ do_prop( struct halfspinor_f *H ,
 
   // compute the initial lattice clovers
   compute_clovers( F , lat , tprev , tadref ) ;
-    
+  
   // evolve for all timeslices can we parallelise this? - nope
   for( t = 0 ; t < T_NRQCD-1 ; t++ ) {
 
     size_t idx ;
+    
     // are we going backward or forward?
     // as the propagators only care about this timeslice we
     // pass tprev as our timeslice index
     if( backward == GLU_TRUE ) {
       tnew = ( tprev + LT - 1 )%LT ;
       // computes the backward propagator
-      nrqcd_prop_bwd( F , tprev%LT , NRQCD , fuse_dH ) ;
+      nrqcd_prop_bwd( F , tprev%LT , NRQCD , fuse_dH , boundary ) ;
       // returns the global index shifted by the origin this is basically
       // the timeslice of tnew, but shifted for non-LT T_NRQCD
       idx = LCU*(( T_NRQCD - t - 1 + ( Torigin )%LT )%(T_NRQCD) ) ;
     } else {
       tnew = ( tprev + LT + 1 )%LT ;
       // computes the forward propagator
-      nrqcd_prop_fwd( F , tprev%LT , NRQCD , fuse_dH ) ;
+      nrqcd_prop_fwd( F , tprev%LT , NRQCD , fuse_dH , boundary ) ;
       // this one is basically also tnew but placed appropriately for
       // non-LT T_NRQCD global define
       idx = LCU*(( t + 1 + ( Torigin )%LT )%(T_NRQCD) ) ;
@@ -578,7 +618,8 @@ compute_props( struct propagator *prop ,
       initialise_source( F -> S , F -> S1 , prop[n] ) ;
       
       do_prop( prop[n].Hfwd , F , lat , prop[n].NRQCD , fuse_dH ,
-	       GLU_FALSE , prop[n].origin[ND-1] , tadref ) ;
+	       GLU_FALSE , prop[n].origin[ND-1] , tadref ,
+	       prop[n].bound[ ND-1 ] ) ;
     }
     
     // set up the source into F -> S    
@@ -586,7 +627,8 @@ compute_props( struct propagator *prop ,
       initialise_source( F -> S , F -> S1 , prop[n] ) ;
       
       do_prop( prop[n].Hbwd , F , lat , prop[n].NRQCD , fuse_dH ,
-	       GLU_TRUE , prop[n].origin[ND-1] , tadref ) ;
+	       GLU_TRUE , prop[n].origin[ND-1] , tadref ,
+	       prop[n].bound[ ND-1 ] ) ;
     }
   }
 
