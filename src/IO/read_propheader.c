@@ -523,7 +523,7 @@ read_propheader( struct propagator *prop ,
   // this is an LCU wall source, logically boxsize = 1 is a point source
   prop -> Source.boxsize = LCU ; 
   prop -> Source.Nsmear = 0 ;
-  prop -> Source.smalpha = 0.15 ;
+  prop -> Source.smalpha = 1.0 ;
   prop -> Source.Z2_spacing = 1 ;
 
   // initialise these to zero
@@ -770,7 +770,9 @@ sanity_check_props( const struct propagator *prop ,
     // check sources are all the same
     if( prop[ map[ 0 ] ].Source.type != prop[ map[ i ] ].Source.type ) {
       fprintf( stderr , "%s Caught unequal sources contraction "
-	       "(index %zu) \n" , label , map[ i ] ) ;
+	       "(index %zu) < %u != %u > \n" , label , map[ i ] ,
+	       prop[ map[ 0 ] ].Source.type ,
+	       prop[ map[ i ] ].Source.type ) ;
       return FAILURE ;
     }
   }

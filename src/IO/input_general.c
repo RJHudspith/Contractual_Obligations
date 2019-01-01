@@ -245,6 +245,30 @@ read_cuts_struct( struct cut_info *CUTINFO ,
     printf( "[IO] rng seed %u \n" , Latt.Seed ) ;
     return FAILURE ;
   }
-
+  // NSINK_SMEAR
+  const int snk_idx = tag_search( "NSINK_SMEAR" ) ;
+  if( snk_idx == FAILURE ) { return tag_failure( "NSINK_SMEAR" ) ; }
+  CUTINFO -> nsink = (size_t)strtol( INPUT[snk_idx].VALUE , &endptr , 10 ) ;
+  if( endptr == INPUT[snk_idx].VALUE || errno == ERANGE ) {
+    printf( "[IO] NSNK_SMEAR erro %zu \n" , CUTINFO -> nsink ) ;
+    return FAILURE ;
+  }
+  // SINK_ALPHA
+  const int alpha_idx = tag_search( "SINK_ALPHA" ) ;
+  if( snk_idx == FAILURE ) { return tag_failure( "SINK_ALPHA" ) ; }
+  CUTINFO -> sink_alpha = (double)strtod( INPUT[alpha_idx].VALUE , &endptr ) ;
+  if( endptr == INPUT[alpha_idx].VALUE || errno == ERANGE ) {
+    printf( "[IO] SINK_ALPHA error %f \n" , CUTINFO -> sink_alpha ) ;
+    return FAILURE ;
+  }
+  // SINK_U0
+  const int u0_idx = tag_search( "SINK_U0" ) ;
+  if( snk_idx == FAILURE ) { return tag_failure( "SINK_U0" ) ; }
+  CUTINFO -> sink_U0 = (double)strtod( INPUT[u0_idx].VALUE , &endptr ) ;
+  if( endptr == INPUT[u0_idx].VALUE || errno == ERANGE ) {
+    printf( "[IO] SINK_U0 error %f \n" , CUTINFO -> sink_U0 ) ;
+    return FAILURE ;
+  }
+  
   return SUCCESS ;
 }

@@ -11,6 +11,7 @@
 #include "io.h"                // for read_prop()
 #include "progress_bar.h"      // progress_bar()
 #include "read_propheader.h"   // for read_propheader()
+#include "quark_smear.h"       // sink_smear()
 #include "setup.h"             // free_ffts()
 #include "spinor_ops.h"        // sumwalls()
 
@@ -66,6 +67,9 @@ baryons_diagonal( struct propagator prop1 ,
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
+
     {
        #pragma omp barrier
     }
@@ -118,6 +122,11 @@ baryons_diagonal( struct propagator prop1 ,
       baryon_momentum_project( &M , stride1 , stride2 ,
 			       tshifted , UUU_BARYON ,
 			       CUTINFO.configspace ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
       
       #pragma omp single
       {

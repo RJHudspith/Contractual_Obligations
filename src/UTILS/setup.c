@@ -176,6 +176,16 @@ free_measurements( struct measurements *M ,
   free( M->S ) ; 
   free( M->Sf ) ;
 
+  // free S1
+  if( M->S1 != NULL ) {
+    for( mu = 0 ; mu < Nprops ; mu++ ) {
+      if( M -> S1[mu] != NULL ) {
+	free( M -> S1[mu] ) ;
+      }
+    }
+    free( M->S1 ) ;
+  }
+
   // free the wall sums if they were allocated
   if( M -> SUM != NULL ) {
     free( M -> SUM ) ;
@@ -206,7 +216,7 @@ init_measurements( struct measurements *M ,
   M -> GAMMAS = NULL ;
   M -> in = NULL ; M -> out = NULL ;
   M -> forward = NULL ; M -> backward = NULL ;
-  M -> S = NULL ; M -> Sf = NULL ;
+  M -> S = NULL ; M -> Sf = NULL ; M -> S1 = NULL ;
   M -> SUM = NULL ;
   M -> dft_mom = NULL ;  
   M -> is_wall_mom = GLU_FALSE ;
@@ -219,10 +229,23 @@ init_measurements( struct measurements *M ,
   M -> S  = malloc( Nprops * sizeof( struct spinor* ) ) ;
   M -> Sf = malloc( Nprops * sizeof( struct spinor* ) ) ;
 
+  // allocate sink smearing temp
+  if( CUTINFO.nsink != 0 && lat != NULL ) {
+    M -> S1  = malloc( Nprops * sizeof( struct spinor* ) ) ;
+  }
+
   // allocate spinors
   size_t i ;
   for( i = 0 ; i < Nprops ; i++ ) {
     M -> S[i] = M -> Sf[i] = NULL ;
+    // allocate the sink temporaries
+    if( CUTINFO.nsink != 0 && lat != NULL ) {
+      M -> S1[i] = NULL ;
+      if( corr_malloc( (void**)&M -> S1[ i ] , ALIGNMENT , LCU * sizeof( struct spinor ) ) != 0 ) {
+	error_code = FAILURE ; goto end ;
+      }
+    }
+    // allocate this spinor and the forward one
     if( corr_malloc( (void**)&M -> S[ i ]  , ALIGNMENT , LCU * sizeof( struct spinor ) ) != 0 ||
 	corr_malloc( (void**)&M -> Sf[ i ] , ALIGNMENT , LCU * sizeof( struct spinor ) ) != 0 ) {
       error_code = FAILURE ; goto end ;
@@ -347,35 +370,4 @@ init_measurements( struct measurements *M ,
 
  end :
   return error_code ;
-}
-
-// sum over spatial indices a spinor
-void
-sum_spatial_sep( struct spinor *SUM_r2 ,
-		 const struct measurements M ,
-		 const size_t site1 )
-{ 
-  size_t n , r ;
-  // set the sum to zero
-  for( n = 0 ; n < M.Nprops ; n++ ) {
-    spinor_zero_site( &SUM_r2[ n ] ) ;
-  }
-
-  // sum over each spatial separation
-  for( r = 0 ; r < M.NR ; r++ ) {
-
-    const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
-					  ND-1 ) ;
-
-    for( n = 0 ; n < M.Nprops ; n++ ) {
-      add_spinors( &SUM_r2[n] , M.S[n][site2] ) ;
-
-      // we could really be creative here and put all sorts of functions in.
-      // This one below weights further away points exponentially, although the
-      // gauge field does that already. 
-      // spinor_Saxpy( &SUM_r2[n] , exp( -M.rlist[r].nsq*0.1 ) , M.S[n][site2] ) ;
-    }
-  }
-
-  return ;
 }

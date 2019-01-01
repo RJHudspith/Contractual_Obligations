@@ -41,7 +41,7 @@ cl_diagonal( struct propagator prop1 ,
   const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
-  const size_t AGMAP[ ND ] = { 6 , 7 , 8 , 9 } ;
+  const size_t AGMAP[ ND ] = { AX , AY , AZ , AT } ;
 
   // allocations for the PI-data
   struct PIdata *DATA_AA = NULL ; 

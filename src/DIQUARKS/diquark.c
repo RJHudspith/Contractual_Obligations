@@ -10,6 +10,7 @@
 #include "gammas.h"               // make_gammas() && gamma_mmul*
 #include "io.h"                   // for read_prop()
 #include "progress_bar.h"         // progress_bar()
+#include "quark_smear.h"          // sink_smear()
 #include "read_propheader.h"      // for read_propheader()
 #include "setup.h"                // compute_correlator() ..
 #include "spinor_ops.h"           // sumprop()
@@ -61,6 +62,9 @@ diquark_offdiag( struct propagator prop1 ,
 #pragma omp parallel
   {
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
+
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
   }
   if( error_code == FAILURE ) {
     goto memfree ;
@@ -123,6 +127,14 @@ diquark_offdiag( struct propagator prop1 ,
     // if we error we leave
     if( error_code == FAILURE ) {
       goto memfree ;
+    }
+
+    #pragma omp parallel
+    {
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
     }
 
     // copy over the propagators

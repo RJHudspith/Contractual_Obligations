@@ -8,14 +8,15 @@
 
 #include "basis_conversions.h"  // nrel_rotate_slice()
 #include "contractions.h"       // gamma_mul_lr()
-#include "correlators.h"        // allocate_corrs() && free_corrs()
+#include "correlators.h"        // compute_correlator()
 #include "cut_routines.h"       // veclist
 #include "gammas.h"             // make_gammas() && gamma_mmul*
 #include "io.h"                 // for read_prop()
 #include "progress_bar.h"       // progress_bar()
-#include "setup.h"              // compute_correlator() ..
+#include "quark_smear.h"        // sink_smear()
+#include "setup.h"              // init_measurements() ..
 #include "spinor_ops.h"         // sumprop()
-#include "penta_contractions.h" // 
+#include "penta_contractions.h" // pentas()
 
 // number of propagators
 #define Nprops (3)
@@ -28,7 +29,7 @@ pentaquark_udusb( struct propagator prop1 , // L
 		  const char *outfile )
 {
   // counters
-  const size_t stride1 = 2 ;
+  const size_t stride1 = 2 ; // positive / negative parity
   const size_t stride2 = PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ;
 
   // flat dirac indices are all colors and all single gamma combinations
@@ -79,6 +80,9 @@ pentaquark_udusb( struct propagator prop1 , // L
     
     // read in the first timeslice
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
+
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
 
     {
        #pragma omp barrier
@@ -157,6 +161,11 @@ pentaquark_udusb( struct propagator prop1 , // L
       
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
       
       #pragma omp single
       {

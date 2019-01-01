@@ -10,6 +10,7 @@
 #include "gammas.h"            // gt_Gdag_gt()
 #include "io.h"                // read_prop
 #include "progress_bar.h"      // progress_bar()
+#include "quark_smear.h"       // sink_smear()
 #include "setup.h"             // free_ffts() ..
 #include "spinor_ops.h"        // sumprop()
 
@@ -41,8 +42,7 @@ mesons_diagonal( struct propagator prop1 ,
 			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
     fprintf( stderr , "[MESONS] failure to initialise measurements\n" ) ;
     error_code = FAILURE ; goto memfree ;
-  }
-  
+  }  
 
   // initialise the parallel region
 #pragma omp parallel
@@ -52,6 +52,9 @@ mesons_diagonal( struct propagator prop1 ,
     
     // initially read in a timeslice
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
+
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
 
     {
        #pragma omp barrier
@@ -94,7 +97,7 @@ mesons_diagonal( struct propagator prop1 ,
 	    meson_contract( gt_GSNKdag_gt    , SUM_r2[0]  , 
 			    M.GAMMAS[ GSRC ] , SUM_r2[0] ,
 			    M.GAMMAS[ GAMMA_5 ] ) ;
-	}	  
+	}
 	// correlator computed just out of the summed walls
       }  
       // end of loop on sites
@@ -113,6 +116,11 @@ mesons_diagonal( struct propagator prop1 ,
 
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
       
       #pragma omp single
       {
@@ -134,7 +142,7 @@ mesons_diagonal( struct propagator prop1 ,
 
   // free our measurement struct
   free_measurements( &M , Nprops , stride1 , stride2 , flat_dirac ) ;
-
+  
   return error_code ;
 }
 

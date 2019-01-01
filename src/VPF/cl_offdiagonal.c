@@ -39,8 +39,7 @@ cl_offdiagonal( struct propagator prop1 ,
   const size_t VGMAP[ ND ] = { GAMMA_X , GAMMA_Y , GAMMA_Z , GAMMA_T } ;
 
   // need to look these up
-  const size_t AGMAP[ ND ] = { GAMMA_5 + 1 , GAMMA_5 + 2 , 
-			       GAMMA_5 + 3 , GAMMA_5 + 4 } ;
+  const size_t AGMAP[ ND ] = { AX , AY , AZ , AT } ;
 
   // finally our result
   struct PIdata *DATA_AA = NULL , *DATA_VV = NULL ;

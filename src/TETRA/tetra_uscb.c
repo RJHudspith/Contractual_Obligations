@@ -11,6 +11,7 @@
 #include "gammas.h"             // make_gammas() && gamma_mmul*
 #include "io.h"                 // for read_prop()
 #include "progress_bar.h"       // progress_bar()
+#include "quark_smear.h"        // sink_smear()
 #include "setup.h"              // compute_correlator() ..
 #include "spinor_ops.h"         // sumprop()
 #include "tetra_contractions.h" // diquark_diquark()
@@ -54,6 +55,9 @@ tetraquark_uscb( struct propagator prop1 ,
     size_t t = 0 ;
     
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
+
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
 
     {
        #pragma omp barrier
@@ -129,11 +133,14 @@ tetraquark_uscb( struct propagator prop1 ,
 	for( op = 0 ; op < stride1 ; op++ ) {
 	  M.wwcorr[ op ][ GSRC ].mom[ 0 ].C[ tshifted ] = result[ op ] ;
 	}
-      }
-      ///
-      
+      }     
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
 
       #pragma omp single
       {

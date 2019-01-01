@@ -12,6 +12,7 @@
 #include "gammas.h"            // gt_Gdag_gt()
 #include "io.h"                // read_ahead()
 #include "progress_bar.h"      // progress_bar()
+#include "quark_smear.h"       // sink_smear()
 #include "setup.h"             // init_measurements()
 #include "spinor_ops.h"        // sumwalls()
 
@@ -54,6 +55,9 @@ mesons_offdiagonal( struct propagator prop1 ,
     // initial read of a timeslice
     read_ahead( prop , M.S , &error_code , Nprops , t ) ;
 
+    // smear it if we wish
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
+
     {
        #pragma omp barrier
     }
@@ -61,7 +65,7 @@ mesons_offdiagonal( struct propagator prop1 ,
     // Time slice loop 
     for( t = 0 ; t < LT && error_code == SUCCESS ; t++ ) {
 
-      // if we are doing nonrel-chiral mesons we switch chiral to nrel
+      // if we are doing nonrel-chiral mesons we switch chiral to nrel      
       rotate_offdiag( M.S , prop , Nprops ) ;
 
       // compute wall-wall sum
@@ -114,6 +118,11 @@ mesons_offdiagonal( struct propagator prop1 ,
 
       // compute the contracted correlator
       compute_correlator( &M , stride1 , stride2 , tshifted ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
       
       #pragma omp single
       {

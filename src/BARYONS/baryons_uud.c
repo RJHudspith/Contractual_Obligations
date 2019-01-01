@@ -11,6 +11,7 @@
 #include "io.h"                // for read_prop()
 #include "progress_bar.h"      // progress_bar()
 #include "read_propheader.h"   // for read_propheader()
+#include "quark_smear.h"       // sink_smear()
 #include "setup.h"             // free_ffts()
 #include "spinor_ops.h"        // sumwalls()
 
@@ -64,7 +65,9 @@ baryons_2fdiagonal( struct propagator prop1 ,
   {
     size_t t = 0 ;
     
-    read_ahead( prop , M.S , &error_code , Nprops , t ) ; 
+    read_ahead( prop , M.S , &error_code , Nprops , t ) ;
+
+    sink_smear( M.S , M.S1 , t , CUTINFO , Nprops ) ;
 
     {
        #pragma omp barrier
@@ -90,6 +93,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
       if( t < ( LT - 1 ) ) {
         read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
+      
       // Loop over spatial volume threads better
       #pragma omp for private(site)
       for( site = 0 ; site < LCU ; site++ ) {
@@ -119,6 +123,11 @@ baryons_2fdiagonal( struct propagator prop1 ,
       baryon_momentum_project( &M , stride1 , stride2 ,
 			       tshifted , UUD_BARYON ,
 			       CUTINFO.configspace ) ;
+
+      // smear the forward prop
+      if( t < (LT-1) ) {
+	sink_smear( M.Sf , M.S1 , t+1 , CUTINFO , Nprops ) ;
+      }
       
       #pragma omp single
       {

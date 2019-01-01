@@ -5,43 +5,9 @@
 #include "common.h"
 
 #include "geometry.h"       // get_eipx()
-#include "grad_2.h"         // gradsq()
 #include "halfspinor_ops.h" // zero_halfspinor
 #include "par_rng.h"        //
-
-// performs N iterations of some smearing
-// works like
-// S = exp( asmear\grad^2 ) S
-// by approximating the exp as the iteration
-// S = ( 1 + asmear grad^2/Nsmear )^Nsmear S
-// This is very like the C_0 term of NRQCD
-static void
-quark_smear( struct halfspinor *S ,
-	     struct halfspinor *S1 ,
-	     const size_t t ,
-	     const struct source_info Source )
-{
-  const double fac = Source.smalpha/Source.Nsmear ;
-  size_t n ;
-  for( n = 0 ; n < Source.Nsmear ; n++ ) {
-    size_t i ;
-    #pragma omp for private(i)
-    for( i = 0 ; i < LCU ; i++ ) {
-      struct halfspinor der ;
-      S1[i] = S[i] ;
-      gradsq( &der , S , i , t ) ;
-      halfspinor_Saxpy( &S1[i] , der , fac ) ;
-    }
-    // set S = S1, S1 = S
-    #pragma omp single
-    {
-      struct halfspinor *t = S ;
-      S  = S1 ;
-      S1 = t ;
-    }
-  }
-  return ;
-}
+#include "quark_smear.h"    // quark_source_smear()
 
 // set propagator to IdentityxConstant
 static void
@@ -177,7 +143,7 @@ initialise_source( struct halfspinor *S ,
   // momentum source too and get more or less the same result
   // Also, doesn't need to be a point source or anything
   if( prop.Source.smear == QUARK ) {
-    quark_smear( S , S1 , prop.origin[ND-1] , prop.Source ) ;
+    source_smear( S , S1 , prop.origin[ND-1] , prop.Source ) ;
   }
   
   // clean up the RNG

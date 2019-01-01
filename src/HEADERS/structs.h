@@ -73,6 +73,10 @@ struct cut_info{
   double proto_mom[ ND-1 ] ;
   double thetas[ 16 ] ;
   size_t Nalphas ;
+  // sink smearing params
+  size_t nsink ;
+  double sink_alpha ;
+  double sink_U0 ;
 } ;
 
 /**
@@ -167,6 +171,7 @@ struct latt_info{
 struct measurements {
   struct spinor **S ;
   struct spinor **Sf ;
+  struct spinor **S1 ; // sink smearing temp if we do it
   struct spinor *SUM ;
   struct gamma *GAMMAS ;
   struct veclist *list ;

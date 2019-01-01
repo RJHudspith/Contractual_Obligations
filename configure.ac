@@ -3,7 +3,7 @@
 ## --prefix=  :: tell it where to install the binary
 ## --with-NC= :: number of colors, if not specified defaults to 3
 ## --with-ND= :: number of dimensions, if not specified defaults to 4
-AC_INIT([CORR], [0.3], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlemail.com])
+AC_INIT([CORR], [0.31], [renwick.james.hudspith@gmail.com,afrancis.heplat@googlemail.com])
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -46,7 +46,7 @@ else
     mkdir $prefix/bin
     mkdir $prefix/docs/ ## new documentation folder ...
     ## copy the input file and a couple of small tests to bin	
-    cp -v ./CONF/* $prefix/bin/
+    cp -pv ./CONF/* $prefix/bin/
 fi
 AC_SUBST(PREF)
 
