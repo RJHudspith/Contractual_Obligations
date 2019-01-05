@@ -46,7 +46,7 @@ function baryon_test {
        let 'failures=failures+1'
     fi
     ## project a parity and check xyz degeneracy for the first six digits
-    ./BARYONS $1 CHIRAL NONE L5 false 4,4,4,8 tmp > output.txt
+    ./BARYONS $1 CHIRAL NONE L5 false 0 4,4,4,8 tmp > output.txt
     check_checksums output.txt
     x="$(./MESONS tmp 0,0,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
     y="$(./MESONS tmp 1,1,0,0,0 | grep "CORR 4" | cut -d" " -f3 | cut -b 2,3,4,5,6,7,8,9)"
@@ -183,40 +183,30 @@ function test_VPF {
     echo "[VPF] Testing momentum space WI"
     pmuPimunu="$(cat runout.txt | grep "p_{mu}" | cut -d" " -f6,7,8)"
     p1="$(echo $pmuPimunu | cut -d" " -f1)"
-    p2="$(echo $pmuPimunu | cut -d" " -f5)"
+    p2="$(echo $pmuPimunu | cut -d" " -f3)"
     let 'tests=tests+1'
     if [ $p1 != $p2 ] ; then
 	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
 	let 'failures=failures+1'
     fi
     p1="$(echo $pmuPimunu | cut -d" " -f2)"
-    p2="$(echo $pmuPimunu | cut -d" " -f6)"
+    p2="$(echo $pmuPimunu | cut -d" " -f4)"
     let 'tests=tests+1'
     if [ $p1 != $p2 ] ; then
 	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
 	let 'failures=failures+1'
     fi
-    p1="$(echo $pmuPimunu | cut -d" " -f3)"
-    p2="$(echo $pmuPimunu | cut -d" " -f7)"
-    let 'tests=tests+1'
-    if [ $p1 != $p2 ] ; then
-	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
-	let 'failures=failures+1'
-    fi
-    p1="$(echo $pmuPimunu | cut -d" " -f4)"
-    p2="$(echo $pmuPimunu | cut -d" " -f8)"
-    let 'tests=tests+1'
-    if [ $p1 != $p2 ] ; then
-	echo "[VPF] p_mu Pimunus are different between diagonal and off $p1,$p2"
-	let 'failures=failures+1'
-    fi
-    ## vpfread the stuff
-    zero="$(./VPFREAD cl1.CVLV.trans.bin 4,4,4,8 | grep "0.000000" | cut -d" " -f14)"
-    let 'tests=tests+1'
-    ## this thing is a garbage value because of the projection
-    if [ $zero != "0.220843" ] ; then
-	echo "[VPF] zero momentum point does not match previous code $zero,0.220843"
-	let 'failures=failures+1'
+    if [ test -a cl1.CVLV.trans.bin ] ; then
+	echo "[VPF] Can't test projection for cl1.CVLV.trans.bin"
+    else
+	## vpfread the stuff
+	zero="$(./VPFREAD cl1.CVLV.trans.bin 4,4,4,8 | grep "0.000000" | cut -d" " -f14)"
+	let 'tests=tests+1'
+	## this thing is a garbage value because of the projection
+	if [ $zero != "0.220843" ] ; then
+	    echo "[VPF] zero momentum point does not match previous code $zero,0.220843"
+	    let 'failures=failures+1'
+	fi
     fi
     ## clean up the files it creates
     rm cl1.* cl2.*

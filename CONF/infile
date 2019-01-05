@@ -12,7 +12,6 @@ PROP4 = prop_NRELCORR
 BARYON0 = 0,0,0,baryon
 BARYON1 = 0,0,1,baryon
 BARYON2 = 0,1,2,baryon
-BARYON3 = 0,1,4,baryon
 MESON0 = 0,0,meson1
 MESON1 = 0,1,meson2
 MESON2 = 4,4,meson3

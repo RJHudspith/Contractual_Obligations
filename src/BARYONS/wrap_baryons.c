@@ -32,7 +32,7 @@ contract_baryons( struct propagator *prop ,
 			    3 , "[BARYONS]" ) == FAILURE ) {
       return FAILURE ;
     }
-
+    
     // big logic block for contracting the right pieces
     if( p1 == p2 && p2 == p3 ) {
       // only have flavour diagonal option at the moment

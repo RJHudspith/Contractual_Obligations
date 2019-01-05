@@ -200,6 +200,10 @@
 #ifndef TETRA_NBLOCK
   #define TETRA_NBLOCK (1)
 #endif
+// if it is defined to something silly we guard against that also
+#if (TETRA_NBLOCK < 0) || (TETRA_NBLOCK>8)
+  #define B_CHANNELS (8)
+#endif
 
 /**
    @def TETRA_NOPS

@@ -629,6 +629,8 @@ LIBOBJS
 FFTW
 DEFFFTW_FALSE
 DEFFFTW_TRUE
+HACK_TETRA_FALSE
+HACK_TETRA_TRUE
 PREF
 PDFLATEX
 GRAPHVIZ
@@ -744,6 +746,7 @@ enable_notcondor
 enable_debug
 enable_NRQCD_NONSYM
 enable_LEGACY_NRQCD_COMPARE
+enable_TETRA_NRQCD_HACK
 enable_OMP_FFTW
 with_fftw
 with_TETRA_NBLOCK
@@ -1396,6 +1399,7 @@ Optional Features:
  --enable-debug prints to stdout some general debugging information
  --enable-NRQCD_NONSYMM enables faster, non-symmetric in spin dependent terms in the NRQCD action
  --enable-LEGACY_NRQCD_COMPARE when we compare to the legacy fortran code we need to turn this on due to a difference in the terms c2, c3, c7,and c8 in which we subtract the non-unitary terms but the old code does not
+ --enable-TETRA_NRQCD_HACK enables the computation just of the 4x4 unique operators when doing heavy-light tetraquarks with NRQCD
  --enable-OMP_FFTW Utilise FFTW's OpenMP parallel FFTs
 
 Optional Packages:
@@ -5021,6 +5025,32 @@ $as_echo "$as_me: Subtracting the non-unitary terms from improved derivative. Th
 fi
 
 
+## NRQCD symmetric or non-symmetric spin-dependent evolution
+tetra_nrqcd_hack=false
+# Check whether --enable-TETRA_NRQCD_HACK was given.
+if test "${enable_TETRA_NRQCD_HACK+set}" = set; then :
+  enableval=$enable_TETRA_NRQCD_HACK; case "${enableval}" in
+	yes)
+$as_echo "#define TETRA_NRQCD_HACK /**/" >>confdefs.h
+
+	     tetra_nrqcd_hack=true
+	     { $as_echo "$as_me:${as_lineno-$LINENO}: Computing only the 4x4 Tetraquark operator matrix" >&5
+$as_echo "$as_me: Computing only the 4x4 Tetraquark operator matrix" >&6;} ;;
+	no) { $as_echo "$as_me:${as_lineno-$LINENO}: Computing the full 2*TETRA_NBLOCK x 2*TETRA_NBLOCK tetraquark GEVP" >&5
+$as_echo "$as_me: Computing the full 2*TETRA_NBLOCK x 2*TETRA_NBLOCK tetraquark GEVP" >&6;} ;;
+	*) as_fn_error $? "bad value ${enableval} for --enable-TETRA_NRQCD_HACK" "$LINENO" 5 ;;
+	esac
+fi
+
+ if $tetra_nrqcd_hack; then
+  HACK_TETRA_TRUE=
+  HACK_TETRA_FALSE='#'
+else
+  HACK_TETRA_TRUE='#'
+  HACK_TETRA_FALSE=
+fi
+
+
 ## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
 ######################################### FFTW3 ###############################################
 ##                                                                                           ##
@@ -5201,13 +5231,23 @@ fi
 # Check whether --with-TETRA_NBLOCK was given.
 if test "${with_TETRA_NBLOCK+set}" = set; then :
   withval=$with_TETRA_NBLOCK;
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})" >&5
+	    if  test x$tetra_nrqcd_hack == xtrue  ; then
+	        { $as_echo "$as_me:${as_lineno-$LINENO}: TETRA_NBLOCK set by TETRA_NRQCD_HACK, compiling for (2)" >&5
+$as_echo "$as_me: TETRA_NBLOCK set by TETRA_NRQCD_HACK, compiling for (2)" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define TETRA_NBLOCK 2
+_ACEOF
+
+	    else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})" >&5
 $as_echo "$as_me: User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})" >&6;}
 
 cat >>confdefs.h <<_ACEOF
 #define TETRA_NBLOCK ${with_TETRA_NBLOCK}
 _ACEOF
 
+	    fi
 
 else
 
@@ -5729,6 +5769,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${PDFLTX_TRUE}" && test -z "${PDFLTX_FALSE}"; then
   as_fn_error $? "conditional \"PDFLTX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${HACK_TETRA_TRUE}" && test -z "${HACK_TETRA_FALSE}"; then
+  as_fn_error $? "conditional \"HACK_TETRA\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${DEFFFTW_TRUE}" && test -z "${DEFFFTW_FALSE}"; then

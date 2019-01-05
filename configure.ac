@@ -157,6 +157,19 @@ AC_ARG_ENABLE([LEGACY_NRQCD_COMPARE],
 	*) AC_MSG_ERROR([bad value ${enableval} for --enable-LEGACY_NRQCD_COMPARE]) ;;
 	esac],[])
 
+## NRQCD symmetric or non-symmetric spin-dependent evolution
+tetra_nrqcd_hack=false
+AC_ARG_ENABLE([TETRA_NRQCD_HACK],
+	[ --enable-TETRA_NRQCD_HACK enables the computation just of the 4x4 unique operators when doing heavy-light tetraquarks with NRQCD],
+	[case "${enableval}" in
+	yes) AC_DEFINE([TETRA_NRQCD_HACK],,[Hard-coded 4x4 choice of tetraquark operators])
+	     tetra_nrqcd_hack=true
+	     AC_MSG_NOTICE([Computing only the 4x4 Tetraquark operator matrix]) ;;	
+	no) AC_MSG_NOTICE([Computing the full 2*TETRA_NBLOCK x 2*TETRA_NBLOCK tetraquark GEVP]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-TETRA_NRQCD_HACK]) ;;
+	esac],[])
+AM_CONDITIONAL([HACK_TETRA],[$tetra_nrqcd_hack])
+
 ## TAKEN LIKE MANY OTHER THINGS IN THIS CODE FROM MY LIBRARY GLU - J
 ######################################### FFTW3 ###############################################
 ##                                                                                           ##
@@ -255,8 +268,13 @@ AC_ARG_WITH([TETRA_NBLOCK],
 	AC_HELP_STRING([--with-TETRA_NBLOCK=],
 		       [Block matrix tetra contraction size]),
             [
-	    AC_MSG_NOTICE([User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})])
-	    AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [${with_TETRA_NBLOCK}] , [Compiled TETRA_NBLOCK] )	
+	    if [ test x$tetra_nrqcd_hack == xtrue ] ; then
+	        AC_MSG_NOTICE([TETRA_NBLOCK set by TETRA_NRQCD_HACK, compiling for (2)])
+	        AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [2] , [Compiled TETRA_NBLOCK] )
+	    else
+		AC_MSG_NOTICE([User specified TETRA_NBLOCK, compiling for (${with_TETRA_NBLOCK})])
+	    	AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [${with_TETRA_NBLOCK}] , [Compiled TETRA_NBLOCK] )
+	    fi
 	    ],[
 	    AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, code defaults to 1])	
 ])
