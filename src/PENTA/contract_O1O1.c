@@ -134,10 +134,10 @@ contract_O1O1( struct spinmatrix *P ,
 	       const uint8_t **loc )
 {
   // Idea:: create a huge array with all the possible color components
-  struct gamma C1 = CGmu( OP1 , GAMMAS ) ;
-
-  struct gamma tC2t = gt_Gdag_gt( CGmu( OP2 , GAMMAS ) ,
-				  GAMMAS[ GAMMA_T ] ) ;
+  struct gamma C1   = CGmu( OP1 , GAMMAS ) ;
+  struct gamma tC1t = gt_Gdag_gt( C1 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma C2   = CGmu( OP2 , GAMMAS ) ;
+  struct gamma tC2t = gt_Gdag_gt( C2 , GAMMAS[ GAMMA_T ] ) ;
 
   // temporary spinors
   struct spinor U1 = transpose_spinor( U ) ,
@@ -146,8 +146,8 @@ contract_O1O1( struct spinmatrix *P ,
 
   // perform some gamma multiplications
   gamma_mul_r( &U1 , C1 ) ;
-  gamma_mul_r( &Dt , tC2t ) ;
-  gamma_mul_r( &U2 , C1 ) ;
+  gamma_mul_r( &Dt , tC1t ) ;
+  gamma_mul_r( &U2 , C2 ) ;
   gamma_mul_r( &St , tC2t ) ;
   //gamma_mul_l( &Bt , GAMMAS[ GAMMA_T ] ) ;
 

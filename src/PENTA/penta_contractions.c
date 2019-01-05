@@ -48,7 +48,7 @@ project_parity( double complex *pos ,
   const double complex t2 = gammaspinmatrix_trace( GT , P.D ) ;
   switch( op%PENTA_NOPS ) {
     // diquark-y ones are positive parity ops
-  case 0 : case 1 : case 2 : case 3 : case 6 :
+    case 0 : case 1 : case 2 : case 3 : case 6 :
     *neg = 0.5 * ( t1 + t2 ) ;
     *pos = 0.5 * ( t1 - t2 ) ;
     break ;
@@ -92,8 +92,8 @@ pentas( double complex *result ,
   return FAILURE ;
 #endif
   struct gamma GBLOCK[ 4 ] = { GAMMAS[ GAMMA_5 ] ,
-			       GAMMAS[ IDENTITY ] ,
 			       GAMMAS[ AT ] ,
+			       GAMMAS[ IDENTITY ] ,
 			       GAMMAS[ GAMMA_T ] } ;
 
   size_t idx ;
@@ -103,8 +103,7 @@ pentas( double complex *result ,
     const size_t b1 = (idx/(PENTA_NOPS*PENTA_NBLOCK)) ;
     const size_t b2 = (idx/PENTA_NOPS)%PENTA_NBLOCK ;
     const size_t i  = (idx)%PENTA_NOPS ;
-
-	
+    
     // do the contractions
     struct spinmatrix P ;
     contract[i]( &P , F , L , L , S , bwdH ,

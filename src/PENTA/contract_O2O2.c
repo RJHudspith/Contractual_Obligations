@@ -29,7 +29,7 @@ contract_O2O2( struct spinmatrix *P ,
   const struct gamma tC2t  = gt_Gdag_gt( CGmu( OP2 , GAMMAS ) ,
 					 GAMMAS[ GAMMA_T ] ) ;
 
-  // allocat the term matrix
+  // allocate the term matrix
   double complex **term = malloc( 2 * sizeof( double complex* ) ) ;
   term[0] = malloc( NSNS * sizeof( double complex ) ) ;
   term[1] = malloc( NSNS * sizeof( double complex ) ) ;
