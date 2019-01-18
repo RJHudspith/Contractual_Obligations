@@ -52,6 +52,9 @@ is_fly_NRQCD( struct propagator *prop ,
 	      const size_t nprops )
 {
   GLU_bool FLY_NREL = GLU_FALSE ;
+
+  const double plaq = av_plaquette( lat ) ;
+  
   size_t n ;
   for( n = 0 ; n < nprops ; n++ ) {
     if( prop[n].basis == NREL_CORR ) {
@@ -89,6 +92,9 @@ is_fly_NRQCD( struct propagator *prop ,
 	  return FAILURE ;
 	}
       }
+      // set this NRQCD prop to the computed plaquette disregarding the
+      // value in the dummy header
+      prop[n].plaq = plaq ;
     }
   }
   return FLY_NREL ;
@@ -161,12 +167,6 @@ compute_nrqcd_props( struct propagator *prop ,
       corr_malloc( (void**)&F.Fmunu[i].O[j] , ALIGNMENT ,
 		   NCNC*sizeof( double complex ) ) ;
     }
-  }
-
-  const double plaq = av_plaquette( lat ) ;
-  for( i = 0 ; i < nprops ; i++ ) {
-    // set the plaquette to the computed value, disregarding the prop value
-    prop[i].plaq = plaq ;
   }
 
   // initialise the timer
