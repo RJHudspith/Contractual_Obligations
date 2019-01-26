@@ -276,7 +276,11 @@ AC_ARG_WITH([TETRA_NBLOCK],
 	    	AC_DEFINE_UNQUOTED([TETRA_NBLOCK], [${with_TETRA_NBLOCK}] , [Compiled TETRA_NBLOCK] )
 	    fi
 	    ],[
-	    AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, code defaults to 1])	
+	    if [ test x$tetra_nrqcd_hack == xtrue ] ; then	
+	       AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, TETRA_NRQCD_HACK defaults to 2])	
+	    else		   
+ 	       AC_MSG_NOTICE([User unspecified TETRA_NBLOCK, defaulting to 1])	
+	    fi
 ])
 
 ## Compile a penta block size

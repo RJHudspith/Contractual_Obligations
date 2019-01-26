@@ -198,11 +198,15 @@
    @brief number of different tetraquark blocks we will use
  */
 #ifndef TETRA_NBLOCK
-  #define TETRA_NBLOCK (1)
+  #ifdef TETRA_NRQCD_HACK
+    #define TETRA_NBLOCK (2)
+  #else
+    #define TETRA_NBLOCK (1)
+  #endif
 #endif
 // if it is defined to something silly we guard against that also
 #if (TETRA_NBLOCK < 0) || (TETRA_NBLOCK>8)
-  #define B_CHANNELS (8)
+  #define TETRA_NBLOCK (8)
 #endif
 
 /**

@@ -5251,8 +5251,13 @@ _ACEOF
 
 else
 
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified TETRA_NBLOCK, code defaults to 1" >&5
-$as_echo "$as_me: User unspecified TETRA_NBLOCK, code defaults to 1" >&6;}
+	    if  test x$tetra_nrqcd_hack == xtrue  ; then
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified TETRA_NBLOCK, TETRA_NRQCD_HACK defaults to 2" >&5
+$as_echo "$as_me: User unspecified TETRA_NBLOCK, TETRA_NRQCD_HACK defaults to 2" >&6;}
+	    else
+ 	       { $as_echo "$as_me:${as_lineno-$LINENO}: User unspecified TETRA_NBLOCK, defaulting to 1" >&5
+$as_echo "$as_me: User unspecified TETRA_NBLOCK, defaulting to 1" >&6;}
+	    fi
 
 fi
 
