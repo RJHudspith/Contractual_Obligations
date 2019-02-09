@@ -133,6 +133,7 @@ compute_clover( double complex *F ,
   return ;
 }
 
+// computes the improved clover of lepage and magnea
 static void
 improve_clover( double complex *res ,
 		const struct site *lat ,
@@ -141,11 +142,11 @@ improve_clover( double complex *res ,
 		const size_t nu ,
 		const double efac )
 {  
-  double complex sum[ NCNC ] __attribute__((aligned(ALIGNMENT)));
+  double complex sum[ NCNC ]   __attribute__((aligned(ALIGNMENT)));
   double complex temp1[ NCNC ] __attribute__((aligned(ALIGNMENT)));
   double complex temp2[ NCNC ] __attribute__((aligned(ALIGNMENT)));
-  double complex Eup[ NCNC ] __attribute__((aligned(ALIGNMENT)));
-  double complex Edn[ NCNC ] __attribute__((aligned(ALIGNMENT)));
+  double complex Eup[ NCNC ]   __attribute__((aligned(ALIGNMENT)));
+  double complex Edn[ NCNC ]   __attribute__((aligned(ALIGNMENT)));
   
   // standard clover term
   compute_clover( res , lat , i , mu , nu ) ;
@@ -181,7 +182,7 @@ improve_clover( double complex *res ,
   // improve the clover fields
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    res[j] = efac*res[j] - sum[j]/6. ;
+    res[j] = efac*res[j] ; //- sum[j]/6. ;
   }
   return ;
 }
@@ -198,7 +199,7 @@ compute_clovers( struct NRQCD_fields *F ,
   
   const size_t idx = LCU*t ;
   size_t i ;
-#pragma omp for private(i)
+  #pragma omp for private(i)
   for( i = 0 ; i < LCU ; i++ ) {
     // B fields are defined as B_{i} = \epsilon_{ijk} F_{jk}
     improve_clover( F -> Fmunu[i].O[0] , lat , i + idx , 1 , 2 , efac ) ;

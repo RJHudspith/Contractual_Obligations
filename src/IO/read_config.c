@@ -153,6 +153,118 @@ check_sums( const double plaq ,
   return SUCCESS ; // may only be partially successful but I am optimistic
 }
 
+// defined in the autoconf procedure
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+  #define DANGEROUS // if we are less than the page size we plough on
+
+  #ifdef GLU_BGQ // BGQ says it has twice as much RAM as it (usually for edinburgh) has ...
+  static const double GB = 0.5 * 9.3132257461547852e-10 ; // the mysterious factor is 1.0/(1024*1024*1024)
+  #else
+  static const double GB = 9.313225746147852e-10 ;
+  #endif
+static double page_size , MemTotal , MemFree , gauge_fields , gtrans_mats , 
+              lat_element , sublat_element ;
+static int IO = -1 ;
+
+typedef enum
+  { FAST ,
+    MODERATE ,
+    SLOW } GLU_speed ;
+
+// call to the OS to request what memory size we have
+static void
+check_mem( void ) 
+{
+  const double GLU_size = (double)sizeof( double complex ) ;
+  page_size = (double)sysconf( _SC_PAGESIZE ) ; 
+  MemTotal = sysconf(_SC_PHYS_PAGES) * page_size ; 
+  MemFree = (double)sysconf( _SC_AVPHYS_PAGES ) * page_size ; 
+  gauge_fields = GLU_size * (double)LVOLUME * ( NCNC * ND ) * GB + 
+    (double)sizeof( int ) * (double)LVOLUME * ( 2 * ND ) * GB ; // integer neighbours
+  gtrans_mats = (double)LVOLUME * GLU_size * ( NCNC ) * GB ;
+  // lattice sites in GB
+  lat_element = GLU_size * (double)LVOLUME * GB ;
+  // subcube in GB
+  sublat_element = GLU_size * (double)LCU * GB ;
+  return ;
+}
+// and print out the standard message
+static void
+print_info( const char *info ,
+	    const double free_memory ,
+	    const double expensive_more ,
+	    const double expensive_less )
+{
+  fprintf( stdout , "[%s] Page size is :: %f, Total malloc "
+	   "[More] %f  [Less] %f \n" , 
+	   info , ( double )free_memory , expensive_more , expensive_less ) ; 
+  return ;
+}
+#endif
+
+static short int 
+have_memory_readers_writers( const GLU_output config_type )
+{
+  int CONFIG = FAST ;
+#ifdef HAVE_UNISTD_H
+  if( IO == -1 ) {
+    check_mem( ) ;
+    
+    double expensive_more , expensive_less ;
+    
+    #ifdef DANGEROUS
+    const double free_memory = MemTotal * GB ;
+    #else
+    const double free_memory = MemFree * GB ;
+    #endif
+
+    // check to make sure we can fit gauge field and the malloc
+    IO = FAST ;
+    switch( config_type ) {
+    case OUTPUT_SMALL :
+      expensive_more = gauge_fields + (double)sizeof( double ) * ( (double)LVOLUME * ( ND * ( NCNC - 1 ) ) ) * GB ;
+      expensive_less = gauge_fields + (double)sizeof( double ) * ( (double)( ND * ( NCNC - 1 ) ) ) * GB ;
+      print_info( "IO" , free_memory , expensive_more , expensive_less ) ;
+      if( expensive_more < free_memory ) {
+	  return FAST ;
+      } else { 
+	IO = SLOW ;
+	return SLOW ;
+      }
+    case OUTPUT_GAUGE :
+      expensive_more = gauge_fields + (double)sizeof( double complex ) * ( (double)LVOLUME * ( ND * NC * ( NC - 1 ) ) ) * GB ;
+      expensive_less = gauge_fields + (double)sizeof( double complex ) * ( (double)( ND * NC * ( NC - 1 ) ) ) * GB ;
+      print_info( "IO" , free_memory , expensive_more , expensive_less ) ;
+      if( expensive_more < free_memory ) {
+	return FAST ;
+      } else { 
+	IO = SLOW ;
+	return SLOW ;
+      }
+    case OUTPUT_MILC :
+    case OUTPUT_SCIDAC :
+    case OUTPUT_ILDG :
+    case OUTPUT_NCxNC :
+      expensive_more = 2.0 * gauge_fields ; 
+      expensive_less = gauge_fields + (double) sizeof( double complex ) * ( (double)( ND * NCNC ) ) * GB ;
+      print_info( "IO" , free_memory , expensive_more , expensive_less ) ;
+      if( expensive_more < free_memory ) {
+	return FAST ;
+      } else { 
+	IO = SLOW ;
+	return SLOW ;
+      }
+    case OUTPUT_HIREP :
+      return FAST ;
+    default :
+      return SLOW ;
+    } 
+  } else { CONFIG = IO ; }
+#endif
+  return CONFIG ;
+} 
+
 // things that check the checksums //
 short int
 checks( struct site *__restrict lat , 
@@ -184,7 +296,15 @@ get_config_SUNC( FILE *__restrict CONFIG ,
     if( HEAD_DATA.config_type == OUTPUT_SMALL ||
 	HEAD_DATA.config_type == OUTPUT_GAUGE ||
 	HEAD_DATA.config_type == OUTPUT_NCxNC ) {
-      return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
+      if( have_memory_readers_writers( HEAD_DATA.config_type ) == FAST ) {
+	fprintf( stdout , "[IO] using the faster, more wasteful gauge"
+		 " configuration reader\n" ) ;
+	return lattice_reader_suNC( lat , CONFIG , HEAD_DATA ) ;
+      } else {
+	fprintf( stdout , "[IO] using the slow site-by-site gauge"
+		 " configuration reader\n" ) ;
+	return lattice_reader_suNC_cheaper( lat , CONFIG , HEAD_DATA ) ;
+      }
     } break ;
   case HIREP_HEADER :
     return read_gauge_field( lat , CONFIG ) ;
@@ -239,7 +359,8 @@ read_gauge_file( struct head_data *HEAD_DATA ,
 
   // malloc our gauge field and initialise our lattice geometry
   struct site *lat = NULL ;
-  if( corr_malloc( (void**)&lat , ALIGNMENT , LVOLUME * sizeof ( struct site ) ) != 0 ) {
+  if( corr_malloc( (void**)&lat , ALIGNMENT ,
+		   LVOLUME * sizeof( struct site ) ) != 0 ) {
     fprintf( stderr , "[IO] Gauge field allocation failure ... Leaving \n" ) ;
     fclose( infile ) ;
     free( lat ) ;

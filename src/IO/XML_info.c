@@ -170,10 +170,8 @@ parse_and_set_xml_SCIDAC( char *xml_info ,
       if( are_equal( pch , "precision" ) ) {
 	if( ( dimensions = get_prec_tag( pch , "precision" ) ) != -1 ) {
 	  if( dimensions == FLOAT_PREC ) {
-	    fprintf( stdout , "[IO] Attempting to read single precision data\n" ) ;
 	    HEAD_DATA -> precision = FLOAT_PREC ;
 	  } else if( dimensions == DOUBLE_PREC ) {
-	    fprintf( stdout , "[IO] Attempting to read double precision data\n" ) ;
 	    HEAD_DATA -> precision = DOUBLE_PREC ;
 	  } else {
 	    fprintf( stderr , "[IO] Precision %d not understood \n" , dimensions ) ;

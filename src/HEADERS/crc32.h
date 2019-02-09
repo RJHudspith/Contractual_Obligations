@@ -6,6 +6,15 @@
 #define CRC32_H
 
 /**
+   @fn uint32_t crc32( uint32_t crc , const char *buf , size_t len )
+   @brief computes the crc
+ */
+uint32_t
+crc32( uint32_t crc ,
+       const char *buf ,
+       size_t len ) ;
+
+/**
    @fn void CKSUM_GET( uint32_t *total_crc , uint32_t *total_bytes )
    @brief get the accumulated checksum in total_crc
  */

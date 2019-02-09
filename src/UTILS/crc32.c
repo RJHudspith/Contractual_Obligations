@@ -198,7 +198,7 @@ static const uint32_t crctab[256] =
 };
 
 // do the crc
-static uint32_t
+uint32_t
 crc32( uint32_t crc , const char *buf , size_t len )
 {
   if( buf == 0 ) return 0L ;
