@@ -19,8 +19,10 @@ momentum_factor_left( double complex *proj ,
 {
   // temporary space
   double complex *tmp1 = NULL , *tmp2 = NULL ;
-  if( corr_malloc( (void**)&tmp1 , 16 , NSNS*sizeof( double complex ) ) != 0 ||
-      corr_malloc( (void**)&tmp2 , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+  if( corr_malloc( (void**)&tmp1 , ALIGNMENT ,
+		   NSNS*sizeof( double complex ) ) != 0 ||
+      corr_malloc( (void**)&tmp2 , ALIGNMENT ,
+		   NSNS*sizeof( double complex ) ) != 0 ) {
     goto memfree ;
   }
   // set proj to zero
@@ -56,8 +58,10 @@ momentum_factor_right( double complex *proj ,
 {
   // temporary space
   double complex *tmp1 = NULL , *tmp2 = NULL ;
-  if( corr_malloc( (void**)&tmp1 , 16 , NSNS*sizeof( double complex ) ) != 0 ||
-      corr_malloc( (void**)&tmp2 , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+  if( corr_malloc( (void**)&tmp1 , ALIGNMENT ,
+		   NSNS*sizeof( double complex ) ) != 0 ||
+      corr_malloc( (void**)&tmp2 , ALIGNMENT ,
+		   NSNS*sizeof( double complex ) ) != 0 ) {
     goto memfree ;
   }
   // set proj to zero
@@ -106,6 +110,26 @@ set_Gik( double complex *Gik ,
 #endif
 }
 
+// check if a gamma index can be spin-projected
+static int
+check_idx( const size_t idx )
+{
+  switch( (int)idx%16 ) {
+  case GAMMA_X : case AX : case TXT :
+    return 0 ;
+  case GAMMA_Y : case AY : case TYT :
+    return 1 ;
+  case GAMMA_Z : case AZ : case TZT :
+    return 2 ;
+  case GAMMA_T : case IDENTITY : case GAMMA_5 :
+  case AT :
+    // not actually sure about the tensors
+  case TXY : case TYZ : case TZX : 
+    return GAMMA_T ;
+  }
+  return GAMMA_T ;
+}
+
 // project out a specific spin
 static void
 spin_project( double complex *Gik , 
@@ -119,10 +143,11 @@ spin_project( double complex *Gik ,
 	      const spinhalf projection ) 
 {
   // spin projections are for spatial indices only!!
-  if( i > ( ND-2 ) || k > ( ND-2 ) ) {
+  if( check_idx(i) == GAMMA_T || check_idx(k) == GAMMA_T ) {
     set_Gik( Gik , corr , i , k , p , t ) ;
     return ;
   }
+  
   // do the spin projections
   switch( projection ) {
   case OneHalf_11 :
@@ -162,12 +187,12 @@ baryon_project( const struct mcorr **corr ,
   double complex *D = NULL , *result = NULL ;
 
   // allocate temporaries
-  corr_malloc( (void**)&D , 16 , NSNS * sizeof( double complex ) ) ;
-  corr_malloc( (void**)&result , 16 , LT * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&D , ALIGNMENT , NSNS * sizeof( double complex ) ) ;
+  corr_malloc( (void**)&result , ALIGNMENT , LT * sizeof( double complex ) ) ;
 
   // build these just in case
-  struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ 0 ] , GAMMA[ 5 ] ) ;
-  struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ 3 ] , g0g5 ) ;
+  struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ GAMMA_T ] , GAMMA[ 5 ] ) ;
+  struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ GAMMA_Z ] , g0g5 ) ;
 
   // loop times 
   size_t t ;
@@ -179,28 +204,28 @@ baryon_project( const struct mcorr **corr ,
 
     switch( parity_proj ) {
     case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
-			     I * gammaspinmatrix_trace( g0g5 , D ) - 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
+			    I * gammaspinmatrix_trace( g0g5 , D ) - 
+			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			     I * gammaspinmatrix_trace( g0g5 , D ) - 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
+			    I * gammaspinmatrix_trace( g0g5 , D ) - 
+			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
-			     I * gammaspinmatrix_trace( g0g5 , D ) + 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
+			    I * gammaspinmatrix_trace( g0g5 , D ) + 
+			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.25 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			     gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			     I * gammaspinmatrix_trace( g0g5 , D ) + 
-			     I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
+			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
+			    I * gammaspinmatrix_trace( g0g5 , D ) + 
+			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
       break ;
     case L4 : // does 1/2 ( g_I + g_3 )
       result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
@@ -270,9 +295,9 @@ P11( double complex *proj ,
   if( p2 > 0 ) {
     double complex *left = NULL , *right = NULL , *pslash = NULL ;
     size_t d ;
-    if( corr_malloc( (void**)&left , 16 , NSNS*sizeof( double complex ) ) != 0 ||
-	corr_malloc( (void**)&right , 16 , NSNS*sizeof( double complex ) ) != 0 || 
-	corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0  ) {
+    if( corr_malloc( (void**)&left , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 ||
+	corr_malloc( (void**)&right , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 || 
+	corr_malloc( (void**)&pslash , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0  ) {
       goto memfree ;
     }
     // subtract on the diagonal
@@ -312,7 +337,7 @@ P12( double complex *proj ,
 
   if( p2 > 0 ) {
     double complex *pslash = NULL ;
-    if( corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+    if( corr_malloc( (void**)&pslash , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 ) {
       goto memfree ;
     }
     compute_pslash( pslash , GAMMA , p ) ;
@@ -350,7 +375,7 @@ P21( double complex *proj ,
   if( p2 > 0 ) {
     // compute pslash
     double complex *pslash = NULL ;
-    if( corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0 ) {
+    if( corr_malloc( (void**)&pslash , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 ) {
       goto memfree ;
     }
     compute_pslash( pslash , GAMMA , p ) ;
@@ -420,9 +445,9 @@ P32( double complex *proj ,
   if( p2 > 0 ) {
     // add the left hand side and right hand side
     double complex *left = NULL , *right = NULL , *pslash = NULL ;
-    if( corr_malloc( (void**)&left , 16 , NSNS*sizeof( double complex ) ) != 0 ||
-	corr_malloc( (void**)&right , 16 , NSNS*sizeof( double complex ) ) != 0 || 
-	corr_malloc( (void**)&pslash , 16 , NSNS*sizeof( double complex ) ) != 0  ) {
+    if( corr_malloc( (void**)&left , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 ||
+	corr_malloc( (void**)&right , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0 || 
+	corr_malloc( (void**)&pslash , ALIGNMENT , NSNS*sizeof( double complex ) ) != 0  ) {
       goto memfree ;
     }
     compute_pslash( pslash , GAMMA , p ) ;
@@ -479,23 +504,27 @@ spinproj( double complex *Gik ,
 
   // temporary storage for the projector
   double complex *pij = NULL , *tmp = NULL , *Gjk = NULL ;
-  if( corr_malloc( (void**)&pij , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+  if( corr_malloc( (void**)&pij , ALIGNMENT ,
+		   NSNS * sizeof( double complex ) ) != 0 ) {
     flag = FAILURE ;
     goto memfree ;
   }
-  if( corr_malloc( (void**)&tmp , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+  if( corr_malloc( (void**)&tmp , ALIGNMENT ,
+		   NSNS * sizeof( double complex ) ) != 0 ) {
     flag = FAILURE ;
     goto memfree ;
   }
-  if( corr_malloc( (void**)&Gjk , 16 , NSNS * sizeof( double complex ) ) != 0 ) {
+  if( corr_malloc( (void**)&Gjk , ALIGNMENT ,
+		   NSNS * sizeof( double complex ) ) != 0 ) {
     flag = FAILURE ;
     goto memfree ;
   }
 
   // perform contraction
+  const size_t gi = check_idx( i ) ;
   for( j = 0 ; j < ND ; j++ ) {
     set_Gik( Gjk , corr , j , k , pidx , t ) ;
-    p( pij , i , j , GAMMA , momentum , pidx ) ;
+    p( pij , gi , j , GAMMA , momentum , pidx ) ;
     spinmatrix_multiply( tmp , pij , Gjk ) ;
     atomic_add_spinmatrices( Gik , tmp ) ;
   }

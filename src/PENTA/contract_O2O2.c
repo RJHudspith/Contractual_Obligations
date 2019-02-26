@@ -45,6 +45,7 @@ contract_O2O2( struct spinmatrix *P ,
   const double complex T =
     -simple_meson_contract( t2t , B , G5 , S ) ;
 
+  // this explicitly does the uud contraction
   for( d1 = 0 ; d1 < NS ; d1++ ) {
     for( d2 = 0 ; d2 < NS ; d2++ ) { 
       P -> D[d1][d2] =

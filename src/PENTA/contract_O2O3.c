@@ -85,9 +85,9 @@ contract_colors_O2O3( const double complex *F )
       }
     }
   }
-
   return sum ;
 }
+
 // 
 void
 contract_O2O3( struct spinmatrix *P ,
@@ -120,7 +120,7 @@ contract_O2O3( struct spinmatrix *P ,
 
   const struct Ospinor OU1 = spinor_to_Ospinor( U ) ;
   const struct Ospinor OU2 = spinor_to_Ospinor( U ) ;
-  const struct Ospinor OM = spinor_to_Ospinor( M ) ;
+  const struct Ospinor OM  = spinor_to_Ospinor( M ) ;
 
   precompute_F_O2O3_v2( F , OU1 , OM , OU2 , loc ) ;
 

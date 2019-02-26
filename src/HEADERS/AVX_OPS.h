@@ -19,7 +19,7 @@
 #else
 #define AVX_MUL(a,b) ( _mm256_addsub_pd( _mm256_mul_pd( _mm256_movedup_pd( a ) , b ) , \
 					 _mm256_mul_pd( _mm256_unpackhi_pd( a , a ) , \
-							 _mm256_shuffle_pd( b , b , 0x5 ) ) ) )
+							_mm256_shuffle_pd( b , b , 0x5 ) ) ) )
 #endif
 
 #ifdef __FMA__

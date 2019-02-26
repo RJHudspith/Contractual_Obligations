@@ -32,8 +32,9 @@ help( void )
 	   "OPTION :: {then a brief description} 'AND'|'THEN'|'THE'|'POSSIBLE'|'OPTIONS' \n\n" ) ;
   fprintf( stdout , "BASIS :: {gamma basis} 'CHIRAL'|'NREL' \n" ) ;
   fprintf( stdout , "SPIN :: {spin projection} 'NONE'|'1/2_11'|'1/2_12'|'1/2_21'|'1/2_22'|'3/2' \n" ) ;
-  fprintf( stdout , "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
-  fprintf( stdout , "TFLIP :: {time axis flip} true|false" ) ;
+  //fprintf( stdout , "PARITY :: {parity projection} 'L0'|'L1'|'L2'|'L3'|'L4'|'L5' \n" ) ;
+  fprintf( stdout , "PARITY :: {parity projection} 'L4'|'L5' (Note L0->L3 not trusted)\n" ) ;
+  fprintf( stdout , "TFLIP :: {time axis flip} true|false\n" ) ;
   fprintf( stdout , "TSRC :: {what time slice our source was on} <positive integer>" ) ;
   return fprintf( stdout , "\n" ) ;
 }
@@ -121,17 +122,29 @@ main( const int argc ,
 
   // set the parity projection
   if( are_equal( argv[ PARITY_PROJ ] , "L0" ) ) {
-    fprintf( stdout , "[PARITY] Performing an L0 projection\n" ) ;
-    parity_proj = L0 ;
+    fprintf( stderr , "[PARITY] <NOT> Performing an L0 projection"
+	     " as Jamie doesn't trust it\n" ) ;
+    goto memfree ;
+    //fprintf( stdout , "[PARITY] Performing an L0 projection\n" ) ;
+    //parity_proj = L0 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L1" ) ) {
-    fprintf( stdout , "[PARITY] Performing an L1 projection\n" ) ;
-    parity_proj = L1 ;
+    fprintf( stderr , "[PARITY] <NOT> Performing an L1 projection"
+	     " as Jamie doesn't trust it\n" ) ;
+    goto memfree ;
+    //fprintf( stdout , "[PARITY] Performing an L1 projection\n" ) ;
+    //parity_proj = L1 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L2" ) ) {
-    fprintf( stdout , "[PARITY] Performing an L2 projection\n" ) ;
-    parity_proj = L2 ;
+    fprintf( stderr , "[PARITY] <NOT> Performing an L2 projection"
+	     " as Jamie doesn't trust it\n" ) ;
+    goto memfree ;
+    //fprintf( stdout , "[PARITY] Performing an L2 projection\n" ) ;
+    //parity_proj = L2 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L3" ) ) {
-    fprintf( stdout , "[PARITY] Performing an L3 projection\n" ) ;
-    parity_proj = L3 ;
+    fprintf( stderr , "[PARITY] <NOT> Performing an L3 projection"
+	     " as Jamie doesn't trust it\n" ) ;
+    goto memfree ;
+    //fprintf( stdout , "[PARITY] Performing an L3 projection\n" ) ;
+    //parity_proj = L3 ;
   } else if( are_equal( argv[ PARITY_PROJ ] , "L4" ) ) {
     fprintf( stdout , "[PARITY] Performing an L4 projection\n" ) ;
     parity_proj = L4 ;
@@ -187,16 +200,16 @@ main( const int argc ,
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
   // allocate projected corr
-  proj_corr = allocate_momcorrs( B_CHANNELS , B_CHANNELS , NMOM[0] ) ;
+  proj_corr = allocate_momcorrs( NGSNK[0] , NGSNK[0] , NMOM[0] ) ;
 
   if( corr == NULL || proj_corr == NULL ) goto memfree ;
 
   // do the projection
 #pragma omp parallel for private( GSGK )
-  for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
+  for( GSGK = 0 ; GSGK < ( NGSNK[0]*NGSNK[0] ) ; GSGK++ ) {
 
-    const size_t GSRC = GSGK / B_CHANNELS ;
-    const size_t GSNK = GSGK % B_CHANNELS ;
+    const size_t GSRC = GSGK / NGSNK[0] ;
+    const size_t GSNK = GSGK % NGSNK[0] ;
 
     // loop momenta
     size_t p ;
@@ -246,7 +259,7 @@ main( const int argc ,
   // write out the correlator
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)proj_corr , 
 		 momentum , NULL ,
-		 B_CHANNELS , B_CHANNELS , (const int*)NMOM , "" ) ;
+		 NGSNK[0] , NGSNK[0] , (const int*)NMOM , "" ) ;
 
  memfree :
 
@@ -258,7 +271,7 @@ main( const int argc ,
     free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
     // free the memory of the projected correlator
-    free_momcorrs( proj_corr , B_CHANNELS , B_CHANNELS , NMOM[0] ) ;
+    free_momcorrs( proj_corr , NGSNK[0] , NGSNK[0] , NMOM[0] ) ;
   }
 
   // free the momentum list

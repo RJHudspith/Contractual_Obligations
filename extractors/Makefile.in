@@ -88,7 +88,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = BARYONS$(EXEEXT) CAVG$(EXEEXT) MESONS$(EXEEXT) \
 	MOMAVG$(EXEEXT) VPFREAD$(EXEEXT) TETAVG$(EXEEXT) \
-	PROPOPS$(EXEEXT)
+	PROPOPS$(EXEEXT) PENTAVG$(EXEEXT)
 subdir = extractors
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -122,6 +122,12 @@ am_MOMAVG_OBJECTS = MOMAVG-momavg.$(OBJEXT) MOMAVG-reader.$(OBJEXT)
 MOMAVG_OBJECTS = $(am_MOMAVG_OBJECTS)
 MOMAVG_DEPENDENCIES = ${TOPDIR}/src/libCORR.a $(am__DEPENDENCIES_1)
 MOMAVG_LINK = $(CCLD) $(MOMAVG_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_PENTAVG_OBJECTS = PENTAVG-pent_avg.$(OBJEXT) \
+	PENTAVG-reader.$(OBJEXT)
+PENTAVG_OBJECTS = $(am_PENTAVG_OBJECTS)
+PENTAVG_DEPENDENCIES = ${TOPDIR}/src/libCORR.a $(am__DEPENDENCIES_1)
+PENTAVG_LINK = $(CCLD) $(PENTAVG_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_PROPOPS_OBJECTS = PROPOPS-PropOps.$(OBJEXT)
 PROPOPS_OBJECTS = $(am_PROPOPS_OBJECTS)
@@ -171,11 +177,11 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(BARYONS_SOURCES) $(CAVG_SOURCES) $(MESONS_SOURCES) \
-	$(MOMAVG_SOURCES) $(PROPOPS_SOURCES) $(TETAVG_SOURCES) \
-	$(VPFREAD_SOURCES)
+	$(MOMAVG_SOURCES) $(PENTAVG_SOURCES) $(PROPOPS_SOURCES) \
+	$(TETAVG_SOURCES) $(VPFREAD_SOURCES)
 DIST_SOURCES = $(BARYONS_SOURCES) $(CAVG_SOURCES) $(MESONS_SOURCES) \
-	$(MOMAVG_SOURCES) $(PROPOPS_SOURCES) $(TETAVG_SOURCES) \
-	$(VPFREAD_SOURCES)
+	$(MOMAVG_SOURCES) $(PENTAVG_SOURCES) $(PROPOPS_SOURCES) \
+	$(TETAVG_SOURCES) $(VPFREAD_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -318,6 +324,9 @@ VPFREAD_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
 TETAVG_SOURCES = tet_avg.c reader.c
 TETAVG_CFLAGS = -I${TOPDIR}/src/HEADERS/
 TETAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
+PENTAVG_SOURCES = pent_avg.c reader.c
+PENTAVG_CFLAGS = -I${TOPDIR}/src/HEADERS/
+PENTAVG_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
 PROPOPS_SOURCES = PropOps.c
 PROPOPS_CFLAGS = -I${TOPDIR}/src/HEADERS/
 PROPOPS_LDADD = ${TOPDIR}/src/libCORR.a ${LDFLAGS} -lm
@@ -413,6 +422,10 @@ MOMAVG$(EXEEXT): $(MOMAVG_OBJECTS) $(MOMAVG_DEPENDENCIES) $(EXTRA_MOMAVG_DEPENDE
 	@rm -f MOMAVG$(EXEEXT)
 	$(AM_V_CCLD)$(MOMAVG_LINK) $(MOMAVG_OBJECTS) $(MOMAVG_LDADD) $(LIBS)
 
+PENTAVG$(EXEEXT): $(PENTAVG_OBJECTS) $(PENTAVG_DEPENDENCIES) $(EXTRA_PENTAVG_DEPENDENCIES) 
+	@rm -f PENTAVG$(EXEEXT)
+	$(AM_V_CCLD)$(PENTAVG_LINK) $(PENTAVG_OBJECTS) $(PENTAVG_LDADD) $(LIBS)
+
 PROPOPS$(EXEEXT): $(PROPOPS_OBJECTS) $(PROPOPS_DEPENDENCIES) $(EXTRA_PROPOPS_DEPENDENCIES) 
 	@rm -f PROPOPS$(EXEEXT)
 	$(AM_V_CCLD)$(PROPOPS_LINK) $(PROPOPS_OBJECTS) $(PROPOPS_LDADD) $(LIBS)
@@ -439,6 +452,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MESONS-reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MOMAVG-momavg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MOMAVG-reader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PENTAVG-pent_avg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PENTAVG-reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PROPOPS-PropOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TETAVG-reader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TETAVG-tet_avg.Po@am__quote@
@@ -571,6 +586,34 @@ MOMAVG-reader.obj: reader.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='MOMAVG-reader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(MOMAVG_CFLAGS) $(CFLAGS) -c -o MOMAVG-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+
+PENTAVG-pent_avg.o: pent_avg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -MT PENTAVG-pent_avg.o -MD -MP -MF $(DEPDIR)/PENTAVG-pent_avg.Tpo -c -o PENTAVG-pent_avg.o `test -f 'pent_avg.c' || echo '$(srcdir)/'`pent_avg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/PENTAVG-pent_avg.Tpo $(DEPDIR)/PENTAVG-pent_avg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pent_avg.c' object='PENTAVG-pent_avg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -c -o PENTAVG-pent_avg.o `test -f 'pent_avg.c' || echo '$(srcdir)/'`pent_avg.c
+
+PENTAVG-pent_avg.obj: pent_avg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -MT PENTAVG-pent_avg.obj -MD -MP -MF $(DEPDIR)/PENTAVG-pent_avg.Tpo -c -o PENTAVG-pent_avg.obj `if test -f 'pent_avg.c'; then $(CYGPATH_W) 'pent_avg.c'; else $(CYGPATH_W) '$(srcdir)/pent_avg.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/PENTAVG-pent_avg.Tpo $(DEPDIR)/PENTAVG-pent_avg.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pent_avg.c' object='PENTAVG-pent_avg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -c -o PENTAVG-pent_avg.obj `if test -f 'pent_avg.c'; then $(CYGPATH_W) 'pent_avg.c'; else $(CYGPATH_W) '$(srcdir)/pent_avg.c'; fi`
+
+PENTAVG-reader.o: reader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -MT PENTAVG-reader.o -MD -MP -MF $(DEPDIR)/PENTAVG-reader.Tpo -c -o PENTAVG-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/PENTAVG-reader.Tpo $(DEPDIR)/PENTAVG-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='PENTAVG-reader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -c -o PENTAVG-reader.o `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+
+PENTAVG-reader.obj: reader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -MT PENTAVG-reader.obj -MD -MP -MF $(DEPDIR)/PENTAVG-reader.Tpo -c -o PENTAVG-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/PENTAVG-reader.Tpo $(DEPDIR)/PENTAVG-reader.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='PENTAVG-reader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PENTAVG_CFLAGS) $(CFLAGS) -c -o PENTAVG-reader.obj `if test -f 'reader.c'; then $(CYGPATH_W) 'reader.c'; else $(CYGPATH_W) '$(srcdir)/reader.c'; fi`
 
 PROPOPS-PropOps.o: PropOps.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(PROPOPS_CFLAGS) $(CFLAGS) -MT PROPOPS-PropOps.o -MD -MP -MF $(DEPDIR)/PROPOPS-PropOps.Tpo -c -o PROPOPS-PropOps.o `test -f 'PropOps.c' || echo '$(srcdir)/'`PropOps.c

@@ -1,6 +1,6 @@
 /**
-   @file tet_avg.c
-   @brief averages over the vector index
+   @file pent_avg.c
+   @brief averages the forward solution with the opposite parity backward one
  */
 #include "common.h"
 
@@ -11,16 +11,16 @@
 struct latt_info Latt ;
 
 // 
-enum { INFILE = 1 , OUTFILE = 2 } ;
+enum { INFILE = 1 , TSRC = 2 , OUTFILE = 3 } ;
 
 // little code for accessing elements of our correlator files
 int 
 main( const int argc ,
       const char *argv[] )
 {
-  if( argc < 2 ) {
-    return fprintf( stdout , "[TETAVG] Usage ./TETAVG {correlator file}"
-		    "{outfile} \n" ) ;
+  if( argc != 4 ) {
+    return fprintf( stdout , "[PENTAVG] Usage ./PENTTAVG {correlator file} tsrc"
+		    " {outfile} \n" ) ;
   }
 
   // read the correlation file
@@ -36,6 +36,8 @@ main( const int argc ,
     Latt.dims[ mu ] = 0 ;
   }
 
+  const int tsrc = atoi( argv[ TSRC ] ) ;
+  
   uint32_t NGSRC[1] = { 0 } , NGSNK[1] = { 0 } , NMOM[1] = { 0 } ;
 
   // allocate the momentum correlator
@@ -47,27 +49,42 @@ main( const int argc ,
   
   if( corr == NULL ) goto memfree ;
 
-  corravg = allocate_momcorrs( (size_t)1 , NGSRC[0] , NMOM[0] ) ;
+  corravg = allocate_momcorrs( (size_t)1 , NGSNK[0] , NMOM[0] ) ;
 
   // xyz average
-  size_t GSRC , GSNK , p , t ;
-  for( GSRC = 0 ; GSRC < NGSRC[0] ; GSRC++ ) {
+  size_t GSNK , p , t ;
+  for( GSNK = 0 ; GSNK < NGSNK[0] ; GSNK++ ) {
     for( p = 0 ; p < NMOM[0] ; p++ ) {
-      for( t = 0 ; t < Latt.dims[ ND-1 ] ; t++ ) {
-	register double complex sum = 0.0 ;
-	for( GSNK = 0 ; GSNK < ND-1 ; GSNK++ ) {
-	  sum += corr[GSRC][GSNK].mom[p].C[t] ; 
+      //
+      corravg[0][GSNK].mom[p].C[0] =
+	0.5*( corr[0][GSNK].mom[p].C[ 0 ] + corr[1][GSNK].mom[p].C[ 0 ] ) ;
+      
+      
+      for( t = 1 ; t < LT ; t++ ) {
+	double complex t1 , t2 ;
+	
+	if( t <= tsrc ) {
+	  t1 =  corr[0][GSNK].mom[p].C[ LT-t ] ;
+	} else {
+	  t1 = -corr[0][GSNK].mom[p].C[ LT-t ] ;
 	}
-	corravg[0][GSRC].mom[p].C[t] = sum / (double)(ND-1) ;
+	//
+	if( t >= (LT - tsrc) ) {
+	  t2 = -corr[1][GSNK].mom[p].C[t] ;
+	} else {
+	  t2 =  corr[1][GSNK].mom[p].C[t] ;
+	}
+	corravg[0][GSNK].mom[p].C[t] = 0.5*(t1+t2) ;
       }
+      //
     }
   }
   
   // write out the averaged list
   int nmom[1] = { (int)NMOM[0] } ;
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr**)corravg ,
-		 momentum , NULL , 2 , NGSRC[0] , nmom , "" ) ;
-  free_momcorrs( corravg , 2 , NGSRC[0] , NMOM[0] ) ;
+		 momentum , NULL , 1 , NGSNK[0] , nmom , "" ) ;
+  free_momcorrs( corravg , 1 , NGSNK[0] , NMOM[0] ) ;
   
  memfree :
 

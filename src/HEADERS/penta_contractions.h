@@ -121,6 +121,7 @@ spinmatrix_multiply_T_avx( void *a ,
    @param S :: strange quark propagator
    @param bwdH :: backward-propagating heavy quark
    @param GAMMAS :: gamma matrices
+   @param loc :: indexing
  */
 int
 pentas( double complex *result ,
