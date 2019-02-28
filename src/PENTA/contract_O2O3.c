@@ -14,16 +14,16 @@
 // precompute the F-tensor
 static void
 precompute_F_O2O3_v2( double complex **F ,
-		      const struct Ospinor OU1 ,
+		      const struct Ospinor OUT ,
 		      const struct Ospinor OM ,
-		      const struct Ospinor OU2 ,
+		      const struct Ospinor OU ,
 		      const uint8_t **loc )
 {
   struct spinmatrix temp4[ 9 ][ 9 ] ;
   size_t c1 , c2 , c3 , c4 ;
   for( c1 = 0 ; c1 < NC ; c1++ ) {
     for( c2 = 0 ; c2 < NC ; c2++ ) {
-      struct spinmatrix t1 = OU1.C[ c1 ][ c2 ] ;
+      struct spinmatrix t1 = OUT.C[ c1 ][ c2 ] ;
       for( c3 = 0 ; c3 < NC ; c3++ ) {
 	for( c4 = 0 ; c4 < NC ; c4++ ) {
 	  struct spinmatrix t2 = OM.C[ c3 ][ c4 ] ;
@@ -39,11 +39,12 @@ precompute_F_O2O3_v2( double complex **F ,
   for( i = 0 ; i < 729 ; i++ ) {
       
     // preset the spinmatrices
-    const struct spinmatrix temp3 = OU2.C[ loc[i][4] ][ loc[i][5] ] ;
+    struct spinmatrix temp3 = OU.C[ loc[i][4] ][ loc[i][5] ] ;
     struct spinmatrix temp5 ;
 
-    const double complex tr =
-      spinmatrix_trace( temp4[loc[i][1]+loc[i][0]*NC][loc[i][3]+loc[i][2]*NC].D ) ;
+    size_t c1 = loc[i][0]+loc[i][1]*NC ;
+    size_t c2 = loc[i][2]+loc[i][3]*NC ;
+    const double complex tr = spinmatrix_trace( temp4[c1][c2].D ) ;
 
     size_t d1 , d2 ;
     for( d1 = 0 ; d1 < NS ; d1++ ) {
@@ -52,9 +53,11 @@ precompute_F_O2O3_v2( double complex **F ,
       }
     }
 
-    spinmatrix_multiply( temp5.D ,
-			 temp4[loc[i][1]+loc[i][0]*NC][loc[i][3]+loc[i][2]*NC].D ,
-			 temp3.D ) ;
+    // this does the cross term NOTE :: both U props are transposed
+    temp3 = OUT.C[ loc[i][0] ][ loc[i][4] ] ;
+    c1 = loc[i][5]+loc[i][1]*NC ;
+    
+    spinmatrix_multiply( temp5.D , temp4[c1][c2].D , temp3.D ) ;
 
     for( d1 = 0 ; d1 < NS ; d1++ ) {
       for( d2 = 0 ; d2 < NS ; d2++ ) {
@@ -75,7 +78,7 @@ contract_colors_O2O3( const double complex *F )
   for( a = 0 ; a < NC ; a++ ) {
     for( c = 0 ; c < NC ; c++ ) {
       for( b = 0 ; b < NC ; b++ ) {
-	// first set of epsilon identities
+	// epsilon identities
 	sum += ( +F[ idx2( b , b , c , c , a , a ) ] 
 		 -F[ idx2( c , b , c , b , a , a ) ]
 		 -F[ idx2( a , b , c , c , a , b ) ]
@@ -102,27 +105,26 @@ contract_O2O3( struct spinmatrix *P ,
 	       const uint8_t **loc )
 {
   // precompute some gammas
-  struct gamma G5 = OP1 ;
-  struct gamma C1 = CGmu( G5 , GAMMAS ) ;
+  struct gamma CG1   = CGmu( OP1 , GAMMAS ) ;
+  struct gamma tCG1t = gt_Gdag_gt( CG1 , GAMMAS[ GAMMA_T ] ) ;
   
-  struct gamma t2t = gt_Gdag_gt( OP1 , GAMMAS[ GAMMA_T ] ) ;
-  struct gamma tC2t = gt_Gdag_gt( CGmu( OP2 , GAMMAS ) ,
-				  GAMMAS[ GAMMA_T ] ) ;
+  struct gamma G2   = OP2 ;
+  struct gamma tG2t = gt_Gdag_gt( G2 , GAMMAS[ GAMMA_T ] ) ;
 
   // precompute [ (Cg5 D tg5t) B (g5 S tCg5t) ]
   struct spinor M = S ;
-  gamma_mul_lr( &M , G5 , tC2t ) ;
+  gamma_mul_lr( &M , G2 , tCG1t ) ;
   struct spinor temp = D ;
-  gamma_mul_lr( &temp , C1 , t2t ) ;
-  
+  gamma_mul_lr( &temp , CG1 , tG2t ) ;
+ 
   spinmul_atomic_left( &M , B ) ;
   spinmul_atomic_left( &M , temp ) ;
 
-  const struct Ospinor OU1 = spinor_to_Ospinor( U ) ;
-  const struct Ospinor OU2 = spinor_to_Ospinor( U ) ;
+  const struct Ospinor OUT = spinor_to_Ospinor( transpose_spinor( U ) ) ;
+  const struct Ospinor OU  = spinor_to_Ospinor( U ) ;
   const struct Ospinor OM  = spinor_to_Ospinor( M ) ;
 
-  precompute_F_O2O3_v2( F , OU1 , OM , OU2 , loc ) ;
+  precompute_F_O2O3_v2( F , OUT , OM , OU , loc ) ;
 
   // compute the color contraction
   size_t d1 , d2 ;
