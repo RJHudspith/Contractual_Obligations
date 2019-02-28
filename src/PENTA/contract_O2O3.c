@@ -105,17 +105,25 @@ contract_O2O3( struct spinmatrix *P ,
 	       const uint8_t **loc )
 {
   // precompute some gammas
+  // here OP1 is the gamma for the both the diquark and meson
+  // and OP2 is the gamma structure for the daggered guy
+  struct gamma G1    = OP1 ;
   struct gamma CG1   = CGmu( OP1 , GAMMAS ) ;
-  struct gamma tCG1t = gt_Gdag_gt( CG1 , GAMMAS[ GAMMA_T ] ) ;
-  
-  struct gamma G2   = OP2 ;
-  struct gamma tG2t = gt_Gdag_gt( G2 , GAMMAS[ GAMMA_T ] ) ;
 
-  // precompute [ (Cg5 D tg5t) B (g5 S tCg5t) ]
-  struct spinor M = S ;
-  gamma_mul_lr( &M , G2 , tCG1t ) ;
+  struct gamma G2    = OP2 ;
+  struct gamma tG2t  = gt_Gdag_gt( G2 , GAMMAS[ GAMMA_T ] ) ;
+  struct gamma tCG2t = gt_Gdag_gt( CGmu( G2 , GAMMAS ) ,
+				   GAMMAS[ GAMMA_T ] ) ;
+  
+  // precompute [ (CG1 D tG2t) B (G1 S tCG2t) ]
+
+  // LHS of the B
   struct spinor temp = D ;
   gamma_mul_lr( &temp , CG1 , tG2t ) ;
+
+  // RHS of the B
+  struct spinor M = S ;
+  gamma_mul_lr( &M , G1 , tCG2t ) ;
  
   spinmul_atomic_left( &M , B ) ;
   spinmul_atomic_left( &M , temp ) ;
