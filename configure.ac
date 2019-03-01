@@ -137,6 +137,16 @@ AC_ARG_ENABLE([debug],
 	*) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
 	esac],[])
 
+## printfs debug information
+AC_ARG_ENABLE([TWOPOINT_FILTER],
+	[ --enable-TWOPOINT_FILTER filters out some unlikely gamma combinations for twopoint correlation functions],
+	[case "${enableval}" in
+	yes) AC_DEFINE([TWOPOINT_FILTER],,[twopoint correlation function filter])
+	     AC_MSG_NOTICE([Filtering gamma structures]) ;;	
+	no) AC_MSG_NOTICE([Not performing twopoint filtering]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-TWOPOINT_FILTER]) ;;
+	esac],[])
+
 ## NRQCD symmetric or non-symmetric spin-dependent evolution
 AC_ARG_ENABLE([NRQCD_NONSYM],
 	[ --enable-NRQCD_NONSYMM enables faster, non-symmetric in spin dependent terms in the NRQCD action],

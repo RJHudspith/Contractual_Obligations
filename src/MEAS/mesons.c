@@ -89,6 +89,10 @@ mesons_diagonal( struct propagator prop1 ,
 	for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
 	  const size_t GSRC = GSGK / stride1 ;
 	  const size_t GSNK = GSGK % stride2 ;
+	  #ifdef TWOPOINT_FILTER
+	  if( !filter[ GSRC ][ GSNK ] ) continue ;
+	  #endif
+	  
 	  const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
 							 M.GAMMAS[ GAMMA_T ] ) ;
 	  // loop spatial hypercube
@@ -102,10 +106,14 @@ mesons_diagonal( struct propagator prop1 ,
       }  
       // end of loop on sites
       size_t GSGK ;
-      #pragma omp for private(GSGK)
+      #pragma omp for private(GSGK) schedule(dynamic)
       for( GSGK = 0 ; GSGK < flat_dirac ; GSGK++ ) {
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
+	#ifdef TWOPOINT_FILTER
+	if( !filter[ GSRC ][ GSNK ] ) continue ;
+        #endif
+	
 	const struct gamma gt_GSNKdag_gt = gt_Gdag_gt( M.GAMMAS[ GSNK ] , 
 						       M.GAMMAS[ GAMMA_T ] ) ;
 	M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] =	\

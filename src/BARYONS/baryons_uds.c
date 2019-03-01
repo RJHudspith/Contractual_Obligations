@@ -15,6 +15,8 @@
 #include "setup.h"             // free_ffts()
 #include "spinor_ops.h"        // sumwalls()
 
+#include "contractions.h"
+
 // number of props
 #define Nprops (3)
 
@@ -109,9 +111,11 @@ baryons_3fdiagonal( struct propagator prop1 ,
 	
 	size_t GSGK ;
 	for( GSGK = 0 ; GSGK < ( B_CHANNELS * B_CHANNELS ) ; GSGK++ ) {
-
 	  const size_t GSRC = GSGK / B_CHANNELS ;
 	  const size_t GSNK = GSGK % B_CHANNELS ;
+	  #ifdef TWOPOINT_FILTER
+	  if( !filter[ GSRC ][ GSNK ] ) continue ;
+	  #endif
 
 	  // Wall-Local
 	  baryon_contract_site_mom( M.in , 

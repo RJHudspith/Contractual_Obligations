@@ -101,10 +101,11 @@ baryons_diagonal( struct propagator prop1 ,
 	
 	size_t GSGK ; // combined gamma source and sink indices
 	for( GSGK = 0 ; GSGK < stride1 ; GSGK++ ) {
-
-	  // source and sink gammas
 	  const size_t GSRC = GSGK / B_CHANNELS ;
 	  const size_t GSNK = GSGK % B_CHANNELS ;
+	  #ifdef TWOPOINT_FILTER
+	  if( !filter[ GSRC ][ GSNK ] ) continue ;
+	  #endif
 	  
 	  // Wall-Local
 	  baryon_contract_site_mom( M.in ,

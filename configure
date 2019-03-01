@@ -744,6 +744,7 @@ with_B_CHANNELS
 with_M_CHANNELS
 enable_notcondor
 enable_debug
+enable_TWOPOINT_FILTER
 enable_NRQCD_NONSYM
 enable_LEGACY_NRQCD_COMPARE
 enable_TETRA_NRQCD_HACK
@@ -1397,6 +1398,7 @@ Optional Features:
                           speeds up one-time build
  --enable-notcondor Allows for the saving of FFT plans and some simple hashing and whatever
  --enable-debug prints to stdout some general debugging information
+ --enable-TWOPOINT_FILTER filters out some unlikely gamma combinations for twopoint correlation functions
  --enable-NRQCD_NONSYMM enables faster, non-symmetric in spin dependent terms in the NRQCD action
  --enable-LEGACY_NRQCD_COMPARE when we compare to the legacy fortran code we need to turn this on due to a difference in the terms c2, c3, c7,and c8 in which we subtract the non-unitary terms but the old code does not
  --enable-TETRA_NRQCD_HACK enables the computation just of the 4x4 unique operators when doing heavy-light tetraquarks with NRQCD
@@ -4989,6 +4991,22 @@ $as_echo "$as_me: Printing debug information to stdout" >&6;} ;;
 	no) { $as_echo "$as_me:${as_lineno-$LINENO}: Not printing debug information to stdout" >&5
 $as_echo "$as_me: Not printing debug information to stdout" >&6;} ;;
 	*) as_fn_error $? "bad value ${enableval} for --enable-debug" "$LINENO" 5 ;;
+	esac
+fi
+
+
+## printfs debug information
+# Check whether --enable-TWOPOINT_FILTER was given.
+if test "${enable_TWOPOINT_FILTER+set}" = set; then :
+  enableval=$enable_TWOPOINT_FILTER; case "${enableval}" in
+	yes)
+$as_echo "#define TWOPOINT_FILTER /**/" >>confdefs.h
+
+	     { $as_echo "$as_me:${as_lineno-$LINENO}: Filtering gamma structures" >&5
+$as_echo "$as_me: Filtering gamma structures" >&6;} ;;
+	no) { $as_echo "$as_me:${as_lineno-$LINENO}: Not performing twopoint filtering" >&5
+$as_echo "$as_me: Not performing twopoint filtering" >&6;} ;;
+	*) as_fn_error $? "bad value ${enableval} for --enable-TWOPOINT_FILTER" "$LINENO" 5 ;;
 	esac
 fi
 

@@ -118,6 +118,9 @@
 /* Hard-coded 4x4 choice of tetraquark operators */
 #undef TETRA_NRQCD_HACK
 
+/* twopoint correlation function filter */
+#undef TWOPOINT_FILTER
+
 /* Compiled T_NRQCD */
 #undef T_NRQCD
 

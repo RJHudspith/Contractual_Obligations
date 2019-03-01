@@ -1,6 +1,6 @@
 /**
    @file pent_avg.c
-   @brief averages the forward solution with the opposite parity backward one
+   @brief averages the forward solution with the opposite correctly projected parity backward one
  */
 #include "common.h"
 
@@ -19,14 +19,14 @@ main( const int argc ,
       const char *argv[] )
 {
   if( argc != 4 ) {
-    return fprintf( stdout , "[PENTAVG] Usage ./PENTTAVG {correlator file} tsrc"
+    return fprintf( stdout , "[PENTAVG] Usage ./PENTAVG {correlator file} tsrc"
 		    " {outfile} \n" ) ;
   }
 
   // read the correlation file
   FILE *infile = fopen( argv[ INFILE ] , "rb" ) ;
   if( infile == NULL ) {
-    fprintf( stderr , "[TETAVG] File %s does not exist\n" , argv[INFILE] ) ;
+    fprintf( stderr , "[PENTAVG] File %s does not exist\n" , argv[INFILE] ) ;
     return FAILURE ;
   }
 

@@ -91,18 +91,28 @@ pentas( double complex *result ,
   fprintf( stderr , "[PENTA] compiled PENTA_NBLOCK greater than we allow\n" ) ;
   return FAILURE ;
 #endif
+
   struct gamma GBLOCK[ 4 ] = { GAMMAS[ GAMMA_5 ] ,
-			       GAMMAS[ AT ] ,
 			       GAMMAS[ IDENTITY ] ,
+			       GAMMAS[ AT ] ,
 			       GAMMAS[ GAMMA_T ] } ;
 
+  
   size_t idx ;
   for( idx = 0 ; idx < (PENTA_NBLOCK*PENTA_NBLOCK*PENTA_NOPS) ; idx++ ) {
     
-    // indexing                                                                 
+    // indexing                  
     const size_t b1 = (idx/(PENTA_NOPS*PENTA_NBLOCK)) ;
     const size_t b2 = (idx/PENTA_NOPS)%PENTA_NBLOCK ;
     const size_t i  = (idx)%PENTA_NOPS ;
+
+    // turn of the diquarky ones until I fix them if I ever do
+    switch( i ) {
+    case 0 : case 1 : case 2 : case 3 : case 6 :
+      continue ;
+    default :
+      break ;
+    }
     
     // do the contractions
     struct spinmatrix P ;
@@ -115,7 +125,7 @@ pentas( double complex *result ,
     // get the map correct
     const size_t icol = i%3 , irow = i/3 ;
     const size_t idx = icol*PENTA_NBLOCK + irow*3*PENTA_NBLOCK*PENTA_NBLOCK + b2 + b1*PENTA_NBLOCK*3 ;
-
+    
     project_parity( result + idx ,
 		    result + idx + PENTA_NOPS*PENTA_NBLOCK*PENTA_NBLOCK ,
 		    P , GAMMAS[ GAMMA_T ] , i ) ;
