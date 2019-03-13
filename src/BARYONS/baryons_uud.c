@@ -36,7 +36,7 @@ baryons_2fdiagonal( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // output file
-  char bar_outfile[ strlen( outfile ) + 4 ] ;
+  char bar_outfile[ strlen( outfile ) + 5 ] ;
   sprintf( bar_outfile , "%s.uud" , outfile ) ;
 
   // gamma LUT

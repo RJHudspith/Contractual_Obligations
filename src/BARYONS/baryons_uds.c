@@ -37,7 +37,7 @@ baryons_3fdiagonal( struct propagator prop1 ,
   const size_t flat_dirac = 2 * stride1 * stride2 ;
 
   // output file
-  char bar_outfile[ strlen( outfile ) + 4 ] ;
+  char bar_outfile[ strlen( outfile ) + 5 ] ;
   sprintf( bar_outfile , "%s.uds" , outfile ) ;
   
   // error code

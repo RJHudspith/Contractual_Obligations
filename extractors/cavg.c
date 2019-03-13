@@ -72,7 +72,7 @@ main( const int argc ,
 
   // do the average into element 0
   size_t GSGK ;
-#pragma omp parallel for private(GSGK)
+  #pragma omp parallel for private(GSGK)
   for( GSGK = 0 ; GSGK < ( NGSRC[0] * NGSNK[0] ) ; GSGK++ ) {
     const size_t GSRC = GSGK / NGSNK[0] ;
     const size_t GSNK = GSGK % NGSNK[0] ;

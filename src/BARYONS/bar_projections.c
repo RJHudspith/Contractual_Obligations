@@ -191,9 +191,17 @@ baryon_project( const struct mcorr **corr ,
   corr_malloc( (void**)&result , ALIGNMENT , LT * sizeof( double complex ) ) ;
 
   // build these just in case
-  struct gamma g0g5 ; gamma_mmul( &g0g5 , GAMMA[ GAMMA_T ] , GAMMA[ 5 ] ) ;
-  struct gamma g3g0g5 ; gamma_mmul( &g3g0g5 , GAMMA[ GAMMA_Z ] , g0g5 ) ;
-
+  struct gamma gxg5 , gtgxg5 , gyg5 , gtgyg5 , gzg5 , gtgzg5 ;
+  // x-projection
+  gamma_mmul( &gxg5 , GAMMA[ GAMMA_Z ] , GAMMA[ GAMMA_5 ] ) ;
+  gamma_mmul( &gtgxg5 , GAMMA[ GAMMA_T ] , gxg5 ) ;
+  // y-projection
+  gamma_mmul( &gyg5 , GAMMA[ GAMMA_Z ] , GAMMA[ GAMMA_5 ] ) ;
+  gamma_mmul( &gtgyg5 , GAMMA[ GAMMA_T ] , gyg5 ) ;
+  // z-projection
+  gamma_mmul( &gzg5 , GAMMA[ GAMMA_Z ] , GAMMA[ GAMMA_5 ] ) ;
+  gamma_mmul( &gtgzg5 , GAMMA[ GAMMA_T ] , gzg5 ) ;
+  
   // loop times 
   size_t t ;
   for( t = 0 ; t < LT ; t++ ) {
@@ -202,38 +210,62 @@ baryon_project( const struct mcorr **corr ,
     spin_project( D , corr , GAMMA , momentum , 
 		  GSRC , GSNK , p , t , spin_proj ) ; 
 
+    // Parity projections are ::
+    // L0_i = ( 1 + \gamma_t ) * ( 1 + i \gamma_i \gamma_5 )/4
+    // L1_i = ( 1 + \gamma_t ) * ( 1 - i \gamma_i \gamma_5 )/4
+    // L2_i = ( 1 - \gamma_t ) * ( 1 + i \gamma_i \gamma_5 )/4
+    // L3_i = ( 1 - \gamma_t ) * ( 1 - i \gamma_i \gamma_5 )/4
+    // Note that L^{i}_j.L^{i}_j = L^{i}_j
+    // BUT
+    // L_4.L5 = 0, L_{0/1}.L_{1/0,2,3,5} = 0, L_{2/3}.L_{0,1,3/2,4} = 0
     switch( parity_proj ) {
-    case L0 : // does 1/4( g_I + g_3 - i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) - 
-			    I * gammaspinmatrix_trace( g0g5 , D ) - 
-			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+    case L0 :
+      result[ t ] = ( +3*gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D )
+		      +3*gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D )  
+		      +I * gammaspinmatrix_trace( gxg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgxg5 , D ) 
+		      +I * gammaspinmatrix_trace( gyg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgyg5 , D ) 
+		      +I * gammaspinmatrix_trace( gzg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgzg5 , D ) ) / 12. ;
       break ;
-    case L1 : // does 1/4( g_I - g_3 + i*g_0g_5 - i*g_3g_0g_5
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			    I * gammaspinmatrix_trace( g0g5 , D ) - 
-			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+    case L1 :
+      result[ t ] = ( +3*gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D )
+		      +3*gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D )  
+		      -I * gammaspinmatrix_trace( gxg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgxg5 , D ) 
+		      -I * gammaspinmatrix_trace( gyg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgyg5 , D ) 
+		      -I * gammaspinmatrix_trace( gzg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgzg5 , D ) ) / 12. ;
       break ;
-    case L2 : // does 1/4( g_I - g_3 - i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) -
-			    I * gammaspinmatrix_trace( g0g5 , D ) + 
-			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+    case L2 :
+      result[ t ] = ( +3*gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D )
+		      -3*gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D )
+		      +I * gammaspinmatrix_trace( gxg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgxg5 , D ) 
+		      +I * gammaspinmatrix_trace( gyg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgyg5 , D )
+		      +I * gammaspinmatrix_trace( gzg5 , D ) 
+		      -I * gammaspinmatrix_trace( gtgzg5 , D ) ) / 12. ;
       break ;
-    case L3 : // does 1/4( g_I + g_3 + i*g_0g_5 + i*g_3g_0g_5
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) + 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) +
-			    I * gammaspinmatrix_trace( g0g5 , D ) + 
-			    I * gammaspinmatrix_trace( g3g0g5 , D ) ) ;
+    case L3 :
+      result[ t ] = ( +3*gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D )
+		      -3*gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D )
+		      -I * gammaspinmatrix_trace( gxg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgxg5 , D ) 
+		      -I * gammaspinmatrix_trace( gyg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgyg5 , D ) 
+		      -I * gammaspinmatrix_trace( gzg5 , D ) 
+		      +I * gammaspinmatrix_trace( gtgzg5 , D ) ) / 12. ;
       break ;
-    case L4 : // does 1/2 ( g_I + g_3 )
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
+    case L4 : // does 1/2 ( g_I + g_t )
+      result[ t ] = ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) +
+		      gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) / 2. ;
       break ;
-    case L5 : // does 1/2 ( g_I - g_3 )
-      result[ t ] = 0.5 * ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
-			    gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) ;
+    case L5 : // does 1/2 ( g_I - g_t )
+      result[ t ] = ( gammaspinmatrix_trace( GAMMA[ IDENTITY ] , D ) - 
+		      gammaspinmatrix_trace( GAMMA[ GAMMA_T ] , D ) ) / 2. ;
       break ;
     }
   }

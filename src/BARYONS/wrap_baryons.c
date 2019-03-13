@@ -51,7 +51,7 @@ contract_baryons( struct propagator *prop ,
       }
       if( reread_propheaders( &prop[ p1 ] ) == FAILURE ) { return FAILURE ; }
       if( reread_propheaders( &prop[ p3 ] ) == FAILURE ) { return FAILURE ; }
-      // two props are the same S1 ( S1 Cgmu S2 )
+      // two props are the same S2 ( S1 Cgmu S1 Cgmu )
     } else if( p1 == p3 && p3 != p2 ) {
       if( baryons_2fdiagonal( prop[ p1 ] , prop[ p2 ] , CUTINFO , 
 			      baryons[ measurements ].outfile ) 

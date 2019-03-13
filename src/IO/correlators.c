@@ -174,7 +174,7 @@ write_momcorr( const char *outfile ,
 	       const char *type )
 {
   // write out the correlator
-  char outstr[ 256 ] ;
+  char outstr[ strlen(outfile)+strlen(type)+2 ] ;
   if( !strcmp( type , "" ) ) { 
     sprintf( outstr , "%s" , outfile ) ;
   } else {
