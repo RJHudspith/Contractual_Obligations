@@ -326,7 +326,7 @@ struct Ospinor {
    @param outfile :: output file name
  */
 struct penta_info {
-  size_t map[3] ;
+  size_t map[5] ;
   char outfile[ 256 ] ;
 } ;
 

@@ -190,7 +190,8 @@ am__objects_9 = ./PENTA/contract_O1O1.$(OBJEXT) \
 	./PENTA/contract_O3O2.$(OBJEXT) \
 	./PENTA/contract_O3O3.$(OBJEXT) \
 	./PENTA/penta_contractions.$(OBJEXT) \
-	./PENTA/penta_udusb.$(OBJEXT) ./PENTA/wrap_pentas.$(OBJEXT)
+	./PENTA/penta_udusb.$(OBJEXT) ./PENTA/penta_bubds.$(OBJEXT) \
+	./PENTA/wrap_pentas.$(OBJEXT)
 am__objects_10 = ./TETRA/su2_dibaryon.$(OBJEXT) \
 	./TETRA/dibaryon_contractions.$(OBJEXT) \
 	./TETRA/tetra_contractions.$(OBJEXT) \
@@ -428,7 +429,7 @@ PENTAFILES = ./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O3O1.c ./PENTA/contract_O3O2.c \
 	./PENTA/contract_O3O3.c \
 	./PENTA/penta_contractions.c \
-	./PENTA/penta_udusb.c ./PENTA/wrap_pentas.c
+	./PENTA/penta_udusb.c ./PENTA/penta_bubds.c ./PENTA/wrap_pentas.c
 
 TETRAFILES = ./TETRA/su2_dibaryon.c ./TETRA/dibaryon_contractions.c \
 	./TETRA/tetra_contractions.c ./TETRA/tetra_udbb.c ./TETRA/tetra_usbb.c \
@@ -743,6 +744,8 @@ PENTA/$(DEPDIR)/$(am__dirstamp):
 	PENTA/$(DEPDIR)/$(am__dirstamp)
 ./PENTA/penta_udusb.$(OBJEXT): PENTA/$(am__dirstamp) \
 	PENTA/$(DEPDIR)/$(am__dirstamp)
+./PENTA/penta_bubds.$(OBJEXT): PENTA/$(am__dirstamp) \
+	PENTA/$(DEPDIR)/$(am__dirstamp)
 ./PENTA/wrap_pentas.$(OBJEXT): PENTA/$(am__dirstamp) \
 	PENTA/$(DEPDIR)/$(am__dirstamp)
 TETRA/$(am__dirstamp):
@@ -986,6 +989,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O3O1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O3O2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/contract_O3O3.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/penta_bubds.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/penta_contractions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/penta_udusb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./PENTA/$(DEPDIR)/wrap_pentas.Po@am__quote@

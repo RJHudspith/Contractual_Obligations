@@ -21,12 +21,12 @@
 // number of propagators
 #define Nprops (3)
 
-// as it is a udusb type we assume exact isospin such that u == d
-// this saves on a propagator read
+// as it is a bubds-type pentaquark we need four propagator reads
+// otherwise we just call the same contraction code
 int
-pentaquark_udusb( struct propagator prop1 , // L
-		  struct propagator prop2 , // S
-		  struct propagator prop3 , // H
+pentaquark_bubds( struct propagator prop1 , // B
+		  struct propagator prop2 , // U
+		  struct propagator prop3 , // S
 		  struct cut_info CUTINFO ,
 		  const char *outfile )
 {
@@ -56,7 +56,7 @@ pentaquark_udusb( struct propagator prop1 , // L
   // initialise our measurement struct
   struct propagator prop[ Nprops ] = { prop1 , prop2 , prop3 } ;
   // penta is udus\bar{b} so 3 light phases, one strange and one anti-b
-  const int sign[ Nprops ] = { +3 , +1 , -1 } ;
+  const int sign[ Nprops ] = { +2 , +2 , -1 } ;
   struct measurements M ;
   if( init_measurements( &M , prop , Nprops , CUTINFO ,
 			 stride1 , stride2 , flat_dirac , sign ) == FAILURE ) {
@@ -129,8 +129,8 @@ pentaquark_udusb( struct propagator prop1 , // L
 	struct spinor bwdH ;
 	full_adj( &bwdH , SUM_r2[2] , M.GAMMAS[ GAMMA_5 ] ) ;
 	
-	// perform contraction, result in result
-	pentas( result , F , SUM_r2[0] , SUM_r2[0] , SUM_r2[1] , bwdH ,
+	// perform contraction, result goes into result
+	pentas( result , F , SUM_r2[0] , SUM_r2[1] , SUM_r2[1] , bwdH ,
 		M.GAMMAS , (const uint8_t**)loc ) ;
 	
 	// put contractions into flattend array for FFT
@@ -151,7 +151,7 @@ pentaquark_udusb( struct propagator prop1 , // L
 	  result[ k ] = 0.0 ;
 	}
 	// perform contraction, result in result
-	pentas( result , F , M.SUM[0] , M.SUM[0] , M.SUM[1] , SUMbwdH ,
+	pentas( result , F , M.SUM[0] , M.SUM[1] , M.SUM[1] , SUMbwdH ,
 		M.GAMMAS , (const uint8_t**)loc ) ;
 	// put contractions into final correlator object
 	size_t op ;

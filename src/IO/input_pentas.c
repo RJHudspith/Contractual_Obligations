@@ -17,22 +17,22 @@ penta_tokens( struct penta_info *pentas ,
   fprintf( stdout , "\n" ) ;
   // starts with the contraction indices
   char *token = (char*)strtok( (char*)penta_str , "," ) ;
-  if( get_contraction_map( &( pentas -> map[0] ) , token , nprops ) == FAILURE ) {
+  // pentaquark has five quarks
+  size_t mu = 0 ;
+  fprintf( stdout , "[IO] %s_%zu :: Contracting prop " , message , meas_idx ) ;
+  if( get_contraction_map( &( pentas -> map[mu] ) , token , nprops ) == FAILURE ) {
     return FAILURE ;
   }
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_contraction_map( &( pentas -> map[1] ) , token , nprops ) == FAILURE ) {
-    return FAILURE ;
+  fprintf( stdout , "%zu " , pentas -> map[mu] ) ;
+  for( mu = 1 ; mu < 5 ; mu++ ) {
+    if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
+    if( get_contraction_map( &( pentas -> map[mu] ) , token , nprops ) == FAILURE ) {
+      return FAILURE ;
+    }
+    fprintf( stdout , "with %zu " , pentas -> map[mu] ) ;
   }
-  if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
-  if( get_contraction_map( &( pentas -> map[2] ) , token , nprops ) == FAILURE ) {
-    return FAILURE ;
-  }
-  fprintf( stdout , "[IO] %s_%zu :: Contracting prop %zu with prop %zu "
-	   "with prop %zu \n" , 
-	   message , meas_idx , pentas -> map[0] , pentas -> map[1] , 
-	   pentas -> map[2]  ) ;
-    // output file
+
+  // output file
   if( ( token = (char*)strtok( NULL , "," ) ) == NULL ) return unexpected_NULL( ) ;
   sprintf( pentas -> outfile , "%s" , token ) ;
   fprintf( stdout , "[IO] %s_%zu :: Contraction file in %s \n" , 

@@ -56,7 +56,7 @@ PENTAFILES=./PENTA/contract_O1O1.c ./PENTA/contract_O1O2.c \
 	./PENTA/contract_O3O1.c ./PENTA/contract_O3O2.c \
 	./PENTA/contract_O3O3.c \
 	./PENTA/penta_contractions.c \
-	./PENTA/penta_udusb.c ./PENTA/wrap_pentas.c
+	./PENTA/penta_udusb.c ./PENTA/penta_bubds.c ./PENTA/wrap_pentas.c
 
 ## c files in ./TETRA/
 TETRAFILES=./TETRA/su2_dibaryon.c ./TETRA/dibaryon_contractions.c \

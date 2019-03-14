@@ -81,7 +81,8 @@ project_parity( double complex *pos ,
 int
 pentas( double complex *result ,
 	double complex **F ,
-	const struct spinor L , 
+	const struct spinor U ,
+	const struct spinor D , 
 	const struct spinor S ,
 	const struct spinor bwdH ,
 	const struct gamma *GAMMAS ,
@@ -106,7 +107,7 @@ pentas( double complex *result ,
     const size_t b2 = (idx/PENTA_NOPS)%PENTA_NBLOCK ;
     const size_t i  = (idx)%PENTA_NOPS ;
 
-    // turn of the diquarky ones until I fix them if I ever do
+    // turn off the diquarky ones until I fix them if I ever do
     switch( i ) {
     case 0 : case 1 : case 2 : case 3 : case 6 :
       continue ;
@@ -116,7 +117,7 @@ pentas( double complex *result ,
     
     // do the contractions
     struct spinmatrix P ;
-    contract[i]( &P , F , L , L , S , bwdH ,
+    contract[i]( &P , F , U , D , S , bwdH ,
 		 GBLOCK[ b1 ] ,
 		 GBLOCK[ b2 ] ,
 		 GAMMAS ,

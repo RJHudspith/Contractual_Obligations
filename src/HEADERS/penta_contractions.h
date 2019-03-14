@@ -115,18 +115,20 @@ spinmatrix_multiply_T_avx( void *a ,
 			   const void *c ) ;
 
 /**
-   @fn int pentas( double complex *result , const struct spinor L , const struct spinor S , const struct spinor bwdH , const struct gamma *GAMMAS )
+   @fn int pentas( double complex *result , const struct spinor U , const struct spinor D , const struct spinor S , const struct spinor bwdH , const struct gamma *GAMMAS )
    @brief pentaquark contraction code for a udusb pentaquark
-   @param L :: light quark propagator assumes u-d degeneracy
-   @param S :: strange quark propagator
-   @param bwdH :: backward-propagating heavy quark
+   @param U :: two of these propagators
+   @param D :: one of these
+   @param S :: one of these
+   @param bwdH :: backward-propagating quark
    @param GAMMAS :: gamma matrices
    @param loc :: indexing
  */
 int
 pentas( double complex *result ,
 	double complex **F ,
-	const struct spinor L , 
+	const struct spinor U ,
+	const struct spinor D , 
 	const struct spinor S ,
 	const struct spinor bwdH ,
 	const struct gamma *GAMMAS ,
