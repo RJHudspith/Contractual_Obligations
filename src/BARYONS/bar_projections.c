@@ -93,19 +93,20 @@ set_Gik( double complex *Gik ,
 	 const size_t i ,
 	 const size_t k ,
 	 const size_t pidx ,
-	 const size_t t )
+	 const size_t t ,
+	 const size_t NGAMS )
 {
   size_t d ;
 #if NS == 4
   for( d = 0 ; d < NS ; d++ ) {
-    Gik[ 0 + d * NS ] = corr[ k + i*B_CHANNELS ][ 0 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 1 + d * NS ] = corr[ k + i*B_CHANNELS ][ 1 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 2 + d * NS ] = corr[ k + i*B_CHANNELS ][ 2 + d * NS ].mom[ pidx ].C[ t ] ;
-    Gik[ 3 + d * NS ] = corr[ k + i*B_CHANNELS ][ 3 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 0 + d * NS ] = corr[ k + i*NGAMS ][ 0 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 1 + d * NS ] = corr[ k + i*NGAMS ][ 1 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 2 + d * NS ] = corr[ k + i*NGAMS ][ 2 + d * NS ].mom[ pidx ].C[ t ] ;
+    Gik[ 3 + d * NS ] = corr[ k + i*NGAMS ][ 3 + d * NS ].mom[ pidx ].C[ t ] ;
   }
 #else
   for( d = 0 ; d < NSNS ; d++ ) {
-    Gik[ d ] = corr[ k + i*B_CHANNELS ][ d ].mom[ pidx ].C[ t ] ;
+    Gik[ d ] = corr[ k + i*NGAMS ][ d ].mom[ pidx ].C[ t ] ;
   }
 #endif
 }
@@ -140,33 +141,34 @@ spin_project( double complex *Gik ,
 	      const size_t k ,
 	      const size_t p ,
 	      const size_t t ,
-	      const spinhalf projection ) 
+	      const spinhalf projection ,
+	      const size_t NGAMS ) 
 {
   // spin projections are for spatial indices only!!
   if( check_idx(i) == GAMMA_T || check_idx(k) == GAMMA_T ) {
-    set_Gik( Gik , corr , i , k , p , t ) ;
+    set_Gik( Gik , corr , i , k , p , t , NGAMS ) ;
     return ;
   }
   
   // do the spin projections
   switch( projection ) {
   case OneHalf_11 :
-    spinproj( Gik , P11 , corr , i , k , t , GAMMA , momentum , p ) ;
+    spinproj( Gik , P11 , corr , i , k , t , GAMMA , momentum , p , NGAMS ) ;
     break ;
   case OneHalf_12 :
-    spinproj( Gik , P12 , corr , i , k , t , GAMMA , momentum , p ) ;
+    spinproj( Gik , P12 , corr , i , k , t , GAMMA , momentum , p , NGAMS ) ;
     break ;
   case OneHalf_21 :
-    spinproj( Gik , P21 , corr , i , k , t , GAMMA , momentum , p ) ;
+    spinproj( Gik , P21 , corr , i , k , t , GAMMA , momentum , p , NGAMS ) ;
     break ;
   case OneHalf_22 :
-    spinproj( Gik , P22 , corr , i , k , t , GAMMA , momentum , p ) ;
+    spinproj( Gik , P22 , corr , i , k , t , GAMMA , momentum , p , NGAMS ) ;
     break ;
   case ThreeHalf :
-    spinproj( Gik , P32 , corr , i , k , t , GAMMA , momentum , p ) ;
+    spinproj( Gik , P32 , corr , i , k , t , GAMMA , momentum , p , NGAMS ) ;
     break ;
   case NONE :
-    set_Gik( Gik , corr , i , k , p , t ) ;
+    set_Gik( Gik , corr , i , k , p , t , NGAMS ) ;
     break ;
   }
   return ;
@@ -181,7 +183,8 @@ baryon_project( const struct mcorr **corr ,
 		const size_t GSNK ,
 		const size_t p ,
 		const bprojection parity_proj , 
-		const spinhalf spin_proj ) 
+		const spinhalf spin_proj ,
+		const size_t NGAMS ) 
 {
   // D is a temporary spinmatrix
   double complex *D = NULL , *result = NULL ;
@@ -208,8 +211,8 @@ baryon_project( const struct mcorr **corr ,
 
     // set open dirac matrix doing the spin projection if desired
     spin_project( D , corr , GAMMA , momentum , 
-		  GSRC , GSNK , p , t , spin_proj ) ; 
-
+		  GSRC , GSNK , p , t , spin_proj , NGAMS ) ; 
+    
     // Parity projections are ::
     // L0_i = ( 1 + \gamma_t ) * ( 1 + i \gamma_i \gamma_5 )/4
     // L1_i = ( 1 + \gamma_t ) * ( 1 - i \gamma_i \gamma_5 )/4
@@ -520,7 +523,8 @@ spinproj( double complex *Gik ,
 	  const size_t t ,
 	  const struct gamma *GAMMA ,
 	  const struct veclist *momentum ,
-	  const size_t pidx )
+	  const size_t pidx ,
+	  const size_t NGAMS )
 {
   // set sum to zero
   zero_spinmatrix( Gik ) ;
@@ -555,7 +559,7 @@ spinproj( double complex *Gik ,
   // perform contraction
   const size_t gi = check_idx( i ) ;
   for( j = 0 ; j < ND ; j++ ) {
-    set_Gik( Gjk , corr , j , k , pidx , t ) ;
+    set_Gik( Gjk , corr , j , k , pidx , t , NGAMS ) ;
     p( pij , gi , j , GAMMA , momentum , pidx ) ;
     spinmatrix_multiply( tmp , pij , Gjk ) ;
     atomic_add_spinmatrices( Gik , tmp ) ;

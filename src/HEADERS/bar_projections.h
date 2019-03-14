@@ -17,7 +17,8 @@ baryon_project( const struct mcorr **corr ,
 		const size_t GSNK ,
 		const size_t p ,
 		const bprojection parity_proj , 
-		const spinhalf spin_proj ) ;
+		const spinhalf spin_proj ,
+		const size_t NGAMS ) ;
 
 /**
    @fn void compute_p_psq( double p[ ND ] , double *p2 , const struct veclist momentum )
@@ -101,7 +102,7 @@ P00( double complex *proj ,
      const size_t pidx ) ;
 
 /**
-   @fn int spinproj( double complex *Gik , void (*p)( double complex *proj , const size_t i , const size_t j , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx ) , const struct mcorr **corr , const size_t i , const size_t k , const size_t t , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx )
+   @fn int spinproj( double complex *Gik , void (*p)( double complex *proj , const size_t i , const size_t j , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx ) , const struct mcorr **corr , const size_t i , const size_t k , const size_t t , const struct gamma *GAMMA , const struct veclist *momentum , const size_t pidx , const size_t NGAMS )
    @brief spin project a baryon correlation function
  */
 int
@@ -118,6 +119,7 @@ spinproj( double complex *Gik ,
 	  const size_t t ,
 	  const struct gamma *GAMMA ,
 	  const struct veclist *momentum ,
-	  const size_t pidx ) ;
+	  const size_t pidx ,
+	  const size_t NGAMS ) ;
 
 #endif

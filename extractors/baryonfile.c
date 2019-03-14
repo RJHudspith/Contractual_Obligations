@@ -86,7 +86,7 @@ main( const int argc ,
   int tsrc = 0 ;
   
   // some counters
-  size_t mu , GSGK ;
+  size_t mu , GSGK , NGAMS = 0 ;
   char *tok = NULL ;
 
   // set the basis
@@ -187,19 +187,19 @@ main( const int argc ,
   // is defined in reader.c
   corr = process_file( &momentum , infile , NGSRC , NGSNK , NMOM ) ;
 
+  NGAMS = (size_t)( sqrt( NGSRC[0] ) ) ;
+  
   // allocate projected corr
-  proj_corr = allocate_momcorrs( NGSNK[0] , NGSNK[0] , NMOM[0] ) ;
+  proj_corr = allocate_momcorrs( NGAMS , NGAMS , NMOM[0] ) ;
 
   if( corr == NULL || proj_corr == NULL ) goto memfree ;
 
-  printf( "Projection\n" ) ;
-
   // do the projection
 #pragma omp parallel for private( GSGK )
-  for( GSGK = 0 ; GSGK < ( NGSNK[0]*NGSNK[0] ) ; GSGK++ ) {
+  for( GSGK = 0 ; GSGK < ( NGSRC[0] ) ; GSGK++ ) {
 
-    const size_t GSRC = GSGK / NGSNK[0] ;
-    const size_t GSNK = GSGK % NGSNK[0] ;
+    const size_t GSRC = GSGK / NGAMS ;
+    const size_t GSNK = GSGK % NGAMS ;
     
     // loop momenta
     size_t p ;
@@ -210,7 +210,7 @@ main( const int argc ,
 						GAMMAS , momentum ,
 						GSRC , GSNK , p ,
 						parity_proj ,
-						spin_proj ) ;
+						spin_proj , NGAMS ) ;
  
       // poke into proj_corr
       size_t t ;
@@ -249,7 +249,7 @@ main( const int argc ,
   // write out the correlator
   write_momcorr( argv[ OUTFILE ] , (const struct mcorr **)proj_corr , 
 		 momentum , NULL ,
-		 NGSNK[0] , NGSNK[0] , (const int*)NMOM , "" ) ;
+		 NGAMS , NGAMS , (const int*)NMOM , "" ) ;
 
  memfree :
 
@@ -261,7 +261,7 @@ main( const int argc ,
     free_momcorrs( corr , NGSRC[0] , NGSNK[0] , NMOM[0] ) ;
 
     // free the memory of the projected correlator
-    free_momcorrs( proj_corr , NGSNK[0] , NGSNK[0] , NMOM[0] ) ;
+    free_momcorrs( proj_corr , NGAMS , NGAMS , NMOM[0] ) ;
   }
 
   // free the momentum list
