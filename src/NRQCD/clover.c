@@ -182,7 +182,7 @@ improve_clover( double complex *res ,
   // improve the clover fields
   size_t j ;
   for( j = 0 ; j < NCNC ; j++ ) {
-    res[j] = efac*res[j] ; //- sum[j]/6. ;
+    res[j] = efac*res[j] - sum[j]/6. ;
   }
   return ;
 }

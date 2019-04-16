@@ -28,7 +28,7 @@ HAL_su2( struct propagator prop1 ,
 {
   // counters
   const size_t stride1 = 1 ;
-  const size_t stride2 = 1 ;
+  const size_t stride2 = 2 ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;
@@ -47,13 +47,10 @@ HAL_su2( struct propagator prop1 ,
   }
 
   // FFT all that jazz
-  //M.in = fftw_malloc( LCU * sizeof( double complex ) ) ;
-  M.out[0] = fftw_malloc( LCU * sizeof( double complex ) ) ;
-
+#ifdef HAVE_FFTW3_H
   fftw_plan forward , backward ;
-  small_create_plans_DFT( &forward , &backward , M.in[0] , M.out[0] , ND-1 ) ;
-
-  //printf( "Block alloc?\n" ) ;
+  small_create_plans_DFT( &forward , &backward , M.in[0] , M.in[1] , ND-1 ) ;
+#endif
   
   // precompute the diquark blocks, called blk. Very big mallocs in here
   struct spinmatrix **blk11 ;
@@ -71,7 +68,6 @@ HAL_su2( struct propagator prop1 ,
     blk21[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
     blk22[i] = malloc( NCNC*NCNC*sizeof(struct spinmatrix) ) ;
   }
-  //printf( "Block alloc?\n" ) ;
   
   // init the parallel region
   #pragma omp parallel
@@ -98,14 +94,12 @@ HAL_su2( struct propagator prop1 ,
       // assumes all sources are at the same origin, checked in wrap_tetras
       const size_t tshifted = ( t - prop1.origin[ND-1] + LT ) % LT ; 
       
-      // strange memory access pattern threads better than what was here before
-      size_t site ;
       // read on the master and one slave
       if( t < LT-1 ) {
 	read_ahead( prop , M.Sf , &error_code , Nprops , t+1 ) ;
       }
 
-      HALrhorho_contract( M.in[0] , M.out[0] , forward , backward ,
+      HALrhorho_contract( M.in[0] , M.in[1] , forward , backward ,
 			  blk11 , blk12 , blk21 , blk22 ,
 			  M.S[0] , M.GAMMAS , 0 , 0 ,
 			  M.nmom , M.list ) ;

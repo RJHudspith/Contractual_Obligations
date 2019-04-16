@@ -24,8 +24,8 @@ su2_rhoeta( struct propagator prop1 ,
 	    const char *outfile )
 {
   // counters
-  const size_t stride1 = 3 ;
-  const size_t stride2 = 3 ;
+  const size_t stride1 = 6 ;
+  const size_t stride2 = 6 ;
 
   // flat dirac indices are all colors and all single gamma combinations
   const size_t flat_dirac = stride1 * stride2 ;

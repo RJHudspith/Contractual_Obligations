@@ -260,6 +260,7 @@ HALrhorho_contract( double complex *in ,
   // precompute all the required blocks
   precompute_blocks( blk11 , blk12 , blk21 , blk22 , S , GAMMAS , GSRC , GSNK ) ;
 
+#ifdef HAVE_FFTW3_H
   // perform the ffts
   FFT_blocks( in , out , blk11 , blk12 , blk21 , blk22 , forward , backward ) ;
   
@@ -285,9 +286,20 @@ HALrhorho_contract( double complex *in ,
     in[i] /= (double)LCU ;
   }
 
-#if 0
+  // ok in here we actually want both the second-order derivative
+  // grad.\phi(r) approximated by f(x/y/z+1)+f(x/y/z-1)-2f(x/y/z) at each "r" vector point
+  // into "out" -> "in" still contains \phi(r)
+#pragma omp for private(i)
+  for( i = 0 ; i < LCU ; i++ ) {
+    const size_t s1 = gen_shift( i , 0 ) , s2 = gen_shift( i , -1 ) ;
+    out[i] = in[ s1 ] + in[ s2 ] - 2*in[ i ] ;
+    const size_t s3 = gen_shift( i , 1 ) , s4 = gen_shift( i , -2 ) ;
+    out[i] += in[ s3 ] + in[ s4 ] - 2*in[ i ] ;
+    const size_t s5 = gen_shift( i , 2 ) , s6 = gen_shift( i , -3 ) ;
+    out[i] += in[ s5 ] + in[ s6 ] - 2*in[ i ] ;
+  }
   
-  // non-fftw routine is quite expensive
+#else
   size_t r ;
   for( r = 0 ; r < nmom[0] ; r++ ) {
     const int cast[ ND ] = { (int)list[r].MOM[0] , (int)list[r].MOM[1] ,
