@@ -152,7 +152,7 @@ main( const int argc ,
 
   // sanity check the source position
   tsrc = atoi( argv[ TSRC ] ) ;
-  if( tsrc < 0 || tsrc > (LT-1) ) {
+  if( tsrc < 0 || tsrc > (int)(LT-1) ) {
     fprintf( stderr , "[TSRC] non-sensical source position given %d\n" , tsrc ) ;
     goto memfree ;
   } else {
@@ -219,7 +219,7 @@ main( const int argc ,
 	for( t = 1 ; t < LT ; t++ ) {
 	  // need to make sure I get the sign correct
 	  if( tsrc > 0 ) { 
-	    if( t <= tsrc ) {
+	    if( t <= (size_t)tsrc ) {
 	      proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] =  C[ LT - t ] ;
 	    } else {
 	      proj_corr[ GSRC ][ GSNK ].mom[ p ].C[ t ] = -C[ LT - t ] ;

@@ -53,7 +53,7 @@ simorb_ratios( const int DIMS ,
 struct veclist*
 compute_veclist( int *list_size , 
 		 const struct cut_info CUTINFO ,
-		 const int DIMS ,
+		 const size_t DIMS ,
 		 const GLU_bool CONFIGSPACE ) ;
 
 /**
@@ -67,7 +67,7 @@ compute_veclist( int *list_size ,
 struct veclist_int*
 compute_veclist_int( int *list_size , 
 		     const struct cut_info CUTINFO ,
-		     const int DIMS ,
+		     const size_t DIMS ,
 		     const GLU_bool CONFIGSPACE ) ;
 
 /**
@@ -76,7 +76,7 @@ compute_veclist_int( int *list_size ,
  */
 struct veclist*
 zero_veclist( int *list_size ,
-	      const int DIMS ,
+	      const size_t DIMS ,
 	      const GLU_bool CONFIGSPACE ) ;
 
 /**

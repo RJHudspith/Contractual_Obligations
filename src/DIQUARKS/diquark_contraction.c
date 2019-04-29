@@ -19,8 +19,7 @@ double complex
 diquark( const struct spinor S1 , 
 	 const struct spinor S2 ,
 	 const struct gamma C_GSRC , 
-	 const struct gamma C_GSNK ,
-	 const struct gamma G5 ) 
+	 const struct gamma C_GSNK ) 
 {
   struct spinor ST = transpose_spinor( S1 ) ;
 

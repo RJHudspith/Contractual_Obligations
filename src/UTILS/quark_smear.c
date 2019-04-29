@@ -156,7 +156,7 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
   }
 
   // sum over each spatial separation
-  for( r = 0 ; r < M.NR ; r++ ) {
+  for( r = 0 ; r < (size_t)M.NR ; r++ ) {
 
     const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
 					  ND-1 ) ;

@@ -236,10 +236,10 @@ reunit2( double complex *__restrict U )
 void 
 latt_reunitU( struct site *__restrict lat )
 {
-  int i ; 
+  size_t i ; 
 #pragma omp parallel for private(i)
   for( i = 0 ; i < LVOLUME ; i++ ) {
-    int mu ;
+    size_t mu ;
     for( mu = 0 ; mu < ND ; mu++ ) {
       reunit2( lat[i].O[mu] ) ; 
     }

@@ -143,7 +143,7 @@ free_measurements( struct measurements *M ,
   // free the wall momentum list
   if( M -> dft_mom != NULL ) {
     size_t p ;
-    for( p = 0 ; p < M -> nmom[0] ; p++ ) {
+    for( p = 0 ; p < (size_t)M -> nmom[0] ; p++ ) {
       free( M -> dft_mom[p] ) ;
     }
     free( M -> dft_mom ) ;

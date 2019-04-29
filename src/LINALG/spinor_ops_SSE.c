@@ -274,7 +274,7 @@ identity_spinor( struct spinor *__restrict res )
 {
   __m128d *r = (__m128d*)res -> D ;
   zero_spinor( r ) ;
-  const register __m128d one = _mm_setr_pd( 1.0 , 0.0 ) ;
+  register const __m128d one = _mm_setr_pd( 1.0 , 0.0 ) ;
   size_t d ;
   for( d = 0 ; d < NS ; d++ ) {
     #if NC == 3

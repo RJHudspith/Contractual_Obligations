@@ -160,7 +160,7 @@ tmoments( const struct PIdata *AA ,
   psq = malloc( NMOM[0] * sizeof( double ) ) ;
   p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     p[i] = (double*)malloc( NMOM[0] * sizeof( double ) ) ;
   }
 
@@ -190,7 +190,7 @@ tmoments( const struct PIdata *AA ,
 
   // free psq and p
   free( psq ) ;
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     free( p[i] ) ;
   }
   free( p ) ;

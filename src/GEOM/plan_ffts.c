@@ -116,7 +116,7 @@ create_plans_DFT( fftw_plan *__restrict forward ,
   // set up our fft
   int dimes[ DIR ] , mu , planflag ;
   // swap these defs around
-  for( mu = 0 ; mu < DIR ; mu++ ) {
+  for( mu = 0 ; mu < (int)DIR ; mu++ ) {
     dimes[ mu ] = Latt.dims[ DIR - 1 - mu ] ;
   }
 
@@ -124,7 +124,7 @@ create_plans_DFT( fftw_plan *__restrict forward ,
 
   char *str = obtain_wisdom( &planflag , DIR , "" ) ;
 
-  for( mu = 0 ; mu < ARR_SIZE ; mu++ ) {
+  for( mu = 0 ; mu < (int)ARR_SIZE ; mu++ ) {
     forward[mu] = fftw_plan_dft( DIR , dimes , in[mu] , out[mu] , 
 				 FFTW_FORWARD , GLU_PLAN ) ; 
     backward[mu] = fftw_plan_dft( DIR , dimes , out[mu] , in[mu] , 
@@ -158,7 +158,7 @@ small_create_plans_DFT( fftw_plan *__restrict forward ,
   // set up our fft
   int dimes[ DIR ] , mu , planflag ;
   // swap these defs around
-  for( mu = 0 ; mu < DIR ; mu++ ) {
+  for( mu = 0 ; mu < (int)DIR ; mu++ ) {
     dimes[ mu ] = Latt.dims[ DIR - 1 - mu ] ;
   }
 

@@ -307,7 +307,7 @@ baryon_momentum_project( struct measurements *M ,
       const double complex *sum1 = M -> in[ 0 + idx ] ;
       const double complex *sum2 = M -> in[ 1 + idx ] ;
       size_t p ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+      for( p = 0 ; p < (size_t)M -> nmom[ 0 ] ; p++ ) {
 	const size_t lid = M -> list[ p ].idx ;
 	M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
 	  f( sum1[ lid ] , sum2[ lid ] ) ;
@@ -327,7 +327,7 @@ baryon_momentum_project( struct measurements *M ,
       const double complex *sum1 = M -> out[ 0 + idx ] ;
       const double complex *sum2 = M -> out[ 1 + idx ] ;
       size_t p ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+      for( p = 0 ; p < (size_t)M -> nmom[ 0 ] ; p++ ) {
 	const size_t lid = M -> list[ p ].idx ;
 	M -> corr[ GSGK ][ odc ].mom[ p ].C[ t ] = 
 	  f( sum1[ lid ] , sum2[ lid ] ) ;

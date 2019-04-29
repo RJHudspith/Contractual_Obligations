@@ -20,7 +20,7 @@ insertion_sort( void *list1 , void *list2 ,
   char insert1[ base1 ] , insert2[ base2 ] ; // temporary storage
   int i , hole ;
   // standard insertion sort
-  for( i = lower ; i < upper ; i++ ) {
+  for( i = (int)lower ; i < (int)upper ; i++ ) {
     memcpy( insert1 , (char*)list1 + i*base1 , base1 ) ;
     memcpy( insert2 , (char*)list2 + i*base2 , base2 ) ;
     hole = i ;

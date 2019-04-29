@@ -35,7 +35,7 @@ read_corr( double complex *corr ,
 // quick little accessor
 static int
 FREAD32( uint32_t *data , const int size , FILE *infile ) {
-  if( fread( data , sizeof( uint32_t ) , size , infile ) != size ) {
+  if( fread( data , sizeof( uint32_t ) , size , infile ) != (size_t)size ) {
     fprintf( stderr , "[IO] FREAD32 failure \n" ) ;
     return FAILURE ;
   }
@@ -46,7 +46,7 @@ FREAD32( uint32_t *data , const int size , FILE *infile ) {
 // quick little accessor
 static int
 FREAD64( double *data , const int size , FILE *infile ) {
-  if( fread( data , sizeof( double ) , size , infile ) != size ) {
+  if( fread( data , sizeof( double ) , size , infile ) != (size_t)size ) {
     fprintf( stderr , "[IO] FREAD64 failure \n" ) ;
     return FAILURE ;
   }
@@ -82,14 +82,14 @@ read_momcorr( struct mcorr **corr ,
   }
 
   size_t GSRC , GSNK ;
-  for( GSRC = 0 ; GSRC < (int)NGSRC[0] ; GSRC++ ) {
-    for( GSNK = 0 ; GSNK < (int)NGSNK[0] ; GSNK++ ) {
+  for( GSRC = 0 ; GSRC < (size_t)NGSRC[0] ; GSRC++ ) {
+    for( GSNK = 0 ; GSNK < (size_t)NGSNK[0] ; GSNK++ ) {
       if( ( GSRC == 0 ) && ( GSNK == 0 ) ) {
       } else {
 	// read the timeslice stuff
 	uint32_t L0[1] ;
 	if( FREAD32( L0 , 1 , infile ) == FAILURE ) return FAILURE ;
-	if( (int)L0[0] != LT ) { 
+	if( L0[0] != (uint32_t)LT ) { 
 	  fprintf( stderr , "[IO] LT Read failure %d %zu \n" , 
 		   (int)L0[0] , LT ) ; 
 	  return FAILURE ; 
@@ -121,7 +121,7 @@ find_desired_mom( const struct veclist *momentum ,
     }
     if( matches == ND-1 ) return i ;
   }
-  return FAILURE ;
+  return 123456789 ;
 }
 
 // this is for you, Anthony
@@ -132,7 +132,7 @@ write_momlist( const struct veclist *momentum ,
   size_t p , mu ;
   fprintf( stdout , "\n[MOMS] outputting available %d-momenta ... \n\n" , 
 	   ND - 1 ) ;
-  for( p = 0 ; p < NMOM ; p++ ) {
+  for( p = 0 ; p < (size_t)NMOM ; p++ ) {
     fprintf( stdout , "[MOMS] %zu :: (" , p ) ;
     for( mu = 0 ; mu < ND-1 ; mu++ ) {
       fprintf( stdout , " %1.15f " , momentum[ p ].MOM[ mu ]  ) ;
@@ -193,7 +193,7 @@ process_file( struct veclist **momentum ,
 
   GLU_bool failure = GLU_FALSE ;
   size_t p ;
-  for( p = 0 ; p < NMOM[0] ; p++ ) {
+  for( p = 0 ; p < (size_t)NMOM[0] ; p++ ) {
     uint32_t n[ 1 ] ;
     if( FREAD32( n , 1 , infile ) == FAILURE ) failure = GLU_TRUE ;
     if( n[ 0 ] != ND-1 ) {

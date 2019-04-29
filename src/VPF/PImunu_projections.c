@@ -78,7 +78,7 @@ projection( const struct PIdata *data ,
   const double NORM = 1.0 / (double)( ND - 1 ) ;
   size_t i ;
   //#pragma omp parallel for private(i)
-  for( i = 0 ; i < NMOM[0] ; i++ ) {    
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {    
     const size_t list_idx = (size_t)list[i].idx ;
     const double spsq = ( psq[i] == 0.0 ) ? 1.0 : 1.0 / psq[i] ;
     register double sumtrans = 0.0 , sumlong = 0.0 ;
@@ -104,7 +104,7 @@ projection( const struct PIdata *data ,
   write_momspace_data( str , NULL , NMOM , longitudinal , list , ND ) ;
 
 #pragma omp parallel for private(i)
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     trans[ i ] = trans[ i ] + longitudinal[ i ] ;
   }
 
@@ -132,7 +132,7 @@ subtract_zeromom( struct PIdata *__restrict data ,
     }
   }
   #pragma omp parallel for private(i)
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     size_t mu , nu ;
     for( mu = 0 ; mu < ND ; mu ++ ) {
       for( nu = 0 ; nu < ND ; nu++ ) {

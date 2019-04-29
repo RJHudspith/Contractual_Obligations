@@ -63,7 +63,7 @@ main( const int argc ,
       for( t = 1 ; t < LT ; t++ ) {
 	double complex t1 , t2 ;
 	
-	if( t <= tsrc ) {
+	if( t <= (size_t)tsrc ) {
 	  t1 =  corr[0][GSNK].mom[p].C[ LT-t ] ;
 	} else {
 	  t1 = -corr[0][GSNK].mom[p].C[ LT-t ] ;

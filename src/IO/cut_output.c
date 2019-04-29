@@ -39,7 +39,7 @@ write_mom_veclist( FILE *Ap ,
   size_t i , mu ;
   fwrite( num_mom , sizeof(int) , 1 , Ap ) ;
   if( twist == NULL ) {
-    for( i = 0 ; i < num_mom[0] ; i++ ) {
+    for( i = 0 ; i < (size_t)num_mom[0] ; i++ ) {
       fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
       fwrite( list[i].MOM , sizeof(double) , DIR , Ap ) ;
     }
@@ -47,7 +47,7 @@ write_mom_veclist( FILE *Ap ,
     for( i = 0 ; i < (size_t)num_mom[0] ; i++ ) {
       fwrite( &DIR , sizeof(int) , 1 , Ap ) ;
       double sum[ ND ] ;
-      for( mu = 0 ; mu < DIR ; mu++ ) {
+      for( mu = 0 ; mu < (size_t)DIR ; mu++ ) {
 	sum[ mu ] = list[i].MOM[ mu ] + twist[ mu ] ;
       }
       fwrite( sum , sizeof(double) , DIR , Ap ) ;

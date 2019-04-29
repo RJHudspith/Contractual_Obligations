@@ -79,7 +79,7 @@ momspace_PImunu( struct PIdata *AA ,
   double **p = malloc( NMOM[0] * sizeof( double* ) ) ;
 
   size_t i ;
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     p[i] = (double*)malloc( ND * sizeof( double ) ) ;
   }
 
@@ -99,7 +99,7 @@ momspace_PImunu( struct PIdata *AA ,
 		 NMOM , outfile , current , VECTOR ) ;
 
   // free our momenta
-  for( i = 0 ; i < NMOM[0] ; i++ ) {
+  for( i = 0 ; i < (size_t)NMOM[0] ; i++ ) {
     free( p[i] ) ;
   }
   free( p ) ;

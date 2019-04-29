@@ -49,19 +49,19 @@ main( const int argc ,
 
   // loop the ones we want
   size_t i ;
-  for( i = 2 ; i < ( argc ) ; i++ ) {
+  for( i = 2 ; i < (size_t)( argc ) ; i++ ) {
     // tokenize argv into the correlators people want
     char *tok1 = strtok( (char*)argv[i] , "," ) ;
     if( tok1 == NULL ) break ;
     const int idx1 = atoi( tok1 ) ;
-    if( idx1 >= NGSRC[0] || idx1 < 0 ) { 
+    if( idx1 >= (int)NGSRC[0] || idx1 < 0 ) { 
       fprintf( stderr , "[Momcorr] Non-sensical source index %d \n" , idx1 ) ;
       break ;
     } 
     char *tok2 = strtok( NULL , "," ) ;
     if( tok2 == NULL ) break ;
     const int idx2 = atoi( tok2 ) ;
-    if( idx2 >= NGSNK[0] || idx2 < 0 ) { 
+    if( idx2 >= (int)NGSNK[0] || idx2 < 0 ) { 
       fprintf( stderr , "[Momcorr] Non-sensical sink index %d \n" , idx2 ) ;
       break ;
     } 
@@ -85,7 +85,7 @@ main( const int argc ,
     // find the correlator in the list
     const size_t matchmom = find_desired_mom( momentum , moms , 
 					      (int)NMOM[0] ) ;
-    if( matchmom == FAILURE ) {
+    if( matchmom == 123456789 ) {
       fprintf( stderr , "[Momcorr] Unable to find desired momentum ... Leaving \n" ) ;
       break ;
     }

@@ -13,7 +13,6 @@ double complex
 diquark( struct spinor S1 , 
 	 struct spinor S2 ,
 	 const struct gamma C_GSRC , 
-	 const struct gamma C_GSNK ,
-	 const struct gamma G5 ) ;
+	 const struct gamma C_GSNK ) ;
 
 #endif

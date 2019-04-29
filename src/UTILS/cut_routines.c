@@ -86,7 +86,7 @@ simorb_ratios( const int DIMS ,
 {
   size_t mu ;
   if( configspace == GLU_TRUE ) {
-    for( mu = 0 ; mu < DIMS ; mu++ ) {
+    for( mu = 0 ; mu < (size_t)DIMS ; mu++ ) {
       rats[mu] = 1 ;
     }  
     return ;
@@ -94,13 +94,13 @@ simorb_ratios( const int DIMS ,
   // similar orbits in terms of the smallest dimension ...
   // find the smallest
   small = Latt.dims[0] ;
-  for( mu = 1 ; mu < DIMS ; mu++ ) {
-    if( Latt.dims[ mu ] < small ) {
+  for( mu = 1 ; mu < (size_t)DIMS ; mu++ ) {
+    if( Latt.dims[ mu ] < (size_t)small ) {
       small = Latt.dims[ mu ] ;
     }
   }
   norm = 0. ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
+  for( mu = 0 ; mu < (size_t)ND ; mu++ ) {
     rats[ mu ] = (double)small / (double)Latt.dims[ mu ] ; 
     fprintf( stdout , "[CUTS] rats :: %f %f %f\n" , 
 	     rats[mu] , (double)small , (double)Latt.dims[ mu ] ) ;
@@ -113,9 +113,9 @@ simorb_ratios( const int DIMS ,
 ////////// Cylinder cutting procedurals //////////
 // gets the body diagonal vectors for our lattice
 static inline void
-get_diagonal( n , i , DIMS )
-     double n[ ND ] ;
-     const int i , DIMS ;
+get_diagonal( double n[ ND ] ,
+	      const int i ,
+	      const int DIMS )
 {
   int mu , subvol = 1 ;
   for( mu = 0 ; mu < ND ; mu++ ) {
@@ -235,6 +235,7 @@ safe_momenta( const int n[ ND ] ,
     if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
       return GLU_TRUE ;
     }
+    break ;
   case CYLINDER_CUT :
     if( gen_calc_psq( n , DIMS ) <= CUTINFO.max_mom ) {
       double k[ ND ] ; 
@@ -391,7 +392,7 @@ compute_veclist_int( int *list_size ,
 
   // loop up to DIMS
   int LOOP = 1 , i ;
-  for( i = 0 ; i < DIMS ; i++ ) {
+  for( i = 0 ; i < (int)DIMS ; i++ ) {
     LOOP *= Latt.dims[ i ] ;
   }
 
@@ -425,7 +426,7 @@ compute_veclist( int *list_size ,
 						  CONFIGSPACE ) ;
   struct veclist *list = malloc( (*list_size) * sizeof( struct veclist ) ) ;
   size_t i ;
-  for( i = 0 ; i < (*list_size) ; i ++  ) {
+  for( i = 0 ; i < (size_t)(*list_size) ; i ++  ) {
     list[i].nsq = (double)kept[i].nsq ;
     size_t mu ;
     for( mu = 0 ; mu < DIMS ; mu++ ) {
@@ -481,7 +482,7 @@ DFT_mom_veclist( int *list_size ,
       default :
 	memcpy( loc_perms , perms_thrz[p] , (ND-1)*sizeof(int) ) ; break ;
       }
-      for( mu = 0 ; mu < DIMS ; mu++ ) {
+      for( mu = 0 ; mu < (size_t)DIMS ; mu++ ) {
 	list[idx].MOM[ mu ] = ( loc_perms[mu] * CUTINFO.thetas[theta] ) ;
 	list[idx].nsq += list[idx].MOM[mu] * list[idx].MOM[mu] ;
       }
@@ -501,7 +502,7 @@ wall_mom_veclist( int *list_size ,
   size_t mu ;
   list[ 0 ].idx = 0 ;
   list[ 0 ].nsq = 0.0 ;
-  for( mu = 0 ; mu < DIMS ; mu++ ) {
+  for( mu = 0 ; mu < (size_t)DIMS ; mu++ ) {
     list[ 0 ].MOM[ mu ] = ( sum_mom[mu] ) ;
     list[ 0 ].nsq += list[0].MOM[mu] * list[0].MOM[mu] ;
   }
@@ -512,12 +513,12 @@ wall_mom_veclist( int *list_size ,
 // passes a zero'd veclist 
 struct veclist*
 zero_veclist( int *list_size ,
-	      const int DIMS ,
+	      const size_t DIMS ,
 	      const GLU_bool CONFIGSPACE )
 {
   struct veclist *list = calloc( 1 , sizeof( struct veclist ) ) ;
   list[ 0 ].idx = 0 ;
-  int mu ; 
+  size_t mu ; 
   for( mu = 0 ; mu < DIMS ; mu++ ) {
     list[ 0 ].MOM[ mu ] = 0 ;
   }

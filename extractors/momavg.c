@@ -21,7 +21,7 @@ count_equivalents( const struct veclist *list ,
   uint32_t m ;
   uint32_t Nequiv = 0 ;
   for( m = 0 ; m < NMOM ; m++ ) {
-    int k ;
+    uint32_t k ;
     for( k = 1 ; k < NMOM ; k++ ) { 
       if( ( m + k ) > ( NMOM  - 1 ) ) break ;
       if( fabs( list[m].nsq - list[k+m].nsq ) > PREC_TOL ) {

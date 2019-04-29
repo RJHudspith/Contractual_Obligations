@@ -181,7 +181,7 @@ parse_SCIDAC_hdr( FILE *infile ,
   // and skip the file along by "padding" amount
   if( padding > 0 ) {
     char pad_str[ padding ] ;
-    if( fread( pad_str , sizeof( char ) , padding , infile ) != padding ) {
+    if( fread( pad_str , sizeof( char ) , padding , infile ) != (size_t)padding ) {
       fprintf( stderr , "[IO] Reading of padded data failed \n" ) ;
       return FAILURE ;
     }

@@ -158,7 +158,7 @@ merge_sort_test( void )
 	      N , lt_int ) ;
   for( i = 0 ; i < N ; i++ ) {
     mu_assert( "[UTILS] error : merge_sort broken" , 
-	       ( a[i] == i && b[i] == i ) ) ;
+	       ( a[i] == (int)i && b[i] == (int)i ) ) ;
   }
   return NULL ;
 }

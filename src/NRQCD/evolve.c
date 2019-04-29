@@ -420,7 +420,7 @@ tadpole_improve( struct site *lat ,
   for( i = 0 ; i < LVOLUME ; i++ ) {
     #ifdef HAVE_IMMINTRIN_H
     __m128d *pU = (__m128d*)lat[i].O ;
-    const register __m128d tad = _mm_setr_pd( tadpole , tadpole ) ;
+    register const __m128d tad = _mm_setr_pd( tadpole , tadpole ) ;
     size_t j ;
     for( j = 0 ; j < ND*NCNC ; j++ ) {
       *pU = _mm_mul_pd( *pU , tad ) ;
@@ -476,7 +476,7 @@ apply_twist( struct site *lat ,
 
       #ifdef HAVE_IMMINTRIN_H
       __m128d *pU = (__m128d*)lat[i].O[mu] ;
-      const register __m128d ph = _mm_setr_pd( c , s ) ;
+      register const __m128d ph = _mm_setr_pd( c , s ) ;
         #if NC == 3
         *pU = SSE2_MUL( *pU , ph ) ; pU++ ;
 	*pU = SSE2_MUL( *pU , ph ) ; pU++ ;

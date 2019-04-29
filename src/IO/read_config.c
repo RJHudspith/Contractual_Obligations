@@ -368,7 +368,7 @@ read_gauge_file( struct head_data *HEAD_DATA ,
   }
   init_navig( lat ) ;
 
-  const uint32_t check = get_config_SUNC( infile , lat , tmp ) ;
+  const int check = get_config_SUNC( infile , lat , tmp ) ;
   // read in the configuration ...  
   if( check == FAILURE ) {
     fprintf( stderr , "[IO] File read error ... Leaving \n" ) ;

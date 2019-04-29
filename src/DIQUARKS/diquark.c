@@ -35,7 +35,7 @@ diquark_offdiag( struct propagator prop1 ,
   int error_code = SUCCESS ;
 
   // loop counters
-  size_t i , t , site ;
+  size_t i , t = 0 , site ;
 
   // gamma LUT
   struct gamma *Cgmu = malloc( stride1 * sizeof( struct gamma ) ) ;
@@ -104,8 +104,7 @@ diquark_offdiag( struct propagator prop1 ,
 	  const size_t GSNK = GSGK % stride2 ;
 	  // perform contraction, result in result
 	  M.in[ GSNK + stride2*GSRC ][ site ] = 
-	    diquark( SUM_r2[0] , SUM_r2[1] , 
-		     Cgmu[ GSRC ] , Cgnu[ GSNK ] , M.GAMMAS[ GAMMA_5 ] ) ;
+	    diquark( SUM_r2[0] , SUM_r2[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
 	}
       }
       // wall-wall contractions
@@ -115,8 +114,7 @@ diquark_offdiag( struct propagator prop1 ,
 	const size_t GSRC = GSGK / stride1 ;
 	const size_t GSNK = GSGK % stride2 ;
 	M.wwcorr[ GSRC ][ GSNK ].mom[0].C[ tshifted ] = 
-	  diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ]
-		   , M.GAMMAS[ GAMMA_5 ] ) ;
+	  diquark( M.SUM[0] , M.SUM[1] , Cgmu[ GSRC ] , Cgnu[ GSNK ] ) ;
       }
       // end of walls
     }

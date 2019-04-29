@@ -72,7 +72,7 @@ FFT_correlator( struct measurements *M ,
     size_t p ;
     #ifdef HAVE_FFTW3_H
     fftw_execute( fwd[ idx ] ) ;
-    for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+    for( p = 0 ; p < (size_t)M -> nmom[ 0 ] ; p++ ) {
       M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
 	M -> out[ idx ][ M -> list[ p ].idx ] ;
     }
@@ -127,7 +127,7 @@ compute_correlator( struct measurements *M ,
       const size_t i = idx/stride2 ;
       const size_t j = idx%stride2 ;
       size_t p ;
-      for( p = 0 ; p < M -> nmom[ 0 ] ; p++ ) {
+      for( p = 0 ; p < (size_t)M -> nmom[ 0 ] ; p++ ) {
 	M -> corr[ i ][ j ].mom[ p ].C[ tshifted ] =
 	  M -> in[ idx ][ M -> list[ p ].idx ] ;
       }
@@ -198,7 +198,7 @@ write_momcorr( const char *outfile ,
   uint32_t L0[ 1 ] = { LT } , cksuma = 0 , cksumb = 0 ;
 
   size_t p ;
-  for( p = 0 ; p < nmom[0] ; p++ ) {
+  for( p = 0 ; p < (size_t)nmom[0] ; p++ ) {
     
     uint32_t NGSRC[ 1 ] = { (uint32_t)NSRC } ;
     uint32_t NGSNK[ 1 ] = { (uint32_t)NSNK } ;

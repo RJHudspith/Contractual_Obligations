@@ -19,14 +19,14 @@ read_data( double *PIdata ,
 	   FILE *infile ,
 	   const int NMOM )
 {
-  if( fread( PIdata , sizeof( double ) , NMOM , infile ) != NMOM ) {
+  if( fread( PIdata , sizeof( double ) , NMOM , infile ) != (size_t)NMOM ) {
     fprintf( stderr , "[IO] Unexpected EOF\n" ) ;
     return FAILURE ;
   }
   if( must_swap ) bswap_64( NMOM , PIdata ) ;
   uint32_t cksuma = 0 , cksumb = 0 ;
   size_t p ;
-  for( p = 0 ; p < NMOM ; p++ ) {
+  for( p = 0 ; p < (size_t)NMOM ; p++ ) {
     DML_checksum_accum_crc32c( &cksuma , &cksumb , p , 
 			       PIdata + p , sizeof( double ) ) ;
   }
@@ -148,7 +148,7 @@ main( const int argc ,
   momentum = malloc( NMOM[0] * sizeof( int* ) ) ;
 
   int p ;
-  for( p = 0 ; p < NMOM[0] ; p++ ) {
+  for( p = 0 ; p < (int)NMOM[0] ; p++ ) {
     momentum[ p ] = malloc( ( ND ) * sizeof( int ) ) ;
     uint32_t n[ ND + 1 ] ;
     if( FREAD32( n , ND + 1 , infile ) == FAILURE ) {
@@ -188,7 +188,7 @@ main( const int argc ,
 
   // free the momentum list
   if( momentum != NULL ) {
-    for( p = 0 ; p < NMOM[ 0 ] ; p++ ) {
+    for( p = 0 ; p < (int)NMOM[ 0 ] ; p++ ) {
       free( momentum[ p ] ) ;
     }
   }

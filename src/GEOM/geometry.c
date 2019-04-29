@@ -44,15 +44,16 @@ size_t
 get_site_2piBZ( int x[ ND ] , 
 		const size_t DIMS )
 {
-  int temp[ND] , mu , L_2 = 1 ;
+  int temp[ND] ;
+  size_t mu , L_2 = 1 ;
   for( mu = 0 ; mu < ND ; mu ++ ) {
     L_2 = Latt.dims[ mu ] >> 1 ;
     temp[mu] = x[mu] ;
     if( mu != DIMS ) {
-      if( temp[ mu ] >= L_2 ) {
+      if( (size_t)temp[ mu ] >= L_2 ) {
 	temp [ mu ] -= (int)Latt.dims[ mu ] ;
       } 
-      if( temp[ mu ] < L_2 ) {
+      if( (size_t)temp[ mu ] < L_2 ) {
 	temp [ mu ] += (int)L_2 ;
       }
     } else { // fill the rest with 0's
@@ -64,15 +65,14 @@ get_site_2piBZ( int x[ ND ] ,
 
 // returns the site on the 0-> 2pi Bz 
 // from the momentum defined in the -Pi to Pi BZ
-int
+size_t
 get_site_pipiBZ( int x[ ND ] , 
-		 const int DIMS )
+		 const size_t DIMS )
 {
-  int temp[ ND ] ;
-  size_t mu ;
+  int temp[ ND ] , mu ;
   for( mu = 0 ; mu < ND ; mu ++ ) {
     temp[mu] = x[mu] ; 
-    if( mu != DIMS ) {
+    if( mu != (int)DIMS ) {
       if( temp[ mu ] < 0 ) {
 	temp[ mu ] += Latt.dims[ mu ] ; 
       }
@@ -109,7 +109,7 @@ get_mom_2piBZ( int x[ ND ] ,
 {
   int mu , subvol = 1 ;
   for( mu = 0 ; mu < ND ; mu++ ) {
-    if( mu != DIMS ) {
+    if( mu != (int)DIMS ) {
       x[ mu ] = ( ( i - i % subvol ) / subvol ) % Latt.dims[ mu ] ;
       subvol *= Latt.dims[ mu ] ;
     } else {// set it to 0?
@@ -128,7 +128,7 @@ get_mom_2piBZ_pm( int x[ ND ] ,
 {
   int mu , subvol = 1 ;
   for( mu = 0 ; mu < ND ; mu++ ) {
-    if( mu != DIMS ) {
+    if( mu != (int)DIMS ) {
       x[ mu ] = ( ( i - i % subvol ) / subvol ) % Latt.dims[ mu ] ;
       // do the shift
       x[ mu ] = x[ mu ] < (int)Latt.dims[mu]/2 ?	\
@@ -174,7 +174,7 @@ compute_p( double p[ ND ] ,
 	   const size_t DIMS )
 {
   size_t mu ;
-  for( mu = 0 ; mu < ND ; mu++ ) {
+  for( mu = 0 ; mu < DIMS ; mu++ ) {
     p[ mu ] = n[mu] * Latt.twiddles[mu] ; 
     #ifdef SIN_MOM
     p[ mu ] = 2. * sin ( p[mu] * 0.5 ) ; 
@@ -278,7 +278,7 @@ get_vec_from_origin( int n[ ND ] ,
   // periodicity enforcement
   size_t mu ;
   for( mu = 0 ; mu < DIMS ; mu++ ) {
-    if( n[mu] > ( Latt.dims[mu] >> 1 ) ) {
+    if( n[mu] > (int)( Latt.dims[mu] >> 1 ) ) {
       n[mu] -= (int)( Latt.dims[mu] ) ;
     }
   }

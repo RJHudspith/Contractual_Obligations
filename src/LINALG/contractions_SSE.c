@@ -462,8 +462,8 @@ meson_contract( const struct gamma GSNK ,
   // global sum gets cast to double complex
   register __m128d gsum = _mm_setzero_pd( ) ;
 
-  const register __m128d *d1 ;
-  const register __m128d *d2 = (const __m128d*)fwd.D ;
+  register const __m128d *d1 ;
+  register const __m128d *d2 = (const __m128d*)fwd.D ;
 
   // local sum
   register __m128d sum ;
