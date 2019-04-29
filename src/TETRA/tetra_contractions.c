@@ -159,7 +159,7 @@ contract_O2O2_1( const struct block *C1 ,
       spinmatrix_trace( C1[ element( c , a , a , c ) ].M ) *
       spinmatrix_trace( C2[ element( d , b , b , d ) ].M ) ;
     // cross term
-    sum2 -= 
+    sum2 += 
       trace_prod_spinmatrices( C1[ element( d , a , a , c ) ].M ,
 			       C2[ element( c , b , b , d ) ].M ) ;
   }
