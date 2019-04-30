@@ -392,7 +392,7 @@ tetras( double complex *result ,
       precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L2 , blck[mm[B2]].t_Gi ) ;
       result[idx4]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-      //if( mu < (size_t)(ND-1) ) {
+      if( mu < (size_t)(ND-1) ) {
 	// O_2 O_2 -- term 2 is -( a b^\dagger )
 	precompute_block( C1 , bwdH1 , blck[mm[B1]].G5 , L1 , blck[mm[B2]].t_Gi ) ;
 	precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L2 , blck[mm[B2]].t_G5 ) ;  
@@ -414,7 +414,7 @@ tetras( double complex *result ,
 	  result[idx4] *= 2 ;
 	}
 	//
-	//}
+      }
       // mu < ND-1
     }
   }
