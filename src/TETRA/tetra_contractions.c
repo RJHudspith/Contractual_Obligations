@@ -9,6 +9,8 @@
 #include "spinmatrix_ops.h"     // trace_prod, get_spinmatrix()
 #include "spinor_ops.h"         // transpose_spinor()
 #include "tetra_contractions.h" // alphabetising
+#include "penta_contractions.h" // idx()
+#include "Ospinor.h"            // spinor_to_Ospinor()
 
 // block of possible gammas in the contraction
 struct tblock { 
@@ -257,6 +259,54 @@ precompute_block( struct block *C1 ,
   return ;
 }
 
+static inline void
+setM( double complex *C1 ,
+      const struct spinmatrix temp )
+{
+  C1[0] = temp.D[0][0] ; C1[1] = temp.D[0][1] ; C1[2] = temp.D[0][2] ; C1[3] = temp.D[0][3] ;
+  C1[4] = temp.D[1][0] ; C1[5] = temp.D[1][1] ; C1[6] = temp.D[1][2] ; C1[7] = temp.D[1][3] ;
+  C1[8] = temp.D[2][0] ; C1[9] = temp.D[2][1] ; C1[10] = temp.D[2][2] ; C1[11] = temp.D[2][3] ;
+  C1[12] = temp.D[3][0] ; C1[13] = temp.D[3][1] ; C1[14] = temp.D[3][2] ; C1[15] = temp.D[3][3] ;
+}
+
+// precompute a "block" as an array of spinmatrices
+// with open colors a,b,c,d in a flattened array
+static void
+precompute_block2( struct block *C1 ,
+		   const struct Ospinor S1 ,
+		   const struct gamma G1 ,
+		   const struct Ospinor S2 ,
+		   const struct gamma G2 )
+{
+  struct Ospinor S1g1 = S1 , S2g2 = S2 ;
+  gamma_mul_r_Ospinor( &S1g1 , G1 ) ;
+  gamma_mul_r_OspinorT( &S2g2 , G2 ) ;
+  size_t ab , a , b ;
+  struct spinmatrix temp __attribute__ ((aligned(SPINT_ALIGNMENT))) ;
+  for( ab = 0 ; ab < NCNC ; ab++ ) {
+    a = ab / NC ; b = ab % NC ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[0][0].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[0][1].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[0][2].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[1][0].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[1][1].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[1][2].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[2][0].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[2][1].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;
+    spinmatrix_multiply_T_avx( temp.D , S1g1.C[a][b].D , S2g2.C[2][2].D ) ;
+    setM( C1 -> M , temp ) ; C1++ ;    
+  }
+  return ;
+}
+
 // perform the contraction of the tetraquark with appropriate mixing
 // has a block-symmetric structure of TETRA_NBLOCKxTETRA_NBLOCK matrices
 // Top Left is the Diquark - Diquark correlator 
@@ -314,9 +364,14 @@ tetras( double complex *result ,
       { .G5 = GAMMAS[ GAMMA_T ] ,  .Gi = GAMMAS[ numap_Ai[ mu ] ] }  , // V_t A_mu
     } ;
   
-  // transposed spinor temporaries
-  struct spinor L1T = transpose_spinor( L1 ) ;
-  struct spinor bwdH2T = transpose_spinor( bwdH2 ) ;
+  // transposed Ospinor temporaries
+  struct Ospinor OL1  = spinor_to_Ospinor( L1 ) ;
+  struct Ospinor OL2  = spinor_to_Ospinor( L2 ) ;
+  struct Ospinor OL1T = spinor_to_Ospinor( transpose_spinor( L1 ) ) ;
+
+  struct Ospinor ObwdH1 = spinor_to_Ospinor( bwdH1 ) ;
+  struct Ospinor ObwdH2 = spinor_to_Ospinor( bwdH2 ) ;
+  struct Ospinor ObwdH2T = spinor_to_Ospinor( transpose_spinor( bwdH2 ) ) ;
 
   // temporaries are 
   const size_t Nco = NCNC*NCNC ;
@@ -351,21 +406,21 @@ tetras( double complex *result ,
       const size_t idx1 = B2 + 2 * (size_t)TETRA_NBLOCK*B1 ;
 
       // Diquark-Diquark
-      precompute_block( C1 , L1T , blck[ dm[B1] ].CG5 , L2 , blck[ dm[B2] ].t_CG5 ) ;
-      precompute_block( C2 , bwdH1 , blck[ dm[B1] ].CGi , bwdH2T , blck[ dm[ B2 ]].t_CGi ) ;
+      precompute_block2( C1 , OL1T , blck[ dm[B1] ].CG5 , OL2 , blck[ dm[B2] ].t_CG5 ) ;
+      precompute_block2( C2 , ObwdH1 , blck[ dm[B1] ].CGi , ObwdH2T , blck[ dm[ B2 ]].t_CGi ) ;
       
       result[idx1] = contract_O1O1( C1 , C2 , H1H2_degenerate ) ;
 
       /////////////////// Diquark-AntiDiquark - Dimeson mixing terms
       const size_t idx2 = idx1 + TETRA_NBLOCK ;
 
-      precompute_block( C1 , L1T , blck[dm[B1]].CG5 , L2 , gamma_transpose( blck[mm[B2]].t_Gi ) ) ;
-      precompute_block( C2 , bwdH1 , blck[ dm[B1]].CGi , bwdH2T , blck[mm[B2]].t_G5 ) ;
+      precompute_block2( C1 , OL1T , blck[dm[B1]].CG5 , OL2 , gamma_transpose( blck[mm[B2]].t_Gi ) ) ;
+      precompute_block2( C2 , ObwdH1 , blck[ dm[B1]].CGi , ObwdH2T , blck[mm[B2]].t_G5 ) ;
       result[idx2]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
 
       if( mu < (size_t)(ND-1) ) {
-	precompute_block( C1 , L1T , blck[ dm[B1] ].CG5 , L2 , gamma_transpose( blck[mm[B2]].t_G5 ) ) ;
-	precompute_block( C2 , bwdH1 , blck[dm[B1]].CGi , bwdH2T , blck[mm[B2]].t_Gi ) ;
+	precompute_block2( C1 , OL1T , blck[ dm[B1] ].CG5 , OL2 , gamma_transpose( blck[mm[B2]].t_G5 ) ) ;
+	precompute_block2( C2 , ObwdH1 , blck[dm[B1]].CGi , ObwdH2T , blck[mm[B2]].t_Gi ) ;
 	result[idx2] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
       }
       
@@ -373,14 +428,14 @@ tetras( double complex *result ,
       const size_t idx3 = 2*TETRA_NBLOCK*TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
       
       // O_2 O_1 -- term 1
-      precompute_block( C1 , bwdH1 , gamma_transpose( blck[mm[B1]].Gi ) , L2 , blck[dm[B2]].t_CG5 ) ;
-      precompute_block( C2 , L1T , blck[mm[B1]].G5 , bwdH2T , blck[dm[B2]].t_CGi ) ;
+      precompute_block2( C1 , ObwdH1 , gamma_transpose( blck[mm[B1]].Gi ) , OL2 , blck[dm[B2]].t_CG5 ) ;
+      precompute_block2( C2 , OL1T , blck[mm[B1]].G5 , ObwdH2T , blck[dm[B2]].t_CGi ) ;
       result[idx3]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
 
       // O_2 O_1 -- term 2 has the minus sign
       if( mu < (size_t)(ND-1) ) {
-	precompute_block( C1 , bwdH1 , gamma_transpose( blck[mm[B1]].G5 ) , L2 , blck[dm[B2]].t_CG5 ) ;
-	precompute_block( C2 , L1T , blck[mm[B1]].Gi , bwdH2T , blck[dm[B2]].t_CGi ) ;
+	precompute_block2( C1 , ObwdH1 , gamma_transpose( blck[mm[B1]].G5 ) , OL2 , blck[dm[B2]].t_CG5 ) ;
+	precompute_block2( C2 , OL1T , blck[mm[B1]].Gi , ObwdH2T , blck[dm[B2]].t_CGi ) ;
 	result[idx3] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
       }
       
@@ -388,27 +443,27 @@ tetras( double complex *result ,
       const size_t idx4 = 2*TETRA_NBLOCK*TETRA_NBLOCK + TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
       
       // O_2 O_2 -- term 1 is positive 
-      precompute_block( C1 , bwdH1 , blck[mm[B1]].G5 , L1 , blck[mm[B2]].t_G5 ) ;
-      precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L2 , blck[mm[B2]].t_Gi ) ;
+      precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL1 , blck[mm[B2]].t_G5 ) ;
+      precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL2 , blck[mm[B2]].t_Gi ) ;
       result[idx4]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
       if( mu < (size_t)(ND-1) ) {
 	// O_2 O_2 -- term 2 is -( a b^\dagger )
-	precompute_block( C1 , bwdH1 , blck[mm[B1]].G5 , L1 , blck[mm[B2]].t_Gi ) ;
-	precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L2 , blck[mm[B2]].t_G5 ) ;  
+	precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL1 , blck[mm[B2]].t_Gi ) ;
+	precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL2 , blck[mm[B2]].t_G5 ) ;  
 	result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 	
 	// need to do the others where L1 and L2 are swapped, this is only 
 	// a concern for the dimeson - dimeson
 	if( L1L2_degenerate == GLU_FALSE ) {
 	  // O2O2 -- term 3 is -( b a^\dagger )
-	  precompute_block( C1 , bwdH1 , blck[mm[B1]].G5 , L2 , blck[mm[B2]].t_Gi ) ;
-	  precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L1 , blck[mm[B2]].t_G5 ) ;  
+	  precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_Gi ) ;
+	  precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_G5 ) ;  
 	  result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 	  
 	  // O2O2 -- term 4 is ( b b^\dagger )
-	  precompute_block( C1 , bwdH1 , blck[mm[B1]].G5 , L2 , blck[mm[B2]].t_G5 ) ;
-	  precompute_block( C2 , bwdH2 , blck[mm[B1]].Gi , L1 , blck[mm[B2]].t_Gi ) ;
+	  precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_G5 ) ;
+	  precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_Gi ) ;
 	  result[idx4] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 	} else {
 	  result[idx4] *= 2 ;

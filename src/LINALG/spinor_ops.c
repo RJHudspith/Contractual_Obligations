@@ -171,7 +171,7 @@ identity_spinor( struct spinor *__restrict res )
 // atomically subtract two spinors
 void
 sub_spinors( struct spinor *A ,
-	      const struct spinor B )
+	     const struct spinor B )
 {
   double complex *s1 = (double complex*)A -> D ;
   double complex *s2 = (double complex*)B.D ;
