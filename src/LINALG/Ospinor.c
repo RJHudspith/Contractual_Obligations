@@ -4,6 +4,8 @@
  */
 #include "common.h"
 
+#include "spinmatrix_ops.h"
+
 // copy a spinor to an opposite-indexed spinor
 struct Ospinor
 spinor_to_Ospinor( const struct spinor S )

@@ -263,10 +263,23 @@ static inline void
 setM( double complex *C1 ,
       const struct spinmatrix temp )
 {
+#ifdef __AVX__
+  double *pC1 = (double*)C1 ;
+  const __m256d *pt = (const __m256d*)temp.D ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+  _mm256_storeu_pd( pC1 , *pt ) ; pC1+=4 ; pt++ ;
+#else
   C1[0] = temp.D[0][0] ; C1[1] = temp.D[0][1] ; C1[2] = temp.D[0][2] ; C1[3] = temp.D[0][3] ;
   C1[4] = temp.D[1][0] ; C1[5] = temp.D[1][1] ; C1[6] = temp.D[1][2] ; C1[7] = temp.D[1][3] ;
   C1[8] = temp.D[2][0] ; C1[9] = temp.D[2][1] ; C1[10] = temp.D[2][2] ; C1[11] = temp.D[2][3] ;
   C1[12] = temp.D[3][0] ; C1[13] = temp.D[3][1] ; C1[14] = temp.D[3][2] ; C1[15] = temp.D[3][3] ;
+#endif
 }
 
 // precompute a "block" as an array of spinmatrices

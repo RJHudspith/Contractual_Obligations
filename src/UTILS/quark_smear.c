@@ -150,26 +150,86 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
 		 const size_t site1 )
 {
   size_t n , r ;
+#if (defined __AVX__) && (ND==4)
+  __m256d sum[M.Nprops][ 8*NCNC ] , *pt ; // spinor
+  double *pB ;
+  size_t k ;
+  // set the sum to zero
+  for( n = 0 ; n < M.Nprops ; n++ ) {
+    pt = sum[n] ;
+    for( k = 0 ; k < NCNC ; k++ ) {
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+      *pt = _mm256_setzero_pd() ; pt++ ;
+    }
+  }
+  // sum over each spatial separation
+  for( r = 0 ; r < (size_t)M.NR ; r++ ) {
+    const size_t site2 = compute_spacing( M.rlist[r].MOM ,
+					  site1 , ND-1 ) ;
+    for( n = 0 ; n < M.Nprops ; n++ ) {
+      pB = (double*)M.S[n][site2].D ;
+      register __m256d B ;
+      pt = sum[n] ;
+      // inline avx sum
+      for( k = 0 ; k < NCNC ; k++ ) {
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+	B = _mm256_loadu_pd( pB ) ; pB+=4 ;
+	*pt = _mm256_add_pd( *pt , B ) ; pt++ ;
+      }
+    }
+  }
+  // copy sums back unaliged copy
+  for( n = 0 ; n < M.Nprops ; n++ ) {
+    pt = sum[n] ;
+    pB = (double*)SUM_r2[n].D ;
+    for( k = 0 ; k < NCNC ; k++ ) {
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+      _mm256_storeu_pd( pB , *pt ) ; pB+=4 ; pt++ ;
+    }
+  }
+#else
   // set the sum to zero
   for( n = 0 ; n < M.Nprops ; n++ ) {
     spinor_zero_site( &SUM_r2[ n ] ) ;
   }
-
   // sum over each spatial separation
   for( r = 0 ; r < (size_t)M.NR ; r++ ) {
-
     const size_t site2 = compute_spacing( M.rlist[r].MOM , site1 ,
 					  ND-1 ) ;
-
     for( n = 0 ; n < M.Nprops ; n++ ) {
       add_spinors( &SUM_r2[n] , M.S[n][site2] ) ;
-
       // we could really be creative here and put all sorts of functions in.
       // This one below weights further away points exponentially, although the
       // gauge field kinda does that already. 
       // spinor_Saxpy( &SUM_r2[n] , exp( -M.rlist[r].nsq*0.1 ) , M.S[n][site2] ) ;
     }
   }
+#endif
 
   return ;
 }
