@@ -188,7 +188,7 @@ contract_O2O2_2( const struct block *C1 ,
 			       C2[ element( d , b , b , c ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum2 - sum1 ) : sum2 ;
 }
 
 // mixing of heavy mesons
@@ -431,11 +431,9 @@ tetras( double complex *result ,
       precompute_block2( C2 , ObwdH1 , blck[ dm[B1]].CGi , ObwdH2T , blck[mm[B2]].t_G5 ) ;
       result[idx2]  = contract_O1O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-      if( mu < (size_t)(ND-1) ) {
-	precompute_block2( C1 , OL1T , blck[ dm[B1] ].CG5 , OL2 , gamma_transpose( blck[mm[B2]].t_G5 ) ) ;
-	precompute_block2( C2 , ObwdH1 , blck[dm[B1]].CGi , ObwdH2T , blck[mm[B2]].t_Gi ) ;
-	result[idx2] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
-      }
+      precompute_block2( C1 , OL1T , blck[ dm[B1] ].CG5 , OL2 , gamma_transpose( blck[mm[B2]].t_G5 ) ) ;
+      precompute_block2( C2 , ObwdH1 , gamma_transpose( blck[dm[B1]].CGi ) , ObwdH2T , blck[mm[B2]].t_Gi ) ;
+      result[idx2] -= contract_O1O2_2( C1 , C2 , H1H2_degenerate ) ;
       
       /////////////////// Dimeson -> Diquark Anti-Diquark mixing terms
       const size_t idx3 = 2*TETRA_NBLOCK*TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
@@ -446,11 +444,9 @@ tetras( double complex *result ,
       result[idx3]  = contract_O2O1_1( C1 , C2 , H1H2_degenerate ) ;
 
       // O_2 O_1 -- term 2 has the minus sign
-      if( mu < (size_t)(ND-1) ) {
-	precompute_block2( C1 , ObwdH1 , gamma_transpose( blck[mm[B1]].G5 ) , OL2 , blck[dm[B2]].t_CG5 ) ;
-	precompute_block2( C2 , OL1T , blck[mm[B1]].Gi , ObwdH2T , blck[dm[B2]].t_CGi ) ;
-	result[idx3] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
-      }
+      precompute_block2( C1 , ObwdH1 , gamma_transpose( blck[mm[B1]].G5 ) , OL2 , blck[dm[B2]].t_CG5 ) ;
+      precompute_block2( C2 , OL1T , blck[mm[B1]].Gi , ObwdH2T , gamma_transpose( blck[dm[B2]].t_CGi ) ) ;
+      result[idx3] -= contract_O2O1_2( C1 , C2 , H1H2_degenerate ) ;
       
       ////////////////// Dimeson -> Dimeson mixing terms
       const size_t idx4 = 2*TETRA_NBLOCK*TETRA_NBLOCK + TETRA_NBLOCK + B2 + 2 * TETRA_NBLOCK * B1 ;
@@ -460,30 +456,27 @@ tetras( double complex *result ,
       precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL2 , blck[mm[B2]].t_Gi ) ;
       result[idx4]  = contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
 
-      if( mu < (size_t)(ND-1) ) {
-	// O_2 O_2 -- term 2 is -( a b^\dagger )
-	precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL1 , blck[mm[B2]].t_Gi ) ;
-	precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL2 , blck[mm[B2]].t_G5 ) ;  
-	result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+      // O_2 O_2 -- term 2 is -( a b^\dagger )
+      precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL1 , blck[mm[B2]].t_Gi ) ;
+      precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL2 , blck[mm[B2]].t_G5 ) ;  
+      result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 	
-	// need to do the others where L1 and L2 are swapped, this is only 
-	// a concern for the dimeson - dimeson
-	if( L1L2_degenerate == GLU_FALSE ) {
-	  // O2O2 -- term 3 is -( b a^\dagger )
-	  precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_Gi ) ;
-	  precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_G5 ) ;  
-	  result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
+      // need to do the others where L1 and L2 are swapped, this is only 
+      // a concern for the dimeson - dimeson
+      if( L1L2_degenerate == GLU_FALSE ) {
+	// O2O2 -- term 3 is -( b a^\dagger )
+	precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_Gi ) ;
+	precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_G5 ) ;  
+	result[idx4] -= contract_O2O2_2( C1 , C2 , H1H2_degenerate ) ;
 	  
-	  // O2O2 -- term 4 is ( b b^\dagger )
-	  precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_G5 ) ;
-	  precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_Gi ) ;
-	  result[idx4] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
-	} else {
-	  result[idx4] *= 2 ;
-	}
-	//
+	// O2O2 -- term 4 is ( b b^\dagger )
+	precompute_block2( C1 , ObwdH1 , blck[mm[B1]].G5 , OL2 , blck[mm[B2]].t_G5 ) ;
+	precompute_block2( C2 , ObwdH2 , blck[mm[B1]].Gi , OL1 , blck[mm[B2]].t_Gi ) ;
+	result[idx4] += contract_O2O2_1( C1 , C2 , H1H2_degenerate ) ;
+      } else {
+	result[idx4] *= 2 ;
       }
-      // mu < ND-1
+      //
     }
   }
 

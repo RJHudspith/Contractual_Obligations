@@ -172,6 +172,7 @@ sum_spatial_sep( struct spinor *SUM_r2 ,
   for( r = 0 ; r < (size_t)M.NR ; r++ ) {
     const size_t site2 = compute_spacing( M.rlist[r].MOM ,
 					  site1 , ND-1 ) ;
+
     for( n = 0 ; n < M.Nprops ; n++ ) {
       pB = (double*)M.S[n][site2].D ;
       register __m256d B ;
