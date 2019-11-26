@@ -188,27 +188,7 @@ contract_O2O2_2( const struct block *C1 ,
 			       C2[ element( d , b , b , c ) ].M ) ;
   }
   // if the heavies are the same particle we have a cross term
-  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum1 ;
-}
-
-// mixing of heavy mesons
-double complex
-contract_O3( const struct block *C1 , 
-	     const struct block *C2 ,
-	     const GLU_bool H1H2_degenerate )
-{
-  register double complex sum1 = 0.0 ;
-  size_t abcd , a , b , c , d ;
-  for( abcd = 0 ; abcd < NCNC*NCNC ; abcd++ ) {
-    get_abcd( &a , &b , &c , &d , abcd ) ;
-    // meson product
-    sum1 += 
-      trace_prod_spinmatrices( C1[ element( d , a , a , c ) ].M ,
-			       C2[ element( c , b , b , d ) ].M ) ;
-    // should be another term here
-  }
-  // if the heavies are the same particle we have a cross term
-  return sum1 ;
+  return ( H1H2_degenerate == GLU_TRUE ) ? ( sum1 - sum2 ) : sum2 ;
 }
 
 // get an element from a b c d
